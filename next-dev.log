@@ -1,0 +1,44 @@
+
+> my-project@0.1.0 dev
+> next dev --port 3020
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3020
+- Network:       http://192.168.1.83:3020
+✓ Ready in 644ms
+
+ GET / 200 in 2.6s (next.js: 2.4s, application-code: 191ms)
+ GET /client/meeting-validation 200 in 2.3s (next.js: 2.2s, application-code: 38ms)
+ GET / 200 in 139ms (next.js: 9ms, application-code: 130ms)
+ GET /client/meeting-validation 200 in 37ms (next.js: 6ms, application-code: 31ms)
+ GET /client/intelligence-insight 200 in 1046ms (next.js: 816ms, application-code: 230ms)
+ GET /client/meeting-validation 200 in 249ms (next.js: 8ms, application-code: 241ms)
+ GET /client/meeting-validation 200 in 174ms (next.js: 5ms, application-code: 169ms)
+ GET /internal/sdr-leader-dashboard 200 in 1652ms (next.js: 1406ms, application-code: 246ms)
+ GET / 200 in 79ms (next.js: 8ms, application-code: 70ms)
+ GET /client/meeting-validation 200 in 56ms (next.js: 8ms, application-code: 47ms)
+ GET /client/meeting-validation 200 in 236ms (next.js: 6ms, application-code: 230ms)
+ GET /client/performance-overview 200 in 715ms (next.js: 685ms, application-code: 30ms)
+ GET /client/intelligence-insight 200 in 24ms (next.js: 5ms, application-code: 20ms)
+ GET /internal/meeting-followup 200 in 655ms (next.js: 626ms, application-code: 29ms)
+ GET /internal/sdr-leader-dashboard 200 in 27ms (next.js: 5ms, application-code: 21ms)
+ GET /internal/sdr-performance 200 in 591ms (next.js: 562ms, application-code: 29ms)
+ GET /internal/meeting-followup 200 in 29ms (next.js: 4ms, application-code: 25ms)
+ GET /client/meeting-validation 200 in 55ms (next.js: 31ms, application-code: 24ms)
+ GET /client/performance-overview 200 in 25ms (next.js: 4ms, application-code: 21ms)
+ GET /client/meeting-validation 200 in 23ms (next.js: 3ms, application-code: 19ms)
+ GET /internal/meeting-followup 200 in 28ms (next.js: 4ms, application-code: 25ms)
+ GET /internal/sdr-leader-dashboard 200 in 24ms (next.js: 3ms, application-code: 20ms)
+ GET /internal/meeting-followup 200 in 65ms (next.js: 43ms, application-code: 22ms)
+ GET /internal/sdr-performance 200 in 49ms (next.js: 28ms, application-code: 21ms)
+ GET /internal/meeting-followup 200 in 41ms (next.js: 12ms, application-code: 29ms)
+ GET /internal/sdr-performance 200 in 30ms (next.js: 8ms, application-code: 22ms)
+ GET /internal/sdr-leader-dashboard 200 in 33ms (next.js: 14ms, application-code: 19ms)
+ GET /internal/meeting-followup 200 in 22ms (next.js: 4ms, application-code: 18ms)
+ GET /internal/sdr-performance 200 in 28ms (next.js: 11ms, application-code: 18ms)
+ GET /client/meeting-validation 200 in 53ms (next.js: 26ms, application-code: 27ms)
+ GET /client/performance-overview 200 in 38ms (next.js: 19ms, application-code: 19ms)
+ GET /client/meeting-validation 200 in 24ms (next.js: 3ms, application-code: 21ms)
+ GET /client/intelligence-insight 200 in 57ms (next.js: 35ms, application-code: 22ms)
+ GET /client/meeting-validation 200 in 22ms (next.js: 3ms, application-code: 18ms)
+ GET /client/performance-overview 200 in 25ms (next.js: 7ms, application-code: 18ms)
