@@ -176,7 +176,7 @@ export default function ClientSetupOSPage() {
 
   return (
     <div className="flex-1 overflow-hidden">
-      <header className="border-b border-border bg-card px-6 py-4">
+      <header className="border-b border-border bg-card px-4 py-4 sm:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="mb-1 flex items-center gap-2">
@@ -188,16 +188,16 @@ export default function ClientSetupOSPage() {
               GBS Logistics · MVP visual · datos mock · sin APIs ni datos productivos
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <DemoDisabledButton className="gap-2"><RefreshCw className="h-4 w-4" />Actualizar</DemoDisabledButton>
-            <DemoDisabledButton className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"><CheckCircle2 className="h-4 w-4" />Marcar revisión</DemoDisabledButton>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <DemoDisabledButton className="gap-2 text-xs sm:text-sm"><RefreshCw className="h-4 w-4" />Actualizar</DemoDisabledButton>
+            <DemoDisabledButton className="gap-2 bg-primary text-xs text-primary-foreground hover:bg-primary/90 sm:text-sm"><CheckCircle2 className="h-4 w-4" />Marcar revisión</DemoDisabledButton>
           </div>
         </div>
       </header>
 
-      <ScrollArea className="h-[calc(100vh-65px)]">
-        <div className="space-y-6 p-6">
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+      <ScrollArea className="h-[calc(100vh-121px)] md:h-[calc(100vh-65px)]">
+        <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
+          <div className="grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 lg:grid-cols-6">
             <KPICard title="Checklist listo" value={`${ready}/10`} icon={<ClipboardCheck className="h-5 w-5" />} variant="primary" />
             <KPICard title="Segmentos ICP" value={segments.length} icon={<Target className="h-5 w-5" />} variant="success" />
             <KPICard title="Empresas objetivo" value={targetAccounts.length} icon={<Building2 className="h-5 w-5" />} />
@@ -221,7 +221,8 @@ export default function ClientSetupOSPage() {
           </Card>
 
           <Tabs defaultValue="resumen" className="space-y-4">
-            <TabsList className="flex h-auto flex-wrap justify-start">
+            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex h-auto min-w-max justify-start">
               <TabsTrigger value="resumen">Resumen</TabsTrigger>
               <TabsTrigger value="icp">ICP</TabsTrigger>
               <TabsTrigger value="empresas">Empresas</TabsTrigger>
@@ -231,6 +232,7 @@ export default function ClientSetupOSPage() {
               <TabsTrigger value="sdr">SDR</TabsTrigger>
               <TabsTrigger value="historial">Historial</TabsTrigger>
             </TabsList>
+            </div>
 
             <TabsContent value="resumen" className="space-y-4">
               <div className="grid gap-4 xl:grid-cols-[1.35fr_.65fr]">

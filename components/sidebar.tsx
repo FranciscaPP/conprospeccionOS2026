@@ -45,7 +45,8 @@ export function Sidebar() {
   const navItems = role === "client" ? clientNavItems : internalNavItems;
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-border bg-card">
+    <>
+    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r border-border bg-card md:flex">
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-border px-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
@@ -124,6 +125,29 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+
+    <nav className="fixed inset-x-0 bottom-0 z-50 flex gap-1 overflow-x-auto border-t border-border bg-card/95 px-2 py-2 shadow-lg backdrop-blur md:hidden">
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = pathname === item.href;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex min-w-[78px] flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-[10px] font-medium leading-tight transition-colors",
+              isActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <Icon className="h-4 w-4" />
+            <span className="line-clamp-2 text-center">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+    </>
   );
 }
 
