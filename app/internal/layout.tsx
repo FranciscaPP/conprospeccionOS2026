@@ -15,7 +15,7 @@ export default function InternalLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (role === "client" && pathname.startsWith("/internal")) {
+    if (role === "client" && pathname.startsWith("/internal") && pathname !== "/internal/client-setup-os") {
       router.push("/client/meeting-validation");
     }
   }, [role, pathname, router]);

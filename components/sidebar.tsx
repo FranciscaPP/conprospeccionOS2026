@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   TrendingUp,
   UserCheck,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -31,6 +32,7 @@ const clientNavItems = [
 ];
 
 const internalNavItems = [
+  { href: "/internal/client-setup-os", label: "Client Setup OS", icon: ClipboardList },
   { href: "/internal/sdr-leader-dashboard", label: "Panel líder SDR", icon: TrendingUp },
   { href: "/internal/meeting-followup", label: "Seguimiento reuniones", icon: Calendar },
   { href: "/internal/sdr-performance", label: "Performance SDR", icon: UserCheck },
