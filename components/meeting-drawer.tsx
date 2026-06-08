@@ -24,13 +24,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
 import type {
   BANTCriteria,
@@ -292,10 +285,6 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                       <Label className="text-xs text-muted-foreground">País / región</Label>
                       <p className="text-sm font-medium text-foreground">{meeting.country || "Chile"}</p>
                     </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Stage GHL futuro</Label>
-                      <p className="text-sm font-medium text-foreground">{meeting.ghlStageKey || "pendiente_validacion"}</p>
-                    </div>
                   </>
                 )}
               </div>
@@ -383,32 +372,28 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                 <div className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Estado reunión</Label>
-                      <Select
+                      <Label className="text-xs text-muted-foreground">Estado operativo</Label>
+                      <select
+                        className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
                         value={formData.meetingStatus as MeetingStatus}
-                        onValueChange={(value) => setFormData({ ...formData, meetingStatus: value as MeetingStatus })}
+                        onChange={(event) => setFormData({ ...formData, meetingStatus: event.target.value as MeetingStatus })}
                       >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(meetingStatusLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        {Object.entries(meetingStatusLabels).map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Validación CP</Label>
-                      <Select
+                      <Label className="text-xs text-muted-foreground">Validación Conprospección</Label>
+                      <select
+                        className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
                         value={formData.cpValidation as CPValidation}
-                        onValueChange={(value) => setFormData({ ...formData, cpValidation: value as CPValidation })}
+                        onChange={(event) => setFormData({ ...formData, cpValidation: event.target.value as CPValidation })}
                       >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(cpValidationLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        {Object.entries(cpValidationLabels).map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -513,32 +498,28 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   <h3 className="text-sm font-semibold text-foreground">Gestión interna</h3>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Validación final</Label>
-                      <Select
+                      <Label className="text-xs text-muted-foreground">Resultado para meta</Label>
+                      <select
+                        className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
                         value={(formData.finalValidation || previewFinal) as FinalValidation}
-                        onValueChange={(value) => setFormData({ ...formData, finalValidation: value as FinalValidation })}
+                        onChange={(event) => setFormData({ ...formData, finalValidation: event.target.value as FinalValidation })}
                       >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(finalValidationLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        {Object.entries(finalValidationLabels).map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">Estado comercial</Label>
-                      <Select
+                      <select
+                        className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
                         value={formData.commercialStatus as CommercialStatus}
-                        onValueChange={(value) => setFormData({ ...formData, commercialStatus: value as CommercialStatus })}
+                        onChange={(event) => setFormData({ ...formData, commercialStatus: event.target.value as CommercialStatus })}
                       >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(commercialStatusLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        {Object.entries(commercialStatusLabels).map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div className="space-y-2">

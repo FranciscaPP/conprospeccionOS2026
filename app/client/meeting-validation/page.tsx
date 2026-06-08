@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import {
   AlertTriangle,
@@ -11,7 +11,6 @@ import {
   FileText,
   Search,
   ShieldCheck,
-  Target,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { KPICard } from "@/components/kpi-card";
@@ -42,21 +41,29 @@ function statusToBadge(status: string): FinalValidation | MeetingStatus {
 }
 
 export default function MeetingValidationPage() {
-  const { meetings } = useApp();
+  const { meetings, selectedMeetingId, setSelectedMeetingId } = useApp();
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [queryMeetingId, setQueryMeetingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [kpiFilter, setKpiFilter] = useState<KpiFilter>("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [dayFilter, setDayFilter] = useState("all");
 
+  const requestedMeetingId = queryMeetingId || selectedMeetingId;
+  const requestedMeeting = useMemo(
+    () => meetings.find((meeting) => meeting.id === requestedMeetingId) || null,
+    [meetings, requestedMeetingId]
+  );
+  const selectedClient = requestedMeeting?.client || "GBS Logistics";
+
   const clientMeetings = useMemo(
-    () => meetings.filter((meeting) => meeting.client === "GBS Logistics"),
-    [meetings]
+    () => meetings.filter((meeting) => meeting.client === selectedClient),
+    [meetings, selectedClient]
   );
 
-  const goal = MONTHLY_GOAL_BY_CLIENT["GBS Logistics"] ?? 10;
+  const goal = MONTHLY_GOAL_BY_CLIENT[selectedClient] ?? 10;
 
   const kpis = useMemo(() => {
     const finalValid = clientMeetings.filter((meeting) => meeting.finalValidation === "final_valid").length;
@@ -114,6 +121,17 @@ export default function MeetingValidationPage() {
     setStatusFilter("all");
   };
 
+  useEffect(() => {
+    setQueryMeetingId(new URLSearchParams(window.location.search).get("meeting"));
+  }, []);
+
+  useEffect(() => {
+    if (!requestedMeeting) return;
+    setSelectedMeeting(requestedMeeting);
+    setDrawerOpen(true);
+    setSelectedMeetingId(null);
+  }, [requestedMeeting, setSelectedMeetingId]);
+
   return (
     <div className="flex-1 overflow-hidden">
       <header className="border-b border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
@@ -121,7 +139,7 @@ export default function MeetingValidationPage() {
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-foreground sm:text-xl">Validación de reuniones</h1>
             <p className="max-w-full break-words text-sm leading-5 text-muted-foreground">
-              GBS Logistics · Revisión de reuniones entregadas
+              {selectedClient} · Revisión de reuniones entregadas
             </p>
           </div>
           {kpis.pending > 0 && (

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type React from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Calendar,
@@ -10,9 +11,9 @@ import {
   ChevronRight,
   Clock,
   Flag,
+  Link as LinkIcon,
   RefreshCw,
   Search,
-  Target,
   UserCheck,
   XCircle,
 } from "lucide-react";
@@ -78,7 +79,8 @@ const statusToBadge = (meeting: Meeting): MeetingStatus | FinalValidation => {
 };
 
 export default function InternalMeetingFollowupPage() {
-  const { meetings } = useApp();
+  const router = useRouter();
+  const { meetings, setRole, setSelectedMeetingId } = useApp();
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
@@ -86,8 +88,9 @@ export default function InternalMeetingFollowupPage() {
   const [clientFilter, setClientFilter] = useState("all");
   const [sdrFilter, setSdrFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [companyFilter, setCompanyFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [dayFilter, setDayFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
 
   const today = new Date();
@@ -95,7 +98,22 @@ export default function InternalMeetingFollowupPage() {
 
   const clients = useMemo(() => [...new Set(meetings.map((m) => m.client))].sort(), [meetings]);
   const sdrs = useMemo(() => [...new Set(meetings.map((m) => m.sdrAssigned))].sort(), [meetings]);
-  const companies = useMemo(() => [...new Set(meetings.map((m) => m.company))].sort(), [meetings]);
+  const years = useMemo(() => [...new Set(meetings.map((m) => m.meetingDate.slice(0, 4)))].sort(), [meetings]);
+  const months = useMemo(() => {
+    return [...new Set(
+      meetings
+        .filter((meeting) => yearFilter === "all" || meeting.meetingDate.slice(0, 4) === yearFilter)
+        .map((meeting) => meeting.meetingDate.slice(0, 7))
+    )].sort();
+  }, [meetings, yearFilter]);
+  const days = useMemo(() => {
+    return [...new Set(
+      meetings
+        .filter((meeting) => yearFilter === "all" || meeting.meetingDate.slice(0, 4) === yearFilter)
+        .filter((meeting) => monthFilter === "all" || meeting.meetingDate.slice(0, 7) === monthFilter)
+        .map((meeting) => meeting.meetingDate.slice(0, 10))
+    )].sort();
+  }, [meetings, monthFilter, yearFilter]);
   const countries = useMemo(
     () => [...new Set(meetings.map((m) => m.country).filter(Boolean))].sort() as string[],
     [meetings]
@@ -155,7 +173,6 @@ export default function InternalMeetingFollowupPage() {
     const search = searchQuery.trim().toLowerCase();
 
     return meetings.filter((meeting) => {
-      const meetingDate = new Date(meeting.meetingDate);
       const matchesSearch = search === "" || getInternalSearchText(meeting).includes(search);
       const matchesClient = clientFilter === "all" || meeting.client === clientFilter;
       const matchesSdr = sdrFilter === "all" || meeting.sdrAssigned === sdrFilter;
@@ -164,12 +181,9 @@ export default function InternalMeetingFollowupPage() {
         meeting.meetingStatus === statusFilter ||
         meeting.clientDecision === statusFilter ||
         meeting.finalValidation === statusFilter;
-      const matchesDate =
-        dateFilter === "all" ||
-        (dateFilter === "today" && isToday(meetingDate)) ||
-        (dateFilter === "tomorrow" && isTomorrow(meetingDate)) ||
-        (dateFilter === "week" && isSameWeek(meetingDate, today, { weekStartsOn: 1 }));
-      const matchesCompany = companyFilter === "all" || meeting.company === companyFilter;
+      const matchesYear = yearFilter === "all" || meeting.meetingDate.slice(0, 4) === yearFilter;
+      const matchesMonth = monthFilter === "all" || meeting.meetingDate.slice(0, 7) === monthFilter;
+      const matchesDay = dayFilter === "all" || meeting.meetingDate.slice(0, 10) === dayFilter;
       const matchesCountry = countryFilter === "all" || meeting.country === countryFilter;
       const matchesQuick = matchesQuickFilter(meeting, quickFilter, today);
 
@@ -178,23 +192,25 @@ export default function InternalMeetingFollowupPage() {
         matchesClient &&
         matchesSdr &&
         matchesStatus &&
-        matchesDate &&
-        matchesCompany &&
+        matchesYear &&
+        matchesMonth &&
+        matchesDay &&
         matchesCountry &&
         matchesQuick
       );
     });
   }, [
     clientFilter,
-    companyFilter,
     countryFilter,
-    dateFilter,
+    dayFilter,
     meetings,
+    monthFilter,
     quickFilter,
     searchQuery,
     sdrFilter,
     statusFilter,
     today,
+    yearFilter,
   ]);
 
   const riskClients = clientProgress.filter((client) => client.priority === "Alta").slice(0, 3);
@@ -205,6 +221,12 @@ export default function InternalMeetingFollowupPage() {
   const openDrawer = (meeting: Meeting) => {
     setSelectedMeeting(meeting);
     setDrawerOpen(true);
+  };
+
+  const openClientValidation = (meeting: Meeting) => {
+    setRole("client");
+    setSelectedMeetingId(meeting.id);
+    router.push(`/client/meeting-validation?meeting=${meeting.id}`);
   };
 
   return (
@@ -331,7 +353,9 @@ export default function InternalMeetingFollowupPage() {
                     {clientProgress.map((client) => (
                       <tr key={client.client} className="hover:bg-muted/30">
                         <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-foreground">{client.client}</p>
+                          <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${clientTheme(client.client)}`}>
+                            {client.client}
+                          </span>
                           <Progress value={client.progress} className="mt-2 h-1.5" />
                         </td>
                         <td className="px-4 py-3 text-sm text-foreground">{client.goal}</td>
@@ -390,12 +414,12 @@ export default function InternalMeetingFollowupPage() {
               )}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-8">
               <div className="relative md:col-span-2">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="pl-9"
-                  placeholder="Buscar cliente, empresa, contacto, cargo o SDR"
+                  placeholder="Buscar por cliente, empresa, nombre, apellido, cargo o SDR"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
@@ -419,17 +443,45 @@ export default function InternalMeetingFollowupPage() {
                 ]}
               />
               <NativeFilter
-                label="Fecha"
-                value={dateFilter}
-                onChange={setDateFilter}
+                label="Año"
+                value={yearFilter}
+                onChange={(value) => {
+                  setYearFilter(value);
+                  setMonthFilter("all");
+                  setDayFilter("all");
+                }}
                 options={[
-                  { value: "all", label: "Fecha: Todas" },
-                  { value: "today", label: "Hoy" },
-                  { value: "tomorrow", label: "Mañana" },
-                  { value: "week", label: "Esta semana" },
+                  { value: "all", label: "Año: Todos" },
+                  ...years.map((year) => ({ value: year, label: year })),
                 ]}
               />
-              <FilterSelect label="Empresa" value={companyFilter} onChange={setCompanyFilter} values={companies} />
+              <NativeFilter
+                label="Mes"
+                value={monthFilter}
+                onChange={(value) => {
+                  setMonthFilter(value);
+                  setDayFilter("all");
+                }}
+                options={[
+                  { value: "all", label: "Mes: Todos" },
+                  ...months.map((month) => ({
+                    value: month,
+                    label: format(new Date(`${month}-01T12:00:00`), "MMMM yyyy", { locale: es }),
+                  })),
+                ]}
+              />
+              <NativeFilter
+                label="Día"
+                value={dayFilter}
+                onChange={setDayFilter}
+                options={[
+                  { value: "all", label: "Día: Todos" },
+                  ...days.map((day) => ({
+                    value: day,
+                    label: format(new Date(`${day}T12:00:00`), "d MMM yyyy", { locale: es }),
+                  })),
+                ]}
+              />
               <FilterSelect label="País" value={countryFilter} onChange={setCountryFilter} values={countries} />
             </div>
           </section>
@@ -440,17 +492,18 @@ export default function InternalMeetingFollowupPage() {
                 <thead className="bg-muted/50">
                   <tr>
                     {[
-                      "Fecha",
                       "Cliente",
+                      "Fecha",
                       "Empresa",
                       "Nombre",
                       "Apellido",
                       "Cargo",
                       "País",
                       "SDR",
-                      "Estado reunión",
-                      "Estado validación",
-                      "Resultado",
+                      "Estado operativo",
+                      "Validación cliente",
+                      "Resultado meta",
+                      "Link",
                       "Acción",
                     ].map((heading) => (
                       <th
@@ -469,7 +522,25 @@ export default function InternalMeetingFollowupPage() {
                     const lastName = meeting.lastName || names.lastName;
 
                     return (
-                      <tr key={meeting.id} className="hover:bg-muted/30">
+                      <tr
+                        key={meeting.id}
+                        className="cursor-pointer hover:bg-muted/30"
+                        onClick={() => openDrawer(meeting)}
+                      >
+                        <td className="px-3 py-3">
+                          <button
+                            type="button"
+                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${clientTheme(meeting.client)}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openClientValidation(meeting);
+                            }}
+                            title="Abrir dashboard de validación del cliente"
+                          >
+                            {meeting.client}
+                            <ChevronRight className="h-3 w-3" />
+                          </button>
+                        </td>
                         <td className="px-3 py-3">
                           <p className="text-xs font-medium text-foreground">
                             {format(new Date(meeting.meetingDate), "dd MMM", { locale: es })}
@@ -478,7 +549,6 @@ export default function InternalMeetingFollowupPage() {
                             {format(new Date(meeting.meetingDate), "HH:mm")}
                           </p>
                         </td>
-                        <td className="px-3 py-3 text-xs font-medium text-foreground">{meeting.client}</td>
                         <td className="px-3 py-3 text-xs text-foreground">{meeting.company}</td>
                         <td className="px-3 py-3 text-xs text-foreground">{firstName}</td>
                         <td className="px-3 py-3 text-xs text-foreground">{lastName}</td>
@@ -505,16 +575,31 @@ export default function InternalMeetingFollowupPage() {
                             label={getValidationResultLabel(meeting)}
                             size="sm"
                           />
-                          <p className="mt-1 text-[11px] text-muted-foreground">
-                            BANT {meeting.bantScore ?? meeting.cpBANT.length}/4
-                          </p>
+                        </td>
+                        <td className="px-3 py-3">
+                          {meeting.meetingUrl ? (
+                            <a
+                              className="inline-flex items-center gap-1 text-xs font-medium text-violet-700 hover:underline"
+                              href={meeting.meetingUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              Abrir <LinkIcon className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Sin link</span>
+                          )}
                         </td>
                         <td className="px-3 py-3">
                           <Button
                             variant="ghost"
                             size="sm"
                             className="gap-1 text-violet-700"
-                            onClick={() => openDrawer(meeting)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openDrawer(meeting);
+                            }}
                           >
                             Ver detalle
                             <ChevronRight className="h-4 w-4" />
@@ -569,6 +654,16 @@ function priorityClass(priority: string) {
   if (priority === "Alta") return "border-rose-200 bg-rose-50 text-rose-700";
   if (priority === "Media") return "border-amber-200 bg-amber-50 text-amber-700";
   return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+function clientTheme(client: string) {
+  const normalized = client.toLowerCase();
+  if (normalized.includes("just4u")) return "border-orange-200 bg-orange-50 text-orange-700";
+  if (normalized.includes("clickie")) return "border-yellow-300 bg-yellow-100 text-yellow-800";
+  if (normalized.includes("ecosmart")) return "border-sky-200 bg-sky-50 text-sky-700";
+  if (normalized.includes("bambutech")) return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (normalized.includes("gbs")) return "border-violet-200 bg-violet-50 text-violet-700";
+  return "border-border bg-muted text-foreground";
 }
 
 function QuickKPI({
@@ -627,9 +722,9 @@ function ClientSummaryBlock({
       ) : (
         <div className="space-y-2">
           {items.map((item) => (
-            <div key={item.name} className="rounded-lg border border-border p-3">
+            <div key={item.name} className={`rounded-lg border p-3 ${clientTheme(item.name)}`}>
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-foreground">{item.name}</p>
+                <p className="text-sm font-semibold">{item.name}</p>
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                     item.tone === "danger"
