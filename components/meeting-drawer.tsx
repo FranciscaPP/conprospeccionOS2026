@@ -149,12 +149,16 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
   const [formData, setFormData] = useState<Partial<Meeting>>({});
   const [rejectionReason, setRejectionReason] = useState<RejectionReason>("wrong_role");
   const [clientComment, setClientComment] = useState("");
+  const [commercialStatus, setCommercialStatus] = useState<CommercialStatus>("pending_followup");
+  const [commercialNextStep, setCommercialNextStep] = useState("");
 
   useEffect(() => {
     if (!meeting) return;
     setFormData(meeting);
     setRejectionReason(meeting.rejectionReason || "wrong_role");
     setClientComment(meeting.clientComment || "");
+    setCommercialStatus(meeting.commercialStatus || "pending_followup");
+    setCommercialNextStep(meeting.nextStep || "");
   }, [meeting]);
 
   const previewFinal = useMemo(() => {
@@ -212,6 +216,13 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
       finalValidation: "in_dispute",
     });
     onClose();
+  };
+
+  const saveCommercialProgress = () => {
+    updateMeeting(meeting.id, {
+      commercialStatus,
+      nextStep: commercialNextStep,
+    });
   };
 
   return (
@@ -275,6 +286,46 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                     </div>
                   </>
                 )}
+              </div>
+              <div className="grid gap-4 rounded-lg border border-border bg-muted/20 p-3 sm:grid-cols-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground">País</Label>
+                  <p className="text-sm font-medium text-foreground">{meeting.country || "Chile"}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Industria</Label>
+                  <p className="text-sm font-medium text-foreground">{meeting.leadIndustry || "Sin dato"}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Sitio web</Label>
+                  {meeting.companyWebsite ? (
+                    <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.companyWebsite} target="_blank" rel="noreferrer">
+                      Abrir sitio
+                    </a>
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">LinkedIn contacto</Label>
+                  {meeting.contactLinkedinUrl ? (
+                    <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.contactLinkedinUrl} target="_blank" rel="noreferrer">
+                      Ver perfil
+                    </a>
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">LinkedIn empresa</Label>
+                  {meeting.companyLinkedinUrl ? (
+                    <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.companyLinkedinUrl} target="_blank" rel="noreferrer">
+                      Ver empresa
+                    </a>
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                  )}
+                </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <StatusBadge status={meeting.meetingStatus} label={meetingStatusLabels[meeting.meetingStatus]} size="sm" />
@@ -381,12 +432,9 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   <div className="rounded-lg border border-violet-100 bg-violet-50/60 p-3">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium text-foreground">Resumen IA demo</span>
-                      <span className="text-xs text-muted-foreground">
-                        Confianza {Math.round((meeting.evidence?.aiConfidence ?? 0.72) * 100)}%
-                      </span>
                     </div>
                     <p className="text-sm leading-6 text-muted-foreground">
-                      {meeting.evidence?.aiSummary || "Sección preparada para resumen de Tactiq + Claude. Pendiente de integración real."}
+                      {meeting.evidence?.aiSummary || "Sección preparada para resumen de reunión. Pendiente de integración real."}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <a
@@ -476,8 +524,51 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                 <Separator />
                 <section className="space-y-4">
                   <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    Avance comercial
+                  </h3>
+                  <div className="rounded-lg border border-border bg-muted/30 p-3">
+                    <p className="mb-3 text-sm leading-6 text-muted-foreground">
+                      Registro simple para seguimiento posterior a la reunión. Este avance no modifica la validación de la reunión.
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Estado comercial</Label>
+                        <select
+                          aria-label="Estado comercial"
+                          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
+                          value={commercialStatus}
+                          onChange={(event) => setCommercialStatus(event.target.value as CommercialStatus)}
+                        >
+                          {Object.entries(commercialStatusLabels).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Próximo paso</Label>
+                        <Input
+                          value={commercialNextStep}
+                          onChange={(event) => setCommercialNextStep(event.target.value)}
+                          placeholder="Ej: Enviar propuesta comercial"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-3 flex justify-end">
+                      <Button type="button" variant="outline" size="sm" onClick={saveCommercialProgress}>
+                        Guardar avance
+                      </Button>
+                    </div>
+                  </div>
+                </section>
+
+                <Separator />
+                <section className="space-y-4">
+                  <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     <User className="h-4 w-4 text-amber-600" />
-                    Tu validación
+                    Validación de reunión
                   </h3>
                   {locked ? (
                     <div className="rounded-lg border border-border bg-muted/40 p-4">
@@ -505,14 +596,18 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                     <>
                       <div className="space-y-2">
                         <Label className="text-xs text-muted-foreground">Motivo si objetas la reunión</Label>
-                        <Select value={rejectionReason} onValueChange={(value) => setRejectionReason(value as RejectionReason)}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(rejectionReasonLabels).map(([value, label]) => (
-                              <SelectItem key={value} value={value}>{label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <select
+                          aria-label="Motivo si objetas la reunión"
+                          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
+                          value={rejectionReason}
+                          onChange={(event) => setRejectionReason(event.target.value as RejectionReason)}
+                        >
+                          {Object.entries(rejectionReasonLabels).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs text-muted-foreground">Comentario opcional</Label>

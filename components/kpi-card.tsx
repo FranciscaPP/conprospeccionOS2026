@@ -6,6 +6,8 @@ interface KPICardProps {
   icon?: ReactNode;
   trend?: string;
   variant?: "default" | "success" | "warning" | "danger" | "primary";
+  active?: boolean;
+  onClick?: () => void;
 }
 
 const variantStyles = {
@@ -24,21 +26,38 @@ const iconVariantStyles = {
   primary: "bg-violet-100 text-violet-600",
 };
 
-export function KPICard({ title, value, icon, trend, variant = "default" }: KPICardProps) {
-  return (
-    <div className={`rounded-xl border p-4 ${variantStyles[variant]}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{title}</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
-          {trend && <p className="mt-1 text-xs text-muted-foreground">{trend}</p>}
-        </div>
-        {icon && (
-          <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconVariantStyles[variant]}`}>
-            {icon}
-          </div>
-        )}
+export function KPICard({ title, value, icon, trend, variant = "default", active = false, onClick }: KPICardProps) {
+  const className = `rounded-xl border p-4 text-left transition ${
+    variantStyles[variant]
+  } ${onClick ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-md" : ""} ${
+    active ? "ring-2 ring-violet-500 ring-offset-2" : ""
+  }`;
+  const content = (
+    <div className="flex items-center justify-between">
+      <div className="flex-1">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{title}</p>
+        <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
+        {trend && <p className="mt-1 text-xs text-muted-foreground">{trend}</p>}
       </div>
+      {icon && (
+        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconVariantStyles[variant]}`}>
+          {icon}
+        </div>
+      )}
+    </div>
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" className={className} onClick={onClick}>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className={className}>
+      {content}
     </div>
   );
 }

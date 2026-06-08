@@ -22,6 +22,15 @@ export function splitContactName(contact: string) {
   };
 }
 
+function toSlug(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 export function isProspectNoShow(meeting: Meeting) {
   return meeting.prospectAttended === false || meeting.meetingStatus === "no_show";
 }
@@ -119,6 +128,10 @@ export function normalizeMeeting(meeting: Meeting): Meeting {
     firstName: meeting.firstName || names.firstName,
     lastName: meeting.lastName || names.lastName,
     country: meeting.country || "Chile",
+    leadIndustry: meeting.leadIndustry || "Logística / Operaciones",
+    companyWebsite: meeting.companyWebsite || `https://${toSlug(meeting.company)}.com`,
+    contactLinkedinUrl: meeting.contactLinkedinUrl || `https://www.linkedin.com/in/${toSlug(meeting.contact)}`,
+    companyLinkedinUrl: meeting.companyLinkedinUrl || `https://www.linkedin.com/company/${toSlug(meeting.company)}`,
     regionValid: meeting.regionValid ?? true,
     prospectAttended:
       meeting.prospectAttended ?? (meeting.meetingStatus === "no_show" ? false : true),

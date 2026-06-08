@@ -31,6 +31,8 @@ import {
   MONTHLY_GOAL_BY_CLIENT,
 } from "@/lib/meeting-rules";
 
+type KpiFilter = "all" | "valid" | "pending" | "rejected_or_disputed";
+
 function statusToBadge(status: string): FinalValidation | MeetingStatus {
   if (status === "Validada") return "final_valid";
   if (status === "Rechazada" || status === "No realizada") return "final_not_valid";
@@ -45,8 +47,9 @@ export default function MeetingValidationPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [companyFilter, setCompanyFilter] = useState("all");
+  const [kpiFilter, setKpiFilter] = useState<KpiFilter>("all");
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [dayFilter, setDayFilter] = useState("all");
 
   const clientMeetings = useMemo(
     () => meetings.filter((meeting) => meeting.client === "GBS Logistics"),
@@ -70,15 +73,18 @@ export default function MeetingValidationPage() {
     };
   }, [clientMeetings, goal]);
 
-  const companies = useMemo(
-    () => [...new Set(clientMeetings.map((meeting) => meeting.company))],
+  const months = useMemo(
+    () => [...new Set(clientMeetings.map((meeting) => meeting.meetingDate.slice(0, 7)))].sort(),
     [clientMeetings]
   );
 
-  const dates = useMemo(
-    () => [...new Set(clientMeetings.map((meeting) => meeting.meetingDate.slice(0, 10)))].sort(),
-    [clientMeetings]
-  );
+  const days = useMemo(() => {
+    return [...new Set(
+      clientMeetings
+        .filter((meeting) => monthFilter === "all" || meeting.meetingDate.slice(0, 7) === monthFilter)
+        .map((meeting) => meeting.meetingDate.slice(0, 10))
+    )].sort();
+  }, [clientMeetings, monthFilter]);
 
   const filteredMeetings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -86,15 +92,26 @@ export default function MeetingValidationPage() {
       const simpleStatus = getSimpleClientStatus(meeting);
       const matchesSearch = !query || getClientSearchText(meeting).includes(query);
       const matchesStatus = statusFilter === "all" || simpleStatus === statusFilter;
-      const matchesCompany = companyFilter === "all" || meeting.company === companyFilter;
-      const matchesDate = dateFilter === "all" || meeting.meetingDate.slice(0, 10) === dateFilter;
-      return matchesSearch && matchesStatus && matchesCompany && matchesDate;
+      const matchesKpi =
+        kpiFilter === "all" ||
+        (kpiFilter === "valid" && meeting.finalValidation === "final_valid") ||
+        (kpiFilter === "pending" && getClientDecision(meeting) === "pending") ||
+        (kpiFilter === "rejected_or_disputed" &&
+          (getClientDecision(meeting) === "rejected" || meeting.finalValidation === "in_dispute"));
+      const matchesMonth = monthFilter === "all" || meeting.meetingDate.slice(0, 7) === monthFilter;
+      const matchesDay = dayFilter === "all" || meeting.meetingDate.slice(0, 10) === dayFilter;
+      return matchesSearch && matchesStatus && matchesKpi && matchesMonth && matchesDay;
     });
-  }, [clientMeetings, searchQuery, statusFilter, companyFilter, dateFilter]);
+  }, [clientMeetings, searchQuery, statusFilter, kpiFilter, monthFilter, dayFilter]);
 
   const openDrawer = (meeting: Meeting) => {
     setSelectedMeeting(meeting);
     setDrawerOpen(true);
+  };
+
+  const applyKpiFilter = (filter: KpiFilter) => {
+    setKpiFilter(filter);
+    setStatusFilter("all");
   };
 
   return (
@@ -119,10 +136,37 @@ export default function MeetingValidationPage() {
       <ScrollArea className="h-[calc(100dvh-7rem)] lg:h-[calc(100vh-65px)]">
         <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KPICard title="Total generadas" value={kpis.total} icon={<Calendar className="h-5 w-5" />} />
-            <KPICard title="Válidas finales" value={kpis.finalValid} icon={<CheckCircle2 className="h-5 w-5" />} variant="success" />
-            <KPICard title="Pendientes de validación" value={kpis.pending} icon={<Clock className="h-5 w-5" />} variant="warning" />
-            <KPICard title="Objetadas / en disputa" value={kpis.rejected + kpis.disputed} icon={<AlertTriangle className="h-5 w-5" />} variant="danger" />
+            <KPICard
+              title="Total generadas"
+              value={kpis.total}
+              icon={<Calendar className="h-5 w-5" />}
+              active={kpiFilter === "all" && statusFilter === "all"}
+              onClick={() => applyKpiFilter("all")}
+            />
+            <KPICard
+              title="Válidas finales"
+              value={kpis.finalValid}
+              icon={<CheckCircle2 className="h-5 w-5" />}
+              variant="success"
+              active={kpiFilter === "valid"}
+              onClick={() => applyKpiFilter("valid")}
+            />
+            <KPICard
+              title="Pendientes de validación"
+              value={kpis.pending}
+              icon={<Clock className="h-5 w-5" />}
+              variant="warning"
+              active={kpiFilter === "pending"}
+              onClick={() => applyKpiFilter("pending")}
+            />
+            <KPICard
+              title="Objetadas / en disputa"
+              value={kpis.rejected + kpis.disputed}
+              icon={<AlertTriangle className="h-5 w-5" />}
+              variant="danger"
+              active={kpiFilter === "rejected_or_disputed"}
+              onClick={() => applyKpiFilter("rejected_or_disputed")}
+            />
           </div>
 
           <section className="rounded-xl border border-border bg-card p-4">
@@ -152,7 +196,7 @@ export default function MeetingValidationPage() {
             </div>
           </section>
 
-          <div className="grid gap-3 lg:grid-cols-[1fr_220px_180px_200px]">
+          <div className="grid gap-3 lg:grid-cols-[1fr_220px_180px_180px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -166,7 +210,10 @@ export default function MeetingValidationPage() {
               ariaLabel="Filtrar por estado"
               className="w-full"
               value={statusFilter}
-              onChange={setStatusFilter}
+              onChange={(value) => {
+                setStatusFilter(value);
+                setKpiFilter("all");
+              }}
               options={[
                 { value: "all", label: "Estado: Todos" },
                 ...["Pendiente de validación", "Validada", "Rechazada", "En revisión", "Reagendada", "No realizada"].map((status) => ({
@@ -176,26 +223,32 @@ export default function MeetingValidationPage() {
               ]}
             />
             <NativeFilter
-              ariaLabel="Filtrar por fecha"
+              ariaLabel="Filtrar por mes"
               className="w-full"
-              value={dateFilter}
-              onChange={setDateFilter}
+              value={monthFilter}
+              onChange={(value) => {
+                setMonthFilter(value);
+                setDayFilter("all");
+              }}
               options={[
-                { value: "all", label: "Fecha: Todas" },
-                ...dates.map((date) => ({
-                  value: date,
-                  label: format(new Date(`${date}T12:00:00`), "d MMM yyyy"),
+                { value: "all", label: "Mes: Todos" },
+                ...months.map((month) => ({
+                  value: month,
+                  label: format(new Date(`${month}-01T12:00:00`), "MMMM yyyy"),
                 })),
               ]}
             />
             <NativeFilter
-              ariaLabel="Filtrar por empresa"
+              ariaLabel="Filtrar por día"
               className="w-full"
-              value={companyFilter}
-              onChange={setCompanyFilter}
+              value={dayFilter}
+              onChange={setDayFilter}
               options={[
-                { value: "all", label: "Empresa: Todas" },
-                ...companies.map((company) => ({ value: company, label: company })),
+                { value: "all", label: "Día: Todos" },
+                ...days.map((date) => ({
+                  value: date,
+                  label: format(new Date(`${date}T12:00:00`), "d MMM yyyy"),
+                })),
               ]}
             />
           </div>

@@ -91,6 +91,10 @@ export interface Meeting {
   lastName?: string;
   jobTitle: string;
   country?: string;
+  leadIndustry?: string;
+  companyWebsite?: string;
+  contactLinkedinUrl?: string;
+  companyLinkedinUrl?: string;
   regionValid?: boolean;
   prospectAttended?: boolean;
   clientAttended?: boolean;
