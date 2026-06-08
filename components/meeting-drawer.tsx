@@ -216,8 +216,8 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-[520px] p-0 sm:max-w-[520px]">
-        <SheetHeader className="border-b border-border p-6 pb-4">
+      <SheetContent className="w-[calc(100vw-1rem)] p-0 sm:max-w-[560px]">
+        <SheetHeader className="border-b border-border p-4 pb-3 sm:p-6 sm:pb-4">
           <div className="flex items-start justify-between gap-4">
             <div>
               <SheetTitle className="text-lg font-semibold">{meeting.company}</SheetTitle>
@@ -229,14 +229,14 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
           </div>
         </SheetHeader>
 
-        <ScrollArea className="h-[calc(100vh-180px)]">
-          <div className="space-y-6 p-6">
+        <ScrollArea className="h-[calc(100dvh-8rem)] sm:h-[calc(100vh-180px)]">
+          <div className="space-y-5 p-4 sm:space-y-6 sm:p-6">
             <section className="space-y-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Building2 className="h-4 w-4" />
                 Información básica
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label className="text-xs text-muted-foreground">Empresa</Label>
                   <p className="text-sm font-medium text-foreground">{meeting.company}</p>
@@ -308,7 +308,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
 
               {mode === "internal" ? (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">Estado reunión</Label>
                       <Select
@@ -366,7 +366,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                 <BookOpen className="h-4 w-4 text-emerald-600" />
                 Evidencia y justificación
               </h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid gap-3 text-sm sm:grid-cols-2">
                 <div className="rounded-lg border border-border p-3">
                   <Label className="text-xs text-muted-foreground">Asistió prospecto</Label>
                   <p className="font-medium text-foreground">{meeting.prospectAttended === false ? "No" : "Sí"}</p>
@@ -409,7 +409,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                 <Separator />
                 <section className="space-y-4">
                   <h3 className="text-sm font-semibold text-foreground">Gestión interna</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">Validación final</Label>
                       <Select

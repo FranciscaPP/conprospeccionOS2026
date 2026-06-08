@@ -99,16 +99,16 @@ export default function MeetingValidationPage() {
 
   return (
     <div className="flex-1 overflow-hidden">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Validación de reuniones</h1>
-            <p className="text-sm text-muted-foreground">
+      <header className="border-b border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold text-foreground sm:text-xl">Validación de reuniones</h1>
+            <p className="max-w-full break-words text-sm leading-5 text-muted-foreground">
               GBS Logistics · Revisión contractual de reuniones entregadas
             </p>
           </div>
           {kpis.pending > 0 && (
-            <div className="hidden items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 md:flex">
+            <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
               <Clock className="h-4 w-4" />
               {kpis.pending} requieren tu validación
             </div>
@@ -116,9 +116,9 @@ export default function MeetingValidationPage() {
         </div>
       </header>
 
-      <ScrollArea className="h-[calc(100vh-65px)]">
-        <div className="space-y-6 p-6">
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <ScrollArea className="h-[calc(100dvh-7rem)] lg:h-[calc(100vh-65px)]">
+        <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KPICard title="Total generadas" value={kpis.total} icon={<Calendar className="h-5 w-5" />} />
             <KPICard title="Válidas finales" value={kpis.finalValid} icon={<CheckCircle2 className="h-5 w-5" />} variant="success" />
             <KPICard title="Pendientes de tu validación" value={kpis.pending} icon={<Clock className="h-5 w-5" />} variant="warning" />
@@ -126,7 +126,7 @@ export default function MeetingValidationPage() {
           </div>
 
           <section className="rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-foreground">Avance de meta contractual</h3>
                 <p className="text-xs text-muted-foreground">Se consideran solo reuniones válidas finales.</p>
@@ -143,17 +143,17 @@ export default function MeetingValidationPage() {
               <div className="mt-0.5 rounded-lg bg-violet-600 p-2 text-white">
                 <BookOpen className="h-4 w-4" />
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <h3 className="text-sm font-semibold text-foreground">¿Qué es una reunión válida?</h3>
-                <p className="text-sm leading-6 text-muted-foreground">
+                <p className="max-w-full break-words text-sm leading-6 text-muted-foreground">
                   Cuenta para la meta cuando el prospecto asistió, pertenece a una región válida, corresponde a la persona o área acordada y cumple al menos 2 de 4 criterios BANT: presupuesto, autoridad, necesidad y horizonte de tiempo. La validez no depende de que el negocio se gane o se pierda después.
                 </p>
               </div>
             </div>
           </section>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative min-w-[220px] flex-1">
+          <div className="grid gap-3 lg:grid-cols-[1fr_220px_180px_200px]">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por empresa, nombre, apellido o cargo"
@@ -164,7 +164,7 @@ export default function MeetingValidationPage() {
             </div>
             <NativeFilter
               ariaLabel="Filtrar por estado"
-              className="w-[220px]"
+              className="w-full"
               value={statusFilter}
               onChange={setStatusFilter}
               options={[
@@ -177,7 +177,7 @@ export default function MeetingValidationPage() {
             />
             <NativeFilter
               ariaLabel="Filtrar por fecha"
-              className="w-[180px]"
+              className="w-full"
               value={dateFilter}
               onChange={setDateFilter}
               options={[
@@ -190,7 +190,7 @@ export default function MeetingValidationPage() {
             />
             <NativeFilter
               ariaLabel="Filtrar por empresa"
-              className="w-[200px]"
+              className="w-full"
               value={companyFilter}
               onChange={setCompanyFilter}
               options={[
@@ -200,7 +200,54 @@ export default function MeetingValidationPage() {
             />
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="space-y-3 md:hidden">
+            {filteredMeetings.length === 0 && (
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
+                <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No se encontraron reuniones con esos filtros.</p>
+              </div>
+            )}
+            {filteredMeetings.map((meeting) => {
+              const simpleStatus = getSimpleClientStatus(meeting);
+              const locked = isClientLocked(meeting);
+
+              return (
+                <button
+                  key={meeting.id}
+                  type="button"
+                  className="w-full rounded-xl border border-border bg-card p-4 text-left shadow-sm"
+                  onClick={() => openDrawer(meeting)}
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{meeting.company}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {meeting.firstName} {meeting.lastName} · {meeting.jobTitle}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-medium text-foreground">{format(new Date(meeting.meetingDate), "d MMM")}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(meeting.meetingDate), "HH:mm")}</p>
+                    </div>
+                  </div>
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <StatusBadge status={statusToBadge(simpleStatus)} label={simpleStatus} size="sm" />
+                    <span className="inline-flex items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+                      <ShieldCheck className="h-3 w-3" />
+                      {getValidationResultLabel(meeting)}
+                    </span>
+                  </div>
+                  <div className="flex justify-end">
+                    <span className={`rounded-lg px-3 py-1.5 text-sm font-medium ${locked ? "border border-border bg-background text-foreground" : "bg-violet-600 text-white"}`}>
+                      {locked ? "Ver detalle" : "Validar"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[920px]">
                 <thead className="bg-muted/50">

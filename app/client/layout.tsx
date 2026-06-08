@@ -16,9 +16,11 @@ function ClientLayoutContent({ children }: { children: React.ReactNode }) {
   }, [role, pathname, setRole]);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <Sidebar />
-      <main className="ml-64 min-w-0 w-[calc(100%-16rem)] overflow-hidden">{children}</main>
+      <main className="min-w-0 overflow-hidden pt-14 pb-16 lg:ml-64 lg:w-[calc(100%-16rem)] lg:pt-0 lg:pb-0">
+        {children}
+      </main>
     </div>
   );
 }

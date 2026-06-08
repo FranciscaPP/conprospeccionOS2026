@@ -209,11 +209,11 @@ export default function InternalMeetingFollowupPage() {
 
   return (
     <div className="flex-1 overflow-hidden">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Seguimiento interno de reuniones</h1>
-            <p className="text-sm text-muted-foreground">
+      <header className="border-b border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold text-foreground sm:text-xl">Seguimiento interno de reuniones</h1>
+            <p className="max-w-full break-words text-sm leading-5 text-muted-foreground">
               Control diario por cliente, estado contractual y prioridad operativa.
             </p>
           </div>
@@ -224,9 +224,9 @@ export default function InternalMeetingFollowupPage() {
         </div>
       </header>
 
-      <ScrollArea className="h-[calc(100vh-65px)]">
-        <main className="space-y-6 p-6">
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-5 xl:grid-cols-9">
+      <ScrollArea className="h-[calc(100dvh-7rem)] lg:h-[calc(100vh-65px)]">
+        <main className="space-y-4 p-4 sm:space-y-6 sm:p-6">
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-9">
             <QuickKPI
               active={quickFilter === "today"}
               icon={<Calendar className="h-4 w-4" />}
@@ -299,20 +299,20 @@ export default function InternalMeetingFollowupPage() {
 
           <section className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
             <div className="rounded-xl border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <div>
+              <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <h2 className="text-sm font-semibold text-foreground">Prioridad de clientes</h2>
                   <p className="text-xs text-muted-foreground">
                     Proyección interna simple: validadas finales + pendientes de validación cliente.
                   </p>
                 </div>
-                <div className="rounded-lg bg-muted px-3 py-2 text-right">
+                <div className="flex flex-col items-start rounded-lg bg-muted px-3 py-2 sm:block sm:text-right">
                   <p className="text-[11px] font-medium uppercase text-muted-foreground">Días restantes</p>
                   <p className="text-lg font-semibold text-foreground">{daysRemaining}</p>
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[680px]">
                   <thead className="bg-muted/50">
                     <tr>
                       {["Cliente", "Meta", "Validadas", "Pendientes", "Brecha", "Proyección", "Prioridad"].map(
@@ -376,7 +376,7 @@ export default function InternalMeetingFollowupPage() {
           </section>
 
           <section className="rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-foreground">Reuniones</h2>
                 <p className="text-xs text-muted-foreground">
@@ -390,7 +390,7 @@ export default function InternalMeetingFollowupPage() {
               )}
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
               <div className="relative md:col-span-2">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
