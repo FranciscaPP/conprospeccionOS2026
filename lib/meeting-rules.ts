@@ -132,6 +132,7 @@ export function normalizeMeeting(meeting: Meeting): Meeting {
     companyWebsite: meeting.companyWebsite || `https://${toSlug(meeting.company)}.com`,
     contactLinkedinUrl: meeting.contactLinkedinUrl || `https://www.linkedin.com/in/${toSlug(meeting.contact)}`,
     companyLinkedinUrl: meeting.companyLinkedinUrl || `https://www.linkedin.com/company/${toSlug(meeting.company)}`,
+    meetingUrl: meeting.meetingUrl || `https://meet.google.com/${toSlug(meeting.id)}`,
     regionValid: meeting.regionValid ?? true,
     prospectAttended:
       meeting.prospectAttended ?? (meeting.meetingStatus === "no_show" ? false : true),

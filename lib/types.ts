@@ -95,6 +95,7 @@ export interface Meeting {
   companyWebsite?: string;
   contactLinkedinUrl?: string;
   companyLinkedinUrl?: string;
+  meetingUrl?: string;
   regionValid?: boolean;
   prospectAttended?: boolean;
   clientAttended?: boolean;

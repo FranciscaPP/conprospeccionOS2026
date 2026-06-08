@@ -338,6 +338,16 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                     <p className="text-sm font-medium text-foreground">Sin dato</p>
                   )}
                 </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Link de reunión</Label>
+                  {meeting.meetingUrl ? (
+                    <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.meetingUrl} target="_blank" rel="noreferrer">
+                      Abrir reunión
+                    </a>
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                  )}
+                </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <StatusBadge status={meeting.meetingStatus} label={meetingStatusLabels[meeting.meetingStatus]} size="sm" />
@@ -617,7 +627,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                       </p>
                       {meeting.clientDecisionAt && (
                         <p className="mt-2 text-xs text-muted-foreground">
-                          Registrado el {format(new Date(meeting.clientDecisionAt), "d MMM yyyy · HH:mm")}
+                          Fecha de calificación cliente: {format(new Date(meeting.clientDecisionAt), "d MMM yyyy · HH:mm")}
                         </p>
                       )}
                       {meeting.rejectionReason && (
@@ -647,6 +657,9 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                             {option.label}
                           </button>
                         ))}
+                      </div>
+                      <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                        Fecha de calificación cliente: pendiente de registro.
                       </div>
                       {clientAction === "accepted" && (
                         <div className="rounded-lg border border-emerald-100 bg-emerald-50/70 p-3 text-sm leading-6 text-emerald-800">
