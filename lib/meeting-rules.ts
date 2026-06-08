@@ -128,6 +128,7 @@ export function normalizeMeeting(meeting: Meeting): Meeting {
     concretada: meeting.concretada ?? meeting.meetingStatus === "completed",
     bantScore: meeting.bantScore ?? meeting.cpBANT.length,
     clientDecision: getClientDecision(meeting),
+    preparationInfo: meeting.preparationInfo || meeting.meetingSummary,
     companyValidationStatus: meeting.companyValidationStatus ?? "none",
   };
   next.recommendedAction = next.recommendedAction ?? deriveAction(next);

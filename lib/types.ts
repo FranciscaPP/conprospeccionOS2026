@@ -114,6 +114,7 @@ export interface Meeting {
   disputeFlag: boolean;
   pendingClientFlag: boolean;
   meetingSummary: string;
+  preparationInfo?: string;
   validityReason?: string;
   recommendedAction?: MeetingAction;
   evidence?: MeetingEvidence;
@@ -192,7 +193,7 @@ export const rejectionReasonLabels: Record<RejectionReason, string> = {
 };
 
 export const clientDecisionLabels: Record<ClientDecision, string> = {
-  pending: "Pendiente de tu validación",
+  pending: "Pendiente de validación",
   accepted: "Validada por cliente",
   rejected: "Objetada por cliente",
   review_requested: "Revisión solicitada",

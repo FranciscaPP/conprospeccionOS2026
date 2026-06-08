@@ -288,10 +288,10 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             <section className="space-y-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <MessageSquare className="h-4 w-4 text-violet-600" />
-                Resumen ejecutivo
+                Información de preparación
               </h3>
               <p className="rounded-lg bg-muted/50 p-3 text-sm leading-6 text-muted-foreground">
-                {meeting.meetingSummary}
+                {meeting.preparationInfo || meeting.meetingSummary}
               </p>
               <p className="text-xs leading-5 text-muted-foreground">
                 Validez y resultado comercial son cosas distintas: una reunión válida puede contar para la meta aunque el negocio se gane, se pierda o quede en seguimiento.
@@ -303,7 +303,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             <section className="space-y-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <ShieldCheck className="h-4 w-4 text-violet-600" />
-                Validación Conprospección
+                {mode === "internal" ? "Validación Conprospección" : "Resultado Conprospección"}
               </h3>
 
               {mode === "internal" ? (
@@ -350,10 +350,9 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                 <div className="rounded-lg border border-border bg-muted/30 p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-foreground">{getValidationResultLabel(meeting)}</span>
-                    <span className="text-xs text-muted-foreground">BANT {bantScore}/4</span>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {meeting.validityReason || meeting.cpComment || "Evaluación basada en perfil acordado y evidencia disponible."}
+                    La reunión fue revisada con la información disponible y las condiciones acordadas. El detalle operativo queda registrado internamente.
                   </p>
                 </div>
               )}
@@ -364,44 +363,55 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             <section className="space-y-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <BookOpen className="h-4 w-4 text-emerald-600" />
-                Evidencia y justificación
+                {mode === "internal" ? "Evidencia y justificación" : "Información levantada por SDR"}
               </h3>
-              <div className="grid gap-3 text-sm sm:grid-cols-2">
-                <div className="rounded-lg border border-border p-3">
-                  <Label className="text-xs text-muted-foreground">Asistió prospecto</Label>
-                  <p className="font-medium text-foreground">{meeting.prospectAttended === false ? "No" : "Sí"}</p>
+              {mode === "internal" ? (
+                <>
+                  <div className="grid gap-3 text-sm sm:grid-cols-2">
+                    <div className="rounded-lg border border-border p-3">
+                      <Label className="text-xs text-muted-foreground">Asistió prospecto</Label>
+                      <p className="font-medium text-foreground">{meeting.prospectAttended === false ? "No" : "Sí"}</p>
+                    </div>
+                    <div className="rounded-lg border border-border p-3">
+                      <Label className="text-xs text-muted-foreground">Asistió cliente</Label>
+                      <p className="font-medium text-foreground">{meeting.clientAttended === false ? "No" : "Sí"}</p>
+                    </div>
+                  </div>
+                  <EvidenceChecklist meeting={meeting} />
+                  <div className="rounded-lg border border-violet-100 bg-violet-50/60 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">Resumen IA demo</span>
+                      <span className="text-xs text-muted-foreground">
+                        Confianza {Math.round((meeting.evidence?.aiConfidence ?? 0.72) * 100)}%
+                      </span>
+                    </div>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {meeting.evidence?.aiSummary || "Sección preparada para resumen de Tactiq + Claude. Pendiente de integración real."}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <a
+                        className="inline-flex h-7 items-center gap-2 rounded-lg border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground hover:bg-muted"
+                        href={meeting.evidence?.transcriptUrl || "#"}
+                      >
+                        <FileText className="h-4 w-4" /> Transcripción <ExternalLink className="h-3 w-3" />
+                      </a>
+                      <a
+                        className="inline-flex h-7 items-center gap-2 rounded-lg border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground hover:bg-muted"
+                        href={meeting.evidence?.recordingUrl || "#"}
+                      >
+                        <Calendar className="h-4 w-4" /> Grabación <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <Label className="text-xs text-muted-foreground">Información de preparación</Label>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {meeting.preparationInfo || meeting.meetingSummary}
+                  </p>
                 </div>
-                <div className="rounded-lg border border-border p-3">
-                  <Label className="text-xs text-muted-foreground">Asistió cliente</Label>
-                  <p className="font-medium text-foreground">{meeting.clientAttended === false ? "No" : "Sí"}</p>
-                </div>
-              </div>
-              <EvidenceChecklist meeting={meeting} />
-              <div className="rounded-lg border border-violet-100 bg-violet-50/60 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Resumen IA demo</span>
-                  <span className="text-xs text-muted-foreground">
-                    Confianza {Math.round((meeting.evidence?.aiConfidence ?? 0.72) * 100)}%
-                  </span>
-                </div>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {meeting.evidence?.aiSummary || "Sección preparada para resumen de Tactiq + Claude. Pendiente de integración real."}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <a
-                    className="inline-flex h-7 items-center gap-2 rounded-lg border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground hover:bg-muted"
-                    href={meeting.evidence?.transcriptUrl || "#"}
-                  >
-                    <FileText className="h-4 w-4" /> Transcripción <ExternalLink className="h-3 w-3" />
-                  </a>
-                  <a
-                    className="inline-flex h-7 items-center gap-2 rounded-lg border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground hover:bg-muted"
-                    href={meeting.evidence?.recordingUrl || "#"}
-                  >
-                    <Calendar className="h-4 w-4" /> Grabación <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
-              </div>
+              )}
             </section>
 
             {mode === "internal" && (

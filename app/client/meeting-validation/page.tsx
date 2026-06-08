@@ -104,13 +104,13 @@ export default function MeetingValidationPage() {
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-foreground sm:text-xl">Validación de reuniones</h1>
             <p className="max-w-full break-words text-sm leading-5 text-muted-foreground">
-              GBS Logistics · Revisión contractual de reuniones entregadas
+              GBS Logistics · Revisión de reuniones entregadas
             </p>
           </div>
           {kpis.pending > 0 && (
             <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
               <Clock className="h-4 w-4" />
-              {kpis.pending} requieren tu validación
+              {kpis.pending} requieren validación
             </div>
           )}
         </div>
@@ -121,14 +121,14 @@ export default function MeetingValidationPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KPICard title="Total generadas" value={kpis.total} icon={<Calendar className="h-5 w-5" />} />
             <KPICard title="Válidas finales" value={kpis.finalValid} icon={<CheckCircle2 className="h-5 w-5" />} variant="success" />
-            <KPICard title="Pendientes de tu validación" value={kpis.pending} icon={<Clock className="h-5 w-5" />} variant="warning" />
+            <KPICard title="Pendientes de validación" value={kpis.pending} icon={<Clock className="h-5 w-5" />} variant="warning" />
             <KPICard title="Objetadas / en disputa" value={kpis.rejected + kpis.disputed} icon={<AlertTriangle className="h-5 w-5" />} variant="danger" />
           </div>
 
           <section className="rounded-xl border border-border bg-card p-4">
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-foreground">Avance de meta contractual</h3>
+                <h3 className="text-sm font-semibold text-foreground">Avance de meta</h3>
                 <p className="text-xs text-muted-foreground">Se consideran solo reuniones válidas finales.</p>
               </div>
               <span className="text-lg font-bold text-violet-600">
@@ -146,7 +146,7 @@ export default function MeetingValidationPage() {
               <div className="min-w-0 space-y-2">
                 <h3 className="text-sm font-semibold text-foreground">¿Qué es una reunión válida?</h3>
                 <p className="max-w-full break-words text-sm leading-6 text-muted-foreground">
-                  Cuenta para la meta cuando el prospecto asistió, pertenece a una región válida, corresponde a la persona o área acordada y cumple al menos 2 de 4 criterios BANT: presupuesto, autoridad, necesidad y horizonte de tiempo. La validez no depende de que el negocio se gane o se pierda después.
+                  Cuenta para la meta cuando la reunión cumple las condiciones acordadas: asistencia del prospecto, perfil correcto y contexto comercial suficiente. El detalle operativo queda registrado internamente; aquí se muestra la información necesaria para revisar la reunión.
                 </p>
               </div>
             </div>
@@ -168,7 +168,7 @@ export default function MeetingValidationPage() {
               value={statusFilter}
               onChange={setStatusFilter}
               options={[
-                { value: "all", label: "Estado: todos" },
+                { value: "all", label: "Estado: Todos" },
                 ...["Pendiente de validación", "Validada", "Rechazada", "En revisión", "Reagendada", "No realizada"].map((status) => ({
                   value: status,
                   label: status,
@@ -181,7 +181,7 @@ export default function MeetingValidationPage() {
               value={dateFilter}
               onChange={setDateFilter}
               options={[
-                { value: "all", label: "Fecha: todas" },
+                { value: "all", label: "Fecha: Todas" },
                 ...dates.map((date) => ({
                   value: date,
                   label: format(new Date(`${date}T12:00:00`), "d MMM yyyy"),
@@ -194,7 +194,7 @@ export default function MeetingValidationPage() {
               value={companyFilter}
               onChange={setCompanyFilter}
               options={[
-                { value: "all", label: "Empresa: todas" },
+                { value: "all", label: "Empresa: Todas" },
                 ...companies.map((company) => ({ value: company, label: company })),
               ]}
             />

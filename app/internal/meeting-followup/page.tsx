@@ -214,7 +214,7 @@ export default function InternalMeetingFollowupPage() {
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-foreground sm:text-xl">Seguimiento interno de reuniones</h1>
             <p className="max-w-full break-words text-sm leading-5 text-muted-foreground">
-              Control diario por cliente, estado contractual y prioridad operativa.
+              Control diario por cliente, estado de reunión y prioridad operativa.
             </p>
           </div>
           <DemoDisabledButton className="gap-2">
@@ -407,7 +407,7 @@ export default function InternalMeetingFollowupPage() {
                 value={statusFilter}
                 onChange={setStatusFilter}
                 options={[
-                  { value: "all", label: "Estado: todos" },
+                  { value: "all", label: "Estado: Todos" },
                   { value: "scheduled", label: "Agendada" },
                   { value: "completed", label: "Realizada" },
                   { value: "pending", label: "Pendiente validación" },
@@ -423,7 +423,7 @@ export default function InternalMeetingFollowupPage() {
                 value={dateFilter}
                 onChange={setDateFilter}
                 options={[
-                  { value: "all", label: "Fecha: todas" },
+                  { value: "all", label: "Fecha: Todas" },
                   { value: "today", label: "Hoy" },
                   { value: "tomorrow", label: "Mañana" },
                   { value: "week", label: "Esta semana" },
@@ -666,7 +666,7 @@ function FilterSelect({
       value={value}
       onChange={onChange}
       options={[
-        { value: "all", label: `${label}: todos` },
+        { value: "all", label: `${label}: Todos` },
         ...values.map((item) => ({ value: item, label: item })),
       ]}
     />
