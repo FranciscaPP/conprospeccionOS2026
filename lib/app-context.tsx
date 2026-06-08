@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import type { UserRole, Meeting } from "@/lib/types";
 import { mockMeetings } from "@/lib/mock-data";
+import { normalizeMeeting, updateMeetingWithRules } from "@/lib/meeting-rules";
 
 const MEETINGS_STORAGE_KEY = "conprospeccion-demo-meetings";
 const ROLE_STORAGE_KEY = "conprospeccion-demo-role";
@@ -20,7 +21,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole>("client");
-  const [meetings, setMeetings] = useState<Meeting[]>(mockMeetings);
+  const [meetings, setMeetings] = useState<Meeting[]>(() => mockMeetings.map(normalizeMeeting));
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
   const [storageReady, setStorageReady] = useState(false);
 
@@ -34,10 +35,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       if (savedMeetings) {
-        setMeetings(JSON.parse(savedMeetings) as Meeting[]);
+        setMeetings((JSON.parse(savedMeetings) as Meeting[]).map(normalizeMeeting));
       }
     } catch {
-      setMeetings(mockMeetings);
+      setMeetings(mockMeetings.map(normalizeMeeting));
     } finally {
       setStorageReady(true);
     }
@@ -56,7 +57,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateMeeting = (id: string, updates: Partial<Meeting>) => {
     setMeetings((prev) =>
       prev.map((meeting) =>
-        meeting.id === id ? { ...meeting, ...updates } : meeting
+        meeting.id === id ? updateMeetingWithRules(meeting, updates) : meeting
       )
     );
   };

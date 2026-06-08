@@ -1,164 +1,220 @@
-﻿"use client";
+"use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import type React from "react";
+import {
+  AlertTriangle,
+  Calendar,
+  CalendarCheck,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Flag,
+  RefreshCw,
+  Search,
+  Target,
+  UserCheck,
+  XCircle,
+} from "lucide-react";
+import { format, isSameWeek, isToday, isTomorrow } from "date-fns";
+import { es } from "date-fns/locale";
 import { useApp } from "@/lib/app-context";
-import { KPICard } from "@/components/kpi-card";
-import { StatusBadge } from "@/components/status-badge";
-import { MeetingDrawer } from "@/components/meeting-drawer";
 import { DemoDisabledButton } from "@/components/demo-disabled-button";
+import { MeetingDrawer } from "@/components/meeting-drawer";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { FinalValidation, Meeting, MeetingStatus } from "@/lib/types";
 import {
-  Calendar,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Target,
-  RefreshCw,
-  Search,
-  ChevronRight,
-  Building2,
-  Users,
-  XCircle,
-  TrendingUp,
-  Flag,
-} from "lucide-react";
-import { format } from "date-fns";
-import type { Meeting } from "@/lib/types";
-import {
-  meetingStatusLabels,
-  cpValidationLabels,
-  clientValidationLabels,
+  clientDecisionLabels,
   finalValidationLabels,
-  commercialStatusLabels,
-  bantLabels,
+  meetingStatusLabels,
 } from "@/lib/types";
+import {
+  getClientPriority,
+  getDaysRemainingInMonth,
+  getValidationResultLabel,
+  getInternalSearchText,
+  isFinalValid,
+  MONTHLY_GOAL_BY_CLIENT,
+  splitContactName,
+} from "@/lib/meeting-rules";
+
+type QuickFilter =
+  | "all"
+  | "today"
+  | "tomorrow"
+  | "week"
+  | "pending"
+  | "validated"
+  | "rejected"
+  | "review"
+  | "rescheduled"
+  | "no_show";
+
+const quickFilterLabels: Record<QuickFilter, string> = {
+  all: "Todas",
+  today: "Hoy",
+  tomorrow: "Mañana",
+  week: "Esta semana",
+  pending: "Pendientes",
+  validated: "Validadas",
+  rejected: "Rechazadas",
+  review: "En revisión",
+  rescheduled: "Reagendadas",
+  no_show: "No realizadas",
+};
+
+const statusToBadge = (meeting: Meeting): MeetingStatus | FinalValidation => {
+  if (meeting.meetingStatus === "no_show") return "no_show";
+  if (meeting.meetingStatus === "rescheduled") return "rescheduled";
+  if (meeting.finalValidation === "final_valid") return "completed";
+  if (meeting.finalValidation === "final_not_valid") return "final_not_valid";
+  if (meeting.finalValidation === "in_dispute" || meeting.clientDecision === "review_requested") return "pending";
+  if (meeting.clientDecision === "pending") return "scheduled";
+  return meeting.meetingStatus;
+};
 
 export default function InternalMeetingFollowupPage() {
   const { meetings } = useApp();
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [clientFilter, setClientFilter] = useState<string>("all");
-  const [sdrFilter, setSdrFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [cpValidationFilter, setCpValidationFilter] = useState<string>("all");
-  const [clientValidationFilter, setClientValidationFilter] = useState<string>("all");
-  const [finalValidationFilter, setFinalValidationFilter] = useState<string>("all");
-  const [disputeFilter, setDisputeFilter] = useState<string>("all");
+  const [clientFilter, setClientFilter] = useState("all");
+  const [sdrFilter, setSdrFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [companyFilter, setCompanyFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
 
-  // Calculate KPIs
-  const kpis = useMemo(() => {
-    const scheduled = meetings.filter((m) => m.meetingStatus === "scheduled").length;
-    const completed = meetings.filter((m) => m.meetingStatus === "completed").length;
-    const pendingCpValidation = meetings.filter(
-      (m) => m.cpValidation === "waiting_validation"
-    ).length;
-    const pendingClientValidation = meetings.filter(
-      (m) => m.clientValidation === "waiting_client_validation"
-    ).length;
-    const cpValid = meetings.filter((m) => m.cpValidation === "valid_cp").length;
-    const clientValid = meetings.filter((m) => m.clientValidation === "valid_client").length;
-    const finalValid = meetings.filter((m) => m.finalValidation === "final_valid").length;
-    const inDispute = meetings.filter((m) => m.finalValidation === "in_dispute").length;
-    const goal = 45;
-    const officialProgress = Math.round((finalValid / goal) * 100);
-    // Projected includes valid CP that are waiting client validation
-    const projected = finalValid + meetings.filter(
-      (m) => m.cpValidation === "valid_cp" && m.clientValidation === "waiting_client_validation"
-    ).length;
-    const projectedProgress = Math.round((projected / goal) * 100);
+  const today = new Date();
+  const daysRemaining = getDaysRemainingInMonth(today);
+
+  const clients = useMemo(() => [...new Set(meetings.map((m) => m.client))].sort(), [meetings]);
+  const sdrs = useMemo(() => [...new Set(meetings.map((m) => m.sdrAssigned))].sort(), [meetings]);
+  const companies = useMemo(() => [...new Set(meetings.map((m) => m.company))].sort(), [meetings]);
+  const countries = useMemo(
+    () => [...new Set(meetings.map((m) => m.country).filter(Boolean))].sort() as string[],
+    [meetings]
+  );
+
+  const quickCounts = useMemo(() => {
+    const count = (filter: QuickFilter) =>
+      meetings.filter((meeting) => matchesQuickFilter(meeting, filter, today)).length;
 
     return {
-      scheduled,
-      completed,
-      pendingCpValidation,
-      pendingClientValidation,
-      cpValid,
-      clientValid,
-      finalValid,
-      inDispute,
-      goal,
-      officialProgress,
-      projectedProgress,
+      today: count("today"),
+      tomorrow: count("tomorrow"),
+      week: count("week"),
+      pending: count("pending"),
+      validated: count("validated"),
+      rejected: count("rejected"),
+      review: count("review"),
+      rescheduled: count("rescheduled"),
+      no_show: count("no_show"),
     };
-  }, [meetings]);
+  }, [meetings, today]);
 
-  // Get unique values for filters
-  const clients = useMemo(() => [...new Set(meetings.map((m) => m.client))], [meetings]);
-  const sdrs = useMemo(() => [...new Set(meetings.map((m) => m.sdrAssigned))], [meetings]);
+  const clientProgress = useMemo(() => {
+    return clients
+      .map((client) => {
+        const clientMeetings = meetings.filter((meeting) => meeting.client === client);
+        const goal = MONTHLY_GOAL_BY_CLIENT[client] ?? 10;
+        const validated = clientMeetings.filter(isFinalValid).length;
+        const pending = clientMeetings.filter((meeting) => meeting.clientDecision === "pending").length;
+        const rejected = clientMeetings.filter((meeting) => meeting.clientDecision === "rejected").length;
+        const review = clientMeetings.filter((meeting) => meeting.clientDecision === "review_requested").length;
+        const projection = Math.min(goal, validated + pending);
+        const gap = Math.max(goal - validated, 0);
+        const priority = getClientPriority(validated, pending, goal, daysRemaining) as "Alta" | "Media" | "Baja";
+        const progress = Math.min(Math.round((validated / goal) * 100), 100);
 
-  // Apply filters
+        return {
+          client,
+          goal,
+          validated,
+          pending,
+          rejected,
+          review,
+          projection,
+          gap,
+          priority,
+          progress,
+        };
+      })
+      .sort((a, b) => {
+        const order: Record<"Alta" | "Media" | "Baja", number> = { Alta: 0, Media: 1, Baja: 2 };
+        return order[a.priority] - order[b.priority] || b.gap - a.gap;
+      });
+  }, [clients, daysRemaining, meetings]);
+
   const filteredMeetings = useMemo(() => {
-    return meetings.filter((meeting) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        meeting.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        meeting.contact.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        meeting.sdrAssigned.toLowerCase().includes(searchQuery.toLowerCase());
+    const search = searchQuery.trim().toLowerCase();
 
+    return meetings.filter((meeting) => {
+      const meetingDate = new Date(meeting.meetingDate);
+      const matchesSearch = search === "" || getInternalSearchText(meeting).includes(search);
       const matchesClient = clientFilter === "all" || meeting.client === clientFilter;
       const matchesSdr = sdrFilter === "all" || meeting.sdrAssigned === sdrFilter;
-      const matchesStatus = statusFilter === "all" || meeting.meetingStatus === statusFilter;
-      const matchesCpValidation =
-        cpValidationFilter === "all" || meeting.cpValidation === cpValidationFilter;
-      const matchesClientValidation =
-        clientValidationFilter === "all" ||
-        meeting.clientValidation === clientValidationFilter;
-      const matchesFinalValidation =
-        finalValidationFilter === "all" ||
-        meeting.finalValidation === finalValidationFilter;
-      const matchesDispute =
-        disputeFilter === "all" ||
-        (disputeFilter === "yes" && meeting.disputeFlag) ||
-        (disputeFilter === "no" && !meeting.disputeFlag);
+      const matchesStatus =
+        statusFilter === "all" ||
+        meeting.meetingStatus === statusFilter ||
+        meeting.clientDecision === statusFilter ||
+        meeting.finalValidation === statusFilter;
+      const matchesDate =
+        dateFilter === "all" ||
+        (dateFilter === "today" && isToday(meetingDate)) ||
+        (dateFilter === "tomorrow" && isTomorrow(meetingDate)) ||
+        (dateFilter === "week" && isSameWeek(meetingDate, today, { weekStartsOn: 1 }));
+      const matchesCompany = companyFilter === "all" || meeting.company === companyFilter;
+      const matchesCountry = countryFilter === "all" || meeting.country === countryFilter;
+      const matchesQuick = matchesQuickFilter(meeting, quickFilter, today);
 
       return (
         matchesSearch &&
         matchesClient &&
         matchesSdr &&
         matchesStatus &&
-        matchesCpValidation &&
-        matchesClientValidation &&
-        matchesFinalValidation &&
-        matchesDispute
+        matchesDate &&
+        matchesCompany &&
+        matchesCountry &&
+        matchesQuick
       );
     });
   }, [
-    meetings,
-    searchQuery,
     clientFilter,
+    companyFilter,
+    countryFilter,
+    dateFilter,
+    meetings,
+    quickFilter,
+    searchQuery,
     sdrFilter,
     statusFilter,
-    cpValidationFilter,
-    clientValidationFilter,
-    finalValidationFilter,
-    disputeFilter,
+    today,
   ]);
 
-  const handleRowClick = (meeting: Meeting) => {
+  const riskClients = clientProgress.filter((client) => client.priority === "Alta").slice(0, 3);
+  const closeClients = clientProgress
+    .filter((client) => client.validated >= client.goal || client.gap <= 1)
+    .slice(0, 3);
+
+  const openDrawer = (meeting: Meeting) => {
     setSelectedMeeting(meeting);
     setDrawerOpen(true);
   };
 
   return (
     <div className="flex-1 overflow-hidden">
-      {/* Header */}
       <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-semibold text-foreground">Seguimiento interno de reuniones</h1>
             <p className="text-sm text-muted-foreground">
-              Conprospección OS · Control operativo · Datos demo · Prototipo funcional
+              Control diario por cliente, estado contractual y prioridad operativa.
             </p>
           </div>
           <DemoDisabledButton className="gap-2">
@@ -169,389 +225,477 @@ export default function InternalMeetingFollowupPage() {
       </header>
 
       <ScrollArea className="h-[calc(100vh-65px)]">
-        <div className="p-6 space-y-6">
-          {/* KPI Cards - 2 rows */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <KPICard
-              title="Agendadas"
-              value={kpis.scheduled}
-              icon={<Calendar className="h-5 w-5" />}
+        <main className="space-y-6 p-6">
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-5 xl:grid-cols-9">
+            <QuickKPI
+              active={quickFilter === "today"}
+              icon={<Calendar className="h-4 w-4" />}
+              label="Hoy"
+              value={quickCounts.today}
+              onClick={() => setQuickFilter(quickFilter === "today" ? "all" : "today")}
             />
-            <KPICard
-              title="Realizadas"
-              value={kpis.completed}
-              icon={<CheckCircle2 className="h-5 w-5" />}
-              variant="success"
+            <QuickKPI
+              active={quickFilter === "tomorrow"}
+              icon={<CalendarCheck className="h-4 w-4" />}
+              label="Mañana"
+              value={quickCounts.tomorrow}
+              onClick={() => setQuickFilter(quickFilter === "tomorrow" ? "all" : "tomorrow")}
             />
-            <KPICard
-              title="Pend. CP"
-              value={kpis.pendingCpValidation}
-              icon={<Clock className="h-5 w-5" />}
-              variant="warning"
+            <QuickKPI
+              active={quickFilter === "week"}
+              icon={<Clock className="h-4 w-4" />}
+              label="Semana"
+              value={quickCounts.week}
+              onClick={() => setQuickFilter(quickFilter === "week" ? "all" : "week")}
             />
-            <KPICard
-              title="Pend. cliente"
-              value={kpis.pendingClientValidation}
-              icon={<Clock className="h-5 w-5" />}
-              variant="warning"
+            <QuickKPI
+              active={quickFilter === "pending"}
+              icon={<UserCheck className="h-4 w-4" />}
+              label="Pendientes"
+              value={quickCounts.pending}
+              tone="warning"
+              onClick={() => setQuickFilter(quickFilter === "pending" ? "all" : "pending")}
             />
-            <KPICard
-              title="Válidas CP"
-              value={kpis.cpValid}
-              icon={<CheckCircle2 className="h-5 w-5" />}
-              variant="success"
+            <QuickKPI
+              active={quickFilter === "validated"}
+              icon={<CheckCircle2 className="h-4 w-4" />}
+              label="Validadas"
+              value={quickCounts.validated}
+              tone="success"
+              onClick={() => setQuickFilter(quickFilter === "validated" ? "all" : "validated")}
             />
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <KPICard
-              title="Válidas cliente"
-              value={kpis.clientValid}
-              icon={<CheckCircle2 className="h-5 w-5" />}
-              variant="success"
+            <QuickKPI
+              active={quickFilter === "rejected"}
+              icon={<XCircle className="h-4 w-4" />}
+              label="Rechazadas"
+              value={quickCounts.rejected}
+              tone="danger"
+              onClick={() => setQuickFilter(quickFilter === "rejected" ? "all" : "rejected")}
             />
-            <KPICard
-              title="Válidas finales"
-              value={kpis.finalValid}
-              icon={<CheckCircle2 className="h-5 w-5" />}
-              variant="success"
+            <QuickKPI
+              active={quickFilter === "review"}
+              icon={<AlertTriangle className="h-4 w-4" />}
+              label="En revisión"
+              value={quickCounts.review}
+              tone="warning"
+              onClick={() => setQuickFilter(quickFilter === "review" ? "all" : "review")}
             />
-            <KPICard
-              title="En disputa"
-              value={kpis.inDispute}
-              icon={<AlertTriangle className="h-5 w-5" />}
-              variant="danger"
+            <QuickKPI
+              active={quickFilter === "rescheduled"}
+              icon={<CalendarCheck className="h-4 w-4" />}
+              label="Reagendadas"
+              value={quickCounts.rescheduled}
+              onClick={() => setQuickFilter(quickFilter === "rescheduled" ? "all" : "rescheduled")}
             />
-            <KPICard
-              title="Avance oficial"
-              value={`${kpis.finalValid}/${kpis.goal}`}
-              trend={`${kpis.officialProgress}%`}
-              icon={<Target className="h-5 w-5" />}
-              variant="primary"
+            <QuickKPI
+              active={quickFilter === "no_show"}
+              icon={<XCircle className="h-4 w-4" />}
+              label="No realizadas"
+              value={quickCounts.no_show}
+              tone="danger"
+              onClick={() => setQuickFilter(quickFilter === "no_show" ? "all" : "no_show")}
             />
-            <KPICard
-              title="Proyección"
-              value={`${kpis.projectedProgress}%`}
-              icon={<TrendingUp className="h-5 w-5" />}
-              variant="primary"
-            />
-          </div>
+          </section>
 
-          {/* Filters - Multiple rows */}
-          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-            <h3 className="text-sm font-medium text-foreground">Filtros</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-              <div className="relative col-span-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <section className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+            <div className="rounded-xl border border-border bg-card">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div>
+                  <h2 className="text-sm font-semibold text-foreground">Prioridad de clientes</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Proyección interna simple: validadas finales + pendientes de validación cliente.
+                  </p>
+                </div>
+                <div className="rounded-lg bg-muted px-3 py-2 text-right">
+                  <p className="text-[11px] font-medium uppercase text-muted-foreground">Días restantes</p>
+                  <p className="text-lg font-semibold text-foreground">{daysRemaining}</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      {["Cliente", "Meta", "Validadas", "Pendientes", "Brecha", "Proyección", "Prioridad"].map(
+                        (heading) => (
+                          <th
+                            key={heading}
+                            className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                          >
+                            {heading}
+                          </th>
+                        )
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {clientProgress.map((client) => (
+                      <tr key={client.client} className="hover:bg-muted/30">
+                        <td className="px-4 py-3">
+                          <p className="text-sm font-medium text-foreground">{client.client}</p>
+                          <Progress value={client.progress} className="mt-2 h-1.5" />
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground">{client.goal}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-emerald-700">{client.validated}</td>
+                        <td className="px-4 py-3 text-sm text-amber-700">{client.pending}</td>
+                        <td className="px-4 py-3 text-sm text-foreground">{client.gap}</td>
+                        <td className="px-4 py-3 text-sm text-foreground">{client.projection}</td>
+                        <td className="px-4 py-3">
+                          <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${priorityClass(client.priority)}`}>
+                            {client.priority}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+              <ClientSummaryBlock
+                title="Clientes en riesgo"
+                empty="Sin clientes críticos hoy"
+                items={riskClients.map((client) => ({
+                  name: client.client,
+                  meta: `${client.validated}/${client.goal}`,
+                  detail: `Brecha ${client.gap}, ${client.pending} pendientes`,
+                  tone: "danger",
+                }))}
+              />
+              <ClientSummaryBlock
+                title="Clientes cerca de cumplir"
+                empty="Ningún cliente cerca de meta"
+                items={closeClients.map((client) => ({
+                  name: client.client,
+                  meta: `${client.validated}/${client.goal}`,
+                  detail: client.validated >= client.goal ? "Meta cumplida" : `Brecha ${client.gap}`,
+                  tone: "success",
+                }))}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Reuniones</h2>
+                <p className="text-xs text-muted-foreground">
+                  Filtro activo: {quickFilterLabels[quickFilter]} · {filteredMeetings.length} resultado(s)
+                </p>
+              </div>
+              {quickFilter !== "all" && (
+                <Button variant="outline" size="sm" onClick={() => setQuickFilter("all")}>
+                  Limpiar KPI
+                </Button>
+              )}
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
+              <div className="relative md:col-span-2">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
+                  placeholder="Buscar cliente, empresa, contacto, cargo o SDR"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
                 />
               </div>
-              <Select value={clientFilter} onValueChange={(value) => value && setClientFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Cliente: todos</SelectItem>
-                  {clients.map((client) => (
-                    <SelectItem key={client} value={client}>
-                      {client}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={sdrFilter} onValueChange={(value) => value && setSdrFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="SDR" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">SDR: todos</SelectItem>
-                  {sdrs.map((sdr) => (
-                    <SelectItem key={sdr} value={sdr}>
-                      {sdr}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={(value) => value && setStatusFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Estado: todos</SelectItem>
-                  {Object.entries(meetingStatusLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={cpValidationFilter} onValueChange={(value) => value && setCpValidationFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Validación CP" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">CP: todos</SelectItem>
-                  {Object.entries(cpValidationLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={clientValidationFilter} onValueChange={(value) => value && setClientValidationFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Validación cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Cliente: todos</SelectItem>
-                  {Object.entries(clientValidationLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={finalValidationFilter} onValueChange={(value) => value && setFinalValidationFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Final Val" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Final: todos</SelectItem>
-                  {Object.entries(finalValidationLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={disputeFilter} onValueChange={(value) => value && setDisputeFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Disputa" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Disputa: todas</SelectItem>
-                  <SelectItem value="yes">En disputa</SelectItem>
-                  <SelectItem value="no">Sin disputa</SelectItem>
-                </SelectContent>
-              </Select>
+              <FilterSelect label="Cliente" value={clientFilter} onChange={setClientFilter} values={clients} />
+              <FilterSelect label="SDR" value={sdrFilter} onChange={setSdrFilter} values={sdrs} />
+              <NativeFilter
+                label="Estado"
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={[
+                  { value: "all", label: "Estado: todos" },
+                  { value: "scheduled", label: "Agendada" },
+                  { value: "completed", label: "Realizada" },
+                  { value: "pending", label: "Pendiente validación" },
+                  { value: "final_valid", label: "Validada" },
+                  { value: "final_not_valid", label: "Rechazada" },
+                  { value: "in_dispute", label: "En revisión" },
+                  { value: "rescheduled", label: "Reagendada" },
+                  { value: "no_show", label: "No realizada" },
+                ]}
+              />
+              <NativeFilter
+                label="Fecha"
+                value={dateFilter}
+                onChange={setDateFilter}
+                options={[
+                  { value: "all", label: "Fecha: todas" },
+                  { value: "today", label: "Hoy" },
+                  { value: "tomorrow", label: "Mañana" },
+                  { value: "week", label: "Esta semana" },
+                ]}
+              />
+              <FilterSelect label="Empresa" value={companyFilter} onChange={setCompanyFilter} values={companies} />
+              <FilterSelect label="País" value={countryFilter} onChange={setCountryFilter} values={countries} />
             </div>
-          </div>
+          </section>
 
-          {/* Goal Progress Bars */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-card rounded-xl border border-border p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <h3 className="text-sm font-medium text-foreground">Avance oficial de meta</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Basado en reuniones válidas finales
-                  </p>
-                </div>
-                <span className="text-lg font-bold text-violet-600">
-                  {kpis.finalValid}/{kpis.goal} · {kpis.officialProgress}%
-                </span>
-              </div>
-              <Progress value={kpis.officialProgress} className="h-2" />
-            </div>
-            <div className="bg-card rounded-xl border border-border p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <h3 className="text-sm font-medium text-foreground">Avance proyectado de meta</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Incluye CP válidas pendientes de validación cliente
-                  </p>
-                </div>
-                <span className="text-lg font-bold text-emerald-600">
-                  {kpis.projectedProgress}%
-                </span>
-              </div>
-              <Progress value={kpis.projectedProgress} className="h-2 [&>div]:bg-emerald-500" />
-            </div>
-          </div>
-
-          {/* Meeting Table */}
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <section className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[1180px]">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Cliente
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      SDR
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Fecha
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Empresa / contacto
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Estado
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      CP Val
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      CP BANT
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Cliente
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Final
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Comercial
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Flags
-                    </th>
-                    <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Acción
-                    </th>
+                    {[
+                      "Fecha",
+                      "Cliente",
+                      "Empresa",
+                      "Nombre",
+                      "Apellido",
+                      "Cargo",
+                      "País",
+                      "SDR",
+                      "Estado reunión",
+                      "Estado validación",
+                      "Resultado",
+                      "Acción",
+                    ].map((heading) => (
+                      <th
+                        key={heading}
+                        className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                      >
+                        {heading}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredMeetings.map((meeting) => (
-                    <tr
-                      key={meeting.id}
-                      className="hover:bg-muted/30 transition-colors cursor-pointer"
-                      onClick={() => handleRowClick(meeting)}
-                    >
-                      <td className="px-3 py-3">
-                        <span className="text-xs font-medium text-foreground">{meeting.client}</span>
-                      </td>
-                      <td className="px-3 py-3">
-                        <span className="text-xs text-muted-foreground">{meeting.sdrAssigned}</span>
-                      </td>
-                      <td className="px-3 py-3">
-                        <p className="text-xs text-foreground">
-                          {format(new Date(meeting.meetingDate), "MMM d")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(meeting.meetingDate), "HH:mm")}
-                        </p>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100">
-                            <span className="text-xs font-semibold text-violet-700">
-                              {meeting.company.charAt(0)}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-foreground">{meeting.company}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {meeting.contact}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <StatusBadge
-                          status={meeting.meetingStatus}
-                          label={meetingStatusLabels[meeting.meetingStatus]}
-                          size="sm"
-                        />
-                      </td>
-                      <td className="px-3 py-3">
-                        <StatusBadge
-                          status={meeting.cpValidation}
-                          label={cpValidationLabels[meeting.cpValidation].replace("CP", "").trim()}
-                          size="sm"
-                        />
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex gap-0.5">
-                          {meeting.cpBANT.length > 0 ? (
-                            meeting.cpBANT.map((b) => (
-                              <span
-                                key={b}
-                                className="px-1.5 py-0.5 text-xs font-medium rounded bg-violet-100 text-violet-700"
-                              >
-                                {bantLabels[b].charAt(0)}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <StatusBadge
-                          status={meeting.clientValidation}
-                          label={clientValidationLabels[meeting.clientValidation].replace("client", "").trim()}
-                          size="sm"
-                        />
-                      </td>
-                      <td className="px-3 py-3">
-                        <StatusBadge
-                          status={meeting.finalValidation}
-                          label={finalValidationLabels[meeting.finalValidation]}
-                          size="sm"
-                        />
-                      </td>
-                      <td className="px-3 py-3">
-                        <StatusBadge
-                          status={meeting.commercialStatus}
-                          label={commercialStatusLabels[meeting.commercialStatus]}
-                          size="sm"
-                        />
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex gap-1">
-                          {meeting.disputeFlag && (
-                            <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-100" title="En disputa">
-                              <AlertTriangle className="h-3 w-3 text-orange-600" />
-                            </span>
-                          )}
-                          {meeting.pendingClientFlag && (
-                            <span className="flex h-5 w-5 items-center justify-center rounded bg-amber-100" title="Pendiente cliente">
-                              <Clock className="h-3 w-3 text-amber-600" />
-                            </span>
-                          )}
-                          {!meeting.disputeFlag && !meeting.pendingClientFlag && (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <Button variant="ghost" size="sm" className="gap-1 text-violet-600 h-7 px-2">
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredMeetings.map((meeting) => {
+                    const names = splitContactName(meeting.contact);
+                    const firstName = meeting.firstName || names.firstName;
+                    const lastName = meeting.lastName || names.lastName;
+
+                    return (
+                      <tr key={meeting.id} className="hover:bg-muted/30">
+                        <td className="px-3 py-3">
+                          <p className="text-xs font-medium text-foreground">
+                            {format(new Date(meeting.meetingDate), "dd MMM", { locale: es })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(meeting.meetingDate), "HH:mm")}
+                          </p>
+                        </td>
+                        <td className="px-3 py-3 text-xs font-medium text-foreground">{meeting.client}</td>
+                        <td className="px-3 py-3 text-xs text-foreground">{meeting.company}</td>
+                        <td className="px-3 py-3 text-xs text-foreground">{firstName}</td>
+                        <td className="px-3 py-3 text-xs text-foreground">{lastName}</td>
+                        <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.jobTitle}</td>
+                        <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.country ?? "Sin dato"}</td>
+                        <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.sdrAssigned}</td>
+                        <td className="px-3 py-3">
+                          <StatusBadge
+                            status={statusToBadge(meeting)}
+                            label={meetingStatusLabels[meeting.meetingStatus]}
+                            size="sm"
+                          />
+                        </td>
+                        <td className="px-3 py-3">
+                          <StatusBadge
+                            status={statusToBadge(meeting)}
+                            label={clientDecisionLabels[meeting.clientDecision ?? "pending"]}
+                            size="sm"
+                          />
+                        </td>
+                        <td className="px-3 py-3">
+                          <StatusBadge
+                            status={statusToBadge(meeting)}
+                            label={getValidationResultLabel(meeting)}
+                            size="sm"
+                          />
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            BANT {meeting.bantScore ?? meeting.cpBANT.length}/4
+                          </p>
+                        </td>
+                        <td className="px-3 py-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-violet-700"
+                            onClick={() => openDrawer(meeting)}
+                          >
+                            Ver detalle
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
             {filteredMeetings.length === 0 && (
-              <div className="p-8 text-center">
-                <Building2 className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">No se encontraron reuniones</p>
+              <div className="py-10 text-center">
+                <Flag className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No hay reuniones con estos filtros.</p>
               </div>
             )}
-          </div>
-        </div>
+          </section>
+        </main>
       </ScrollArea>
 
-      {/* Meeting Drawer */}
       <MeetingDrawer
         meeting={selectedMeeting}
+        mode="internal"
         open={drawerOpen}
         onClose={() => {
           setDrawerOpen(false);
           setSelectedMeeting(null);
         }}
-        mode="internal"
       />
     </div>
   );
 }
 
+function matchesQuickFilter(meeting: Meeting, filter: QuickFilter, today: Date) {
+  const meetingDate = new Date(meeting.meetingDate);
+
+  if (filter === "all") return true;
+  if (filter === "today") return isToday(meetingDate);
+  if (filter === "tomorrow") return isTomorrow(meetingDate);
+  if (filter === "week") return isSameWeek(meetingDate, today, { weekStartsOn: 1 });
+  if (filter === "pending") return meeting.clientDecision === "pending";
+  if (filter === "validated") return isFinalValid(meeting);
+  if (filter === "rejected") return meeting.clientDecision === "rejected" || meeting.finalValidation === "final_not_valid";
+  if (filter === "review") return meeting.clientDecision === "review_requested" || meeting.finalValidation === "in_dispute";
+  if (filter === "rescheduled") return meeting.meetingStatus === "rescheduled";
+  if (filter === "no_show") return meeting.meetingStatus === "no_show" || meeting.finalValidation === "final_not_valid";
+  return true;
+}
+
+function priorityClass(priority: string) {
+  if (priority === "Alta") return "border-rose-200 bg-rose-50 text-rose-700";
+  if (priority === "Media") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+function QuickKPI({
+  active,
+  icon,
+  label,
+  onClick,
+  tone = "default",
+  value,
+}: {
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  tone?: "default" | "success" | "warning" | "danger";
+  value: number;
+}) {
+  const toneClass = {
+    default: "border-border bg-card text-foreground",
+    success: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    warning: "border-amber-200 bg-amber-50 text-amber-800",
+    danger: "border-rose-200 bg-rose-50 text-rose-800",
+  }[tone];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl border p-3 text-left transition hover:border-violet-300 hover:bg-violet-50 ${
+        active ? "border-violet-300 bg-violet-50 ring-2 ring-violet-100" : toneClass
+      }`}
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-muted-foreground">{icon}</span>
+        <span className="text-xl font-semibold text-foreground">{value}</span>
+      </div>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+    </button>
+  );
+}
+
+function ClientSummaryBlock({
+  empty,
+  items,
+  title,
+}: {
+  empty: string;
+  items: Array<{ detail: string; meta: string; name: string; tone: "danger" | "success" }>;
+  title: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <h2 className="mb-3 text-sm font-semibold text-foreground">{title}</h2>
+      {items.length === 0 ? (
+        <p className="rounded-lg bg-muted px-3 py-4 text-sm text-muted-foreground">{empty}</p>
+      ) : (
+        <div className="space-y-2">
+          {items.map((item) => (
+            <div key={item.name} className="rounded-lg border border-border p-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-foreground">{item.name}</p>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    item.tone === "danger"
+                      ? "bg-rose-100 text-rose-700"
+                      : "bg-emerald-100 text-emerald-700"
+                  }`}
+                >
+                  {item.meta}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterSelect({
+  label,
+  onChange,
+  value,
+  values,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+  values: string[];
+}) {
+  return (
+    <NativeFilter
+      label={label}
+      value={value}
+      onChange={onChange}
+      options={[
+        { value: "all", label: `${label}: todos` },
+        ...values.map((item) => ({ value: item, label: item })),
+      ]}
+    />
+  );
+}
+
+function NativeFilter({
+  label,
+  onChange,
+  options,
+  value,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  options: Array<{ label: string; value: string }>;
+  value: string;
+}) {
+  return (
+    <select
+      aria-label={`Filtrar por ${label.toLowerCase()}`}
+      className="h-8 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}

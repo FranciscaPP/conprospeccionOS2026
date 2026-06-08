@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/lib/app-context";
 import {
   Calendar,
@@ -38,9 +38,15 @@ const internalNavItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { role, setRole } = useApp();
+  const visibleRole = pathname.startsWith("/internal")
+    ? "internal"
+    : pathname.startsWith("/client")
+      ? "client"
+      : role;
 
-  const navItems = role === "client" ? clientNavItems : internalNavItems;
+  const navItems = visibleRole === "client" ? clientNavItems : internalNavItems;
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-border bg-card">
@@ -60,21 +66,31 @@ export function Sidebar() {
         <DropdownMenu>
           <DropdownMenuTrigger className="flex w-full items-center justify-between rounded-lg bg-muted px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/80 focus:outline-none">
             <div className="flex items-center gap-2">
-              {role === "client" ? (
+              {visibleRole === "client" ? (
                 <Building2 className="h-4 w-4" />
               ) : (
                 <Users className="h-4 w-4" />
               )}
-              <span>{role === "client" ? "Modo demo cliente" : "Modo demo interno"}</span>
+              <span>{visibleRole === "client" ? "Modo demo cliente" : "Modo demo interno"}</span>
             </div>
             <ChevronDown className="h-4 w-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuItem onClick={() => setRole("client")}>
+            <DropdownMenuItem
+              onClick={() => {
+                setRole("client");
+                router.push("/client/meeting-validation");
+              }}
+            >
               <Building2 className="mr-2 h-4 w-4" />
               Modo demo cliente
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setRole("internal")}>
+            <DropdownMenuItem
+              onClick={() => {
+                setRole("internal");
+                router.push("/internal/meeting-followup");
+              }}
+            >
               <Users className="mr-2 h-4 w-4" />
               Modo demo interno
             </DropdownMenuItem>
@@ -115,7 +131,7 @@ export function Sidebar() {
           <div className="flex-1">
             <p className="text-sm font-medium text-foreground">GBS Logistics</p>
             <p className="text-xs text-muted-foreground">
-              {role === "client" ? "Portal cliente" : "Panel interno"}
+              {visibleRole === "client" ? "Portal cliente" : "Panel interno"}
             </p>
           </div>
           <Settings className="h-4 w-4 text-muted-foreground" />

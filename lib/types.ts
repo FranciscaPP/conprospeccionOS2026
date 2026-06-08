@@ -44,6 +44,42 @@ export type MeetingStatus =
 
 export type BANTCriteria = "budget" | "authority" | "need" | "timeline";
 
+export type MeetingAction = "count" | "reschedule" | "escalate" | "manual_review";
+
+export type ClientDecision = "pending" | "accepted" | "rejected" | "review_requested";
+
+export type RejectionReason =
+  | "wrong_role"
+  | "outside_profile"
+  | "prospect_no_show"
+  | "no_real_interest"
+  | "duplicate_meeting"
+  | "existing_client_or_contact"
+  | "other";
+
+export type CompanyValidationStatus =
+  | "none"
+  | "previous_valid_meeting"
+  | "temporarily_blocked"
+  | "open_opportunity"
+  | "existing_client_or_contact";
+
+export interface BANTEvidence {
+  criteria: BANTCriteria;
+  met: boolean;
+  quote: string;
+  note: string;
+}
+
+export interface MeetingEvidence {
+  aiSummary: string;
+  aiRecommendation: "valid" | "review" | "not_valid";
+  aiConfidence: number;
+  transcriptUrl?: string;
+  recordingUrl?: string;
+  assistantNote?: string;
+}
+
 export interface Meeting {
   id: string;
   client: string;
@@ -51,19 +87,38 @@ export interface Meeting {
   meetingDate: string;
   company: string;
   contact: string;
+  firstName?: string;
+  lastName?: string;
   jobTitle: string;
+  country?: string;
+  regionValid?: boolean;
+  prospectAttended?: boolean;
+  clientAttended?: boolean;
+  personAreaCorrect?: boolean;
+  escalatedToCorrectArea?: boolean;
+  concretada?: boolean;
   meetingStatus: MeetingStatus;
   cpValidation: CPValidation;
   cpBANT: BANTCriteria[];
+  bantEvidence?: BANTEvidence[];
+  bantScore?: number;
   cpComment: string;
   clientValidation: ClientValidation;
   clientBANT: BANTCriteria[];
   clientComment: string;
+  clientDecision?: ClientDecision;
+  clientDecisionAt?: string;
+  rejectionReason?: RejectionReason;
   finalValidation: FinalValidation;
   commercialStatus: CommercialStatus;
   disputeFlag: boolean;
   pendingClientFlag: boolean;
   meetingSummary: string;
+  validityReason?: string;
+  recommendedAction?: MeetingAction;
+  evidence?: MeetingEvidence;
+  companyValidationStatus?: CompanyValidationStatus;
+  ghlStageKey?: string;
   nextStep: string;
   internalNotes: string;
 }
@@ -124,6 +179,30 @@ export const bantLabels: Record<BANTCriteria, string> = {
   authority: "Authority",
   need: "Need",
   timeline: "Timeline",
+};
+
+export const rejectionReasonLabels: Record<RejectionReason, string> = {
+  wrong_role: "Cargo incorrecto",
+  outside_profile: "Empresa fuera del perfil acordado",
+  prospect_no_show: "No asistió el prospecto",
+  no_real_interest: "No hubo interés real",
+  duplicate_meeting: "Reunión duplicada",
+  existing_client_or_contact: "Ya era cliente/contacto existente",
+  other: "Otro motivo",
+};
+
+export const clientDecisionLabels: Record<ClientDecision, string> = {
+  pending: "Pendiente de tu validación",
+  accepted: "Validada por cliente",
+  rejected: "Objetada por cliente",
+  review_requested: "Revisión solicitada",
+};
+
+export const meetingActionLabels: Record<MeetingAction, string> = {
+  count: "Contar para meta",
+  reschedule: "Reagendar",
+  escalate: "Escalar contacto",
+  manual_review: "Revisión manual",
 };
 
 // Extended types for new dashboards

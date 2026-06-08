@@ -2,7 +2,7 @@
 
 import { useApp } from "@/lib/app-context";
 import { Sidebar } from "@/components/sidebar";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 export default function InternalLayout({
@@ -10,20 +10,19 @@ export default function InternalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { role } = useApp();
-  const router = useRouter();
+  const { role, setRole } = useApp();
   const pathname = usePathname();
 
   useEffect(() => {
     if (role === "client" && pathname.startsWith("/internal")) {
-      router.push("/client/meeting-validation");
+      setRole("internal");
     }
-  }, [role, pathname, router]);
+  }, [role, pathname, setRole]);
 
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 ml-64">{children}</main>
+      <main className="ml-64 min-w-0 w-[calc(100%-16rem)] overflow-hidden">{children}</main>
     </div>
   );
 }
