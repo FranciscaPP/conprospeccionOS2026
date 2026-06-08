@@ -180,10 +180,10 @@ export const meetingStatusLabels: Record<MeetingStatus, string> = {
 };
 
 export const bantLabels: Record<BANTCriteria, string> = {
-  budget: "Budget",
-  authority: "Authority",
-  need: "Need",
-  timeline: "Timeline",
+  budget: "Presupuesto",
+  authority: "Autoridad",
+  need: "Necesidad",
+  timeline: "Timing",
 };
 
 export const rejectionReasonLabels: Record<RejectionReason, string> = {
