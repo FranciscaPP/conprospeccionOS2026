@@ -365,7 +365,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             <section className="space-y-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <ShieldCheck className="h-4 w-4 text-violet-600" />
-                {mode === "internal" ? "Validación Conprospección" : "Resultado Conprospección"}
+                {mode === "internal" ? "Validación Conprospección" : "Resultado de revisión"}
               </h3>
 
               {mode === "internal" ? (
@@ -467,6 +467,30 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                       {meeting.evidence?.aiSummary || meeting.validityReason || "Evaluación preparada con la información disponible de la reunión. Pendiente de integración real."}
                     </p>
                   </div>
+                  <div className="rounded-lg border border-violet-100 bg-violet-50/60 p-3">
+                    <Label className="text-xs text-muted-foreground">Grabación y análisis IA</Label>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      La estructura queda preparada para usar grabación y transcripción de la reunión. La IA podrá resumir conversación, detectar señales comerciales y sugerir el avance recomendado.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <a
+                        className="inline-flex h-7 items-center gap-2 rounded-lg border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground hover:bg-muted"
+                        href={meeting.evidence?.recordingUrl || "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <Calendar className="h-4 w-4" /> Grabación <ExternalLink className="h-3 w-3" />
+                      </a>
+                      <a
+                        className="inline-flex h-7 items-center gap-2 rounded-lg border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground hover:bg-muted"
+                        href={meeting.evidence?.transcriptUrl || "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <FileText className="h-4 w-4" /> Transcripción <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Variables comerciales consideradas</Label>
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -554,7 +578,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   </h3>
                   <div className="rounded-lg border border-border bg-muted/30 p-3">
                     <p className="mb-3 text-sm leading-6 text-muted-foreground">
-                      Registro simple para seguimiento posterior a la reunión. Este avance no modifica la validación de la reunión.
+                      Registro simple para seguimiento posterior a la reunión. Este avance comercial no modifica la validación para meta.
                     </p>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="space-y-2">
@@ -573,13 +597,21 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Próximo paso</Label>
+                        <Label className="text-xs text-muted-foreground">Próximo paso comercial</Label>
                         <Input
                           value={commercialNextStep}
                           onChange={(event) => setCommercialNextStep(event.target.value)}
                           placeholder="Ej: Enviar propuesta comercial"
                         />
                       </div>
+                    </div>
+                    <div className="mt-3 rounded-lg border border-violet-100 bg-violet-50/60 p-3">
+                      <Label className="text-xs text-muted-foreground">Análisis IA de avance</Label>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        {commercialNextStep
+                          ? `Siguiente acción detectada: ${commercialNextStep}. La IA podrá cruzar este avance con la grabación y la transcripción cuando exista integración real.`
+                          : "Pendiente de próximo paso comercial. La IA podrá sugerir avance cuando exista grabación/transcripción conectada."}
+                      </p>
                     </div>
                     <div className="mt-3 flex justify-end">
                       <Button type="button" variant="outline" size="sm" onClick={saveCommercialProgress}>

@@ -162,7 +162,7 @@ export default function MeetingValidationPage() {
               onClick={() => applyKpiFilter("all")}
             />
             <KPICard
-              title="Válidas finales"
+              title="Validadas para meta"
               value={kpis.finalValid}
               icon={<CheckCircle2 className="h-5 w-5" />}
               variant="success"
@@ -191,7 +191,7 @@ export default function MeetingValidationPage() {
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-foreground">Avance de meta</h3>
-                <p className="text-xs text-muted-foreground">Se consideran solo reuniones válidas finales.</p>
+                <p className="text-xs text-muted-foreground">Se consideran reuniones validadas por cliente y aplicables a la meta.</p>
               </div>
               <span className="text-lg font-bold text-violet-600">
                 {kpis.finalValid}/{goal} · {kpis.progress}%
@@ -208,7 +208,7 @@ export default function MeetingValidationPage() {
               <div className="min-w-0 space-y-2">
                 <h3 className="text-sm font-semibold text-foreground">¿Qué es una reunión válida?</h3>
                 <p className="max-w-full break-words text-sm leading-6 text-muted-foreground">
-                  Cuenta para la meta cuando la reunión cumple las condiciones acordadas: asistencia del prospecto, perfil correcto y contexto comercial suficiente. El detalle operativo queda registrado internamente; aquí se muestra la información necesaria para revisar la reunión.
+                  Cuenta para la meta cuando el prospecto corresponde al ICP acordado, la reunión se realiza y existen al menos dos variables comerciales relevantes. Aquí se muestra la información necesaria para revisar y calificar la reunión.
                 </p>
               </div>
             </div>
@@ -329,7 +329,7 @@ export default function MeetingValidationPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Apellido</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Cargo</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Estado</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Resultado Conprospección</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Resultado de revisión</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Acción</th>
                   </tr>
                 </thead>

@@ -31,6 +31,30 @@ function toSlug(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function translateDemoNextStep(value: string) {
+  const translations: Record<string, string> = {
+    "Send proposal by June 10": "Enviar propuesta antes del 10 de junio",
+    "Waiting for client validation": "Esperar validación del cliente",
+    "Schedule review call": "Agendar llamada de revisión",
+    "Waiting for client feedback": "Esperar feedback del cliente",
+    "New meeting June 12": "Nueva reunión el 12 de junio",
+    "Contract negotiation call June 15": "Llamada de negociación de contrato el 15 de junio",
+    "Send cold chain proposal": "Enviar propuesta de cadena de frío",
+    "Find correct contact": "Buscar contacto correcto",
+    "Contract signing June 20": "Firma de contrato el 20 de junio",
+    "Waiting validation": "Esperar validación",
+    "Finance meeting June 18": "Reunión con finanzas el 18 de junio",
+    "Proposal review June 16": "Revisión de propuesta el 16 de junio",
+    "Attempt to reschedule": "Intentar reagendar",
+    "Verify decision maker": "Verificar decisor",
+    "Post-mortem analysis": "Análisis de pérdida",
+    "Prepare comprehensive proposal": "Preparar propuesta completa",
+    "Complete meeting": "Completar reunión",
+  };
+
+  return translations[value] || value;
+}
+
 export function isProspectNoShow(meeting: Meeting) {
   return meeting.prospectAttended === false || meeting.meetingStatus === "no_show";
 }
@@ -112,12 +136,12 @@ export function getSimpleClientStatus(meeting: Meeting) {
 }
 
 export function getValidationResultLabel(meeting: Meeting) {
-  if (meeting.finalValidation === "final_valid") return "Cuenta para meta";
+  if (meeting.finalValidation === "final_valid") return "Validada para meta";
   if (meeting.finalValidation === "final_not_valid") return "No cuenta para meta";
   if (meeting.finalValidation === "in_dispute") return "En revisión";
   if (meeting.finalValidation === "rescheduled") return "Reagendada";
-  if (meeting.cpValidation === "valid_cp") return "Validada por Conprospección";
-  if (meeting.cpValidation === "not_valid_cp") return "No validada por Conprospección";
+  if (meeting.cpValidation === "valid_cp") return "Cumple criterios base";
+  if (meeting.cpValidation === "not_valid_cp") return "No cumple criterios base";
   return "Pendiente";
 }
 
@@ -143,6 +167,7 @@ export function normalizeMeeting(meeting: Meeting): Meeting {
     bantScore: meeting.bantScore ?? meeting.cpBANT.length,
     clientDecision: getClientDecision(meeting),
     preparationInfo: meeting.preparationInfo || meeting.meetingSummary,
+    nextStep: translateDemoNextStep(meeting.nextStep),
     companyValidationStatus: meeting.companyValidationStatus ?? "none",
   };
   next.recommendedAction = next.recommendedAction ?? deriveAction(next);
