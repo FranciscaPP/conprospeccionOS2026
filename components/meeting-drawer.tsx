@@ -298,6 +298,26 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   <p className="text-sm font-medium text-foreground">{meeting.leadIndustry || "Sin dato"}</p>
                 </div>
                 <div>
+                  <Label className="text-xs text-muted-foreground">Correo</Label>
+                  {meeting.leadEmail ? (
+                    <a className="text-sm font-medium text-violet-700 hover:underline" href={`mailto:${meeting.leadEmail}`}>
+                      {meeting.leadEmail}
+                    </a>
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Teléfono</Label>
+                  {meeting.leadPhone ? (
+                    <a className="text-sm font-medium text-violet-700 hover:underline" href={`tel:${meeting.leadPhone}`}>
+                      {meeting.leadPhone}
+                    </a>
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                  )}
+                </div>
+                <div>
                   <Label className="text-xs text-muted-foreground">Sitio web</Label>
                   {meeting.companyWebsite ? (
                     <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.companyWebsite} target="_blank" rel="noreferrer">

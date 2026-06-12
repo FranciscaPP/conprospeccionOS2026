@@ -90,6 +90,8 @@ export interface Meeting {
   firstName?: string;
   lastName?: string;
   jobTitle: string;
+  leadEmail?: string;
+  leadPhone?: string;
   country?: string;
   leadIndustry?: string;
   companyWebsite?: string;

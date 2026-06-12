@@ -1,3 +1,4 @@
+import { bantLabels } from "@/lib/types";
 import type {
   BANTCriteria,
   ClientDecision,
@@ -29,6 +30,10 @@ function toSlug(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function toEmailSlug(value: string) {
+  return toSlug(value).replace(/-/g, ".");
 }
 
 function translateDemoNextStep(value: string) {
@@ -145,12 +150,32 @@ export function getValidationResultLabel(meeting: Meeting) {
   return "Pendiente";
 }
 
+export function getValidationTooltip(meeting: Meeting) {
+  const variables = meeting.cpBANT.map((criteria) => bantLabels[criteria]).join(", ");
+  const variableText = variables || "sin variables comerciales registradas";
+  const evidenceText = meeting.evidence?.recordingUrl || meeting.evidence?.transcriptUrl
+    ? "Reunión grabada/transcrita para análisis."
+    : "Grabación pendiente o no conectada.";
+  const interestText = meeting.preparationInfo || meeting.meetingSummary || meeting.validityReason;
+
+  return [
+    `Criterios detectados: ${variableText}.`,
+    `ICP: ${meeting.regionValid === false || meeting.personAreaCorrect === false ? "requiere revisión" : "compatible con el perfil acordado"}.`,
+    evidenceText,
+    interestText ? `Contexto: ${interestText}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 export function normalizeMeeting(meeting: Meeting): Meeting {
   const names = splitContactName(meeting.contact);
   const next: Meeting = {
     ...meeting,
     firstName: meeting.firstName || names.firstName,
     lastName: meeting.lastName || names.lastName,
+    leadEmail: meeting.leadEmail || `${toEmailSlug(meeting.contact)}@${toSlug(meeting.company)}.com`,
+    leadPhone: meeting.leadPhone || "+56 9 1234 5678",
     country: meeting.country || "Chile",
     leadIndustry: meeting.leadIndustry || "Logística / Operaciones",
     companyWebsite: meeting.companyWebsite || `https://${toSlug(meeting.company)}.com`,

@@ -20,11 +20,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { FinalValidation, Meeting, MeetingStatus } from "@/lib/types";
 import {
   getClientDecision,
   getClientSearchText,
   getSimpleClientStatus,
+  getValidationTooltip,
   getValidationResultLabel,
   isClientLocked,
   MONTHLY_GOAL_BY_CLIENT,
@@ -303,10 +310,7 @@ export default function MeetingValidationPage() {
                   </div>
                   <div className="mb-3 flex flex-wrap gap-2">
                     <StatusBadge status={statusToBadge(simpleStatus)} label={simpleStatus} size="sm" />
-                    <span className="inline-flex items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
-                      <ShieldCheck className="h-3 w-3" />
-                      {getValidationResultLabel(meeting)}
-                    </span>
+                    <ValidationResultTooltip meeting={meeting} />
                   </div>
                   <div className="flex justify-end">
                     <span className={`rounded-lg px-3 py-1.5 text-sm font-medium ${locked ? "border border-border bg-background text-foreground" : "bg-violet-600 text-white"}`}>
@@ -351,10 +355,7 @@ export default function MeetingValidationPage() {
                           <StatusBadge status={statusToBadge(simpleStatus)} label={simpleStatus} size="sm" />
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <ShieldCheck className="h-4 w-4 text-violet-600" />
-                            <span className="text-sm text-foreground">{getValidationResultLabel(meeting)}</span>
-                          </div>
+                          <ValidationResultTooltip meeting={meeting} variant="table" />
                         </td>
                         <td className="px-4 py-3">
                           <Button
@@ -395,6 +396,36 @@ export default function MeetingValidationPage() {
         mode="client"
       />
     </div>
+  );
+}
+
+function ValidationResultTooltip({
+  meeting,
+  variant = "compact",
+}: {
+  meeting: Meeting;
+  variant?: "compact" | "table";
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger render={<span className="inline-flex" />}>
+          <span
+            className={
+              variant === "table"
+                ? "inline-flex cursor-help items-center gap-2 text-sm text-foreground"
+                : "inline-flex cursor-help items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700"
+            }
+          >
+            <ShieldCheck className={variant === "table" ? "h-4 w-4 text-violet-600" : "h-3 w-3"} />
+            {getValidationResultLabel(meeting)}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-[320px] text-xs leading-5">
+          {getValidationTooltip(meeting)}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
