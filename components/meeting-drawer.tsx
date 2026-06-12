@@ -63,6 +63,9 @@ interface MeetingDrawerProps {
 }
 
 const bantOptions: BANTCriteria[] = ["budget", "authority", "need", "timeline"];
+const leadFieldClass = "min-w-0 space-y-1";
+const leadValueClass = "min-w-0 break-words text-sm font-medium text-foreground [overflow-wrap:anywhere]";
+const leadLinkClass = "min-w-0 break-words text-sm font-medium text-violet-700 hover:underline [overflow-wrap:anywhere]";
 
 function EvidenceChecklist({ meeting }: { meeting: Meeting }) {
   const evidence = meeting.bantEvidence?.length
@@ -289,72 +292,72 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                 )}
               </div>
               <div className="grid gap-4 rounded-lg border border-border bg-muted/20 p-3 sm:grid-cols-2">
-                <div>
+                <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">País</Label>
-                  <p className="text-sm font-medium text-foreground">{meeting.country || "Chile"}</p>
+                  <p className={leadValueClass}>{meeting.country || "Chile"}</p>
                 </div>
-                <div>
+                <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">Industria</Label>
-                  <p className="text-sm font-medium text-foreground">{meeting.leadIndustry || "Sin dato"}</p>
+                  <p className={leadValueClass}>{meeting.leadIndustry || "Sin dato"}</p>
                 </div>
-                <div>
+                <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">Correo</Label>
                   {meeting.leadEmail ? (
-                    <a className="text-sm font-medium text-violet-700 hover:underline" href={`mailto:${meeting.leadEmail}`}>
+                    <a className={leadLinkClass} href={`mailto:${meeting.leadEmail}`}>
                       {meeting.leadEmail}
                     </a>
                   ) : (
-                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                    <p className={leadValueClass}>Sin dato</p>
                   )}
                 </div>
-                <div>
+                <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">Teléfono</Label>
                   {meeting.leadPhone ? (
-                    <a className="text-sm font-medium text-violet-700 hover:underline" href={`tel:${meeting.leadPhone}`}>
+                    <a className={leadLinkClass} href={`tel:${meeting.leadPhone}`}>
                       {meeting.leadPhone}
                     </a>
                   ) : (
-                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                    <p className={leadValueClass}>Sin dato</p>
                   )}
                 </div>
-                <div>
+                <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">Sitio web</Label>
                   {meeting.companyWebsite ? (
-                    <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.companyWebsite} target="_blank" rel="noreferrer">
+                    <a className={leadLinkClass} href={meeting.companyWebsite} target="_blank" rel="noreferrer">
                       Abrir sitio
                     </a>
                   ) : (
-                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                    <p className={leadValueClass}>Sin dato</p>
                   )}
                 </div>
-                <div>
+                <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">LinkedIn contacto</Label>
                   {meeting.contactLinkedinUrl ? (
-                    <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.contactLinkedinUrl} target="_blank" rel="noreferrer">
+                    <a className={leadLinkClass} href={meeting.contactLinkedinUrl} target="_blank" rel="noreferrer">
                       Ver perfil
                     </a>
                   ) : (
-                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                    <p className={leadValueClass}>Sin dato</p>
                   )}
                 </div>
-                <div>
+                <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">LinkedIn empresa</Label>
                   {meeting.companyLinkedinUrl ? (
-                    <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.companyLinkedinUrl} target="_blank" rel="noreferrer">
+                    <a className={leadLinkClass} href={meeting.companyLinkedinUrl} target="_blank" rel="noreferrer">
                       Ver empresa
                     </a>
                   ) : (
-                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                    <p className={leadValueClass}>Sin dato</p>
                   )}
                 </div>
-                <div>
+                <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">Link de reunión</Label>
                   {meeting.meetingUrl ? (
-                    <a className="text-sm font-medium text-violet-700 hover:underline" href={meeting.meetingUrl} target="_blank" rel="noreferrer">
+                    <a className={leadLinkClass} href={meeting.meetingUrl} target="_blank" rel="noreferrer">
                       Abrir reunión
                     </a>
                   ) : (
-                    <p className="text-sm font-medium text-foreground">Sin dato</p>
+                    <p className={leadValueClass}>Sin dato</p>
                   )}
                 </div>
               </div>
