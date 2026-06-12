@@ -57,6 +57,7 @@ export default function MeetingValidationPage() {
   const [kpiFilter, setKpiFilter] = useState<KpiFilter>("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [dayFilter, setDayFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
 
   const requestedMeetingId = queryMeetingId || selectedMeetingId;
   const requestedMeeting = useMemo(
@@ -100,6 +101,11 @@ export default function MeetingValidationPage() {
     )].sort();
   }, [clientMeetings, monthFilter]);
 
+  const countries = useMemo(
+    () => [...new Set(clientMeetings.map((meeting) => meeting.country).filter(Boolean))].sort() as string[],
+    [clientMeetings]
+  );
+
   const filteredMeetings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return clientMeetings.filter((meeting) => {
@@ -114,9 +120,10 @@ export default function MeetingValidationPage() {
           (getClientDecision(meeting) === "rejected" || meeting.finalValidation === "in_dispute"));
       const matchesMonth = monthFilter === "all" || meeting.meetingDate.slice(0, 7) === monthFilter;
       const matchesDay = dayFilter === "all" || meeting.meetingDate.slice(0, 10) === dayFilter;
-      return matchesSearch && matchesStatus && matchesKpi && matchesMonth && matchesDay;
+      const matchesCountry = countryFilter === "all" || meeting.country === countryFilter;
+      return matchesSearch && matchesStatus && matchesKpi && matchesMonth && matchesDay && matchesCountry;
     });
-  }, [clientMeetings, searchQuery, statusFilter, kpiFilter, monthFilter, dayFilter]);
+  }, [clientMeetings, searchQuery, statusFilter, kpiFilter, monthFilter, dayFilter, countryFilter]);
 
   const openDrawer = (meeting: Meeting) => {
     setSelectedMeeting(meeting);
@@ -221,7 +228,7 @@ export default function MeetingValidationPage() {
             </div>
           </section>
 
-          <div className="grid gap-3 lg:grid-cols-[1fr_220px_180px_180px]">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_190px_160px_160px_160px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -276,6 +283,16 @@ export default function MeetingValidationPage() {
                 })),
               ]}
             />
+            <NativeFilter
+              ariaLabel="Filtrar por país"
+              className="w-full"
+              value={countryFilter}
+              onChange={setCountryFilter}
+              options={[
+                { value: "all", label: "País: Todos" },
+                ...countries.map((country) => ({ value: country, label: country })),
+              ]}
+            />
           </div>
 
           <div className="space-y-3 md:hidden">
@@ -325,7 +342,7 @@ export default function MeetingValidationPage() {
           <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[920px]">
-                <thead className="bg-muted/50">
+                <thead className="sticky top-0 z-10 bg-muted shadow-sm">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Fecha</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Empresa</th>
