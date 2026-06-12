@@ -263,14 +263,14 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
         <ScrollArea className="h-[calc(100dvh-8rem)] sm:h-[calc(100vh-180px)]">
           <div className="space-y-5 p-4 sm:space-y-6 sm:p-6">
             {isClientMode && (
-              <div className="sticky top-0 z-20 -mx-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="sticky top-0 z-20 -mx-4 border-b border-border bg-background/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6">
+                <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0">
                   {clientTabs.map((tab) => (
                     <button
                       key={tab.value}
                       type="button"
                       onClick={() => setClientTab(tab.value)}
-                      className={`min-h-10 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                      className={`min-h-12 min-w-[7.5rem] rounded-xl border px-4 py-3 text-sm font-semibold transition sm:min-w-0 ${
                         clientTab === tab.value
                           ? "border-violet-300 bg-violet-50 text-violet-700"
                           : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -316,14 +316,8 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                     </p>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Link de reunión</Label>
-                    {meeting.meetingUrl ? (
-                      <a className={leadLinkClass} href={meeting.meetingUrl} target="_blank" rel="noreferrer">
-                        Abrir reunión
-                      </a>
-                    ) : (
-                      <p className={leadValueClass}>Sin dato</p>
-                    )}
+                    <Label className="text-xs text-muted-foreground">Estado actual</Label>
+                    <p className="text-sm font-medium text-foreground">{simpleStatus}</p>
                   </div>
                 </div>
 
