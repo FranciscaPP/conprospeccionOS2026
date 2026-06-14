@@ -10,9 +10,13 @@ import type {
 } from "@/lib/types";
 
 export const MONTHLY_GOAL_BY_CLIENT: Record<string, number> = {
+  "GBS LOGISTICS": 10,
   "GBS Logistics": 10,
-  "Clickie": 8,
-  "Tiresias": 12,
+  "GBS": 10,
+  "CLICKIE": 6,
+  "Clickie": 6,
+  "BAMBUTECH": 12,
+  "BambuTech": 12,
 };
 
 export function splitContactName(contact: string) {
@@ -58,6 +62,11 @@ function translateDemoNextStep(value: string) {
   };
 
   return translations[value] || value;
+}
+
+function cleanOptional(value?: string) {
+  const cleaned = value?.trim();
+  return cleaned && cleaned !== "Sin dato" ? cleaned : undefined;
 }
 
 export function isProspectNoShow(meeting: Meeting) {
@@ -174,14 +183,14 @@ export function normalizeMeeting(meeting: Meeting): Meeting {
     ...meeting,
     firstName: meeting.firstName || names.firstName,
     lastName: meeting.lastName || names.lastName,
-    leadEmail: meeting.leadEmail || `${toEmailSlug(meeting.contact)}@${toSlug(meeting.company)}.com`,
-    leadPhone: meeting.leadPhone || "+56 9 1234 5678",
-    country: meeting.country || "Chile",
-    leadIndustry: meeting.leadIndustry || "Logística / Operaciones",
-    companyWebsite: meeting.companyWebsite || `https://${toSlug(meeting.company)}.com`,
-    contactLinkedinUrl: meeting.contactLinkedinUrl || `https://www.linkedin.com/in/${toSlug(meeting.contact)}`,
-    companyLinkedinUrl: meeting.companyLinkedinUrl || `https://www.linkedin.com/company/${toSlug(meeting.company)}`,
-    meetingUrl: meeting.meetingUrl || `https://meet.google.com/${toSlug(meeting.id)}`,
+    leadEmail: cleanOptional(meeting.leadEmail),
+    leadPhone: cleanOptional(meeting.leadPhone),
+    country: meeting.country || "Sin dato",
+    leadIndustry: cleanOptional(meeting.leadIndustry),
+    companyWebsite: cleanOptional(meeting.companyWebsite),
+    contactLinkedinUrl: cleanOptional(meeting.contactLinkedinUrl),
+    companyLinkedinUrl: cleanOptional(meeting.companyLinkedinUrl),
+    meetingUrl: cleanOptional(meeting.meetingUrl),
     regionValid: meeting.regionValid ?? true,
     prospectAttended:
       meeting.prospectAttended ?? (meeting.meetingStatus === "no_show" ? false : true),

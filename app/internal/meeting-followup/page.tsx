@@ -20,23 +20,15 @@ import {
 import { format, isSameWeek, isToday, isTomorrow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useApp } from "@/lib/app-context";
-import { DemoDisabledButton } from "@/components/demo-disabled-button";
 import { MeetingDrawer } from "@/components/meeting-drawer";
-import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { FinalValidation, Meeting, MeetingStatus } from "@/lib/types";
 import {
-  clientDecisionLabels,
-  finalValidationLabels,
-  meetingStatusLabels,
-} from "@/lib/types";
-import {
   getClientPriority,
   getDaysRemainingInMonth,
-  getValidationResultLabel,
   getInternalSearchText,
   isFinalValid,
   MONTHLY_GOAL_BY_CLIENT,
@@ -68,19 +60,17 @@ const quickFilterLabels: Record<QuickFilter, string> = {
   no_show: "No realizadas",
 };
 
-const statusToBadge = (meeting: Meeting): MeetingStatus | FinalValidation => {
-  if (meeting.meetingStatus === "no_show") return "no_show";
-  if (meeting.meetingStatus === "rescheduled") return "rescheduled";
-  if (meeting.finalValidation === "final_valid") return "completed";
-  if (meeting.finalValidation === "final_not_valid") return "final_not_valid";
-  if (meeting.finalValidation === "in_dispute" || meeting.clientDecision === "review_requested") return "pending";
-  if (meeting.clientDecision === "pending") return "scheduled";
-  return meeting.meetingStatus;
-};
-
 export default function InternalMeetingFollowupPage() {
   const router = useRouter();
-  const { meetings, setRole, setSelectedMeetingId } = useApp();
+  const {
+    meetings,
+    meetingsLoading,
+    meetingsError,
+    refreshMeetings,
+    setRole,
+    setSelectedMeetingId,
+    updateMeeting,
+  } = useApp();
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
@@ -92,6 +82,7 @@ export default function InternalMeetingFollowupPage() {
   const [monthFilter, setMonthFilter] = useState("all");
   const [dayFilter, setDayFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
+  const [savingMeetingId, setSavingMeetingId] = useState<string | null>(null);
 
   const today = new Date();
   const daysRemaining = getDaysRemainingInMonth(today);
@@ -214,9 +205,12 @@ export default function InternalMeetingFollowupPage() {
   ]);
 
   const riskClients = clientProgress.filter((client) => client.priority === "Alta").slice(0, 3);
-  const closeClients = clientProgress
-    .filter((client) => client.validated >= client.goal || client.gap <= 1)
-    .slice(0, 3);
+  const todayMeetings = useMemo(
+    () => meetings.filter((meeting) => isToday(new Date(meeting.meetingDate))),
+    [meetings]
+  );
+  const todayByClient = useMemo(() => countBy(todayMeetings, (meeting) => meeting.client), [todayMeetings]);
+  const todayBySdr = useMemo(() => countBy(todayMeetings, (meeting) => meeting.sdrAssigned), [todayMeetings]);
 
   const openDrawer = (meeting: Meeting) => {
     setSelectedMeeting(meeting);
@@ -229,6 +223,30 @@ export default function InternalMeetingFollowupPage() {
     router.push(`/client/meeting-validation?meeting=${meeting.id}`);
   };
 
+  const saveMeetingPatch = async (meeting: Meeting, updates: Partial<Meeting>) => {
+    setSavingMeetingId(meeting.id);
+    updateMeeting(meeting.id, updates);
+    try {
+      const response = await fetch("/api/internal/meetings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: meeting.id,
+          finalValidation: updates.finalValidation,
+          meetingStatus: updates.meetingStatus,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "No se pudo guardar.");
+      await refreshMeetings();
+    } catch (error) {
+      await refreshMeetings();
+      window.alert(error instanceof Error ? error.message : "No se pudo guardar la reunión.");
+    } finally {
+      setSavingMeetingId(null);
+    }
+  };
+
   return (
     <div className="flex-1 overflow-hidden">
       <header className="border-b border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
@@ -239,15 +257,30 @@ export default function InternalMeetingFollowupPage() {
               Control diario por cliente, estado de reunión y prioridad operativa.
             </p>
           </div>
-          <DemoDisabledButton className="gap-2">
-            <RefreshCw className="h-4 w-4" />
+          <Button className="gap-2" onClick={refreshMeetings} disabled={meetingsLoading}>
+            <RefreshCw className={`h-4 w-4 ${meetingsLoading ? "animate-spin" : ""}`} />
             Actualizar
-          </DemoDisabledButton>
+          </Button>
         </div>
       </header>
 
       <ScrollArea className="h-[calc(100dvh-7rem)] lg:h-[calc(100vh-65px)]">
         <main className="space-y-4 p-4 sm:space-y-6 sm:p-6">
+          {(meetingsError || meetingsLoading) && (
+            <section className="rounded-lg border border-border bg-card px-4 py-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                    {meetingsLoading ? "Cargando reuniones" : "Error de datos"}
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">
+                    {meetingsError || "Actualizando agenda y validaciones..."}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-9">
             <QuickKPI
               active={quickFilter === "today"}
@@ -319,7 +352,12 @@ export default function InternalMeetingFollowupPage() {
             />
           </section>
 
-          <section className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+          <section className="grid gap-4 lg:grid-cols-2">
+            <DailyPulse title="Hoy por cliente" items={todayByClient} empty="Sin reuniones agendadas hoy" />
+            <DailyPulse title="Hoy por SDR" items={todayBySdr} empty="Sin reuniones asignadas hoy" />
+          </section>
+
+          <section className="grid gap-4 xl:grid-cols-[1.5fr_0.8fr]">
             <div className="rounded-xl border border-border bg-card">
               <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
@@ -375,7 +413,7 @@ export default function InternalMeetingFollowupPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+            <div className="grid gap-4">
               <ClientSummaryBlock
                 title="Clientes en riesgo"
                 empty="Sin clientes críticos hoy"
@@ -384,16 +422,6 @@ export default function InternalMeetingFollowupPage() {
                   meta: `${client.validated}/${client.goal}`,
                   detail: `Brecha ${client.gap}, ${client.pending} pendientes`,
                   tone: "danger",
-                }))}
-              />
-              <ClientSummaryBlock
-                title="Clientes cerca de cumplir"
-                empty="Ningún cliente cerca de meta"
-                items={closeClients.map((client) => ({
-                  name: client.client,
-                  meta: `${client.validated}/${client.goal}`,
-                  detail: client.validated >= client.goal ? "Meta cumplida" : `Brecha ${client.gap}`,
-                  tone: "success",
                 }))}
               />
             </div>
@@ -412,6 +440,26 @@ export default function InternalMeetingFollowupPage() {
                   Limpiar KPI
                 </Button>
               )}
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2">
+              <Button
+                variant={clientFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setClientFilter("all")}
+              >
+                General
+              </Button>
+              {clients.map((client) => (
+                <Button
+                  key={client}
+                  variant={clientFilter === client ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setClientFilter(client)}
+                >
+                  {client}
+                </Button>
+              ))}
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-8">
@@ -489,7 +537,7 @@ export default function InternalMeetingFollowupPage() {
           <section className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1180px]">
-                <thead className="bg-muted/50">
+                <thead className="sticky top-0 z-10 bg-muted">
                   <tr>
                     {[
                       "Cliente",
@@ -501,8 +549,8 @@ export default function InternalMeetingFollowupPage() {
                       "País",
                       "SDR",
                       "Estado operativo",
-                      "Validación cliente",
                       "Resultado meta",
+                      "BANT",
                       "Link",
                       "Acción",
                     ].map((heading) => (
@@ -516,7 +564,13 @@ export default function InternalMeetingFollowupPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredMeetings.map((meeting) => {
+                  {meetingsLoading ? (
+                    <tr>
+                      <td colSpan={13} className="px-3 py-10 text-center text-sm text-muted-foreground">
+                        Cargando reuniones reales desde Supabase...
+                      </td>
+                    </tr>
+                  ) : filteredMeetings.map((meeting) => {
                     const names = splitContactName(meeting.contact);
                     const firstName = meeting.firstName || names.firstName;
                     const lastName = meeting.lastName || names.lastName;
@@ -555,26 +609,64 @@ export default function InternalMeetingFollowupPage() {
                         <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.jobTitle}</td>
                         <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.country ?? "Sin dato"}</td>
                         <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.sdrAssigned}</td>
-                        <td className="px-3 py-3">
-                          <StatusBadge
-                            status={statusToBadge(meeting)}
-                            label={meetingStatusLabels[meeting.meetingStatus]}
-                            size="sm"
+                        <td className="px-3 py-3" onClick={(event) => event.stopPropagation()}>
+                          <InlineSelect
+                            disabled={savingMeetingId === meeting.id}
+                            value={meeting.meetingStatus}
+                            options={[
+                              { value: "scheduled", label: "Agendada" },
+                              { value: "completed", label: "Realizada" },
+                              { value: "rescheduled", label: "Reagendada" },
+                              { value: "cancelled", label: "Cancelada" },
+                              { value: "no_show", label: "No asistió" },
+                            ]}
+                            onChange={(value) =>
+                              saveMeetingPatch(meeting, { meetingStatus: value as MeetingStatus })
+                            }
                           />
                         </td>
-                        <td className="px-3 py-3">
-                          <StatusBadge
-                            status={statusToBadge(meeting)}
-                            label={clientDecisionLabels[meeting.clientDecision ?? "pending"]}
-                            size="sm"
+                        <td className="px-3 py-3" onClick={(event) => event.stopPropagation()}>
+                          <InlineSelect
+                            disabled={savingMeetingId === meeting.id}
+                            value={meeting.finalValidation}
+                            options={[
+                              { value: "pending", label: "Pendiente" },
+                              { value: "final_valid", label: "Cuenta meta" },
+                              { value: "final_not_valid", label: "No cuenta" },
+                              { value: "rescheduled", label: "Reagendar" },
+                            ]}
+                            onChange={(value) => {
+                              const finalValidation = value as FinalValidation;
+                              saveMeetingPatch(meeting, {
+                                finalValidation,
+                                clientDecision:
+                                  finalValidation === "final_valid"
+                                    ? "accepted"
+                                    : finalValidation === "final_not_valid"
+                                      ? "rejected"
+                                      : "pending",
+                                clientValidation:
+                                  finalValidation === "final_valid"
+                                    ? "valid_client"
+                                    : finalValidation === "final_not_valid"
+                                      ? "not_valid_client"
+                                      : finalValidation === "rescheduled"
+                                        ? "rescheduled"
+                                        : "waiting_client_validation",
+                                cpValidation:
+                                  finalValidation === "final_valid"
+                                    ? "valid_cp"
+                                    : finalValidation === "final_not_valid"
+                                      ? "not_valid_cp"
+                                      : finalValidation === "rescheduled"
+                                        ? "rescheduled"
+                                        : "waiting_validation",
+                              });
+                            }}
                           />
                         </td>
-                        <td className="px-3 py-3">
-                          <StatusBadge
-                            status={statusToBadge(meeting)}
-                            label={getValidationResultLabel(meeting)}
-                            size="sm"
-                          />
+                        <td className="px-3 py-3 text-xs text-muted-foreground">
+                          {meeting.cpBANT.length > 0 ? `${meeting.cpBANT.length}/4` : "Manual"}
                         </td>
                         <td className="px-3 py-3">
                           {meeting.meetingUrl ? (
@@ -611,7 +703,7 @@ export default function InternalMeetingFollowupPage() {
                 </tbody>
               </table>
             </div>
-            {filteredMeetings.length === 0 && (
+            {!meetingsLoading && filteredMeetings.length === 0 && (
               <div className="py-10 text-center">
                 <Flag className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">No hay reuniones con estos filtros.</p>
@@ -648,6 +740,16 @@ function matchesQuickFilter(meeting: Meeting, filter: QuickFilter, today: Date) 
   if (filter === "rescheduled") return meeting.meetingStatus === "rescheduled";
   if (filter === "no_show") return meeting.meetingStatus === "no_show" || meeting.finalValidation === "final_not_valid";
   return true;
+}
+
+function countBy(meetings: Meeting[], getKey: (meeting: Meeting) => string) {
+  return Object.entries(
+    meetings.reduce<Record<string, number>>((acc, meeting) => {
+      const key = getKey(meeting) || "Sin dato";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {})
+  ).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 
 function priorityClass(priority: string) {
@@ -702,6 +804,36 @@ function QuickKPI({
       </div>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
     </button>
+  );
+}
+
+function DailyPulse({
+  empty,
+  items,
+  title,
+}: {
+  empty: string;
+  items: Array<[string, number]>;
+  title: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        <span className="text-xs text-muted-foreground">{items.reduce((sum, [, count]) => sum + count, 0)} total</span>
+      </div>
+      {items.length === 0 ? (
+        <p className="rounded-lg bg-muted px-3 py-4 text-sm text-muted-foreground">{empty}</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {items.map(([name, count]) => (
+            <span key={name} className={`rounded-full border px-3 py-1 text-xs font-semibold ${clientTheme(name)}`}>
+              {name} · {count}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -783,6 +915,33 @@ function NativeFilter({
     <select
       aria-label={`Filtrar por ${label.toLowerCase()}`}
       className="h-8 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function InlineSelect({
+  disabled,
+  onChange,
+  options,
+  value,
+}: {
+  disabled?: boolean;
+  onChange: (value: string) => void;
+  options: Array<{ label: string; value: string }>;
+  value: string;
+}) {
+  return (
+    <select
+      className="h-8 min-w-[118px] rounded-md border border-input bg-background px-2 text-xs text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40 disabled:cursor-wait disabled:opacity-60"
+      disabled={disabled}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     >
