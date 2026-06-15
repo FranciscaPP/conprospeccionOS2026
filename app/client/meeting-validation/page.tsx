@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { ACTIVE_CLIENTS, clientSlugFromName, type ActiveClientSlug } from "@/lib/access-control";
 import { KPICard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
 import { MeetingDrawer } from "@/components/meeting-drawer";
@@ -39,6 +40,19 @@ import {
 
 type KpiFilter = "all" | "valid" | "pending" | "rejected_or_disputed";
 
+function resolveClientFromParam(meetings: Meeting[], clientParam: string | null) {
+  const requestedSlug = clientSlugFromName(clientParam || "") ?? "gbs";
+  return (
+    meetings.find((meeting) => clientSlugFromName(meeting.client) === requestedSlug)?.client ||
+    ACTIVE_CLIENTS.find((client) => client.slug === requestedSlug)?.displayName ||
+    "GBS LOGISTICS"
+  );
+}
+
+function clientPath(slug: ActiveClientSlug) {
+  return `/client/meeting-validation?client=${slug}`;
+}
+
 function statusToBadge(status: string): FinalValidation | MeetingStatus {
   if (status === "Validada") return "final_valid";
   if (status === "Rechazada" || status === "No realizada") return "final_not_valid";
@@ -52,6 +66,7 @@ export default function MeetingValidationPage() {
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [queryMeetingId, setQueryMeetingId] = useState<string | null>(null);
+  const [queryClient, setQueryClient] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [kpiFilter, setKpiFilter] = useState<KpiFilter>("all");
@@ -64,7 +79,7 @@ export default function MeetingValidationPage() {
     () => meetings.find((meeting) => meeting.id === requestedMeetingId) || null,
     [meetings, requestedMeetingId]
   );
-  const selectedClient = requestedMeeting?.client || "GBS Logistics";
+  const selectedClient = requestedMeeting?.client || resolveClientFromParam(meetings, queryClient);
 
   const clientMeetings = useMemo(
     () => meetings.filter((meeting) => meeting.client === selectedClient),
@@ -135,8 +150,23 @@ export default function MeetingValidationPage() {
     setStatusFilter("all");
   };
 
+  const switchClient = (slug: ActiveClientSlug) => {
+    setQueryMeetingId(null);
+    setSelectedMeetingId(null);
+    setQueryClient(slug);
+    setSearchQuery("");
+    setStatusFilter("all");
+    setKpiFilter("all");
+    setMonthFilter("all");
+    setDayFilter("all");
+    setCountryFilter("all");
+    window.history.replaceState(null, "", clientPath(slug));
+  };
+
   useEffect(() => {
-    setQueryMeetingId(new URLSearchParams(window.location.search).get("meeting"));
+    const params = new URLSearchParams(window.location.search);
+    setQueryMeetingId(params.get("meeting"));
+    setQueryClient(params.get("client"));
   }, []);
 
   useEffect(() => {
@@ -156,12 +186,30 @@ export default function MeetingValidationPage() {
               {selectedClient} · Revisión de reuniones entregadas
             </p>
           </div>
-          {kpis.pending > 0 && (
-            <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
-              <Clock className="h-4 w-4" />
-              {kpis.pending} requieren validación
+          <div className="flex flex-col gap-2 sm:items-end">
+            <div className="flex flex-wrap gap-2 sm:justify-end">
+              {ACTIVE_CLIENTS.map((client) => (
+                <button
+                  key={client.slug}
+                  type="button"
+                  className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                    clientSlugFromName(selectedClient) === client.slug
+                      ? "border-violet-300 bg-violet-50 text-violet-700"
+                      : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                  onClick={() => switchClient(client.slug)}
+                >
+                  {client.displayName}
+                </button>
+              ))}
             </div>
-          )}
+            {kpis.pending > 0 && (
+              <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+                <Clock className="h-4 w-4" />
+                {kpis.pending} requieren validación
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

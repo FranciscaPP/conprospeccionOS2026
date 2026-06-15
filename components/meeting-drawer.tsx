@@ -142,7 +142,7 @@ function BantSelector({
 }
 
 export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerProps) {
-  const { updateMeeting } = useApp();
+  const { refreshMeetings, updateMeeting } = useApp();
   const [formData, setFormData] = useState<Partial<Meeting>>({});
   const [rejectionReason, setRejectionReason] = useState<RejectionReason>("wrong_role");
   const [clientComment, setClientComment] = useState("");
@@ -193,37 +193,59 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
   };
 
   const acceptMeeting = () => {
-    updateMeeting(meeting.id, {
+    const updates: Partial<Meeting> = {
       clientValidation: "valid_client",
       clientDecision: "accepted",
       clientDecisionAt: new Date().toISOString(),
       clientComment,
       finalValidation: validByContract ? "final_valid" : "in_dispute",
-    });
+    };
+    updateMeeting(meeting.id, updates);
+    void persistClientValidation(meeting.id, updates.finalValidation as FinalValidation);
     onClose();
   };
 
   const rejectMeeting = () => {
-    updateMeeting(meeting.id, {
+    const updates: Partial<Meeting> = {
       clientValidation: "not_valid_client",
       clientDecision: "rejected",
       clientDecisionAt: new Date().toISOString(),
       rejectionReason,
       clientComment,
       finalValidation: meeting.cpValidation === "valid_cp" ? "in_dispute" : "final_not_valid",
-    });
+    };
+    updateMeeting(meeting.id, updates);
+    void persistClientValidation(meeting.id, updates.finalValidation as FinalValidation);
     onClose();
   };
 
   const requestReview = () => {
-    updateMeeting(meeting.id, {
+    const updates: Partial<Meeting> = {
       clientValidation: "requires_review",
       clientDecision: "review_requested",
       clientDecisionAt: new Date().toISOString(),
       clientComment,
       finalValidation: "in_dispute",
-    });
+    };
+    updateMeeting(meeting.id, updates);
+    void persistClientValidation(meeting.id, "in_dispute");
     onClose();
+  };
+
+  const persistClientValidation = async (id: string, finalValidation: FinalValidation) => {
+    try {
+      const response = await fetch("/api/internal/meetings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, finalValidation }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "No se pudo guardar la validaciÃ³n.");
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo guardar la validaciÃ³n.");
+    } finally {
+      await refreshMeetings();
+    }
   };
 
   const saveClientDecision = () => {

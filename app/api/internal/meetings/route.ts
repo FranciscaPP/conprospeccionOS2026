@@ -125,6 +125,15 @@ function validationPatch(finalValidation: string | undefined) {
     };
   }
 
+  if (finalValidation === "in_dispute") {
+    return {
+      estado_validacion: "revision_solicitada",
+      es_valida: null,
+      reagendada: false,
+      pendiente_validacion: false,
+    };
+  }
+
   if (finalValidation === "pending") {
     return {
       estado_validacion: "pendiente_validacion",

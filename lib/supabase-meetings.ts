@@ -8,9 +8,9 @@ import type {
   Meeting,
   MeetingStatus,
 } from "@/lib/types";
+import { clientSlugFromName } from "@/lib/access-control";
 
 export const MEETINGS_START_DATE = "2026-05-01";
-const ACTIVE_CLIENT_SLUGS = new Set(["clickie", "gbs", "bambutech"]);
 
 const NO_DATA = "Sin dato";
 
@@ -65,6 +65,7 @@ export type MeetingsPayload = {
     rawRowCount: number;
     excludedInactiveCount: number;
     excludedTestCount: number;
+    excludedIncompleteCount: number;
     dedupedCount: number;
     missing: Record<string, number>;
     syncHint: string;
@@ -132,6 +133,10 @@ function hasTestMarker(row: SupabaseMeetingRow) {
     .includes("test");
 }
 
+function hasRequiredMeetingData(row: SupabaseMeetingRow) {
+  return Boolean(clean(row.empresa) && clean(row.contacto) && latestScheduledTimestamp(row));
+}
+
 function parseComparableDate(value: unknown) {
   const raw = clean(value);
   if (!raw) return 0;
@@ -153,14 +158,15 @@ function normalizeDedupeKey(value: unknown) {
 }
 
 function removeTestAndDuplicateRows(rows: SupabaseMeetingRow[]) {
-  const activeRows = rows.filter((row) => ACTIVE_CLIENT_SLUGS.has(normalizeDedupeKey(row.cliente_slug)));
+  const activeRows = rows.filter((row) => clientSlugFromName(normalizeDedupeKey(row.cliente_slug)));
   const withoutTest = activeRows.filter((row) => !hasTestMarker(row));
+  const completeRows = withoutTest.filter(hasRequiredMeetingData);
   const seenCompanies = new Set<string>();
   const seenEmails = new Set<string>();
   const kept: SupabaseMeetingRow[] = [];
   let dedupedCount = 0;
 
-  [...withoutTest]
+  [...completeRows]
     .sort((a, b) => latestScheduledTimestamp(b) - latestScheduledTimestamp(a))
     .forEach((row) => {
       const company = normalizeDedupeKey(row.empresa);
@@ -181,6 +187,7 @@ function removeTestAndDuplicateRows(rows: SupabaseMeetingRow[]) {
     rows: kept.sort((a, b) => latestScheduledTimestamp(a) - latestScheduledTimestamp(b)),
     excludedInactiveCount: rows.length - activeRows.length,
     excludedTestCount: activeRows.length - withoutTest.length,
+    excludedIncompleteCount: withoutTest.length - completeRows.length,
     dedupedCount,
   };
 }
@@ -293,6 +300,17 @@ function validationFromRow(row: SupabaseMeetingRow): {
       finalValidation: "final_not_valid",
       clientDecision: "rejected",
       commercialStatus: "not_commercially_qualified",
+      cpBANT: [],
+    };
+  }
+
+  if (validationStatus.includes("revision")) {
+    return {
+      cpValidation: "requires_review",
+      clientValidation: "requires_review",
+      finalValidation: "in_dispute",
+      clientDecision: "review_requested",
+      commercialStatus: "pending_followup",
       cpBANT: [],
     };
   }
@@ -416,6 +434,7 @@ export function mapSupabaseRowsToMeetings(
       rawRowCount: rows.length,
       excludedInactiveCount: cleanedRows.excludedInactiveCount,
       excludedTestCount: cleanedRows.excludedTestCount,
+      excludedIncompleteCount: cleanedRows.excludedIncompleteCount,
       dedupedCount: cleanedRows.dedupedCount,
       missing,
       syncHint:

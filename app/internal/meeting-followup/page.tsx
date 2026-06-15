@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import type React from "react";
-import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Calendar,
@@ -61,14 +60,11 @@ const quickFilterLabels: Record<QuickFilter, string> = {
 };
 
 export default function InternalMeetingFollowupPage() {
-  const router = useRouter();
   const {
     meetings,
     meetingsLoading,
     meetingsError,
     refreshMeetings,
-    setRole,
-    setSelectedMeetingId,
     updateMeeting,
   } = useApp();
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
@@ -217,10 +213,16 @@ export default function InternalMeetingFollowupPage() {
     setDrawerOpen(true);
   };
 
-  const openClientValidation = (meeting: Meeting) => {
-    setRole("client");
-    setSelectedMeetingId(meeting.id);
-    router.push(`/client/meeting-validation?meeting=${meeting.id}`);
+  const filterByClient = (client: string) => {
+    setClientFilter(client);
+    setQuickFilter("all");
+    setSearchQuery("");
+    setSdrFilter("all");
+    setStatusFilter("all");
+    setYearFilter("all");
+    setMonthFilter("all");
+    setDayFilter("all");
+    setCountryFilter("all");
   };
 
   const saveMeetingPatch = async (meeting: Meeting, updates: Partial<Meeting>) => {
@@ -391,9 +393,14 @@ export default function InternalMeetingFollowupPage() {
                     {clientProgress.map((client) => (
                       <tr key={client.client} className="hover:bg-muted/30">
                         <td className="px-4 py-3">
-                          <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${clientTheme(client.client)}`}>
+                          <button
+                            type="button"
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${clientTheme(client.client)}`}
+                            onClick={() => filterByClient(client.client)}
+                            title="Filtrar por cliente"
+                          >
                             {client.client}
-                          </span>
+                          </button>
                           <Progress value={client.progress} className="mt-2 h-1.5" />
                         </td>
                         <td className="px-4 py-3 text-sm text-foreground">{client.goal}</td>
@@ -587,12 +594,11 @@ export default function InternalMeetingFollowupPage() {
                             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${clientTheme(meeting.client)}`}
                             onClick={(event) => {
                               event.stopPropagation();
-                              openClientValidation(meeting);
+                              filterByClient(meeting.client);
                             }}
-                            title="Abrir dashboard de validación del cliente"
+                            title="Filtrar por cliente"
                           >
                             {meeting.client}
-                            <ChevronRight className="h-3 w-3" />
                           </button>
                         </td>
                         <td className="px-3 py-3">
