@@ -16,7 +16,8 @@ function getSupabaseConfig() {
   const key =
     process.env.SUPABASE_SECRET_KEY ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_KEY;
+    process.env.SUPABASE_SERVICE_KEY ||
+    process.env.SUPABASE_KEY;
 
   if (!url || !key) {
     throw new Error("Faltan SUPABASE_URL y SUPABASE_SECRET_KEY/SUPABASE_SERVICE_ROLE_KEY en el entorno.");

@@ -7,9 +7,27 @@ __v0_jsx-dev-runtime.ts
 .vercel/
 
 # Environment variables
+.env
+.env.*
+!.env.example
 .env*.local
+
+# Local datasets and generated exports
+BASES_APOLLO&SNOV/
+CLIENTES/
+data/
+apollo_export/
+*.xlsx
+*.xls
+*.csv
+*.log
+*_log.txt
+*_err.txt
+gbs_matches_tmp.json
 
 # Common ignores
 node_modules
 .next/
 .DS_Store
+__pycache__/
+*.pyc

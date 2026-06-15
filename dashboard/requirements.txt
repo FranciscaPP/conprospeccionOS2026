@@ -1,0 +1,10 @@
+# rebuild marker: 2026-06-04e (fuerza reconstrucción de contenedor en Streamlit Cloud)
+streamlit>=1.34
+pillow>=10.0
+pandas>=2.0
+openpyxl>=3.1
+requests>=2.31
+pypdf>=4.0
+fpdf2>=2.7
+python-dotenv>=1.0
+supabase>=2.0
