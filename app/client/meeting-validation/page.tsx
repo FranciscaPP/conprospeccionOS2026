@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { FinalValidation, Meeting, MeetingStatus } from "@/lib/types";
+import type { CPValidation, Meeting } from "@/lib/types";
 import {
   getClientDecision,
   getClientSearchText,
@@ -47,12 +47,37 @@ function clientPath(slug: ActiveClientSlug) {
   return `/client/meeting-validation?client=${slug}`;
 }
 
-function statusToBadge(status: string): FinalValidation | MeetingStatus {
-  if (status === "Validada") return "final_valid";
-  if (status === "No validada" || status === "No realizada") return "final_not_valid";
-  if (status === "En revisión") return "in_dispute";
-  if (status === "Reagendada") return "rescheduled";
-  return "pending";
+function cpStatusMeta(meeting: Meeting): { status: CPValidation; label: string } {
+  if (meeting.meetingStatus === "rescheduled" || meeting.cpValidation === "rescheduled") {
+    return { status: "rescheduled", label: "Reagendada por CP" };
+  }
+  if (meeting.cpValidation === "valid_cp") {
+    return { status: "valid_cp", label: "Validada por CP" };
+  }
+  if (meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed") {
+    return { status: meeting.cpValidation, label: "No validada por CP" };
+  }
+  if (meeting.cpValidation === "requires_review") {
+    return { status: "requires_review", label: "Revisión CP" };
+  }
+  return { status: "waiting_validation", label: "Pendiente validación CP" };
+}
+
+function clientDecisionText(meeting: Meeting) {
+  const decision = getClientDecision(meeting);
+  if (decision === "accepted") return "Cliente: validada";
+  if (decision === "rejected" || decision === "review_requested") return "Cliente: solicita reevaluación";
+  return "Cliente: pendiente";
+}
+
+function ValidationState({ meeting }: { meeting: Meeting }) {
+  const cp = cpStatusMeta(meeting);
+  return (
+    <div className="inline-flex flex-col items-start">
+      <StatusBadge status={cp.status} label={cp.label} size="sm" />
+      <span className="mt-1 text-[11px] leading-4 text-muted-foreground">{clientDecisionText(meeting)}</span>
+    </div>
+  );
 }
 
 export default function MeetingValidationPage() {
@@ -216,12 +241,6 @@ export default function MeetingValidationPage() {
                     {client.displayName}
                   </button>
                 ))}
-              </div>
-            )}
-            {kpis.pending > 0 && (
-              <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
-                <Clock className="h-4 w-4" />
-                {kpis.pending} requieren validación
               </div>
             )}
           </div>
@@ -398,7 +417,6 @@ export default function MeetingValidationPage() {
               </div>
             )}
             {filteredMeetings.map((meeting) => {
-              const simpleStatus = getSimpleClientStatus(meeting);
               const locked = isClientLocked(meeting);
 
               return (
@@ -424,7 +442,7 @@ export default function MeetingValidationPage() {
                     </div>
                   </div>
                   <div className="mb-3 flex flex-wrap gap-2">
-                    <StatusBadge status={statusToBadge(simpleStatus)} label={simpleStatus} size="sm" />
+                    <ValidationState meeting={meeting} />
                   </div>
                   <div className="flex justify-end">
                     <span className={`rounded-lg px-3 py-1.5 text-sm font-medium ${locked ? "border border-border bg-background text-foreground" : "bg-[#333] text-white"}`}>
@@ -445,13 +463,12 @@ export default function MeetingValidationPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Empresa</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Contacto</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Cargo</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Validación</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Estado</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Acción</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filteredMeetings.map((meeting) => {
-                    const simpleStatus = getSimpleClientStatus(meeting);
                     const locked = isClientLocked(meeting);
                     return (
                       <tr key={meeting.id} className="cursor-pointer transition-colors hover:bg-muted/30" onClick={() => openDrawer(meeting)}>
@@ -468,7 +485,7 @@ export default function MeetingValidationPage() {
                         <td className="px-4 py-3 text-sm text-foreground">{[meeting.firstName, meeting.lastName].filter(Boolean).join(" ") || "-"}</td>
                         <td className="px-4 py-3 text-sm text-muted-foreground">{meeting.jobTitle}</td>
                         <td className="px-4 py-3">
-                          <StatusBadge status={statusToBadge(simpleStatus)} label={simpleStatus} size="sm" />
+                          <ValidationState meeting={meeting} />
                         </td>
                         <td className="px-4 py-3">
                           <Button

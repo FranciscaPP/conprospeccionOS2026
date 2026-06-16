@@ -165,26 +165,31 @@ function removeTestAndDuplicateRows(rows: SupabaseMeetingRow[]) {
   const activeRows = rows.filter((row) => clientSlugFromName(normalizeDedupeKey(row.cliente_slug)));
   const withoutTest = activeRows.filter((row) => !hasTestMarker(row));
   const completeRows = withoutTest.filter(hasRequiredMeetingData);
-  const seenCompanies = new Set<string>();
-  const seenEmails = new Set<string>();
+  const seenKeys = new Set<string>();
   const kept: SupabaseMeetingRow[] = [];
   let dedupedCount = 0;
 
   [...completeRows]
     .sort((a, b) => latestScheduledTimestamp(b) - latestScheduledTimestamp(a))
     .forEach((row) => {
-      const company = normalizeDedupeKey(row.empresa);
-      const email = normalizeDedupeKey(row.email);
-      const duplicate = (company && seenCompanies.has(company)) || (email && seenEmails.has(email));
+      const appointmentId = normalizeDedupeKey(row.ghl_appointment_id);
+      const rowId = normalizeDedupeKey(row.id);
+      const fallbackKey = [
+        normalizeDedupeKey(row.cliente_slug),
+        normalizeDedupeKey(row.empresa),
+        normalizeDedupeKey(row.email),
+        latestScheduledTimestamp(row),
+        normalizeDedupeKey(row.estado_reunion),
+      ].join("|");
+      const key = appointmentId || rowId || fallbackKey;
 
-      if (duplicate) {
+      if (seenKeys.has(key)) {
         dedupedCount += 1;
         return;
       }
 
       kept.push(row);
-      if (company) seenCompanies.add(company);
-      if (email) seenEmails.add(email);
+      seenKeys.add(key);
     });
 
   return {
@@ -344,6 +349,10 @@ function comments(row: SupabaseMeetingRow) {
     .join("\n\n");
 }
 
+function rawText(row: SupabaseMeetingRow, key: string) {
+  return clean(row.raw_data?.[key]);
+}
+
 export function mapSupabaseRowsToMeetings(
   rows: SupabaseMeetingRow[],
   clients: ClientRow[],
@@ -402,6 +411,10 @@ export function mapSupabaseRowsToMeetings(
       leadPhone: clean(row.telefono) || undefined,
       country,
       leadIndustry: clean(row.industria) || undefined,
+      companySize: rawText(row, "companySize") || undefined,
+      companyWebsite: rawText(row, "website") || undefined,
+      contactLinkedinUrl: rawText(row, "contactLinkedin") || undefined,
+      companyLinkedinUrl: rawText(row, "companyLinkedin") || undefined,
       meetingUrl,
       meetingStatus,
       cpValidation: validation.cpValidation,
@@ -421,7 +434,7 @@ export function mapSupabaseRowsToMeetings(
       validityReason: clean(row.motivo_no_valida) || clean(row.motivo_rechazo) || undefined,
       prospectAttended: meetingStatus === "no_show" ? false : undefined,
       concretada: meetingStatus === "completed" ? true : undefined,
-      nextStep: clean(row.comercial_proximo_paso) || (validation.clientDecision === "pending" ? "Validar reunión" : "Sin dato"),
+      nextStep: clean(row.comercial_proximo_paso) || (validation.clientDecision === "pending" ? "Pendiente de seguimiento comercial" : "Sin dato"),
       internalNotes: noteText || "Sin dato",
       ghlStageKey: clean(row.estado_reunion) || undefined,
     } satisfies Meeting;

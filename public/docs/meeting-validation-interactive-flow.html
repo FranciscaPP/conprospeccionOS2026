@@ -73,7 +73,7 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
 .choice{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.choice label{min-height:43px;border-radius:10px;border:1px solid var(--line-2);background:#fff;color:var(--ink);font-weight:500;display:grid;place-items:center;text-align:center;cursor:pointer}.choice input{position:absolute;opacity:0;pointer-events:none}.choice label:has(input:checked){background:#fff4b8;border-color:#e6c95f;color:#5f4600}textarea{width:100%;min-height:86px;resize:none;border:1px solid var(--line-2);border-radius:11px;padding:12px;outline:0}.footer-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.reason{display:flex}
 .panel-tabs{height:62px;display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);background:#fff}.tab{border:0;background:#fff;color:var(--ink-2);font-size:14px;font-weight:500}.tab.active{color:var(--ink);background:#fffdf0;box-shadow:inset 0 -3px 0 var(--gold)}.panel-body{display:block}.tabs-content{display:none}.tabs-content.active{display:grid;gap:14px}.choice label{min-height:34px;border-radius:9px;font-size:13px;padding:0 8px}.choice label[data-choice="validar"]:has(input:checked){background:var(--ok-bg);border-color:#c7ebde;color:var(--ok-ink)}.choice label[data-choice="rechazar"]:has(input:checked){background:var(--bad-bg);border-color:#f1c8c3;color:var(--bad-ink)}.choice label[data-choice="revision"]:has(input:checked){background:var(--rev-bg);border-color:#f0d4bd;color:var(--rev-ink)}.choice label[data-choice="reagendar"]:has(input:checked){background:#efefec;border-color:#d7d7d0;color:#565650}.subreasons{display:grid;gap:8px}.subreason-panel{display:none;grid-template-columns:1fr;gap:7px}.subreason-panel.active{display:grid}.subreason-panel label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;color:var(--ink-2);font-size:13px}.cp-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cp-card{border:1px solid var(--line);border-radius:11px;padding:11px;text-align:left;background:#fff;color:var(--ink);display:grid;gap:4px}.cp-card small{color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;font-size:10px}.cp-card.valid{background:var(--ok-bg);border-color:#c7ebde;color:var(--ok-ink)}.cp-card.rescheduled{background:#efefec;border-color:#d7d7d0;color:#565650}.validation-flow{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fff;display:grid;gap:6px;color:var(--ink-2);font-size:13px}textarea{font-style:normal}
 .panel-body .panel-section{display:none!important}
-.choice label[data-choice="validar"]{background:var(--ok-bg);border-color:#c7ebde;color:var(--ok-ink)}.choice label[data-choice="rechazar"]{background:var(--bad-bg);border-color:#f1c8c3;color:var(--bad-ink)}.choice label[data-choice="revision"]{background:var(--rev-bg);border-color:#f0d4bd;color:var(--rev-ink)}.choice label[data-choice="reagendar"]{background:#efefec;border-color:#d7d7d0;color:#565650}.choice label:has(input:checked){box-shadow:inset 0 0 0 2px currentColor}
+.choice label{background:#fff;border:1px solid var(--line-2);color:var(--ink-2)}.choice label:has(input:checked){box-shadow:inset 0 0 0 2px currentColor}
 .tabs-content[data-content="data"] .section{border:1px solid var(--line);border-left:4px solid #d8d8d2;border-radius:12px;padding:12px;background:#fbfbfa}
 .tabs-content[data-content="data"] .section:nth-child(1){border-left-color:var(--gold)}
 .tabs-content[data-content="data"] .section:nth-child(2){border-left-color:#8f928b}
@@ -99,9 +99,9 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
 .field,.filter-menu summary{height:40px;font-size:14px;font-weight:400;color:#3f403c}.field input,.field select,.field input::placeholder{font-size:14px;font-weight:400;color:#5f625d}.filter-menu summary:after{content:"";width:14px;height:14px;background:currentColor;opacity:.65;clip-path:path("M4 6.5 7 9.5 10 6.5");margin-left:auto}
 .sort-head{border:0;background:transparent;color:#656b74;text-transform:uppercase;letter-spacing:.06em;font-size:11px;font-weight:650;padding:0 14px 0 0;display:inline-flex;align-items:center;gap:5px;line-height:1;cursor:pointer}.sort-head:after{content:"";width:8px;height:12px;opacity:.18;background:linear-gradient(to bottom,transparent 0 1px,currentColor 1px 2px,transparent 2px 5px,currentColor 5px 6px,transparent 6px)}.sort-head:hover:after,.sort-head.active:after{opacity:.55}.sort-head.asc:after{clip-path:polygon(50% 0,100% 45%,68% 45%,68% 100%,32% 100%,32% 45%,0 45%)}.sort-head.desc:after{clip-path:polygon(32% 0,68% 0,68% 55%,100% 55%,50% 100%,0 55%,32% 55%)}
 .goal{background:#fffef4!important;border:1px solid #e2d37a!important;border-left:4px solid var(--gold)!important;color:var(--ink)!important;padding:12px 14px!important}.goal-row{margin-bottom:9px!important}.goal-row span{color:#3f403c!important;font-size:13px!important}.goal-row strong{background:#3f403c!important;color:#fff!important;border:1px solid #343531!important}.goal-bar{height:7px!important;background:#ebe8d0!important}.goal-bar i{background:linear-gradient(90deg,#ffd700,#c8a900)!important}
-.media-card{border:1px solid #deded8!important;background:#fbfbfa!important;color:#2f302d!important;border-radius:11px!important}.player{height:82px!important;background:#fbfbfa!important;color:#2f302d!important;display:grid!important;grid-template-columns:auto 1fr!important;place-items:center start!important;gap:12px!important;padding:14px!important}.player:after{content:"Video y transcripcion IA disponibles";font-size:13px;color:#555851;line-height:1.3}.play{width:42px!important;height:42px!important;border:1px solid #d7bd18!important;background:#fff7b8!important;color:#4a3b00!important}.timeline{height:38px!important;background:#f0f0ec!important;color:#61645e!important}.line{background:#deded8!important}
+.media-card{border:1px solid #deded8!important;background:#fbfbfa!important;color:#2f302d!important;border-radius:11px!important}.player{height:82px!important;background:#fbfbfa!important;color:#2f302d!important;display:grid!important;grid-template-columns:auto 1fr!important;place-items:center start!important;gap:12px!important;padding:14px!important}.player:after{content:"Video y transcripcion IA disponible";font-size:13px;color:#555851;line-height:1.3}.play{width:42px!important;height:42px!important;border:1px solid #d7bd18!important;background:#fff7b8!important;color:#4a3b00!important}.timeline{height:38px!important;background:#f0f0ec!important;color:#61645e!important}.line{background:#deded8!important}
 .choice label{min-height:31px;font-size:12.5px}
-.choice label[data-choice="rechazar"]{background:#f7dddd!important;border-color:#e5a09a!important;color:#8f2721!important}.choice label[data-choice="rechazar"]:has(input:checked){background:#f2c9c5!important;border-color:#b9362f!important;color:#7d1f19!important}.choice label[data-choice="revision"]{background:#fff1d8!important;border-color:#e0b46d!important;color:#8b4f0c!important}.choice label[data-choice="revision"]:has(input:checked){background:#ffe4b8!important;border-color:#c77912!important;color:#763f00!important}
+.choice label[data-choice="rechazar"]:has(input:checked){background:#f2c9c5!important;border-color:#b9362f!important;color:#7d1f19!important}.choice label[data-choice="revision"]:has(input:checked){background:#ffe4b8!important;border-color:#c77912!important;color:#763f00!important}
 .quote-pill{display:inline-flex;align-items:center;justify-content:center;border:1px solid #c9b7ea;background:#eee8fb;color:#56358d;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:600;line-height:1}
 .contact-cell b{display:block;font-weight:400}.country-mini,.status-detail{display:block;color:#858881;font-size:11px;margin-top:3px;line-height:1.2}.status-detail{max-width:180px;white-space:normal}
 .company-cell{display:grid;gap:3px;min-width:0}.company-industry{display:block;color:#858881;font-size:11px;line-height:1.2;padding-left:45px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -140,9 +140,9 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
     </div>
     <div class="role"><span>GBS Logistics</span><button class="collapse" id="collapseSidebar" aria-label="Contraer o ampliar menú"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg></button></div>
     <nav class="nav">
-      <a href="/client/performance-overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Resumen de performance</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Resumen de performance</span></a>
       <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Avance reuniones</span></a>
-      <a href="/client/intelligence-insight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg><span>Revenue Intelligence</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg><span>Revenue Intelligence</span></a>
     </nav>
     <div class="side-foot">
       <div class="mini">GB</div>
@@ -187,9 +187,8 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
         <div class="type-segment" aria-label="Filtrar por tipo de gestion">
           <span>Tipo</span>
           <button type="button" class="active" data-type-filter="all">Todos <strong>0</strong></button>
-          <button type="button" data-type-filter="meeting">Reunion <strong>0</strong></button>
-          <button type="button" data-type-filter="quote">Solo cotizacion <strong>0</strong></button>
-          <button type="button" data-type-filter="quote-meeting">Cotizacion + reunion <strong>0</strong></button>
+          <button type="button" data-type-filter="meeting">Reunión <strong>0</strong></button>
+          <button type="button" data-type-filter="quote">Solo cotización <strong>0</strong></button>
         </div>
 
         <div class="filters">
@@ -237,9 +236,9 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
               </div>
             </div>
           </details>
-          <details class="filter-menu">
-            <summary>País: Todos</summary>
-            <div><button type="button">Todos</button><button type="button">Chile</button></div>
+          <details class="filter-menu" id="countryMenu">
+            <summary id="countrySummary">País: Todos</summary>
+            <div id="countryOptions"></div>
           </details>
         </div>
 
@@ -318,8 +317,8 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
               </div>
               <div class="evidence-links">
                 <div><small>Fuente</small><span id="evidenceSourceNew">GHL</span></div>
-                <div><small>Transcripción</small><a id="evidenceUrlNew" href="#" target="_blank" rel="noreferrer">Pendiente</a></div>
-                <div><small>Grabación</small><a id="recordingUrlNew" href="#" target="_blank" rel="noreferrer">Pendiente</a></div>
+                <div><small>Transcripción</small><a id="evidenceUrlNew" href="#" target="_blank" rel="noreferrer">Sin link</a></div>
+                <div><small>Grabación</small><a id="recordingUrlNew" href="#" target="_blank" rel="noreferrer">Sin link</a></div>
                 <div><small>BANT detectado</small><span id="bantDetectedNew">Pendiente</span></div>
               </div>
             </div>
@@ -377,89 +376,6 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
               <div class="note" id="nextStepNew"></div>
             </div>
           </section>
-          <details class="panel-section" open>
-            <summary>Decisión</summary>
-            <div class="panel-section-body">
-              <h3>Tu validación</h3>
-              <div class="choice">
-                <label><input type="radio" name="decision" value="validar" checked>Validar</label>
-                <label><input type="radio" name="decision" value="rechazar">No validar</label>
-                <label><input type="radio" name="decision" value="revision">Pedir revisión</label>
-                <label><input type="radio" name="decision" value="reagendar">Reagendar</label>
-              </div>
-              <label class="field reason" id="rescheduleReason"><select id="reasonSelect"><option>Prospecto no asistió</option><option>Solicita reagendar</option><option>Cliente no asistió</option><option>Fuera de horario acordado</option><option>Falta información para validar</option></select></label>
-              <textarea id="comment" placeholder="Comentario opcional"></textarea>
-              <div class="footer-actions">
-                <button class="btn light" id="cancelDecision">Cancelar</button>
-                <button class="btn" id="saveDecision">Guardar</button>
-              </div>
-            </div>
-          </details>
-          <details class="panel-section">
-            <summary>Evidencia</summary>
-            <div class="panel-section-body">
-            <div class="section">
-              <h3>Evidencia revisada</h3>
-              <div class="note" id="evaluation"></div>
-              <div class="chips" id="chips"></div>
-            </div>
-            <div class="section">
-              <h3>Grabación de la reunión</h3>
-              <div class="media-card">
-                <div class="player"><button class="play" id="playRecording" aria-label="Reproducir grabación"><svg viewBox="0 0 24 24" width="25" height="25" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button></div>
-                <div class="timeline"><span id="timeLabel">00:00</span><div class="line"><i></i></div><span>31:20</span></div>
-              </div>
-            </div>
-            <div class="section">
-              <h3>Resumen y transcripción</h3>
-              <div class="note" id="transcriptSummary">La conversación confirma interés en revisar alternativas de prospección, con necesidad de coordinar propuesta y siguiente conversación comercial.</div>
-            </div>
-            </div>
-          </details>
-          <details class="panel-section">
-            <summary>Datos</summary>
-            <div class="panel-section-body">
-            <div class="section">
-              <h3>Información de preparación</h3>
-              <div class="note" id="prep"></div>
-            </div>
-            <div class="section">
-              <h3>Datos del contacto</h3>
-              <div class="kv">
-                <div><small>Contacto</small><b id="contactName">Bernardo Viele</b></div>
-                <div><small>Cargo</small><b id="contactRole">Gerente Comercial</b></div>
-                <div><small>Email</small><b id="contactEmail">bernardo@medizintechnik.cl</b></div>
-                <div><small>Teléfono</small><b id="contactPhone">+56 9 5555 0101</b></div>
-                <div><small>LinkedIn contacto</small><b id="contactLinkedin">linkedin.com/in/bernardov</b></div>
-                <div><small>Link reunión</small><b id="meetingUrlData">meet.google.com/gbs-demo</b></div>
-              </div>
-            </div>
-            <div class="section">
-              <h3>Datos de empresa</h3>
-              <div class="kv">
-                <div><small>Industria</small><b id="industry">Tecnología médica</b></div>
-                <div><small>Tamaño empresa</small><b id="companySize">51-200 empleados</b></div>
-                <div><small>Sitio web</small><b id="website">medizintechnik.cl</b></div>
-                <div><small>LinkedIn empresa</small><b id="companyLinkedin">linkedin.com/company/medizintechnik-chile</b></div>
-              </div>
-            </div>
-            </div>
-          </details>
-          <details class="panel-section">
-            <summary>Comercial</summary>
-            <div class="panel-section-body">
-            <div class="section">
-              <h3>Actualizar seguimiento comercial</h3>
-              <label class="field"><select id="statusSelect"><option>Propuesta</option><option>Reunión agendada</option><option>Propuesta enviada</option><option>Avance propuesta</option><option>Cliente ganado</option><option>Cliente perdido</option><option>Sin respuesta</option><option>Contactar a futuro</option></select></label>
-              <textarea id="nextStepInput" placeholder="Próximo paso comercial"></textarea>
-              <button class="btn" id="saveCommercial">Guardar</button>
-            </div>
-            <div class="section">
-              <h3>Último seguimiento</h3>
-              <div class="note" id="nextStep"></div>
-            </div>
-            </div>
-          </details>
         </div>
       </aside>
     </section>
@@ -562,10 +478,11 @@ let meetings = [
 let selected = meetings[0];
 let currentFilter = "all";
 let currentTypeFilter = "all";
+let currentCountryFilter = "all";
 let currentSearch = "";
-let dateRange = { start: "2026-06-01", end: "2026-06-30" };
+let dateRange = (() => { const n = new Date(); const y = n.getFullYear(); const m = n.getMonth(); const p = x => String(x).padStart(2, "0"); const last = new Date(y, m + 1, 0).getDate(); return { start: `${y}-${p(m + 1)}-01`, end: `${y}-${p(m + 1)}-${p(last)}` }; })();
 let draftRange = { ...dateRange };
-let calendarState = { year: 2026, month: 5 };
+let calendarState = (() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() }; })();
 let sortState = { key: "date", direction: "asc" };
 const rows = document.getElementById("rows");
 const panel = document.getElementById("panel");
@@ -615,10 +532,10 @@ function decisionFromFilter(filter){
 }
 
 function badgeClass(status){
-  if(status === "Validada") return "valid";
-  if(status === "No válida" || status === "No valida") return "rejected";
-  if(status === "Pedir revisión" || status === "En revisión") return "review";
-  if(status === "Reagendada") return "rescheduled";
+  if(status === "Validada" || status === "Validada por CP") return "valid";
+  if(status === "No válida" || status === "No validada por CP") return "rejected";
+  if(status === "Pedir revisión" || status === "En revisión" || status === "Revisión CP") return "review";
+  if(status === "Reagendada" || status === "Reagendada por CP") return "rescheduled";
   return "pending";
 }
 function stripPlatformNames(value = ""){
@@ -635,6 +552,7 @@ function visibleSource(value = ""){
   return stripPlatformNames(text);
 }
 function displayCpValidation(meeting){
+  if (String(meeting.status || "").includes("CP")) return meeting.status;
   if (meeting.filter === "validada") return "Reunión válida";
   if (meeting.filter === "no-validada") return "Reunión no válida";
   if (meeting.filter === "reagendada") return "Reagendar reunión";
@@ -642,8 +560,8 @@ function displayCpValidation(meeting){
   return stripPlatformNames(meeting.cpValidation || "Pendiente");
 }
 function cpBadgeClass(label){
-  if (label === "Reunión válida") return "cp-mini-badge";
-  if (label === "Reagendar reunión") return "cp-mini-badge reschedule";
+  if (label === "Reunión válida" || label === "Validada por CP") return "cp-mini-badge";
+  if (label === "Reagendar reunión" || label === "Reagendada por CP") return "cp-mini-badge reschedule";
   return "cp-mini-badge invalid";
 }
 function toIso(date){
@@ -652,17 +570,9 @@ function toIso(date){
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
-function isQuoteMeeting(meeting){
-  return meeting.time === "Cotizar"
-    || String(meeting.id || "").startsWith("quote-")
-    || (meeting.tags || []).includes("cotizacion")
-    || /cotiz/.test(`${meeting.cpAgenda || ""}`.toLowerCase());
-}
 function meetingType(meeting){
-  const quote = isQuoteMeeting(meeting);
-  const hasMeeting = Boolean(meeting.meetingUrl);
-  if (quote && hasMeeting) return "quote-meeting";
-  if (quote) return "quote";
+  const haystack = `${meeting.time || ""} ${(meeting.tags || []).join(" ")} ${meeting.cpAgenda || ""}`.toLowerCase();
+  if (/cotiz/.test(haystack)) return "quote";
   return "meeting";
 }
 function countryFromPhone(phone = ""){
@@ -672,7 +582,7 @@ function countryFromPhone(phone = ""){
   return "";
 }
 function displayCountry(meeting){
-  return countryFromPhone(meeting.phone) || meeting.country || "Por confirmar";
+  return cleanDisplay(countryFromPhone(meeting.phone) || meeting.country) || "Por confirmar";
 }
 function cleanDisplay(value = ""){
   const text = stripPlatformNames(value).trim();
@@ -690,7 +600,7 @@ function statusDetail(meeting){
   if (meeting.filter === "reagendada") return reasons.length ? reasons.join(" + ") : "Motivo pendiente";
   if (meeting.filter === "objetada") return reasons.length ? reasons.join(" + ") : "Revisar evidencia";
   if (meeting.filter === "pendiente") {
-    if (isQuoteMeeting(meeting)) return "Válida sólo cotización";
+    if (meetingType(meeting) === "quote") return "Válida sólo cotización";
     const start = new Date(meeting.startTime || meeting.dateIso || "");
     return !Number.isNaN(start.getTime()) && start > new Date() ? "Reunión futura" : "Reunión realizada";
   }
@@ -706,26 +616,40 @@ function baseFilteredMeetings(){
     const searchable = `${m.company} ${m.person} ${m.role} ${m.email} ${m.phone} ${m.country} ${displayCountry(m)} ${m.website}`.toLowerCase();
     const matchesSearch = !q || searchable.includes(q);
     const matchesType = currentTypeFilter === "all" || meetingType(m) === currentTypeFilter;
-    return matchesSearch && matchesType && inDateRange(m);
+    const country = displayCountry(m);
+    const matchesCountry = currentCountryFilter === "all" || country === currentCountryFilter;
+    return matchesSearch && matchesType && matchesCountry && inDateRange(m);
   });
 }
 function updateTypeCounts(){
   const q = currentSearch.trim().toLowerCase();
   const scoped = meetings.filter(m => {
     const searchable = `${m.company} ${m.person} ${m.role} ${m.email} ${m.phone} ${m.country} ${displayCountry(m)} ${m.website}`.toLowerCase();
-    return (!q || searchable.includes(q)) && inDateRange(m);
+    const matchesCountry = currentCountryFilter === "all" || displayCountry(m) === currentCountryFilter;
+    return (!q || searchable.includes(q)) && matchesCountry && inDateRange(m);
   });
   const counts = {
     all: scoped.length,
     meeting: scoped.filter(m => meetingType(m) === "meeting").length,
     quote: scoped.filter(m => meetingType(m) === "quote").length,
-    "quote-meeting": scoped.filter(m => meetingType(m) === "quote-meeting").length,
   };
   document.querySelectorAll("[data-type-filter]").forEach(button => {
     button.classList.toggle("active", button.dataset.typeFilter === currentTypeFilter);
     const strong = button.querySelector("strong");
     if (strong) strong.textContent = counts[button.dataset.typeFilter] ?? 0;
   });
+}
+function renderCountryOptions(){
+  const countries = [...new Set(meetings.map(displayCountry).filter(country => country && country !== "Por confirmar"))].sort((a, b) => a.localeCompare(b, "es"));
+  const options = ["all", ...countries];
+  const countryOptions = document.getElementById("countryOptions");
+  const countrySummary = document.getElementById("countrySummary");
+  if (!countryOptions || !countrySummary) return;
+  countryOptions.innerHTML = options.map(country => {
+    const label = country === "all" ? "País: Todos" : country;
+    return `<button type="button" data-country-filter="${country}">${label}</button>`;
+  }).join("");
+  countrySummary.textContent = currentCountryFilter === "all" ? "País: Todos" : `País: ${currentCountryFilter}`;
 }
 function updateStats(base = baseFilteredMeetings()){
   const counts = {
@@ -761,8 +685,16 @@ function sortMeetings(items){
   return [...items].sort((a, b) => String(sortValue(a, sortState.key)).localeCompare(String(sortValue(b, sortState.key)), "es", { numeric: true, sensitivity: "base" }) * direction);
 }
 function initialsForName(value = ""){
-  const words = String(value).replace(/[^A-Za-z0-9 ÁÉÍÓÚÜÑáéíóúüñ]/g, " ").trim().split(/\s+/).filter(Boolean);
+  const words = String(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean);
   return `${words[0]?.[0] || "?"}${words[1]?.[0] || ""}`.toUpperCase();
+}
+function colorForCompany(value = "", isQuote = false){
+  if (isQuote) return "#6d55a3";
+  const palette = ["#0e9f6e", "#b06a00", "#246b8f", "#7b5aa6", "#5f6f52", "#b45f3c", "#2f7771", "#8b6f21", "#4766a6", "#5f6368"];
+  const key = String(value || "");
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) hash = (hash + key.charCodeAt(i) * (i + 1)) % 997;
+  return palette[hash % palette.length];
 }
 function formatDateShort(value){
   const date = new Date(value);
@@ -775,16 +707,24 @@ function formatTimeShort(value){
   return new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/Santiago" }).format(date);
 }
 function visualStatus(meeting){
-  if (meeting.finalValidation === "final_valid") return { status: "Validada", filter: "validada" };
-  if (meeting.finalValidation === "final_not_valid") return { status: "No valida", filter: "no-validada" };
-  if (meeting.finalValidation === "in_dispute") return { status: "Pedir revision", filter: "objetada" };
-  if (meeting.meetingStatus === "rescheduled" || meeting.finalValidation === "rescheduled") return { status: "Reagendada", filter: "reagendada" };
-  return { status: "Pendiente validacion", filter: "pendiente" };
+  if (meeting.meetingStatus === "rescheduled" || meeting.finalValidation === "rescheduled" || meeting.cpValidation === "rescheduled") return { status: "Reagendada por CP", filter: "reagendada" };
+  if (meeting.cpValidation === "valid_cp") return { status: "Validada por CP", filter: "validada" };
+  if (meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed") return { status: "No validada por CP", filter: "no-validada" };
+  if (meeting.cpValidation === "requires_review") return { status: "Revisión CP", filter: "objetada" };
+  if (meeting.finalValidation === "final_valid") return { status: "Validada por CP", filter: "validada" };
+  if (meeting.finalValidation === "final_not_valid") return { status: "No validada por CP", filter: "no-validada" };
+  return { status: "Pendiente validación CP", filter: "pendiente" };
+}
+function clientStatusLabel(meeting){
+  const decision = meeting.clientDecision || "";
+  if (decision === "accepted") return "Cliente: validada";
+  if (decision === "rejected" || decision === "review_requested") return "Cliente: solicita reevaluación";
+  return "Cliente: pendiente";
 }
 function visualCommercialStatus(value){
   const map = {
     pending_followup: "Propuesta",
-    next_step_scheduled: "Reunion agendada",
+    next_step_scheduled: "Reunión agendada",
     requested_proposal: "Propuesta",
     proposal_sent: "Propuesta enviada",
     proposal_followup: "Avance propuesta",
@@ -798,7 +738,7 @@ function visualCommercialStatus(value){
 }
 function apiMeetingToVisual(meeting){
   const status = visualStatus(meeting);
-  const isQuote = String(meeting.id || "").startsWith("quote-") || /solo cotizacion|solicitud directa de cotizacion/i.test(`${meeting.meetingSummary || ""} ${meeting.preparationInfo || ""}`);
+  const isQuote = String(meeting.id || "").startsWith("quote-") || /solo cotización|solicitud directa de cotización/i.test(`${meeting.meetingSummary || ""} ${meeting.preparationInfo || ""}`);
   const summary = stripPlatformNames(meeting.meetingSummary || meeting.preparationInfo || "Pendiente");
   const prep = stripPlatformNames(meeting.preparationInfo || meeting.meetingSummary || "Pendiente");
   return {
@@ -811,28 +751,29 @@ function apiMeetingToVisual(meeting){
     endTime: meeting.meetingDate,
     company: meeting.company || "Sin empresa",
     initials: initialsForName(meeting.company),
-    color: isQuote ? "#6d55a3" : "#0e9f6e",
+    color: colorForCompany(meeting.company, isQuote),
     person: meeting.contact || "Contacto sin nombre",
-    role: meeting.jobTitle || "Contacto comercial",
+    role: cleanDisplay(meeting.jobTitle),
     ...status,
+    clientStatus: clientStatusLabel(meeting),
     prep,
-    evaluation: isQuote ? "Solicitud directa de cotizacion. Para GBS puede contar como oportunidad equivalente a reunion si el cliente la valida." : summary,
-    chips: isQuote ? ["Solo cotizacion", "Cuenta para meta", "Seguimiento comercial"] : ["Registro real", "Pendiente evidencia", "ICP por validar"],
-    transcriptSummary: isQuote ? "Sin grabacion ni transcripcion porque no hubo reunion. La evidencia comercial es la solicitud directa de cotizacion." : summary,
-    evidenceSummary: isQuote ? "Solicitud comercial directa cargada desde workflow. El cliente valida si cuenta para meta y se activa seguimiento de cotizacion." : summary,
-    commercialStatus: meeting.commercialStatusLabel || visualCommercialStatus(meeting.commercialStatus),
-    nextStep: meeting.nextStep || (isQuote ? "Contactar para levantar requerimiento y enviar cotizacion." : "Validar evidencia y completar evaluacion comercial."),
+    evaluation: isQuote ? "Solicitud directa de cotización. Para GBS puede contar como oportunidad equivalente a reunión si el cliente la valida." : summary,
+    chips: isQuote ? ["Solo cotización", "Cuenta para meta", "Seguimiento comercial"] : ["Registro real", "Pendiente evidencia", "ICP por validar"],
+    transcriptSummary: isQuote ? "Sin grabación ni transcripción porque no hubo reunión. La evidencia comercial es la solicitud directa de cotización." : summary,
+    evidenceSummary: isQuote ? "Solicitud comercial directa cargada desde workflow. El cliente valida si cuenta para meta y se activa seguimiento de cotización." : summary,
+    commercialStatus: visualCommercialStatus(meeting.commercialStatus),
+    nextStep: cleanDisplay(meeting.nextStep) || (isQuote ? "Contactar para levantar requerimiento y enviar cotización." : "Pendiente de seguimiento comercial."),
     meetingUrl: meeting.meetingUrl || "",
     email: meeting.leadEmail || "",
     phone: meeting.leadPhone || "",
     country: meeting.country || "",
     contactLinkedin: meeting.contactLinkedinUrl || "",
     industry: meeting.leadIndustry || "",
-    companySize: "",
+    companySize: meeting.companySize || "",
     website: meeting.companyWebsite || "",
     companyLinkedin: meeting.companyLinkedinUrl || "",
-    cpValidation: isQuote ? "Reunion valida" : "Reunion valida",
-    cpAgenda: isQuote ? "Cotizacion solicitada" : "Agenda sin cambios",
+    cpValidation: status.status,
+    cpAgenda: isQuote ? "Cotización solicitada" : "Agenda sin cambios",
     tags: isQuote ? ["cotizacion", "cuenta para meta"] : [],
     evidenceSource: isQuote ? "Solicitud comercial" : "Pendiente",
     evidenceUrl: meeting.evidence?.transcriptUrl || "",
@@ -857,7 +798,7 @@ function renderRows(){
       <td><div class="company-cell"><a class="company" href="#panel" onclick="openMeeting('${m.id}')"><span class="co" style="background:${m.color}">${m.initials}</span>${m.company}</a>${cleanDisplay(m.industry) ? `<span class="company-industry">${cleanDisplay(m.industry)}</span>` : ""}</div></td>
       <td class="contact-cell"><b>${m.person}</b><span class="country-mini">${displayCountry(m)}</span></td>
       <td class="muted">${m.role}</td>
-      <td><a class="badge status-open ${badgeClass(m.status)}" href="#panel" onclick="event.stopPropagation(); openMeeting('${m.id}')"><span>${m.status}</span><em>Abrir</em></a>${statusDetail(m) ? `<span class="status-detail">${statusDetail(m)}</span>` : ""}</td>
+      <td><a class="badge status-open ${badgeClass(m.status)}" href="#panel" onclick="event.stopPropagation(); openMeeting('${m.id}')"><span>${m.status}</span><em>Abrir</em></a><span class="status-detail">${m.clientStatus || statusDetail(m) || "Cliente: pendiente"}</span></td>
     </tr>
   `).join("") || `<tr><td colspan="5" class="muted">No hay reuniones con este filtro.</td></tr>`;
   updateStats(base);
@@ -901,24 +842,7 @@ function closePanel(){
 function renderPanel(m){
   selected = m;
   document.getElementById("panelCompany").textContent = m.company;
-  document.getElementById("panelPerson").textContent = `${m.person} · ${m.role}`;
-  document.getElementById("prep").textContent = stripPlatformNames(m.prep);
-  document.getElementById("evaluation").textContent = stripPlatformNames(m.evaluation);
-  document.getElementById("transcriptSummary").textContent = stripPlatformNames(m.transcriptSummary);
-  document.getElementById("chips").innerHTML = m.chips.map(c => `<span class="chip ok">${stripPlatformNames(c)}</span>`).join("");
-  document.getElementById("nextStep").textContent = stripPlatformNames(m.nextStep);
-  document.getElementById("nextStepInput").value = m.nextStep;
-  document.getElementById("statusSelect").value = m.commercialStatus;
-  document.getElementById("meetingUrlData").textContent = m.meetingUrl;
-  document.getElementById("contactName").textContent = m.person;
-  document.getElementById("contactRole").textContent = m.role;
-  document.getElementById("contactEmail").textContent = m.email;
-  document.getElementById("contactPhone").textContent = m.phone;
-  document.getElementById("contactLinkedin").textContent = m.contactLinkedin;
-  document.getElementById("industry").textContent = cleanDisplay(m.industry);
-  document.getElementById("companySize").textContent = cleanDisplay(m.companySize);
-  document.getElementById("website").textContent = cleanDisplay(m.website);
-  document.getElementById("companyLinkedin").textContent = cleanDisplay(m.companyLinkedin);
+  document.getElementById("panelPerson").textContent = [m.person, cleanDisplay(m.role)].filter(Boolean).join(" · ");
   document.getElementById("prepNew").textContent = stripPlatformNames(m.prep);
   document.getElementById("evaluationNew").textContent = stripPlatformNames(m.evaluation);
   document.getElementById("transcriptSummaryNew").textContent = stripPlatformNames(m.transcriptSummary);
@@ -975,39 +899,27 @@ function showToast(message){
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 1600);
 }
-async function persistFinalValidation(id, finalValidation){
+const DECISION_FINAL = { validar: "final_valid", rechazar: "final_not_valid", reagendar: "rescheduled", revision: "in_dispute" };
+const CP_API = "https://conprospeccion-os-2026.vercel.app/api/internal/meetings";
+async function patchMeeting(payload){
   try {
-    const res = await fetch("https://conprospeccion-os-2026.vercel.app/api/internal/meetings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, finalValidation })
-    });
-    if (!res.ok) {
-      const p = await res.json().catch(() => ({}));
-      throw new Error(p.error || res.status);
-    }
-    return true;
-  } catch (e) {
-    console.warn("No se pudo guardar la validación en Supabase", e);
-    return false;
-  }
+    const res = await fetch(CP_API, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    return res.ok;
+  } catch (e) { console.warn("No se pudo sincronizar con Supabase", e); return false; }
 }
 async function applyDecisionPersisted(){
   const active = currentDecision();
-  selected.status = active === "validar" ? "Validada" : active === "rechazar" ? "No valida" : active === "reagendar" ? "Reagendada" : "Pedir revision";
+  selected.status = active === "validar" ? "Validada" : active === "rechazar" ? "No válida" : active === "reagendar" ? "Reagendada" : "Pedir revisión";
   selected.filter = active === "validar" ? "validada" : active === "rechazar" ? "no-validada" : active === "reagendar" ? "reagendada" : "objetada";
   selected.cpValidation = active === "validar" ? "Reunión válida" : active === "rechazar" ? "Reunión no válida" : active === "reagendar" ? "Reagendar reunión" : "Pedir revisión";
   selected.clientReasons = selectedReasonLabels();
   selected.clientComment = document.getElementById("commentNew").value;
   saveMeetingState(selected);
-  // Guardar la validación final en Supabase (solo registros reales, no los de demo)
-  const finalMap = { validar: "final_valid", rechazar: "final_not_valid", reagendar: "rescheduled", revision: "in_dispute" };
-  const realId = selected.source === "supabase" ? selected.id : null;
   renderRows();
   renderPanel(selected);
   closePanel();
-  if (realId) {
-    const ok = await persistFinalValidation(realId, finalMap[active]);
+  if (selected.source === "supabase") {
+    const ok = await patchMeeting({ id: selected.id, finalValidation: DECISION_FINAL[active], comment: selected.clientComment, reasons: selected.clientReasons });
     showToast(ok ? "Validación guardada" : "Guardada localmente (no se pudo sincronizar)");
   } else {
     showToast("Decisión guardada");
@@ -1041,6 +953,7 @@ async function loadExternalMeetings(){
 }
 async function init(){
   await loadExternalMeetings();
+  renderCountryOptions();
   renderRows();
   renderPanel(selected);
 }
@@ -1072,50 +985,20 @@ document.querySelectorAll('.tabs-content[data-content="decision"] input[name="de
     if(input.value === "revision" && input.checked) activateTab("evidence");
   });
 });
-document.getElementById("saveDecision").addEventListener("click", () => {
-  const active = document.querySelector('input[name="decision"]:checked')?.value || "validar";
-  selected.status = active === "validar" ? "Validada" : active === "rechazar" ? "No válida" : active === "reagendar" ? "Reagendada" : "En revisión";
-  selected.filter = active === "validar" ? "validada" : active === "rechazar" ? "no-validada" : active === "reagendar" ? "reagendada" : "objetada";
-  renderRows();
-  showToast("Decisión guardada en el prototipo");
-  closePanel();
-});
-document.getElementById("cancelDecision").addEventListener("click", () => showToast("Cambios descartados"));
 document.getElementById("saveDecisionNew").addEventListener("click", applyDecisionPersisted);
 document.getElementById("cancelDecisionNew").addEventListener("click", () => showToast("Cambios descartados"));
-document.getElementById("saveCommercial").addEventListener("click", () => {
-  selected.commercialStatus = document.getElementById("statusSelect").value;
-  selected.nextStep = document.getElementById("nextStepInput").value;
-  renderPanel(selected);
-  showToast("Avance comercial actualizado");
-  closePanel();
-});
-async function persistCommercial(id, comercialEstado, proximoPaso){
-  try {
-    const res = await fetch("https://conprospeccion-os-2026.vercel.app/api/internal/meetings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, commercialStatus: comercialEstado, nextStep: proximoPaso })
-    });
-    return res.ok;
-  } catch (e) { console.warn("No se pudo guardar el avance comercial", e); return false; }
-}
 document.getElementById("saveCommercialNew").addEventListener("click", async () => {
   selected.commercialStatus = document.getElementById("statusSelectNew").value;
   selected.nextStep = document.getElementById("nextStepInputNew").value;
   saveMeetingState(selected);
   renderPanel(selected);
+  closePanel();
   if (selected.source === "supabase") {
-    const ok = await persistCommercial(selected.id, selected.commercialStatus, selected.nextStep);
+    const ok = await patchMeeting({ id: selected.id, commercialStatus: selected.commercialStatus, nextStep: selected.nextStep });
     showToast(ok ? "Avance comercial guardado" : "Guardado localmente (no se pudo sincronizar)");
   } else {
     showToast("Avance comercial actualizado");
   }
-  closePanel();
-});
-document.getElementById("playRecording").addEventListener("click", () => {
-  document.getElementById("timeLabel").textContent = "12:08";
-  showToast("Simulación de reproducción de grabación");
 });
 document.getElementById("search").addEventListener("input", (event) => {
   currentSearch = event.target.value;
@@ -1126,6 +1009,14 @@ document.querySelectorAll("[data-type-filter]").forEach(button => {
     currentTypeFilter = button.dataset.typeFilter;
     renderRows();
   });
+});
+document.getElementById("countryOptions")?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-country-filter]");
+  if (!button) return;
+  currentCountryFilter = button.dataset.countryFilter;
+  document.getElementById("countryMenu")?.removeAttribute("open");
+  renderCountryOptions();
+  renderRows();
 });
 document.getElementById("playRecordingNew").addEventListener("click", () => {
   if (selected?.recordingUrl) {
@@ -1257,3 +1148,4 @@ document.querySelectorAll("[data-menu-filter]").forEach(button => {
 </script>
 </body>
 </html>
+

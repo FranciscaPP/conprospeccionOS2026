@@ -10,9 +10,9 @@ import type {
 } from "@/lib/types";
 
 export const MONTHLY_GOAL_BY_CLIENT: Record<string, number> = {
-  "GBS LOGISTICS": 10,
-  "GBS Logistics": 10,
-  "GBS": 10,
+  "GBS LOGISTICS": 45,
+  "GBS Logistics": 45,
+  "GBS": 45,
   "CLICKIE": 6,
   "Clickie": 6,
   "BAMBUTECH": 12,
@@ -106,6 +106,7 @@ export function isContractuallyValid(meeting: Meeting) {
 
 export function deriveCPValidation(meeting: Meeting): CPValidation {
   if (meeting.meetingStatus === "rescheduled") return "rescheduled";
+  if (meeting.meetingStatus === "scheduled") return "waiting_validation";
   if (isProspectNoShow(meeting)) return "not_completed";
   if (meeting.evidence?.aiRecommendation === "review") return "requires_review";
   return isContractuallyValid(meeting) ? "valid_cp" : "not_valid_cp";
@@ -196,6 +197,7 @@ export function normalizeMeeting(meeting: Meeting): Meeting {
     leadPhone: cleanOptional(meeting.leadPhone),
     country: meeting.country || "Sin dato",
     leadIndustry: cleanOptional(meeting.leadIndustry),
+    companySize: cleanOptional(meeting.companySize),
     companyWebsite: cleanOptional(meeting.companyWebsite),
     contactLinkedinUrl: cleanOptional(meeting.contactLinkedinUrl),
     companyLinkedinUrl: cleanOptional(meeting.companyLinkedinUrl),

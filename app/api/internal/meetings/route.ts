@@ -6,7 +6,6 @@ import {
   MEETINGS_START_DATE,
   type SdrRow,
   type SupabaseMeetingRow,
-  todayIsoDate,
 } from "@/lib/supabase-meetings";
 
 export const dynamic = "force-dynamic";
@@ -51,10 +50,37 @@ async function supabaseGet<T>(
   return response.json() as Promise<T[]>;
 }
 
+async function patchSupabaseRows(
+  params: Record<string, string>,
+  payload: Record<string, unknown>,
+  config: { restUrl: string; key: string }
+) {
+  const search = new URLSearchParams(params);
+  const response = await fetch(`${config.restUrl}/reuniones?${search.toString()}`, {
+    method: "PATCH",
+    headers: {
+      apikey: config.key,
+      Authorization: `Bearer ${config.key}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const responseBody = await response.text();
+    throw new Error(`Supabase reuniones ${response.status}: ${responseBody.slice(0, 300)}`);
+  }
+
+  return response.json() as Promise<SupabaseMeetingRow[]>;
+}
+
 export async function GET() {
   try {
     const config = getSupabaseConfig();
-    const endDate = `${todayIsoDate()}T23:59:59`;
+    const today = new Date();
+    const endOfCurrentMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0, 23, 59, 59));
+    const endDate = endOfCurrentMonth.toISOString();
 
     const [rows, clients, sdrs] = await Promise.all([
       supabaseGet<SupabaseMeetingRow>(
@@ -157,6 +183,17 @@ function commercialPatch(commercialStatus: string | undefined, nextStep: string 
   return patch;
 }
 
+function clientNotesPatch(comment: string | undefined, reasons: string[] | undefined) {
+  const patch: Record<string, unknown> = {};
+  if (typeof comment === "string" && comment.trim()) {
+    patch.observacion = comment.trim();
+  }
+  if (Array.isArray(reasons) && reasons.length) {
+    patch.motivo_no_valida = reasons.filter(Boolean).join(" + ");
+  }
+  return patch;
+}
+
 function meetingStatusPatch(meetingStatus: string | undefined) {
   if (!meetingStatus) return {};
   return {
@@ -181,6 +218,8 @@ export async function PATCH(request: Request) {
       meetingStatus?: string;
       commercialStatus?: string;
       nextStep?: string;
+      comment?: string;
+      reasons?: string[];
     };
 
     if (!body.id) {
@@ -192,6 +231,7 @@ export async function PATCH(request: Request) {
         ...validationPatch(body.finalValidation),
         ...meetingStatusPatch(body.meetingStatus),
         ...commercialPatch(body.commercialStatus, body.nextStep),
+        ...clientNotesPatch(body.comment, body.reasons),
       }).filter(([, value]) => value !== undefined)
     );
 
@@ -199,24 +239,16 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "No hay cambios para guardar." }, { status: 400 });
     }
 
-    const search = new URLSearchParams({ ghl_appointment_id: `eq.${body.id}` });
-    const response = await fetch(`${config.restUrl}/reuniones?${search.toString()}`, {
-      method: "PATCH",
-      headers: {
-        apikey: config.key,
-        Authorization: `Bearer ${config.key}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const responseBody = await response.text();
-      throw new Error(`Supabase reuniones ${response.status}: ${responseBody.slice(0, 300)}`);
+    let updatedRows = await patchSupabaseRows({ ghl_appointment_id: `eq.${body.id}` }, payload, config);
+    if (updatedRows.length === 0 && /^\d+$/.test(body.id)) {
+      updatedRows = await patchSupabaseRows({ id: `eq.${body.id}` }, payload, config);
     }
 
-    return NextResponse.json({ ok: true });
+    if (updatedRows.length === 0) {
+      return NextResponse.json({ error: "No se encontró la reunión para guardar." }, { status: 404 });
+    }
+
+    return NextResponse.json({ ok: true, updated: updatedRows.length });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Error desconocido guardando reunión." },

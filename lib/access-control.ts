@@ -24,7 +24,7 @@ export const ACTIVE_CLIENTS: Array<{
   {
     slug: "gbs",
     displayName: "GBS LOGISTICS",
-    monthlyGoal: 10,
+    monthlyGoal: 45,
     validationPath: "/client/meeting-validation?client=gbs",
   },
   {
@@ -92,4 +92,3 @@ export function getClientAccess(slug: string | null | undefined) {
   const activeSlug = slug ? clientSlugFromName(slug) : null;
   return activeSlug ? ACTIVE_CLIENTS.find((client) => client.slug === activeSlug) ?? null : null;
 }
-

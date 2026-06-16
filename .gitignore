@@ -39,6 +39,7 @@ graphify-out/
 
 # Herramientas y artefactos locales (no van al repo)
 .claude/
+.cursor/
 .codex/
 .codex-remote-attachments/
 .netlify/

@@ -36,6 +36,42 @@ def pick(event: dict[str, Any], *keys: str) -> Any:
     return None
 
 
+def company_from_title(title: str | None, client_name: str) -> str | None:
+    value = (title or "").strip()
+    if not value:
+        return None
+    for marker in (f"- {client_name}", "- GBS Logistics", "- GBS LOGISTICS"):
+        if marker in value:
+            value = value.split(marker, 1)[0].strip()
+            break
+    return value or None
+
+
+def contact_name_from_email(email: str | None) -> str | None:
+    value = (email or "").strip()
+    if "@" not in value:
+        return None
+    local = value.split("@", 1)[0].replace(".", " ").replace("_", " ").replace("-", " ")
+    return " ".join(part.capitalize() for part in local.split() if part) or None
+
+
+def normalize_ghl_contact(payload: dict[str, Any]) -> dict[str, Any]:
+    contact = payload.get("contact") if isinstance(payload.get("contact"), dict) else payload
+    first_name = contact.get("firstName") or contact.get("first_name") or ""
+    last_name = contact.get("lastName") or contact.get("last_name") or ""
+    full_name = contact.get("name") or " ".join(part for part in [first_name, last_name] if part).strip()
+    return {
+        "nombre": full_name,
+        "nombre_contacto": full_name,
+        "nombre_empresa": contact.get("companyName") or contact.get("company_name"),
+        "email": contact.get("email"),
+        "telefono": contact.get("phone"),
+        "cargo": contact.get("jobTitle") or contact.get("job_title"),
+        "pais": contact.get("country"),
+        "ghl_owner_user_id": contact.get("assignedTo") or contact.get("assigned_to"),
+    }
+
+
 def token_for_client(client: dict[str, Any]) -> str:
     env_key = f"GHL_TOKEN_{client['slug'].upper()}"
     token = get_optional_env(env_key)
@@ -95,6 +131,7 @@ def normalize_event(
     client: dict[str, Any],
     owner_by_user: dict[tuple[str, str], str],
     contacts: dict[str, dict[str, Any]],
+    ghl: GHLClient,
 ) -> dict[str, Any] | None:
     event_id = pick(event, "id", "eventId", "appointmentId")
     if not event_id:
@@ -102,6 +139,12 @@ def normalize_event(
 
     contact_id = pick(event, "contactId", "contact_id")
     contact = contacts.get(contact_id or "", {})
+    if contact_id and not contact:
+        try:
+            contact = normalize_ghl_contact(ghl.get_contact(contact_id))
+            contacts[contact_id] = contact
+        except httpx.HTTPStatusError:
+            contact = {}
 
     # Excluir contactos con dominios internos de clientes
     raw_email = pick(event, "email") or contact.get("email") or ""
@@ -140,8 +183,8 @@ def normalize_event(
         "ghl_owner_user_id": owner_id,
         "location_id": pick(event, "locationId") or client["ghl_location_id"],
         "titulo": pick(event, "title", "eventTitle", "name"),
-        "empresa": pick(event, "companyName") or contact.get("nombre_empresa"),
-        "contacto": pick(event, "contactName", "contact_name") or contact.get("nombre_contacto") or contact.get("nombre"),
+        "empresa": pick(event, "companyName") or contact.get("nombre_empresa") or company_from_title(pick(event, "title", "eventTitle", "name"), client["nombre"]),
+        "contacto": pick(event, "contactName", "contact_name") or contact.get("nombre_contacto") or contact.get("nombre") or contact_name_from_email(raw_email),
         "telefono": pick(event, "phone") or contact.get("telefono"),
         "email": pick(event, "email") or contact.get("email"),
         "cargo": contact.get("cargo"),
@@ -214,7 +257,7 @@ def main() -> None:
                 events = events_payload.get("events") or []
                 logging.info("%s | %s eventos: %s", client["nombre"], calendar.get("nombre"), len(events))
                 for event in events:
-                    row = normalize_event(event, calendar, client, owner_by_user, contacts)
+                    row = normalize_event(event, calendar, client, owner_by_user, contacts, ghl)
                     if row:
                         meetings.append(row)
 

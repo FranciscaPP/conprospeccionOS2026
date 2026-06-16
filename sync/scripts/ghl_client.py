@@ -49,6 +49,11 @@ class GHLClient:
         response.raise_for_status()
         return response.json()
 
+    def get_contact(self, contact_id: str) -> dict[str, Any]:
+        response = self.client.get(f"/contacts/{contact_id}")
+        response.raise_for_status()
+        return response.json()
+
     def list_opportunities_page(
         self,
         location_id: str,

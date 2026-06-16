@@ -7,7 +7,6 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        // El dashboard cliente aprobado es el HTML estático servido desde /public/docs.
         source: "/client/meeting-validation",
         destination: "/docs/meeting-validation-interactive-flow.html",
         permanent: false,

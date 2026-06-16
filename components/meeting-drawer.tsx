@@ -257,11 +257,29 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
     void rejectMeeting();
   };
 
-  const saveCommercialProgress = () => {
-    updateMeeting(meeting.id, {
+  const saveCommercialProgress = async () => {
+    const updates: Partial<Meeting> = {
       commercialStatus,
       nextStep: commercialNextStep,
-    });
+    };
+    updateMeeting(meeting.id, updates);
+    try {
+      const response = await fetch("/api/internal/meetings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: meeting.id,
+          commercialStatus,
+          nextStep: commercialNextStep,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "No se pudo guardar el avance comercial.");
+      await refreshMeetings();
+      onClose();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "No se pudo guardar el avance comercial. Reintenta en unos segundos.");
+    }
   };
 
   return (
@@ -609,7 +627,13 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                           <button
                             key={option.value}
                             type="button"
-                            onClick={() => setClientAction(option.value as Exclude<ClientDecision, "pending">)}
+                            onClick={() => {
+                              const nextAction = option.value as Exclude<ClientDecision, "pending">;
+                              setClientAction(nextAction);
+                              if (nextAction === "review_requested") {
+                                setClientTab("evaluation");
+                              }
+                            }}
                             className={`min-h-10 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
                               clientAction === option.value
                                 ? "border-violet-400 bg-violet-100 text-violet-800"
@@ -635,6 +659,12 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                               </option>
                             ))}
                           </select>
+                        </div>
+                      )}
+                      {clientAction === "rejected" && meeting.cpValidation === "valid_cp" && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
+                          CP ya validó esta reunión con evidencia, ICP y variables BANT. Si no estás de acuerdo,
+                          guardaremos la solicitud como reevaluación para revisar el respaldo y el motivo.
                         </div>
                       )}
                       <div className="space-y-2">
@@ -760,8 +790,8 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                       </p>
                     </div>
                     <div className="mt-3 flex justify-end">
-                      <Button type="button" variant="outline" size="sm" onClick={saveCommercialProgress}>
-                        Guardar avance
+                      <Button type="button" variant="outline" size="sm" onClick={() => void saveCommercialProgress()}>
+                        Guardar
                       </Button>
                     </div>
                   </div>
@@ -778,7 +808,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
           </Button>
           {mode === "internal" ? (
             <Button onClick={saveInternal} className="flex-1 bg-violet-600 text-white hover:bg-violet-700">
-              Guardar cambios
+              Guardar
             </Button>
           ) : locked ? (
             <Button disabled className="flex-1">
@@ -796,7 +826,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
           ) : (
             <Button onClick={saveClientDecision} className="flex-1 gap-1 bg-violet-600 text-white hover:bg-violet-700">
               <CheckCircle2 className="h-4 w-4" />
-              Guardar decisión
+              Guardar
             </Button>
           )}
         </div>

@@ -94,6 +94,7 @@ export interface Meeting {
   leadPhone?: string;
   country?: string;
   leadIndustry?: string;
+  companySize?: string;
   companyWebsite?: string;
   contactLinkedinUrl?: string;
   companyLinkedinUrl?: string;
