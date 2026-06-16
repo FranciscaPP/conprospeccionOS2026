@@ -77,6 +77,42 @@ El endpoint crea o actualiza una fila en `public.reuniones` como:
 - `notas`: `Solo cotizacion`
 - `cliente_slug`: `gbs` por defecto
 
+## Webhook reunion agendada GBS
+
+Endpoint Vercel:
+
+`POST /api/meetings/appointment`
+
+Usar este webhook en GHL cuando se crea o actualiza una cita (`AppointmentCreate` / `AppointmentUpdate`).
+
+Payload minimo:
+
+```json
+{
+  "type": "AppointmentCreate",
+  "id": "ghl-appointment-id",
+  "locationId": "u9b8KkJXhM8lqJfzxa7G",
+  "contactId": "ghl-contact-id",
+  "startTime": "2026-06-20T15:00:00.000Z",
+  "endTime": "2026-06-20T15:30:00.000Z",
+  "title": "Reunion comercial",
+  "status": "booked",
+  "assignedUserId": "ghl-user-id"
+}
+```
+
+Campos opcionales utiles:
+
+`clientSlug`, `company`, `contactName`, `email`, `phone`, `jobTitle`, `industry`, `country`, `meetingUrl`, `notes`, `calendarId`.
+
+El endpoint crea o actualiza una fila en `public.reuniones` como:
+
+- `estado_reunion`: `confirmed` (si GHL envia `booked`)
+- `estado_validacion`: `pendiente_validacion`
+- `cliente_slug`: `gbs` por defecto para la location de GBS Logistics
+
+## Seguridad webhook
+
 Si existe `GHL_WEBHOOK_SECRET` o `WEBHOOK_SECRET`, GHL debe enviar el header `x-webhook-secret`.
 
 Si despues se agenda reunion, el tipo cambia a `Cotizacion + reunion` y se sigue el flujo normal del calendario maestro.
