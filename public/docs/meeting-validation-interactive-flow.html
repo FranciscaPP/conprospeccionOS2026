@@ -140,9 +140,9 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
     </div>
     <div class="role"><span>GBS Logistics</span><button class="collapse" id="collapseSidebar" aria-label="Contraer o ampliar menú"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg></button></div>
     <nav class="nav">
-      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Resumen de performance</span></a>
+      <a href="/client/performance-overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Resumen de performance</span></a>
       <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Avance reuniones</span></a>
-      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg><span>Revenue Intelligence</span></a>
+      <a href="/client/intelligence-insight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg><span>Revenue Intelligence</span></a>
     </nav>
     <div class="side-foot">
       <div class="mini">GB</div>
@@ -967,7 +967,24 @@ function showToast(message){
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 1600);
 }
-function applyDecisionPersisted(){
+async function persistFinalValidation(id, finalValidation){
+  try {
+    const res = await fetch("https://conprospeccion-os-2026.vercel.app/api/internal/meetings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, finalValidation })
+    });
+    if (!res.ok) {
+      const p = await res.json().catch(() => ({}));
+      throw new Error(p.error || res.status);
+    }
+    return true;
+  } catch (e) {
+    console.warn("No se pudo guardar la validación en Supabase", e);
+    return false;
+  }
+}
+async function applyDecisionPersisted(){
   const active = currentDecision();
   selected.status = active === "validar" ? "Validada" : active === "rechazar" ? "No valida" : active === "reagendar" ? "Reagendada" : "Pedir revision";
   selected.filter = active === "validar" ? "validada" : active === "rechazar" ? "no-validada" : active === "reagendar" ? "reagendada" : "objetada";
@@ -975,10 +992,18 @@ function applyDecisionPersisted(){
   selected.clientReasons = selectedReasonLabels();
   selected.clientComment = document.getElementById("commentNew").value;
   saveMeetingState(selected);
+  // Guardar la validación final en Supabase (solo registros reales, no los de demo)
+  const finalMap = { validar: "final_valid", rechazar: "final_not_valid", reagendar: "rescheduled", revision: "in_dispute" };
+  const realId = selected.source === "supabase" ? selected.id : null;
   renderRows();
   renderPanel(selected);
-  showToast("Decision guardada");
   closePanel();
+  if (realId) {
+    const ok = await persistFinalValidation(realId, finalMap[active]);
+    showToast(ok ? "Validación guardada" : "Guardada localmente (no se pudo sincronizar)");
+  } else {
+    showToast("Decisión guardada");
+  }
 }
 async function loadExternalMeetings(){
   try {
