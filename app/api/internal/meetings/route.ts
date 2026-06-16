@@ -146,6 +146,17 @@ function validationPatch(finalValidation: string | undefined) {
   return {};
 }
 
+function commercialPatch(commercialStatus: string | undefined, nextStep: string | undefined) {
+  const patch: Record<string, unknown> = {};
+  if (typeof commercialStatus === "string" && commercialStatus.trim()) {
+    patch.comercial_estado = commercialStatus.trim();
+  }
+  if (typeof nextStep === "string") {
+    patch.comercial_proximo_paso = nextStep;
+  }
+  return patch;
+}
+
 function meetingStatusPatch(meetingStatus: string | undefined) {
   if (!meetingStatus) return {};
   return {
@@ -168,6 +179,8 @@ export async function PATCH(request: Request) {
       id?: string;
       finalValidation?: string;
       meetingStatus?: string;
+      commercialStatus?: string;
+      nextStep?: string;
     };
 
     if (!body.id) {
@@ -178,6 +191,7 @@ export async function PATCH(request: Request) {
       Object.entries({
         ...validationPatch(body.finalValidation),
         ...meetingStatusPatch(body.meetingStatus),
+        ...commercialPatch(body.commercialStatus, body.nextStep),
       }).filter(([, value]) => value !== undefined)
     );
 

@@ -118,6 +118,7 @@ export interface Meeting {
   rejectionReason?: RejectionReason;
   finalValidation: FinalValidation;
   commercialStatus: CommercialStatus;
+  commercialStatusLabel?: string;
   disputeFlag: boolean;
   pendingClientFlag: boolean;
   meetingSummary: string;

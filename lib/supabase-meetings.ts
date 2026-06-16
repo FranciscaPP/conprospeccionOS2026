@@ -40,6 +40,8 @@ export type SupabaseMeetingRow = {
   observacion?: string | null;
   direccion_reunion?: string | null;
   notas?: string | null;
+  comercial_estado?: string | null;
+  comercial_proximo_paso?: string | null;
   raw_data?: Record<string, unknown> | null;
   synced_at?: string | null;
 };
@@ -103,6 +105,8 @@ export function buildSupabaseMeetingSelect() {
     "observacion",
     "direccion_reunion",
     "notas",
+    "comercial_estado",
+    "comercial_proximo_paso",
     "raw_data",
     "synced_at",
   ].join(",");
@@ -409,6 +413,7 @@ export function mapSupabaseRowsToMeetings(
       clientDecision: validation.clientDecision,
       finalValidation: validation.finalValidation,
       commercialStatus: validation.commercialStatus,
+      commercialStatusLabel: clean(row.comercial_estado) || undefined,
       disputeFlag: validation.finalValidation === "in_dispute",
       pendingClientFlag: validation.clientDecision === "pending",
       meetingSummary: noteText || "Sin dato",
@@ -416,7 +421,7 @@ export function mapSupabaseRowsToMeetings(
       validityReason: clean(row.motivo_no_valida) || clean(row.motivo_rechazo) || undefined,
       prospectAttended: meetingStatus === "no_show" ? false : undefined,
       concretada: meetingStatus === "completed" ? true : undefined,
-      nextStep: validation.clientDecision === "pending" ? "Validar reunión" : "Sin dato",
+      nextStep: clean(row.comercial_proximo_paso) || (validation.clientDecision === "pending" ? "Validar reunión" : "Sin dato"),
       internalNotes: noteText || "Sin dato",
       ghlStageKey: clean(row.estado_reunion) || undefined,
     } satisfies Meeting;

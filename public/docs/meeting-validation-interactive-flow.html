@@ -281,9 +281,10 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
             </div>
             <div class="subreasons">
               <div class="subreason-panel active" data-reasons="validar">
-                <label><input type="checkbox" checked>ICP y Variables BANT</label>
-                <label><input type="checkbox">Avanzará a propuesta</label>
-                <label><input type="checkbox">Avanzará a cotización</label>
+                <label><input type="checkbox" checked>Dentro del ICP</label>
+                <label><input type="checkbox" checked>Variables BANT</label>
+                <label><input type="checkbox">Reunión</label>
+                <label><input type="checkbox">Sólo cotización</label>
               </div>
               <div class="subreason-panel" data-reasons="rechazar">
                 <label><input type="checkbox">ICP incorrecto</label>
@@ -317,8 +318,8 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
               </div>
               <div class="evidence-links">
                 <div><small>Fuente</small><span id="evidenceSourceNew">GHL</span></div>
-                <div><small>Transcripción</small><a id="evidenceUrlNew" href="#" target="_blank" rel="noreferrer">Sin link</a></div>
-                <div><small>Grabación</small><a id="recordingUrlNew" href="#" target="_blank" rel="noreferrer">Sin link</a></div>
+                <div><small>Transcripción</small><a id="evidenceUrlNew" href="#" target="_blank" rel="noreferrer">Pendiente</a></div>
+                <div><small>Grabación</small><a id="recordingUrlNew" href="#" target="_blank" rel="noreferrer">Pendiente</a></div>
                 <div><small>BANT detectado</small><span id="bantDetectedNew">Pendiente</span></div>
               </div>
             </div>
@@ -651,12 +652,17 @@ function toIso(date){
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+function isQuoteMeeting(meeting){
+  return meeting.time === "Cotizar"
+    || String(meeting.id || "").startsWith("quote-")
+    || (meeting.tags || []).includes("cotizacion")
+    || /cotiz/.test(`${meeting.cpAgenda || ""}`.toLowerCase());
+}
 function meetingType(meeting){
-  const haystack = `${meeting.time || ""} ${(meeting.tags || []).join(" ")} ${meeting.cpAgenda || ""} ${meeting.commercialStatus || ""}`.toLowerCase();
-  const hasQuote = /cotiz|propuesta/.test(haystack);
-  const hasMeeting = Boolean(meeting.meetingUrl) || /reuni/.test(haystack);
-  if (hasQuote && hasMeeting) return "quote-meeting";
-  if (hasQuote) return "quote";
+  const quote = isQuoteMeeting(meeting);
+  const hasMeeting = Boolean(meeting.meetingUrl);
+  if (quote && hasMeeting) return "quote-meeting";
+  if (quote) return "quote";
   return "meeting";
 }
 function countryFromPhone(phone = ""){
@@ -684,8 +690,9 @@ function statusDetail(meeting){
   if (meeting.filter === "reagendada") return reasons.length ? reasons.join(" + ") : "Motivo pendiente";
   if (meeting.filter === "objetada") return reasons.length ? reasons.join(" + ") : "Revisar evidencia";
   if (meeting.filter === "pendiente") {
+    if (isQuoteMeeting(meeting)) return "Válida sólo cotización";
     const start = new Date(meeting.startTime || meeting.dateIso || "");
-    return !Number.isNaN(start.getTime()) && start > new Date() ? "Reunion futura" : "Reunion realizada";
+    return !Number.isNaN(start.getTime()) && start > new Date() ? "Reunión futura" : "Reunión realizada";
   }
   return "";
 }
@@ -813,7 +820,7 @@ function apiMeetingToVisual(meeting){
     chips: isQuote ? ["Solo cotizacion", "Cuenta para meta", "Seguimiento comercial"] : ["Registro real", "Pendiente evidencia", "ICP por validar"],
     transcriptSummary: isQuote ? "Sin grabacion ni transcripcion porque no hubo reunion. La evidencia comercial es la solicitud directa de cotizacion." : summary,
     evidenceSummary: isQuote ? "Solicitud comercial directa cargada desde workflow. El cliente valida si cuenta para meta y se activa seguimiento de cotizacion." : summary,
-    commercialStatus: visualCommercialStatus(meeting.commercialStatus),
+    commercialStatus: meeting.commercialStatusLabel || visualCommercialStatus(meeting.commercialStatus),
     nextStep: meeting.nextStep || (isQuote ? "Contactar para levantar requerimiento y enviar cotizacion." : "Validar evidencia y completar evaluacion comercial."),
     meetingUrl: meeting.meetingUrl || "",
     email: meeting.leadEmail || "",
@@ -889,6 +896,7 @@ function closePanel(){
   panel.style.transform = "";
   panel.style.right = "";
   backdrop.classList.remove("show");
+  if (location.hash === "#panel") history.replaceState(null, "", location.pathname + location.search);
 }
 function renderPanel(m){
   selected = m;
@@ -917,10 +925,10 @@ function renderPanel(m){
   document.getElementById("evidenceSummaryNew").textContent = stripPlatformNames(m.evidenceSummary || `${m.evaluation} ${m.transcriptSummary}`);
   document.getElementById("evidenceSourceNew").textContent = visibleSource(m.evidenceSource);
   const evidenceUrlNew = document.getElementById("evidenceUrlNew");
-  evidenceUrlNew.textContent = m.evidenceUrl ? "Abrir transcripción" : "Sin link";
+  evidenceUrlNew.textContent = m.evidenceUrl ? "Abrir transcripción" : "Pendiente";
   evidenceUrlNew.href = m.evidenceUrl || "#";
   const recordingUrlNew = document.getElementById("recordingUrlNew");
-  recordingUrlNew.textContent = m.recordingUrl ? "Abrir grabación" : "Sin link";
+  recordingUrlNew.textContent = m.recordingUrl ? "Abrir grabación" : "Pendiente";
   recordingUrlNew.href = m.recordingUrl || "#";
   document.getElementById("bantDetectedNew").textContent = (m.bantDetected || []).length ? m.bantDetected.join(", ") : "Pendiente";
   const cpBadge = document.getElementById("cpValidationLabel");
@@ -1082,12 +1090,27 @@ document.getElementById("saveCommercial").addEventListener("click", () => {
   showToast("Avance comercial actualizado");
   closePanel();
 });
-document.getElementById("saveCommercialNew").addEventListener("click", () => {
+async function persistCommercial(id, comercialEstado, proximoPaso){
+  try {
+    const res = await fetch("https://conprospeccion-os-2026.vercel.app/api/internal/meetings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, commercialStatus: comercialEstado, nextStep: proximoPaso })
+    });
+    return res.ok;
+  } catch (e) { console.warn("No se pudo guardar el avance comercial", e); return false; }
+}
+document.getElementById("saveCommercialNew").addEventListener("click", async () => {
   selected.commercialStatus = document.getElementById("statusSelectNew").value;
   selected.nextStep = document.getElementById("nextStepInputNew").value;
   saveMeetingState(selected);
   renderPanel(selected);
-  showToast("Avance comercial actualizado");
+  if (selected.source === "supabase") {
+    const ok = await persistCommercial(selected.id, selected.commercialStatus, selected.nextStep);
+    showToast(ok ? "Avance comercial guardado" : "Guardado localmente (no se pudo sincronizar)");
+  } else {
+    showToast("Avance comercial actualizado");
+  }
   closePanel();
 });
 document.getElementById("playRecording").addEventListener("click", () => {
