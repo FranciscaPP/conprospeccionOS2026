@@ -63,7 +63,7 @@ button{cursor:pointer}
 .table-card{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);overflow:auto;max-height:460px}.table-head{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--line);font-size:14px;color:var(--ink-2);position:sticky;top:0;background:#fff;z-index:3}.table-head b{color:var(--ink)}
 table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;color:#656b74;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:0 16px;position:sticky;top:46px;z-index:2}td{height:70px;border-top:1px solid var(--line);padding:0 16px;font-size:14px}tr[data-meeting]{cursor:pointer;background:#fff}tr[data-meeting]:hover{background:#fffdf0}tr.selected{background:#fff}tr.selected td:first-child{box-shadow:none}
 .date b{display:block;font-weight:650}.date span{display:block;color:var(--ink-2);font-size:12px;margin-top:3px}.company{display:flex;align-items:center;gap:10px;font-weight:500;color:var(--ink);text-decoration:none}.company:hover{text-decoration:underline}.co{width:35px;height:35px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:650}.muted{color:var(--ink-2)}
-.badge{display:inline-flex;align-items:center;gap:7px;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:500;white-space:nowrap;text-decoration:none}.badge:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.pending{background:#fff3bd;color:#7a5500}.valid{background:var(--ok-bg);color:var(--ok-ink)}.review{background:#fff1d8;color:#8b4f0c}.rejected{background:#f3d2d2;color:#8c1f1b}.rescheduled{background:#e7e8e3;color:#4c4f48}.status-open{border:0}.status-open em{margin-left:8px;color:var(--carbon-2);font-style:normal;font-weight:500}
+.badge{display:inline-flex;align-items:center;gap:7px;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:500;white-space:nowrap;text-decoration:none}.badge:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.pending{background:#f8e3bd;color:#8a5300}.valid{background:#cfecde;color:#0a6e4d}.review{background:#f6d8bf;color:#9a5418}.rejected{background:#f5d8d4;color:#962a22}.rescheduled{background:#dedfd9;color:#4c4f48}.status-open{border:0}.status-detail::first-letter{text-transform:uppercase}
 .btn{height:36px;border:1px solid var(--carbon-2);background:var(--carbon-2);color:#fff;border-radius:9px;padding:0 13px;font-weight:650}.btn.light{background:#fff;color:var(--carbon-2);border-color:var(--line-2)}.btn.gold{background:#fff4b8;color:#5f4600;border-color:#e6c95f}
 .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:.18s;z-index:20}.backdrop.show{opacity:1;pointer-events:auto}body:has(.panel:target) .backdrop{opacity:1;pointer-events:auto}
 .panel{position:fixed;right:18px;top:18px;bottom:18px;width:min(560px,calc(100vw - 36px));background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-panel);overflow:hidden;display:none;flex-direction:column;z-index:30;transform:none!important}.panel.show,.panel:target{display:flex!important;right:18px!important;transform:none!important}.panel-header{padding:18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.panel-header h2{margin:0;font-size:20px;font-weight:500}.panel-header p{margin:5px 0 0;color:var(--ink-2);line-height:1.35}.close{width:34px;height:34px;border:0;background:#fff;border-radius:9px;display:grid;place-items:center;color:var(--ink);text-decoration:none}.close:hover{background:#f1f1ee}.close svg{width:21px;height:21px}
@@ -156,8 +156,14 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
         <h1>Avance reuniones</h1>
         <p>GBS LOGISTICS</p>
       </div>
-      <div class="top-actions">
-        <div class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>3 requieren validación</div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end">
+        <div style="min-width:200px;background:#fffef4;border:1px solid #e2d37a;border-radius:11px;padding:8px 12px">
+          <div class="goal-row"><span>Avance meta</span><strong>0/45 · 0%</strong></div>
+          <div class="goal-bar"><i></i></div>
+        </div>
+        <div class="top-actions">
+          <div class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>3 requieren validación</div>
+        </div>
       </div>
     </header>
 
@@ -171,11 +177,6 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
           <button class="stat" data-filter="objetada"><small>Pedir revisión</small><strong>0</strong></button>
           <button class="stat" data-filter="reagendada"><small>Reagendar</small><strong>0</strong></button>
         </div>
-
-        <section class="goal">
-          <div class="goal-row"><span>Avance meta</span><strong>0/45 · 0%</strong></div>
-          <div class="goal-bar"><i></i></div>
-        </section>
 
         <section class="rules">
           <b>Regla de validación</b>
@@ -267,7 +268,6 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
           <section class="tabs-content active" data-content="decision">
             <div class="validation-flow">
               <span>Conprospección revisa evidencia, ICP, variables BANT y grabación.</span>
-              <span>Cliente y Conprospección evalúan juntos si la reunión cuenta para la meta y dejan claro el porqué.</span>
             </div>
             <div class="section">
               <h3>Tu validación</h3>
@@ -282,15 +282,14 @@ table{width:100%;border-collapse:collapse}th{height:42px;background:#f0f1f2;colo
               <div class="subreason-panel active" data-reasons="validar">
                 <label><input type="checkbox" checked>Dentro del ICP</label>
                 <label><input type="checkbox" checked>Variables BANT</label>
-                <label><input type="checkbox">Reunión</label>
-                <label><input type="checkbox">Sólo cotización</label>
               </div>
               <div class="subreason-panel" data-reasons="rechazar">
                 <label><input type="checkbox">ICP incorrecto</label>
                 <label><input type="checkbox">Variables BANT incorrectas</label>
               </div>
               <div class="subreason-panel" data-reasons="revision">
-                <label><input type="checkbox" checked>Conprospección la validó; revisar evidencia</label>
+                <div style="display:flex;align-items:center;gap:8px;background:var(--ok-bg);border:1px solid #c7ebde;color:var(--ok-ink);border-radius:9px;padding:10px 12px;font-size:13px;font-weight:500"><i class="check">✓</i>Conprospección validó esta reunión</div>
+                <button type="button" class="btn" data-tab-jump="evidence" style="margin-top:8px;width:100%">Revisar validación reunión</button>
               </div>
               <div class="subreason-panel" data-reasons="reagendar">
                 <label><input type="checkbox">Lead no se conecta a la reunión</label>
@@ -719,7 +718,7 @@ function clientStatusLabel(meeting){
   const decision = meeting.clientDecision || "";
   if (decision === "accepted") return "Cliente: validada";
   if (decision === "rejected" || decision === "review_requested") return "Cliente: solicita reevaluación";
-  return "Cliente: pendiente";
+  return "";
 }
 function visualCommercialStatus(value){
   const map = {
@@ -758,7 +757,7 @@ function apiMeetingToVisual(meeting){
     clientStatus: clientStatusLabel(meeting),
     prep,
     evaluation: isQuote ? "Solicitud directa de cotización. Para GBS puede contar como oportunidad equivalente a reunión si el cliente la valida." : summary,
-    chips: isQuote ? ["Solo cotización", "Cuenta para meta", "Seguimiento comercial"] : ["Registro real", "Pendiente evidencia", "ICP por validar"],
+    chips: isQuote ? ["Solo cotización", "Cuenta para meta", "Seguimiento comercial"] : ["Pendiente"],
     transcriptSummary: isQuote ? "Sin grabación ni transcripción porque no hubo reunión. La evidencia comercial es la solicitud directa de cotización." : summary,
     evidenceSummary: isQuote ? "Solicitud comercial directa cargada desde workflow. El cliente valida si cuenta para meta y se activa seguimiento de cotización." : summary,
     commercialStatus: visualCommercialStatus(meeting.commercialStatus),
@@ -798,7 +797,7 @@ function renderRows(){
       <td><div class="company-cell"><a class="company" href="#panel" onclick="openMeeting('${m.id}')"><span class="co" style="background:${m.color}">${m.initials}</span>${m.company}</a>${cleanDisplay(m.industry) ? `<span class="company-industry">${cleanDisplay(m.industry)}</span>` : ""}</div></td>
       <td class="contact-cell"><b>${m.person}</b><span class="country-mini">${displayCountry(m)}</span></td>
       <td class="muted">${m.role}</td>
-      <td><a class="badge status-open ${badgeClass(m.status)}" href="#panel" onclick="event.stopPropagation(); openMeeting('${m.id}')"><span>${m.status}</span><em>Abrir</em></a><span class="status-detail">${m.clientStatus || statusDetail(m) || "Cliente: pendiente"}</span></td>
+      <td><a class="badge status-open ${badgeClass(m.status)}" href="#panel" onclick="event.stopPropagation(); openMeeting('${m.id}')"><span>${m.status}</span></a><span class="status-detail">${m.clientStatus || statusDetail(m) || "Cliente: pendiente"}</span></td>
     </tr>
   `).join("") || `<tr><td colspan="5" class="muted">No hay reuniones con este filtro.</td></tr>`;
   updateStats(base);
@@ -961,6 +960,11 @@ init();
 
 document.getElementById("collapseSidebar").addEventListener("click", () => {
   document.getElementById("app").classList.toggle("collapsed");
+});
+document.addEventListener("click", (event) => {
+  document.querySelectorAll("details.filter-menu[open]").forEach(d => {
+    if (!d.contains(event.target)) d.removeAttribute("open");
+  });
 });
 rows.addEventListener("click", (event) => {
   const row = event.target.closest("[data-meeting]");
