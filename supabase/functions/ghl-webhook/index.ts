@@ -19,7 +19,7 @@ const LOCATION_MAP: Record<string, { slug: string; cliente_id: number }> = {
   "ZC4A2bNvo876Csmz4I9T": { slug: "just4u",        cliente_id: 3 },
   "DpvcxBw1Jfi4KUC232AT": { slug: "tiresias",      cliente_id: 4 },
   "FJ1YCwi4UVvwcBb8qlOb": { slug: "bambutech",     cliente_id: 5 },
-  "u9b8KkJXhM8lqJfzxa7G": { slug: "gbs_logistics", cliente_id: 6 },
+  "u9b8KkJXhM8lqJfzxa7G": { slug: "gbs", cliente_id: 6 },
 };
 
 // GHL userId → SDR en Supabase
@@ -66,7 +66,7 @@ async function getClientToken(slug: string): Promise<string> {
     just4u: Deno.env.get("GHL_TOKEN_JUST4U") ?? "",
     tiresias: Deno.env.get("GHL_TOKEN_TIRESIAS") ?? "",
     bambutech: Deno.env.get("GHL_TOKEN_BAMBUTECH") ?? "",
-    gbs_logistics: Deno.env.get("GHL_TOKEN_GBS_LOGISTICS") ?? "",
+    gbs: Deno.env.get("GHL_TOKEN_GBS_LOGISTICS") ?? "",
   };
   return tokens[slug] ?? "";
 }
