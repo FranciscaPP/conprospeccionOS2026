@@ -19,6 +19,15 @@ export const MONTHLY_GOAL_BY_CLIENT: Record<string, number> = {
   "BambuTech": 12,
 };
 
+export function titleCase(value: string) {
+  return value
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function splitContactName(contact: string) {
   const parts = contact.trim().split(/\s+/).filter(Boolean);
   return {
@@ -144,18 +153,18 @@ export function getSimpleClientStatus(meeting: Meeting) {
   if (meeting.meetingStatus === "rescheduled" || meeting.finalValidation === "rescheduled") return "Reagendada";
   if (isProspectNoShow(meeting) || meeting.clientValidation === "not_completed") return "No realizada";
   if (decision === "accepted") return "Validada";
-  if (decision === "rejected") return "Rechazada";
+  if (decision === "rejected") return "No validada";
   if (decision === "review_requested" || meeting.finalValidation === "in_dispute") return "En revisión";
-  return "Pendiente de validación";
+  return "Pendiente";
 }
 
 export function getValidationResultLabel(meeting: Meeting) {
-  if (meeting.finalValidation === "final_valid") return "Validada para meta";
-  if (meeting.finalValidation === "final_not_valid") return "No cuenta para meta";
+  if (meeting.finalValidation === "final_valid") return "Validada";
+  if (meeting.finalValidation === "final_not_valid") return "No válida";
   if (meeting.finalValidation === "in_dispute") return "En revisión";
   if (meeting.finalValidation === "rescheduled") return "Reagendada";
-  if (meeting.cpValidation === "valid_cp") return "Cumple criterios base";
-  if (meeting.cpValidation === "not_valid_cp") return "No cumple criterios base";
+  if (meeting.cpValidation === "valid_cp") return "Validada";
+  if (meeting.cpValidation === "not_valid_cp") return "No válida";
   return "Pendiente";
 }
 
@@ -181,8 +190,8 @@ export function normalizeMeeting(meeting: Meeting): Meeting {
   const names = splitContactName(meeting.contact);
   const next: Meeting = {
     ...meeting,
-    firstName: meeting.firstName || names.firstName,
-    lastName: meeting.lastName || names.lastName,
+    firstName: titleCase(meeting.firstName || names.firstName),
+    lastName: titleCase(meeting.lastName || names.lastName),
     leadEmail: cleanOptional(meeting.leadEmail),
     leadPhone: cleanOptional(meeting.leadPhone),
     country: meeting.country || "Sin dato",

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 SYNC_DIR    = SCRIPTS_DIR.parent       # sync/
-ROOT        = SYNC_DIR.parent          # ConprospeccionOS/ (raíz del proyecto unificado)
+ROOT        = SYNC_DIR.parent          # conprospeccionOS2026/ (raiz del proyecto oficial)
 
 
 @dataclass(frozen=True)
@@ -20,8 +20,15 @@ class Settings:
 
 
 def load_project_env() -> None:
-    # Busca .env en la raíz del proyecto (ConprospeccionOS/) o en sync/ como fallback
-    for candidate in [ROOT / ".env", SYNC_DIR / ".env", ROOT / ".env.txt", SYNC_DIR / ".env.txt"]:
+    # Next/Vercel usa .env.local en desarrollo; los scripts heredados aceptan
+    # tambien .env/.env.txt para compatibilidad con la etapa Streamlit.
+    for candidate in [
+        ROOT / ".env.local",
+        ROOT / ".env",
+        SYNC_DIR / ".env",
+        ROOT / ".env.txt",
+        SYNC_DIR / ".env.txt",
+    ]:
         if candidate.exists():
             load_dotenv(candidate)
             return

@@ -167,7 +167,7 @@ export default function SDRPerformancePage() {
           <div>
             <h1 className="text-xl font-semibold text-foreground">Performance SDR</h1>
             <p className="text-sm text-muted-foreground">
-              Conprospección OS · Analítica SDR detallada · Junio 2026 · Datos demo · Prototipo funcional
+              Conprospección OS · Analítica SDR detallada · Junio 2026
             </p>
           </div>
           <div className="flex gap-2">

@@ -1,4 +1,4 @@
-﻿import { ReactNode } from "react";
+import { ReactNode } from "react";
 
 interface KPICardProps {
   title: string;
@@ -10,37 +10,28 @@ interface KPICardProps {
   onClick?: () => void;
 }
 
-const variantStyles = {
-  default: "bg-card border-border",
-  success: "bg-emerald-50 border-emerald-200",
-  warning: "bg-amber-50 border-amber-200",
-  danger: "bg-rose-50 border-rose-200",
-  primary: "bg-violet-50 border-violet-200",
-};
-
-const iconVariantStyles = {
-  default: "bg-muted text-muted-foreground",
-  success: "bg-emerald-100 text-emerald-600",
-  warning: "bg-amber-100 text-amber-600",
-  danger: "bg-rose-100 text-rose-600",
-  primary: "bg-violet-100 text-violet-600",
+const chipStyles = {
+  default: "bg-[#efefec] text-[#444]",
+  success: "bg-[var(--ok-bg)] text-[var(--ok)]",
+  warning: "bg-[var(--warn-bg)] text-[var(--warn)]",
+  danger: "bg-[var(--bad-bg)] text-[var(--bad)]",
+  primary: "bg-[#fff7cc] text-[#8a6d00]",
 };
 
 export function KPICard({ title, value, icon, trend, variant = "default", active = false, onClick }: KPICardProps) {
-  const className = `rounded-xl border p-4 text-left transition ${
-    variantStyles[variant]
-  } ${onClick ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-md" : ""} ${
-    active ? "ring-2 ring-violet-500 ring-offset-2" : ""
-  }`;
+  const className = `rounded-xl border border-[var(--line)] bg-white p-3 text-left shadow-card transition-shadow ${
+    onClick ? "cursor-pointer hover:shadow-[var(--shadow-card-hover)]" : ""
+  } ${active ? "ring-2 ring-[var(--carbon)] ring-offset-2" : ""}`;
+
   const content = (
-    <div className="flex items-center justify-between">
-      <div className="flex-1">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{title}</p>
-        <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
-        {trend && <p className="mt-1 text-xs text-muted-foreground">{trend}</p>}
+    <div className="flex items-start justify-between">
+      <div>
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--ink-3)] leading-tight">{title}</div>
+        <div className="font-display tnum text-[27px] font-semibold leading-none mt-2 text-[var(--ink)]">{value}</div>
+        {trend && <div className="mt-1 text-xs text-[var(--ink-3)]">{trend}</div>}
       </div>
       {icon && (
-        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconVariantStyles[variant]}`}>
+        <div className={`grid h-[30px] w-[30px] place-items-center rounded-lg text-[15px] ${chipStyles[variant]}`}>
           {icon}
         </div>
       )}
@@ -55,10 +46,5 @@ export function KPICard({ title, value, icon, trend, variant = "default", active
     );
   }
 
-  return (
-    <div className={className}>
-      {content}
-    </div>
-  );
+  return <div className={className}>{content}</div>;
 }
-

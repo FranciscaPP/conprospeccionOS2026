@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Validacion de reuniones - propuestas visuales</title>
+<style>
+:root{
+  --gold:#ffd700;
+  --carbon:#292929;
+  --carbon-2:#333333;
+  --canvas:#f6f6f4;
+  --card:#ffffff;
+  --ink:#181818;
+  --muted:#666862;
+  --soft:#efefec;
+  --line:#e4e4df;
+  --ok:#0e9f6e;
+  --ok-bg:#e7f6f0;
+  --warn:#b06a00;
+  --warn-bg:#fbf1df;
+  --bad:#c0362c;
+  --bad-bg:#fbeae8;
+  --rev:#cf7320;
+  --rev-bg:#fdf0e6;
+  --shadow:0 1px 2px rgba(20,20,20,.05),0 8px 24px rgba(20,20,20,.06);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#202020;
+  color:var(--ink);
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+}
+.page{padding:26px}
+.title{color:#fff;margin:0 0 18px;font-size:24px}
+.subtitle{color:#c9c9c3;margin:-8px 0 22px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(360px,1fr));gap:22px;align-items:start}
+.mock{
+  min-height:760px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  background:var(--canvas);
+  box-shadow:0 18px 50px rgba(0,0,0,.25);
+}
+.mock h2{margin:0;font-size:18px}
+.mock p{margin:0}
+.label{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#111;color:#fff;padding:11px 14px;font-weight:700;font-size:13px;
+}
+.label span{color:var(--gold);font-weight:600}
+.shell{display:grid;grid-template-columns:78px 1fr;min-height:720px}
+.side{background:var(--carbon);padding:16px 10px;color:#ddd}
+.mark{width:42px;height:34px;margin:0 auto 28px;position:relative}
+.mark:before,.mark:after{content:"";position:absolute;transform:skew(-28deg);border-radius:2px}
+.mark:before{width:28px;height:12px;background:#fff;left:5px;top:2px}
+.mark:after{width:28px;height:12px;background:var(--gold);left:2px;top:18px}
+.nav{display:grid;gap:10px}
+.nav i{display:grid;place-items:center;width:42px;height:42px;margin:auto;border-radius:10px;color:#aaa;font-style:normal}
+.nav i.active{background:rgba(255,215,0,.14);color:var(--gold);box-shadow:inset 3px 0 0 var(--gold)}
+.main{min-width:0}
+.top{height:86px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+.top small{display:block;color:var(--muted);margin-top:5px}
+.alert{display:inline-flex;gap:8px;align-items:center;border:1px solid #edcf7b;background:#fff9df;color:#8a5d00;border-radius:10px;padding:9px 12px;font-weight:700;font-size:13px}
+.content{padding:20px;display:grid;gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;box-shadow:var(--shadow)}
+.kpi b{display:block;font-size:25px;line-height:1;margin-top:8px}
+.kpi span{font-size:10px;color:#8c8c86;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.meta,.rule,.table,.panel,.card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.meta{padding:14px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar{height:7px;background:#ecece8;border-radius:99px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:var(--gold)}
+.rule{padding:13px 14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.rule b{font-size:13px}.rule span{font-size:12px;color:var(--muted)}
+.filters{display:grid;grid-template-columns:1fr 120px 120px 120px;gap:8px}
+.input{height:34px;border:1px solid var(--line);background:#fff;border-radius:9px;color:#777;padding:8px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse}
+th{background:#f0f1f2;color:#656b74;text-transform:uppercase;letter-spacing:.05em;font-size:10px;text-align:left;padding:11px}
+td{border-top:1px solid var(--line);padding:11px;font-size:12px}
+.company{font-weight:800}.role{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:5px 9px;font-weight:800;font-size:11px}
+.badge:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pending{background:var(--warn-bg);color:var(--warn)}
+.ok{background:var(--ok-bg);color:var(--ok)}
+.bad{background:var(--bad-bg);color:var(--bad)}
+.btn{border:0;background:var(--carbon-2);color:#fff;border-radius:8px;padding:8px 11px;font-weight:800;font-size:12px}
+
+/* version 2 */
+.wide{display:grid;grid-template-columns:1fr 310px;gap:14px}
+.panel{position:relative;padding:16px;min-height:434px}
+.panel:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold)}
+.tabs{display:flex;gap:8px;margin:15px 0}
+.tabs span{padding:7px 10px;border-radius:9px;background:#f3f3ef;font-size:11px;font-weight:800}
+.tabs .on{background:#fff4b8}
+.note{background:#f7f7f5;border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--muted);font-size:12px;line-height:1.45}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.actions .ghost{background:#fff;color:var(--carbon);border:1px solid var(--line)}
+
+/* version 3 */
+.checklist{display:grid;gap:10px}
+.item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;box-shadow:var(--shadow)}
+.box{width:22px;height:22px;border:2px solid var(--gold);border-radius:7px}
+.facts{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.facts span{background:#f3f3ef;border-radius:99px;padding:5px 8px;font-size:11px;color:#555;font-weight:700}
+.hero{background:var(--carbon);color:#fff;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center}
+.hero small{color:#cfcfc8}
+@media(max-width:1220px){.grid{grid-template-columns:1fr}.mock{min-height:auto}.shell{min-height:680px}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1 class="title">Validacion de reuniones - propuestas visuales</h1>
+  <p class="subtitle">Tres direcciones para el portal cliente con marca Conprospeccion: carbon, blanco y amarillo como acento.</p>
+
+  <div class="grid">
+    <section class="mock">
+      <div class="label">Opcion A: Dashboard operacional <span>Recomendada</span></div>
+      <div class="shell">
+        <aside class="side"><div class="mark"></div><div class="nav"><i>▦</i><i class="active">✓</i><i>▥</i></div></aside>
+        <main class="main">
+          <header class="top"><div><h2>Validacion de reuniones</h2><small>GBS LOGISTICS · Revision de reuniones entregadas</small></div><div class="alert">◷ 3 pendientes</div></header>
+          <div class="content">
+            <div class="kpis">
+              <div class="kpi"><span>Total</span><b>3</b></div><div class="kpi"><span>Validadas</span><b>0</b></div><div class="kpi"><span>Pendientes</span><b>3</b></div><div class="kpi"><span>Disputa</span><b>0</b></div>
+            </div>
+            <div class="meta"><div class="row"><b>Avance de meta contractual</b><strong>0/10 · 0%</strong></div><div class="bar"><i></i></div></div>
+            <div class="rule"><b>Que cuenta como valida</b><span>✓ Se realizo</span><span>✓ 2 variables BANT</span><span>✓ Dentro del ICP</span></div>
+            <div class="filters"><div class="input">Buscar empresa, nombre o cargo</div><div class="input">Estado</div><div class="input">Mes</div><div class="input">Pais</div></div>
+            <div class="table"><table><thead><tr><th>Fecha</th><th>Empresa</th><th>Contacto</th><th>Validacion</th><th></th></tr></thead><tbody>
+              <tr><td><b>3 Jun</b><br><span class="role">12:00</span></td><td class="company">MedizinTechnik</td><td>Bernardo Viele</td><td><span class="badge pending">Pendiente</span></td><td><button class="btn">Validar</button></td></tr>
+              <tr><td><b>9 Jun</b><br><span class="role">10:00</span></td><td class="company">Vecchiola S.A</td><td>Veronica Chacana</td><td><span class="badge pending">Pendiente</span></td><td><button class="btn">Validar</button></td></tr>
+              <tr><td><b>11 Jun</b><br><span class="role">15:00</span></td><td class="company">Crispieri</td><td>Paula Arellano</td><td><span class="badge pending">Pendiente</span></td><td><button class="btn">Validar</button></td></tr>
+            </tbody></table></div>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <section class="mock">
+      <div class="label">Opcion B: Tabla + panel fijo <span>Mas rapido</span></div>
+      <div class="shell">
+        <aside class="side"><div class="mark"></div><div class="nav"><i>▦</i><i class="active">✓</i><i>▥</i></div></aside>
+        <main class="main">
+          <header class="top"><div><h2>Validacion de reuniones</h2><small>GBS LOGISTICS · Junio 2026</small></div><div class="alert">◷ 3 pendientes</div></header>
+          <div class="content">
+            <div class="kpis"><div class="kpi"><span>Meta</span><b>0/10</b></div><div class="kpi"><span>Pendientes</span><b>3</b></div><div class="kpi"><span>Validadas</span><b>0</b></div><div class="kpi"><span>Disputa</span><b>0</b></div></div>
+            <div class="wide">
+              <div class="table"><table><thead><tr><th>Empresa</th><th>Contacto</th><th>Estado</th></tr></thead><tbody>
+                <tr style="background:#fffbea"><td class="company">MedizinTechnik</td><td>Bernardo Viele</td><td><span class="badge pending">Pendiente</span></td></tr>
+                <tr><td class="company">Vecchiola S.A</td><td>Veronica Chacana</td><td><span class="badge pending">Pendiente</span></td></tr>
+                <tr><td class="company">Crispieri</td><td>Paula Arellano</td><td><span class="badge pending">Pendiente</span></td></tr>
+              </tbody></table></div>
+              <aside class="panel">
+                <div class="row"><div><h2>MedizinTechnik</h2><p class="role">Bernardo Viele · Gerente Comercial</p></div><span class="badge pending">Pendiente</span></div>
+                <div class="tabs"><span class="on">Resumen</span><span>Evidencia</span><span>Decision</span></div>
+                <div class="note">Explicacion de servicios de GBS, muestra interes inmediato en agendar reunion. Fuente: captura Gmail usuario.</div>
+                <div class="facts"><span>ICP: cumple</span><span>BANT: 2/4</span><span>Realizada</span></div>
+                <div class="actions"><button class="btn">Validar</button><button class="btn ghost">Objetar</button></div>
+              </aside>
+            </div>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <section class="mock">
+      <div class="label">Opcion C: Checklist ejecutivo <span>Mas simple</span></div>
+      <div class="shell">
+        <aside class="side"><div class="mark"></div><div class="nav"><i>▦</i><i class="active">✓</i><i>▥</i></div></aside>
+        <main class="main">
+          <header class="top"><div><h2>Validacion pendiente</h2><small>3 reuniones esperan decision</small></div><div class="alert">Meta 0/10</div></header>
+          <div class="content">
+            <div class="hero"><div><h2>Revisa y valida reuniones</h2><small>Enfocado en decision, no en dashboard</small></div><button class="btn">Validar todas revisadas</button></div>
+            <div class="checklist">
+              <div class="item"><div class="box"></div><div><b>MedizinTechnik</b><p class="role">Bernardo Viele · Gerente Comercial</p><div class="facts"><span>Se realizo</span><span>BANT 2/4</span><span>ICP OK</span></div></div><button class="btn">Revisar</button></div>
+              <div class="item"><div class="box"></div><div><b>Vecchiola S.A</b><p class="role">Veronica Chacana · Subgerente de Logistica</p><div class="facts"><span>Se realizo</span><span>BANT 3/4</span><span>ICP OK</span></div></div><button class="btn">Revisar</button></div>
+              <div class="item"><div class="box"></div><div><b>Crispieri Importadora</b><p class="role">Paula Arellano · Encargado COMEX</p><div class="facts"><span>Se realizo</span><span>BANT 2/4</span><span>ICP OK</span></div></div><button class="btn">Revisar</button></div>
+            </div>
+            <div class="rule"><b>Regla de validacion</b><span>Validez y resultado comercial son cosas distintas.</span></div>
+          </div>
+        </main>
+      </div>
+    </section>
+  </div>
+</div>
+</body>
+</html>

@@ -1,9 +1,11 @@
 # Conprospeccion OS2026
 
-Proyecto oficial del sistema operativo de Con Prospeccion.
+Proyecto oficial del sistema operativo de Con Prospección.
 
 La app principal vive en Next.js y se despliega en Vercel:
 
+- Repo local oficial: `C:\Users\Admin\OneDrive\Documents\Con Prospección\conprospeccionOS2026`
+- Repo GitHub oficial: `FranciscaPP/conprospeccionOS2026`
 - Produccion: https://conprospeccion-os-2026.vercel.app
 - Dashboard interno: `/internal/meeting-followup`
 - Portal cliente: `/client/meeting-validation`
@@ -102,7 +104,7 @@ Las bases locales Apollo/Snov no se versionan en GitHub.
 Ruta local de trabajo:
 
 ```txt
-C:\Users\Admin\OneDrive\Documents\Con ProspecciÃ³n\ConprospeccionOS\BASES_APOLLO&SNOV
+C:\Users\Admin\OneDrive\Documents\Con Prospección\conprospeccionOS2026\BASES_APOLLO&SNOV
 ```
 
 Si esas bases se migran definitivamente, deben ir a una persistencia controlada como Supabase Storage, Drive o un bucket privado, no al repo.

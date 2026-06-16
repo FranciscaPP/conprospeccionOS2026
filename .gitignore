@@ -31,3 +31,19 @@ node_modules
 .DS_Store
 __pycache__/
 *.pyc
+
+# Graphify (mapa local del código, cada uno lo regenera)
+graphify-out/
+
+.vercel
+
+# Herramientas y artefactos locales (no van al repo)
+.claude/
+.codex/
+.codex-remote-attachments/
+.netlify/
+netlify-preview/
+whatsapp_check/
+tsconfig.tsbuildinfo
+preview-premium.html
+*.pdf

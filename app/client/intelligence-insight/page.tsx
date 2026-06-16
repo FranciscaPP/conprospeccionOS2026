@@ -63,7 +63,7 @@ export default function IntelligenceInsightPage() {
           <div>
             <h1 className="text-xl font-semibold text-foreground">Revenue Intelligence</h1>
             <p className="text-sm text-muted-foreground">
-              GBS Logistics · Junio 2026 · Datos demo · Prototipo funcional
+              GBS Logistics · Junio 2026
             </p>
           </div>
           <div className="flex gap-2">

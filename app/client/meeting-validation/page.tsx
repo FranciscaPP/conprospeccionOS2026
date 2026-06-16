@@ -7,33 +7,27 @@ import {
   BookOpen,
   Calendar,
   CheckCircle2,
+  ChevronDown,
   Clock,
   FileText,
   Search,
-  ShieldCheck,
+  X,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { ACTIVE_CLIENTS, clientSlugFromName, type ActiveClientSlug } from "@/lib/access-control";
 import { KPICard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
+import { CompanyAvatar } from "@/components/company-avatar";
 import { MeetingDrawer } from "@/components/meeting-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import type { FinalValidation, Meeting, MeetingStatus } from "@/lib/types";
 import {
   getClientDecision,
   getClientSearchText,
   getSimpleClientStatus,
-  getValidationTooltip,
-  getValidationResultLabel,
   isClientLocked,
   MONTHLY_GOAL_BY_CLIENT,
 } from "@/lib/meeting-rules";
@@ -55,14 +49,15 @@ function clientPath(slug: ActiveClientSlug) {
 
 function statusToBadge(status: string): FinalValidation | MeetingStatus {
   if (status === "Validada") return "final_valid";
-  if (status === "Rechazada" || status === "No realizada") return "final_not_valid";
+  if (status === "No validada" || status === "No realizada") return "final_not_valid";
   if (status === "En revisión") return "in_dispute";
   if (status === "Reagendada") return "rescheduled";
   return "pending";
 }
 
 export default function MeetingValidationPage() {
-  const { meetings, selectedMeetingId, setSelectedMeetingId } = useApp();
+  const { role, meetings, selectedMeetingId, setSelectedMeetingId } = useApp();
+  const isInternal = role === "internal";
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [queryMeetingId, setQueryMeetingId] = useState<string | null>(null);
@@ -73,6 +68,7 @@ export default function MeetingValidationPage() {
   const [monthFilter, setMonthFilter] = useState("all");
   const [dayFilter, setDayFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
+  const [showExplainer, setShowExplainer] = useState(true);
 
   const requestedMeetingId = queryMeetingId || selectedMeetingId;
   const requestedMeeting = useMemo(
@@ -150,6 +146,23 @@ export default function MeetingValidationPage() {
     setStatusFilter("all");
   };
 
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    statusFilter !== "all" ||
+    kpiFilter !== "all" ||
+    monthFilter !== "all" ||
+    dayFilter !== "all" ||
+    countryFilter !== "all";
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setKpiFilter("all");
+    setMonthFilter("all");
+    setDayFilter("all");
+    setCountryFilter("all");
+  };
+
   const switchClient = (slug: ActiveClientSlug) => {
     setQueryMeetingId(null);
     setSelectedMeetingId(null);
@@ -181,28 +194,30 @@ export default function MeetingValidationPage() {
       <header className="border-b border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-foreground sm:text-xl">Validación de reuniones</h1>
+            <h1 className="text-lg font-semibold text-foreground sm:text-xl">Avance reuniones</h1>
             <p className="max-w-full break-words text-sm leading-5 text-muted-foreground">
               {selectedClient} · Revisión de reuniones entregadas
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:items-end">
-            <div className="flex flex-wrap gap-2 sm:justify-end">
-              {ACTIVE_CLIENTS.map((client) => (
-                <button
-                  key={client.slug}
-                  type="button"
-                  className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
-                    clientSlugFromName(selectedClient) === client.slug
-                      ? "border-violet-300 bg-violet-50 text-violet-700"
-                      : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                  onClick={() => switchClient(client.slug)}
-                >
-                  {client.displayName}
-                </button>
-              ))}
-            </div>
+            {isInternal && (
+              <div className="flex flex-wrap gap-2 sm:justify-end">
+                {ACTIVE_CLIENTS.map((client) => (
+                  <button
+                    key={client.slug}
+                    type="button"
+                    className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-xs font-semibold transition sm:min-h-9 ${
+                      clientSlugFromName(selectedClient) === client.slug
+                        ? "border-[#333] bg-[#f0f0ee] text-[#333]"
+                        : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                    onClick={() => switchClient(client.slug)}
+                  >
+                    {client.displayName}
+                  </button>
+                ))}
+              </div>
+            )}
             {kpis.pending > 0 && (
               <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
                 <Clock className="h-4 w-4" />
@@ -250,30 +265,46 @@ export default function MeetingValidationPage() {
           </div>
 
           <section className="rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">Avance de meta</h3>
-                <p className="text-xs text-muted-foreground">Se consideran reuniones validadas por cliente y aplicables a la meta.</p>
-              </div>
-              <span className="text-lg font-bold text-violet-600">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-foreground">Avance de meta</h3>
+              <span className="font-display tnum text-lg font-bold text-[var(--ink)]">
                 {kpis.finalValid}/{goal} · {kpis.progress}%
               </span>
             </div>
             <Progress value={kpis.progress} className="h-2" />
           </section>
 
-          <section className="rounded-xl border border-violet-100 bg-violet-50/60 p-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg bg-violet-600 p-2 text-white">
-                <BookOpen className="h-4 w-4" />
-              </div>
-              <div className="min-w-0 space-y-2">
-                <h3 className="text-sm font-semibold text-foreground">¿Qué es una reunión válida?</h3>
-                <p className="max-w-full break-words text-sm leading-6 text-muted-foreground">
-                  Cuenta para la meta cuando el prospecto corresponde al ICP acordado, la reunión se realiza y existen al menos dos variables comerciales relevantes. Aquí se muestra la información necesaria para revisar y calificar la reunión.
-                </p>
-              </div>
-            </div>
+          <section className="rounded-xl border border-[var(--line)] bg-white p-4 shadow-card">
+            <button
+              type="button"
+              onClick={() => setShowExplainer((value) => !value)}
+              aria-expanded={showExplainer}
+              className="flex w-full items-center justify-between gap-2 text-left"
+            >
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <BookOpen className="h-4 w-4 text-[var(--ink-2)]" />
+                ¿Qué es una reunión válida?
+              </h3>
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-[var(--ink-3)] transition-transform ${showExplainer ? "rotate-180" : ""}`}
+              />
+            </button>
+            {showExplainer && (
+              <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--ok)]" />
+                  La reunión se realizó
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--ok)]" />
+                  Al menos 2 variables comerciales (BANT)
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--ok)]" />
+                  Dentro del ICP acordado
+                </li>
+              </ul>
+            )}
           </section>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_190px_160px_160px_160px]">
@@ -296,7 +327,7 @@ export default function MeetingValidationPage() {
               }}
               options={[
                 { value: "all", label: "Estado: Todos" },
-                ...["Pendiente de validación", "Validada", "Rechazada", "En revisión", "Reagendada", "No realizada"].map((status) => ({
+                ...["Pendiente", "Validada", "No validada", "En revisión", "Reagendada", "No realizada"].map((status) => ({
                   value: status,
                   label: status,
                 })),
@@ -343,6 +374,22 @@ export default function MeetingValidationPage() {
             />
           </div>
 
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              Mostrando {filteredMeetings.length} de {clientMeetings.length} reuniones
+            </p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted"
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
           <div className="space-y-3 md:hidden">
             {filteredMeetings.length === 0 && (
               <div className="rounded-xl border border-border bg-card p-8 text-center">
@@ -362,23 +409,25 @@ export default function MeetingValidationPage() {
                   onClick={() => openDrawer(meeting)}
                 >
                   <div className="mb-3 flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{meeting.company}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {meeting.firstName} {meeting.lastName} · {meeting.jobTitle}
-                      </p>
+                    <div className="flex items-start gap-2">
+                      <CompanyAvatar name={meeting.company} />
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{meeting.company}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {meeting.firstName} {meeting.lastName} · {meeting.jobTitle}
+                        </p>
+                      </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-sm font-medium text-foreground">{format(new Date(meeting.meetingDate), "d MMM")}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(meeting.meetingDate), "HH:mm")}</p>
+                      <p className="font-display tnum text-sm font-medium text-foreground">{format(new Date(meeting.meetingDate), "d MMM")}</p>
+                      <p className="font-display tnum text-xs text-muted-foreground">{format(new Date(meeting.meetingDate), "HH:mm")}</p>
                     </div>
                   </div>
                   <div className="mb-3 flex flex-wrap gap-2">
                     <StatusBadge status={statusToBadge(simpleStatus)} label={simpleStatus} size="sm" />
-                    <ValidationResultTooltip meeting={meeting} />
                   </div>
                   <div className="flex justify-end">
-                    <span className={`rounded-lg px-3 py-1.5 text-sm font-medium ${locked ? "border border-border bg-background text-foreground" : "bg-violet-600 text-white"}`}>
+                    <span className={`rounded-lg px-3 py-1.5 text-sm font-medium ${locked ? "border border-border bg-background text-foreground" : "bg-[#333] text-white"}`}>
                       {locked ? "Ver detalle" : "Validar"}
                     </span>
                   </div>
@@ -387,18 +436,16 @@ export default function MeetingValidationPage() {
             })}
           </div>
 
-          <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[920px]">
+          <div className="hidden rounded-xl border border-border bg-card md:block">
+            <div className="max-h-[60vh] overflow-auto rounded-xl">
+              <table className="w-full min-w-[760px]">
                 <thead className="sticky top-0 z-10 bg-muted shadow-sm">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Fecha</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Empresa</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Nombre</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Apellido</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Contacto</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Cargo</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Estado</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Resultado de revisión</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Validación</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Acción</th>
                   </tr>
                 </thead>
@@ -409,24 +456,25 @@ export default function MeetingValidationPage() {
                     return (
                       <tr key={meeting.id} className="cursor-pointer transition-colors hover:bg-muted/30" onClick={() => openDrawer(meeting)}>
                         <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-foreground">{format(new Date(meeting.meetingDate), "d MMM")}</p>
-                          <p className="text-xs text-muted-foreground">{format(new Date(meeting.meetingDate), "HH:mm")}</p>
+                          <p className="font-display tnum text-sm font-medium text-foreground">{format(new Date(meeting.meetingDate), "d MMM")}</p>
+                          <p className="font-display tnum text-xs text-muted-foreground">{format(new Date(meeting.meetingDate), "HH:mm")}</p>
                         </td>
-                        <td className="px-4 py-3 text-sm font-medium text-foreground">{meeting.company}</td>
-                        <td className="px-4 py-3 text-sm text-foreground">{meeting.firstName}</td>
-                        <td className="px-4 py-3 text-sm text-foreground">{meeting.lastName || "-"}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <CompanyAvatar name={meeting.company} />
+                            <span className="text-sm font-medium text-foreground">{meeting.company}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground">{[meeting.firstName, meeting.lastName].filter(Boolean).join(" ") || "-"}</td>
                         <td className="px-4 py-3 text-sm text-muted-foreground">{meeting.jobTitle}</td>
                         <td className="px-4 py-3">
                           <StatusBadge status={statusToBadge(simpleStatus)} label={simpleStatus} size="sm" />
                         </td>
                         <td className="px-4 py-3">
-                          <ValidationResultTooltip meeting={meeting} variant="table" />
-                        </td>
-                        <td className="px-4 py-3">
                           <Button
                             variant={locked ? "outline" : "default"}
                             size="sm"
-                            className={locked ? "" : "bg-violet-600 text-white hover:bg-violet-700"}
+                            className=""
                             onClick={(event) => {
                               event.stopPropagation();
                               openDrawer(meeting);
@@ -461,36 +509,6 @@ export default function MeetingValidationPage() {
         mode="client"
       />
     </div>
-  );
-}
-
-function ValidationResultTooltip({
-  meeting,
-  variant = "compact",
-}: {
-  meeting: Meeting;
-  variant?: "compact" | "table";
-}) {
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger render={<span className="inline-flex" />}>
-          <span
-            className={
-              variant === "table"
-                ? "inline-flex cursor-help items-center gap-2 text-sm text-foreground"
-                : "inline-flex cursor-help items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700"
-            }
-          >
-            <ShieldCheck className={variant === "table" ? "h-4 w-4 text-violet-600" : "h-3 w-3"} />
-            {getValidationResultLabel(meeting)}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent className="max-w-[320px] text-xs leading-5">
-          {getValidationTooltip(meeting)}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
   );
 }
 

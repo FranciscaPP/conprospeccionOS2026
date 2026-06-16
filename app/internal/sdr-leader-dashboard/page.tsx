@@ -154,7 +154,7 @@ export default function SDRLeaderDashboardPage() {
           <div>
             <h1 className="text-xl font-semibold text-foreground">Panel líder SDR</h1>
             <p className="text-sm text-muted-foreground">
-              Conprospección OS · Control operativo · {format(new Date(), "MMMM d, yyyy")} · Datos demo · Prototipo funcional
+              Conprospección OS · Control operativo · {format(new Date(), "MMMM d, yyyy")}
             </p>
           </div>
           <div className="flex gap-2">

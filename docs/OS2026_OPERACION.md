@@ -4,6 +4,8 @@ Este repo es la fuente de verdad del proyecto nuevo.
 
 ## App oficial
 
+- Local repo oficial: `C:\Users\Admin\OneDrive\Documents\Con Prospección\conprospeccionOS2026`
+- GitHub repo oficial: `FranciscaPP/conprospeccionOS2026`
 - Vercel project: `conprospeccion-os-2026`
 - Production URL: `https://conprospeccion-os-2026.vercel.app`
 - Internal meeting follow-up: `/internal/meeting-followup`
@@ -32,6 +34,15 @@ SUPABASE_SERVICE_ROLE_KEY
 SUPABASE_SERVICE_KEY
 SUPABASE_KEY
 NEXT_PUBLIC_SUPABASE_URL
+```
+
+Fuentes internas de Conprospeccion:
+
+```txt
+GHL_LOCATION_CONPROSPECCION
+GHL_TOKEN_CONPROSPECCION
+SNOV_CLIENT_ID
+SNOV_CLIENT_SECRET
 ```
 
 ## Reuniones
@@ -73,7 +84,7 @@ Para activarla faltan dos pasos operativos:
 Ruta local actual:
 
 ```txt
-C:\Users\Admin\OneDrive\Documents\Con ProspecciÃ³n\ConprospeccionOS\BASES_APOLLO&SNOV
+C:\Users\Admin\OneDrive\Documents\Con Prospección\conprospeccionOS2026\BASES_APOLLO&SNOV
 ```
 
 No se suben a GitHub por peso y datos sensibles. Si deben centralizarse, usar almacenamiento privado controlado.

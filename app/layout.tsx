@@ -1,17 +1,29 @@
 ﻿import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
-import { Inter, Geist } from 'next/font/google'
+import { Inter, Geist, Saira, Saira_Condensed } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/lib/app-context'
 
-const inter = Inter({ 
-  variable: '--font-inter', 
-  subsets: ['latin'] 
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin']
 })
 
 const geist = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+})
+
+const saira = Saira_Condensed({
+  variable: '--font-saira',
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+})
+
+const sairaBody = Saira({
+  variable: '--font-saira-body',
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
 })
 
 export const metadata: Metadata = {
@@ -43,7 +55,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${geist.variable} bg-background`}>
+    <html lang="en" className={`${inter.variable} ${geist.variable} ${saira.variable} ${sairaBody.variable} bg-background`}>
       <body className="font-sans antialiased">
         <AppProvider>
           {children}

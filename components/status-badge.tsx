@@ -1,4 +1,4 @@
-﻿import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type {
   CPValidation,
   ClientValidation,
@@ -15,8 +15,17 @@ interface StatusBadgeProps {
   size?: "sm" | "md";
 }
 
-const getStatusColor = (status: StatusType): string => {
-  // Green statuses
+type Tone = "ok" | "warn" | "bad" | "rev" | "neutral";
+
+const toneStyles: Record<Tone, { pill: string; dot: string }> = {
+  ok: { pill: "bg-[var(--ok-bg)] text-[var(--ok-ink)]", dot: "var(--ok)" },
+  warn: { pill: "bg-[var(--warn-bg)] text-[var(--warn-ink)]", dot: "var(--warn)" },
+  bad: { pill: "bg-[var(--bad-bg)] text-[var(--bad-ink)]", dot: "var(--bad)" },
+  rev: { pill: "bg-[var(--rev-bg)] text-[var(--rev-ink)]", dot: "var(--rev)" },
+  neutral: { pill: "bg-[#efefec] text-[#555]", dot: "#9a9a92" },
+};
+
+const getTone = (status: StatusType): Tone => {
   if (
     status === "valid_cp" ||
     status === "valid_client" ||
@@ -24,16 +33,18 @@ const getStatusColor = (status: StatusType): string => {
     status === "completed" ||
     status === "client_won"
   ) {
-    return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    return "ok";
   }
 
-  // Yellow/warning statuses
+  if (status === "in_dispute" || status === "requires_review") {
+    return "rev";
+  }
+
   if (
     status === "waiting_validation" ||
     status === "waiting_client_validation" ||
     status === "pending" ||
     status === "scheduled" ||
-    status === "requires_review" ||
     status === "pending_followup" ||
     status === "next_step_scheduled" ||
     status === "requested_proposal" ||
@@ -41,10 +52,9 @@ const getStatusColor = (status: StatusType): string => {
     status === "proposal_followup" ||
     status === "negotiation"
   ) {
-    return "bg-amber-100 text-amber-700 border-amber-200";
+    return "warn";
   }
 
-  // Red/danger statuses
   if (
     status === "not_valid_cp" ||
     status === "not_valid_client" ||
@@ -56,33 +66,24 @@ const getStatusColor = (status: StatusType): string => {
     status === "not_commercially_qualified" ||
     status === "no_response"
   ) {
-    return "bg-rose-100 text-rose-700 border-rose-200";
+    return "bad";
   }
 
-  // Orange/dispute statuses
-  if (status === "in_dispute") {
-    return "bg-orange-100 text-orange-700 border-orange-200";
-  }
-
-  // Purple/special statuses
-  if (status === "rescheduled" || status === "excluded_by_agreement") {
-    return "bg-violet-100 text-violet-700 border-violet-200";
-  }
-
-  return "bg-muted text-muted-foreground border-border";
+  return "neutral";
 };
 
 export function StatusBadge({ status, label, size = "md" }: StatusBadgeProps) {
+  const tone = toneStyles[getTone(status)];
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border font-medium",
-        getStatusColor(status),
-        size === "sm" ? "px-2 py-0.5 text-xs" : "px-2.5 py-1 text-xs"
+        "inline-flex items-center gap-1.5 rounded-full font-semibold",
+        tone.pill,
+        size === "sm" ? "px-2.5 py-1 text-[10.5px]" : "px-3 py-1 text-[11px]"
       )}
     >
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: tone.dot }} />
       {label}
     </span>
   );
 }
-

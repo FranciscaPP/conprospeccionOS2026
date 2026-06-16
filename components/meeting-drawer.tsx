@@ -48,7 +48,6 @@ import {
 import {
   deriveFinalValidation,
   getClientDecision,
-  getSimpleClientStatus,
   getValidationResultLabel,
   isClientLocked,
   isContractuallyValid,
@@ -67,7 +66,7 @@ type ClientDrawerTab = "validation" | "contact" | "evaluation" | "commercial";
 const bantOptions: BANTCriteria[] = ["budget", "authority", "need", "timeline"];
 const leadFieldClass = "min-w-0 space-y-1";
 const leadValueClass = "min-w-0 break-words text-sm font-medium text-foreground [overflow-wrap:anywhere]";
-const leadLinkClass = "min-w-0 break-words text-sm font-medium text-violet-700 hover:underline [overflow-wrap:anywhere]";
+const leadLinkClass = "min-w-0 break-words text-sm font-medium text-[#333] underline-offset-2 hover:underline [overflow-wrap:anywhere]";
 
 function EvidenceChecklist({ meeting }: { meeting: Meeting }) {
   const evidence = meeting.bantEvidence?.length
@@ -76,7 +75,7 @@ function EvidenceChecklist({ meeting }: { meeting: Meeting }) {
         criteria,
         met: meeting.cpBANT.includes(criteria),
         quote: meeting.cpBANT.includes(criteria)
-          ? "Evidencia demo pendiente de transcript real."
+          ? "Evidencia pendiente de la transcripción."
           : "",
         note: meeting.cpBANT.includes(criteria) ? "Criterio detectado por Conprospección." : "Sin evidencia suficiente.",
       }));
@@ -116,7 +115,7 @@ function BantSelector({
   tone?: "violet" | "amber";
 }) {
   const active = tone === "violet"
-    ? "bg-violet-100 text-violet-700 border-violet-300"
+    ? "bg-[#f0f0ee] text-[#333] border-[#333]"
     : "bg-amber-100 text-amber-700 border-amber-300";
   return (
     <div className="flex flex-wrap gap-2">
@@ -150,6 +149,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
   const [commercialStatus, setCommercialStatus] = useState<CommercialStatus>("pending_followup");
   const [commercialNextStep, setCommercialNextStep] = useState("");
   const [clientTab, setClientTab] = useState<ClientDrawerTab>("validation");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!meeting) return;
@@ -160,6 +160,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
     setCommercialStatus(meeting.commercialStatus || "pending_followup");
     setCommercialNextStep(meeting.nextStep || "");
     setClientTab("validation");
+    setSaveError(null);
   }, [meeting]);
 
   const previewFinal = useMemo(() => {
@@ -169,18 +170,11 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
 
   if (!meeting) return null;
 
-  const simpleStatus = getSimpleClientStatus(meeting);
   const clientDecision = getClientDecision(meeting);
   const locked = isClientLocked(meeting);
   const validByContract = isContractuallyValid(meeting);
   const isClientMode = mode === "client";
-  const showClientSection = (tab: ClientDrawerTab) => !isClientMode || clientTab === tab;
-  const clientTabs: Array<{ value: ClientDrawerTab; label: string }> = [
-    { value: "validation", label: "Validar" },
-    { value: "contact", label: "Contacto" },
-    { value: "evaluation", label: "Evaluación" },
-    { value: "commercial", label: "Avance" },
-  ];
+  const showClientSection = (_tab: ClientDrawerTab) => true;
 
   const saveInternal = () => {
     updateMeeting(meeting.id, {
@@ -192,7 +186,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
     onClose();
   };
 
-  const acceptMeeting = () => {
+  const acceptMeeting = async () => {
     const updates: Partial<Meeting> = {
       clientValidation: "valid_client",
       clientDecision: "accepted",
@@ -201,11 +195,11 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
       finalValidation: validByContract ? "final_valid" : "in_dispute",
     };
     updateMeeting(meeting.id, updates);
-    void persistClientValidation(meeting.id, updates.finalValidation as FinalValidation);
-    onClose();
+    const ok = await persistClientValidation(meeting.id, updates.finalValidation as FinalValidation);
+    if (ok) onClose();
   };
 
-  const rejectMeeting = () => {
+  const rejectMeeting = async () => {
     const updates: Partial<Meeting> = {
       clientValidation: "not_valid_client",
       clientDecision: "rejected",
@@ -215,11 +209,11 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
       finalValidation: meeting.cpValidation === "valid_cp" ? "in_dispute" : "final_not_valid",
     };
     updateMeeting(meeting.id, updates);
-    void persistClientValidation(meeting.id, updates.finalValidation as FinalValidation);
-    onClose();
+    const ok = await persistClientValidation(meeting.id, updates.finalValidation as FinalValidation);
+    if (ok) onClose();
   };
 
-  const requestReview = () => {
+  const requestReview = async () => {
     const updates: Partial<Meeting> = {
       clientValidation: "requires_review",
       clientDecision: "review_requested",
@@ -228,11 +222,11 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
       finalValidation: "in_dispute",
     };
     updateMeeting(meeting.id, updates);
-    void persistClientValidation(meeting.id, "in_dispute");
-    onClose();
+    const ok = await persistClientValidation(meeting.id, "in_dispute");
+    if (ok) onClose();
   };
 
-  const persistClientValidation = async (id: string, finalValidation: FinalValidation) => {
+  const persistClientValidation = async (id: string, finalValidation: FinalValidation): Promise<boolean> => {
     try {
       const response = await fetch("/api/internal/meetings", {
         method: "PATCH",
@@ -240,24 +234,27 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
         body: JSON.stringify({ id, finalValidation }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "No se pudo guardar la validaciÃ³n.");
+      if (!response.ok) throw new Error(payload.error || "No se pudo guardar la validación.");
+      return true;
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "No se pudo guardar la validaciÃ³n.");
+      setSaveError(error instanceof Error ? error.message : "No se pudo guardar la validación. Reintenta en unos segundos.");
+      return false;
     } finally {
       await refreshMeetings();
     }
   };
 
   const saveClientDecision = () => {
+    setSaveError(null);
     if (clientAction === "accepted") {
-      acceptMeeting();
+      void acceptMeeting();
       return;
     }
     if (clientAction === "review_requested") {
-      requestReview();
+      void requestReview();
       return;
     }
-    rejectMeeting();
+    void rejectMeeting();
   };
 
   const saveCommercialProgress = () => {
@@ -269,7 +266,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-[calc(100vw-1rem)] p-0 sm:max-w-[560px]">
+      <SheetContent className="w-[calc(100vw-1rem)] p-0 sm:max-w-[480px]">
         <SheetHeader className="border-b border-border p-4 pb-3 sm:p-6 sm:pb-4">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -284,145 +281,6 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
 
         <ScrollArea className="h-[calc(100dvh-8rem)] sm:h-[calc(100vh-180px)]">
           <div className="space-y-5 p-4 sm:space-y-6 sm:p-6">
-            {isClientMode && (
-              <div className="sticky top-0 z-20 -mx-4 border-b border-border bg-background/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6">
-                <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0">
-                  {clientTabs.map((tab) => (
-                    <button
-                      key={tab.value}
-                      type="button"
-                      onClick={() => setClientTab(tab.value)}
-                      className={`min-h-12 min-w-[7.5rem] rounded-xl border px-4 py-3 text-sm font-semibold transition sm:min-w-0 ${
-                        clientTab === tab.value
-                          ? "border-violet-300 bg-violet-50 text-violet-700"
-                          : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {isClientMode && clientTab === "validation" && (
-              <section className="space-y-4">
-                <div className="rounded-lg border border-violet-100 bg-violet-50/70 p-4">
-                  <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <User className="h-4 w-4 text-violet-700" />
-                    Validar reunión
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Selecciona una decisión y guarda el registro. Si se objeta la reunión, el motivo es obligatorio.
-                  </p>
-                </div>
-
-                <div className="grid gap-3 rounded-lg border border-border bg-muted/20 p-3 sm:grid-cols-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Resultado de revisión</Label>
-                    <p className="text-sm font-medium text-foreground">{getValidationResultLabel(meeting)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Fecha de calificación cliente</Label>
-                    <p className="text-sm font-medium text-foreground">
-                      {meeting.clientDecisionAt
-                        ? format(new Date(meeting.clientDecisionAt), "d MMM yyyy · HH:mm")
-                        : "Pendiente de registro"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Variables válidas</Label>
-                    <p className="text-sm font-medium text-foreground">
-                      {meeting.cpBANT.length > 0
-                        ? meeting.cpBANT.map((criteria) => bantLabels[criteria]).join(", ")
-                        : "Sin variables registradas"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Estado actual</Label>
-                    <p className="text-sm font-medium text-foreground">{simpleStatus}</p>
-                  </div>
-                </div>
-
-                {locked ? (
-                  <div className="rounded-lg border border-border bg-muted/40 p-4">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                      <Lock className="h-4 w-4" />
-                      {clientDecisionLabels[clientDecision]}
-                    </div>
-                    <p className="text-sm leading-6 text-muted-foreground">
-                      {clientDecision === "accepted" && "Reunión validada. Esta validación quedó registrada."}
-                      {clientDecision === "rejected" && "Reunión objetada. Solo Conprospección puede reabrirla internamente si corresponde."}
-                      {clientDecision === "review_requested" && "Solicitud de revisión registrada. No se puede modificar hasta respuesta de Conprospección."}
-                    </p>
-                    {meeting.rejectionReason && (
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        Motivo: {rejectionReasonLabels[meeting.rejectionReason]}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid gap-2 sm:grid-cols-3">
-                      {[
-                        { value: "accepted", label: "Validar reunión" },
-                        { value: "rejected", label: "Objetar reunión" },
-                        { value: "review_requested", label: "Solicitar revisión" },
-                      ].map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setClientAction(option.value as Exclude<ClientDecision, "pending">)}
-                          className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                            clientAction === option.value
-                              ? "border-violet-300 bg-violet-50 text-violet-700"
-                              : "border-border bg-background text-foreground hover:bg-muted"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                    {clientAction === "accepted" && (
-                      <div className="rounded-lg border border-emerald-100 bg-emerald-50/70 p-3 text-sm leading-6 text-emerald-800">
-                        La reunión se marcará como validada y quedará registrada.
-                      </div>
-                    )}
-                    {clientAction === "review_requested" && (
-                      <div className="rounded-lg border border-amber-100 bg-amber-50/70 p-3 text-sm leading-6 text-amber-800">
-                        La reunión quedará en revisión hasta respuesta de Conprospección.
-                      </div>
-                    )}
-                    {clientAction === "rejected" && (
-                      <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Motivo si se objeta la reunión</Label>
-                        <select
-                          aria-label="Motivo si se objeta la reunión"
-                          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
-                          value={rejectionReason}
-                          onChange={(event) => setRejectionReason(event.target.value as RejectionReason)}
-                        >
-                          {Object.entries(rejectionReasonLabels).map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Comentario opcional</Label>
-                      <Textarea
-                        value={clientComment}
-                        onChange={(event) => setClientComment(event.target.value)}
-                        placeholder="Agrega contexto si corresponde."
-                        rows={3}
-                      />
-                    </div>
-                  </>
-                )}
-              </section>
-            )}
-
             {showClientSection("contact") && (
             <section className="space-y-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -535,11 +393,6 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   )}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <StatusBadge status={meeting.meetingStatus} label={meetingStatusLabels[meeting.meetingStatus]} size="sm" />
-                <StatusBadge status={meeting.finalValidation} label={simpleStatus} size="sm" />
-                {locked && <StatusBadge status="final_valid" label="Registro bloqueado" size="sm" />}
-              </div>
             </section>
             )}
 
@@ -566,7 +419,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             <section className="space-y-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <ShieldCheck className="h-4 w-4 text-violet-600" />
-                {mode === "internal" ? "Validación Conprospección" : "Resultado de revisión"}
+                {mode === "internal" ? "Validación Conprospección" : "Evaluación de Conprospección"}
               </h3>
 
               {mode === "internal" ? (
@@ -606,12 +459,13 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg border border-border bg-muted/30 p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-foreground">{getValidationResultLabel(meeting)}</span>
+                <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={meeting.finalValidation} label={getValidationResultLabel(meeting)} size="sm" />
+                    <StatusBadge status={meeting.meetingStatus} label={meetingStatusLabels[meeting.meetingStatus]} size="sm" />
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    La reunión fue revisada con la información disponible y las condiciones acordadas. El detalle operativo queda registrado internamente.
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Revisada según el ICP acordado y las variables comerciales detectadas en la reunión.
                   </p>
                 </div>
               )}
@@ -624,7 +478,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             <section className="space-y-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <BookOpen className="h-4 w-4 text-emerald-600" />
-                {mode === "internal" ? "Evidencia y justificación" : "Evaluación de reunión"}
+                {mode === "internal" ? "Evidencia y justificación" : "Grabación y evaluación de la reunión"}
               </h3>
               {mode === "internal" ? (
                 <>
@@ -641,7 +495,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   <EvidenceChecklist meeting={meeting} />
                   <div className="rounded-lg border border-violet-100 bg-violet-50/60 p-3">
                     <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium text-foreground">Resumen IA demo</span>
+                      <span className="text-sm font-medium text-foreground">Resumen IA</span>
                     </div>
                     <p className="text-sm leading-6 text-muted-foreground">
                       {meeting.evidence?.aiSummary || "Sección preparada para resumen de reunión. Pendiente de integración real."}
@@ -719,6 +573,90 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             </section>
             )}
 
+            {isClientMode && (
+              <>
+                <Separator />
+                <section className="space-y-4">
+                  <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <User className="h-4 w-4 text-violet-700" />
+                    Tu validación
+                  </h3>
+                  {locked ? (
+                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+                        <Lock className="h-4 w-4" />
+                        {clientDecisionLabels[clientDecision]}
+                      </div>
+                      <p className="text-sm leading-6 text-muted-foreground">
+                        {clientDecision === "accepted" && "Reunión validada. Esta validación quedó registrada."}
+                        {clientDecision === "rejected" && "Reunión no validada. Solo Conprospección puede reabrirla internamente si corresponde."}
+                        {clientDecision === "review_requested" && "Solicitud de revisión registrada. No se puede modificar hasta respuesta de Conprospección."}
+                      </p>
+                      {meeting.rejectionReason && (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Motivo: {rejectionReasonLabels[meeting.rejectionReason]}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        {[
+                          { value: "accepted", label: "Validar" },
+                          { value: "rejected", label: "No validar" },
+                          { value: "review_requested", label: "Pedir revisión" },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => setClientAction(option.value as Exclude<ClientDecision, "pending">)}
+                            className={`min-h-10 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                              clientAction === option.value
+                                ? "border-violet-400 bg-violet-100 text-violet-800"
+                                : "border-border bg-background text-foreground hover:bg-muted"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                      {clientAction === "rejected" && (
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground">Motivo si no la validas</Label>
+                          <select
+                            aria-label="Motivo si no la validas"
+                            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
+                            value={rejectionReason}
+                            onChange={(event) => setRejectionReason(event.target.value as RejectionReason)}
+                          >
+                            {Object.entries(rejectionReasonLabels).map(([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Comentario opcional</Label>
+                        <Textarea
+                          value={clientComment}
+                          onChange={(event) => setClientComment(event.target.value)}
+                          placeholder="Agrega contexto si corresponde."
+                          rows={3}
+                        />
+                      </div>
+                    </>
+                  )}
+                  {saveError && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-700">
+                      {saveError}
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
+
             {mode === "internal" && (
               <>
                 <Separator />
@@ -772,13 +710,14 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
               </>
             )}
 
-            {isClientMode && clientTab === "commercial" && (
+            {isClientMode && (
               <>
                 <Separator />
                 <section className="space-y-4">
                   <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     Avance comercial
+                    <span className="font-normal text-xs text-muted-foreground">· tu seguimiento, no afecta la validación</span>
                   </h3>
                   <div className="rounded-lg border border-border bg-muted/30 p-3">
                     <p className="mb-3 text-sm leading-6 text-muted-foreground">
@@ -802,6 +741,9 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs text-muted-foreground">Próximo paso comercial</Label>
+                        <p className="text-xs leading-5 text-muted-foreground">
+                          ¿Qué acordaron hacer después de la reunión? Si todavía no hay nada definido, podés dejarlo vacío.
+                        </p>
                         <Input
                           value={commercialNextStep}
                           onChange={(event) => setCommercialNextStep(event.target.value)}

@@ -54,7 +54,7 @@ async function supabaseGet<T>(
 export async function GET() {
   try {
     const config = getSupabaseConfig();
-    const endDate = todayIsoDate();
+    const endDate = `${todayIsoDate()}T23:59:59`;
 
     const [rows, clients, sdrs] = await Promise.all([
       supabaseGet<SupabaseMeetingRow>(

@@ -18,6 +18,8 @@ interface AppContextType {
   updateMeeting: (id: string, updates: Partial<Meeting>) => void;
   selectedMeetingId: string | null;
   setSelectedMeetingId: (id: string | null) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -29,6 +31,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [meetingsError, setMeetingsError] = useState<string | null>(null);
   const [meetingsMeta, setMeetingsMeta] = useState<MeetingsPayload["meta"] | null>(null);
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
 
   const refreshMeetings = async () => {
@@ -95,6 +98,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateMeeting,
         selectedMeetingId,
         setSelectedMeetingId,
+        sidebarCollapsed,
+        setSidebarCollapsed,
       }}
     >
       {children}

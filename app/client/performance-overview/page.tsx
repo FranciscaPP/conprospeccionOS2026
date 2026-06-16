@@ -111,7 +111,7 @@ export default function ClientPerformanceOverviewPage() {
           <div>
             <h1 className="text-xl font-semibold text-foreground">Resumen de performance</h1>
             <p className="text-sm text-muted-foreground">
-              {contract.clientName} · {contract.currentPeriod} · Meta contractual: {contract.contractGoal} reuniones · Datos demo · Prototipo funcional
+              {contract.clientName} · {contract.currentPeriod} · Meta contractual: {contract.contractGoal} reuniones
             </p>
           </div>
           <div className="flex gap-2">
