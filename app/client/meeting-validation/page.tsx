@@ -32,7 +32,7 @@ import {
 } from "@/lib/meeting-rules";
 
 type KpiFilter = "all" | "valid" | "not_valid" | "pending" | "rejected_or_disputed";
-type AiBantFilter = "all" | "bant_met" | "bant_not_met" | "insufficient_evidence";
+type AiBantFilter = "all" | "bant_met" | "bant_not_met" | "insufficient_evidence" | "no_analysis";
 
 const meetingStatusFilterOptions: Array<{ label: string; value: MeetingStatus | "all" }> = [
   { value: "all", label: "Todas" },
@@ -66,7 +66,12 @@ const aiBantFilterOptions: Array<{ label: string; value: AiBantFilter }> = [
   { value: "bant_met", label: "Cumple mínimo 2/4 BANT" },
   { value: "bant_not_met", label: "No cumple mínimo 2/4 BANT" },
   { value: "insufficient_evidence", label: "Evidencia insuficiente" },
+  { value: "no_analysis", label: "Sin análisis" },
 ];
+
+function hasAiBantAnalysis(meeting: Meeting) {
+  return typeof meeting.bantScore === "number" || meeting.cpBANT.length > 0 || Boolean(meeting.evidence);
+}
 
 function resolveClientFromParam(meetings: Meeting[], clientParam: string | null) {
   const requestedSlug = clientSlugFromName(clientParam || "") ?? "gbs";
@@ -158,6 +163,7 @@ export default function MeetingValidationPage() {
     return clientMeetings.filter((meeting) => {
       const clientDecision = getClientDecision(meeting);
       const bantScore = getBANTScore(meeting);
+      const hasAnalysis = hasAiBantAnalysis(meeting);
       const meetingDay = meeting.meetingDate.slice(0, 10);
       const matchesSearch = !query || getClientSearchText(meeting).includes(query);
       const matchesDateFrom = !dateFromFilter || meetingDay >= dateFromFilter;
@@ -168,10 +174,12 @@ export default function MeetingValidationPage() {
       const matchesClientDecision = clientDecisionFilter === "all" || clientDecision === clientDecisionFilter;
       const matchesAiBant =
         aiBantFilter === "all" ||
-        (aiBantFilter === "bant_met" && bantScore >= 2) ||
-        (aiBantFilter === "bant_not_met" && bantScore < 2) ||
+        (aiBantFilter === "bant_met" && hasAnalysis && bantScore >= 2) ||
+        (aiBantFilter === "bant_not_met" && hasAnalysis && bantScore < 2) ||
         (aiBantFilter === "insufficient_evidence" &&
-          (meeting.evidence?.aiRecommendation === "review" || (meeting.evidence?.aiConfidence ?? 1) < 0.7));
+          hasAnalysis &&
+          (meeting.evidence?.aiRecommendation === "review" || (meeting.evidence?.aiConfidence ?? 1) < 0.7)) ||
+        (aiBantFilter === "no_analysis" && !hasAnalysis);
       return (
         matchesSearch &&
         matchesDateFrom &&
