@@ -22,9 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { ClientDecision, CPValidation, Meeting, MeetingStatus } from "@/lib/types";
+import type { ClientDecision, CPValidation, Meeting } from "@/lib/types";
 import {
-  getBANTScore,
   getClientDecision,
   getClientSearchText,
   isClientLocked,
@@ -32,16 +31,6 @@ import {
 } from "@/lib/meeting-rules";
 
 type KpiFilter = "all" | "valid" | "not_valid" | "pending" | "rejected_or_disputed";
-type AiBantFilter = "all" | "bant_met" | "bant_not_met" | "insufficient_evidence" | "no_analysis";
-
-const meetingStatusFilterOptions: Array<{ label: string; value: MeetingStatus | "all" }> = [
-  { value: "all", label: "Todas" },
-  { value: "scheduled", label: "Agendada" },
-  { value: "completed", label: "Realizada" },
-  { value: "rescheduled", label: "Reagendada" },
-  { value: "cancelled", label: "Cancelada" },
-  { value: "no_show", label: "No asistió" },
-];
 
 const cpValidationFilterOptions: Array<{ label: string; value: CPValidation | "all" }> = [
   { value: "all", label: "Todas" },
@@ -60,18 +49,6 @@ const clientDecisionFilterOptions: Array<{ label: string; value: ClientDecision 
   { value: "review_requested", label: "Observada" },
   { value: "rejected", label: "En disputa" },
 ];
-
-const aiBantFilterOptions: Array<{ label: string; value: AiBantFilter }> = [
-  { value: "all", label: "Todos" },
-  { value: "bant_met", label: "Cumple mínimo 2/4 BANT" },
-  { value: "bant_not_met", label: "No cumple mínimo 2/4 BANT" },
-  { value: "insufficient_evidence", label: "Evidencia insuficiente" },
-  { value: "no_analysis", label: "Sin análisis" },
-];
-
-function hasAiBantAnalysis(meeting: Meeting) {
-  return typeof meeting.bantScore === "number" || meeting.cpBANT.length > 0 || Boolean(meeting.evidence);
-}
 
 function resolveClientFromParam(meetings: Meeting[], clientParam: string | null) {
   const requestedSlug = clientSlugFromName(clientParam || "") ?? "gbs";
@@ -132,10 +109,8 @@ export default function MeetingValidationPage() {
   const [dateFromFilter, setDateFromFilter] = useState("");
   const [dateToFilter, setDateToFilter] = useState("");
   const [countryFilter, setCountryFilter] = useState("all");
-  const [meetingStatusFilter, setMeetingStatusFilter] = useState<MeetingStatus | "all">("all");
   const [cpValidationFilter, setCpValidationFilter] = useState<CPValidation | "all">("all");
   const [clientDecisionFilter, setClientDecisionFilter] = useState<ClientDecision | "all">("all");
-  const [aiBantFilter, setAiBantFilter] = useState<AiBantFilter>("all");
   const [showExplainer, setShowExplainer] = useState(true);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
@@ -162,33 +137,20 @@ export default function MeetingValidationPage() {
     const query = searchQuery.trim().toLowerCase();
     return clientMeetings.filter((meeting) => {
       const clientDecision = getClientDecision(meeting);
-      const bantScore = getBANTScore(meeting);
-      const hasAnalysis = hasAiBantAnalysis(meeting);
       const meetingDay = meeting.meetingDate.slice(0, 10);
       const matchesSearch = !query || getClientSearchText(meeting).includes(query);
       const matchesDateFrom = !dateFromFilter || meetingDay >= dateFromFilter;
       const matchesDateTo = !dateToFilter || meetingDay <= dateToFilter;
       const matchesCountry = countryFilter === "all" || meeting.country === countryFilter;
-      const matchesMeetingStatus = meetingStatusFilter === "all" || meeting.meetingStatus === meetingStatusFilter;
       const matchesCPValidation = cpValidationFilter === "all" || meeting.cpValidation === cpValidationFilter;
       const matchesClientDecision = clientDecisionFilter === "all" || clientDecision === clientDecisionFilter;
-      const matchesAiBant =
-        aiBantFilter === "all" ||
-        (aiBantFilter === "bant_met" && hasAnalysis && bantScore >= 2) ||
-        (aiBantFilter === "bant_not_met" && hasAnalysis && bantScore < 2) ||
-        (aiBantFilter === "insufficient_evidence" &&
-          hasAnalysis &&
-          (meeting.evidence?.aiRecommendation === "review" || (meeting.evidence?.aiConfidence ?? 1) < 0.7)) ||
-        (aiBantFilter === "no_analysis" && !hasAnalysis);
       return (
         matchesSearch &&
         matchesDateFrom &&
         matchesDateTo &&
         matchesCountry &&
-        matchesMeetingStatus &&
         matchesCPValidation &&
-        matchesClientDecision &&
-        matchesAiBant
+        matchesClientDecision
       );
     });
   }, [
@@ -197,10 +159,8 @@ export default function MeetingValidationPage() {
     dateFromFilter,
     dateToFilter,
     countryFilter,
-    meetingStatusFilter,
     cpValidationFilter,
     clientDecisionFilter,
-    aiBantFilter,
   ]);
 
   const kpis = useMemo(() => {
@@ -256,10 +216,8 @@ export default function MeetingValidationPage() {
     dateFromFilter !== "" ||
     dateToFilter !== "" ||
     countryFilter !== "all" ||
-    meetingStatusFilter !== "all" ||
     cpValidationFilter !== "all" ||
-    clientDecisionFilter !== "all" ||
-    aiBantFilter !== "all";
+    clientDecisionFilter !== "all";
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -267,10 +225,8 @@ export default function MeetingValidationPage() {
     setDateFromFilter("");
     setDateToFilter("");
     setCountryFilter("all");
-    setMeetingStatusFilter("all");
     setCpValidationFilter("all");
     setClientDecisionFilter("all");
-    setAiBantFilter("all");
   };
 
   const switchClient = (slug: ActiveClientSlug) => {
@@ -282,10 +238,8 @@ export default function MeetingValidationPage() {
     setDateFromFilter("");
     setDateToFilter("");
     setCountryFilter("all");
-    setMeetingStatusFilter("all");
     setCpValidationFilter("all");
     setClientDecisionFilter("all");
-    setAiBantFilter("all");
     window.history.replaceState(null, "", clientPath(slug));
   };
 
@@ -516,17 +470,7 @@ export default function MeetingValidationPage() {
                 Filtros avanzados
               </button>
               {showAdvancedFilters && (
-                <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                  <div>
-                    <FilterLabel>Estado de la reunión</FilterLabel>
-                    <NativeFilter
-                      ariaLabel="Filtrar por estado de la reunión"
-                      className="w-full"
-                      value={meetingStatusFilter}
-                      onChange={(value) => setMeetingStatusFilter(value as MeetingStatus | "all")}
-                      options={meetingStatusFilterOptions}
-                    />
-                  </div>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   <div>
                     <FilterLabel>Validación Conprospección</FilterLabel>
                     <NativeFilter
@@ -545,16 +489,6 @@ export default function MeetingValidationPage() {
                       value={clientDecisionFilter}
                       onChange={(value) => setClientDecisionFilter(value as ClientDecision | "all")}
                       options={clientDecisionFilterOptions}
-                    />
-                  </div>
-                  <div>
-                    <FilterLabel>Resultado IA/BANT</FilterLabel>
-                    <NativeFilter
-                      ariaLabel="Filtrar por resultado IA/BANT"
-                      className="w-full"
-                      value={aiBantFilter}
-                      onChange={(value) => setAiBantFilter(value as AiBantFilter)}
-                      options={aiBantFilterOptions}
                     />
                   </div>
                 </div>
