@@ -296,8 +296,8 @@ export default function MeetingValidationPage() {
 
   return (
     <div className="flex-1 overflow-hidden">
-      <header className="border-b border-border bg-card px-4 py-3 sm:px-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <header className="border-b border-border bg-card px-4 py-2.5 sm:px-6">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-2">
               <h1 className="text-[22px] font-semibold leading-tight text-[var(--ink)]">Avance reuniones</h1>
@@ -308,7 +308,7 @@ export default function MeetingValidationPage() {
               Validación cliente de reuniones entregadas por Conprospección
             </p>
           </div>
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:min-w-[240px] sm:items-end">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[240px] sm:items-end">
             <div className="w-full sm:w-[260px]">
               <div className="mb-1.5 flex items-baseline justify-between gap-3">
                 <span className="text-xs font-medium text-[var(--ink-2)]">Avance meta</span>
@@ -341,8 +341,8 @@ export default function MeetingValidationPage() {
       </header>
 
       <ScrollArea className="h-[calc(100dvh-7rem)] lg:h-[calc(100vh-65px)]">
-        <div className="space-y-3 p-3 sm:p-4">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="space-y-2.5 p-2.5 sm:p-3">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-5">
             <MeetingKpi
               title="Total generadas"
               value={kpis.total}
@@ -384,20 +384,20 @@ export default function MeetingValidationPage() {
             />
           </div>
 
-          <section className="rounded-[12px] border border-[var(--line)] bg-white px-3 py-2.5 shadow-card">
-            <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+          <section className="rounded-[12px] border border-[var(--line)] bg-white px-2.5 py-2 shadow-card">
+            <div className="flex flex-col gap-1.5 lg:flex-row lg:items-center">
               <h3 className="flex shrink-0 items-center gap-2 text-sm font-semibold text-foreground">
                 <BookOpen className="h-4 w-4 text-[var(--ink-2)]" />
                 Criterios de reunión válida
               </h3>
-              <ul className="grid flex-1 gap-1.5 text-xs text-muted-foreground sm:grid-cols-2 xl:grid-cols-4">
+              <ul className="grid flex-1 gap-1 text-xs text-muted-foreground sm:grid-cols-2 xl:grid-cols-4">
                 {[
                   "Reunión realizada",
                   "Mínimo 2 variables BANT detectadas por IA/CP",
                   "ICP trabajado desde base/campaña, sin alerta contractual",
                   "Evidencia suficiente",
                 ].map((criterion) => (
-                  <li key={criterion} className="flex items-center gap-1.5">
+                  <li key={criterion} className="flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[var(--ok)]" />
                     <span>{criterion}</span>
                   </li>
@@ -443,33 +443,33 @@ export default function MeetingValidationPage() {
             )}
           </section>
 
-          <section className="rounded-[13px] border border-[var(--line)] bg-white p-3 shadow-card">
-            <div className="grid gap-3 lg:grid-cols-[minmax(300px,1fr)_300px_180px_auto] lg:items-end">
+          <section className="rounded-[13px] border border-[var(--line)] bg-white p-2 shadow-card">
+            <div className="grid gap-2 lg:grid-cols-[minmax(300px,1fr)_300px_180px_auto] lg:items-end">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar empresa, contacto, cargo, correo, teléfono o país"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  className="h-10 rounded-[10px] pl-9 text-sm"
+                  className="h-9 rounded-[9px] pl-9 text-sm"
                 />
               </div>
               <div>
                 <FilterLabel>Fecha</FilterLabel>
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-1.5 sm:grid-cols-2">
                   <Input
                     aria-label="Desde"
                     type="date"
                     value={dateFromFilter}
                     onChange={(event) => setDateFromFilter(event.target.value)}
-                    className="h-10 rounded-[10px] text-sm"
+                    className="h-9 rounded-[9px] text-sm"
                   />
                   <Input
                     aria-label="Hasta"
                     type="date"
                     value={dateToFilter}
                     onChange={(event) => setDateToFilter(event.target.value)}
-                    className="h-10 rounded-[10px] text-sm"
+                    className="h-9 rounded-[9px] text-sm"
                   />
                 </div>
               </div>
@@ -489,7 +489,7 @@ export default function MeetingValidationPage() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-background px-3 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-border bg-background px-3 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={!hasActiveFilters}
               >
                 <X className="h-3.5 w-3.5" />
@@ -497,18 +497,18 @@ export default function MeetingValidationPage() {
               </button>
             </div>
 
-            <div className="mt-3 border-t border-border pt-3">
+            <div className="mt-2 border-t border-border pt-2">
               <button
                 type="button"
                 onClick={() => setShowAdvancedFilters((value) => !value)}
                 aria-expanded={showAdvancedFilters}
-                className="inline-flex h-9 items-center gap-2 rounded-[9px] border border-border bg-background px-3 text-sm font-medium text-foreground transition hover:bg-muted"
+                className="inline-flex h-8 items-center gap-2 rounded-[9px] border border-border bg-background px-3 text-sm font-medium text-foreground transition hover:bg-muted"
               >
                 <ChevronDown className={`h-4 w-4 transition-transform ${showAdvancedFilters ? "rotate-180" : ""}`} />
                 Filtros avanzados
               </button>
               {showAdvancedFilters && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   <div>
                     <FilterLabel>Estado de la reunión</FilterLabel>
                     <NativeFilter
@@ -698,7 +698,7 @@ export default function MeetingValidationPage() {
 }
 
 function FilterLabel({ children }: { children: ReactNode }) {
-  return <span className="mb-1.5 block text-xs font-medium text-[var(--ink-2)]">{children}</span>;
+  return <span className="mb-1 block text-xs font-medium text-[var(--ink-2)]">{children}</span>;
 }
 
 function NativeFilter({
@@ -717,7 +717,7 @@ function NativeFilter({
   return (
     <select
       aria-label={ariaLabel}
-      className={`h-10 rounded-[10px] border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-[#d1bd50] focus:ring-3 focus:ring-[#ffd700]/20 ${className ?? ""}`}
+      className={`h-9 rounded-[9px] border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-[#d1bd50] focus:ring-3 focus:ring-[#ffd700]/20 ${className ?? ""}`}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     >
@@ -757,16 +757,16 @@ function MeetingKpi({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-[11px] border p-3 text-left shadow-card transition hover:-translate-y-px hover:shadow-[0_5px_14px_rgba(20,20,20,.08)] ${variantClass} ${
+      className={`rounded-[11px] border p-2.5 text-left shadow-card transition hover:-translate-y-px hover:shadow-[0_5px_14px_rgba(20,20,20,.08)] ${variantClass} ${
         active ? "outline outline-1 outline-offset-2 outline-[rgba(43,43,43,.35)]" : ""
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div>
           <small className="block text-[10px] font-medium uppercase tracking-[.06em] opacity-75">{title}</small>
-          <strong className="font-display tnum mt-2 block text-[25px] font-semibold leading-none text-[var(--ink)]">{value}</strong>
+          <strong className="font-display tnum mt-1.5 block text-[25px] font-semibold leading-none text-[var(--ink)]">{value}</strong>
         </div>
-        <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-white/55 text-current">{icon}</span>
+        <span className="grid h-7 w-7 place-items-center rounded-[8px] bg-white/55 text-current">{icon}</span>
       </div>
     </button>
   );
