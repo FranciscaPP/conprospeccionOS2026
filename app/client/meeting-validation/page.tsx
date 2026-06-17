@@ -24,6 +24,13 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ClientDecision, CPValidation, Meeting } from "@/lib/types";
 import {
+  bantLabels,
+  clientDecisionLabels,
+  cpValidationLabels,
+  finalValidationLabels,
+  meetingStatusLabels,
+} from "@/lib/types";
+import {
   getClientDecision,
   getClientSearchText,
   isClientLocked,
@@ -97,6 +104,162 @@ function ValidationState({ meeting }: { meeting: Meeting }) {
   );
 }
 
+function meetingContactName(meeting: Meeting) {
+  return [meeting.firstName, meeting.lastName].filter(Boolean).join(" ") || meeting.contact || "";
+}
+
+function hasMeetingValue(value?: string) {
+  const normalized = value?.trim().toLowerCase();
+  return Boolean(normalized && !["sin dato", "n/a", "no disponible", "null", "-"].includes(normalized));
+}
+
+function finalBannerClass(meeting: Meeting) {
+  if (meeting.finalValidation === "final_valid") {
+    return "border-[#c7ebde] bg-[var(--ok-bg)] text-[var(--ok-ink)]";
+  }
+  if (meeting.finalValidation === "final_not_valid") {
+    return "border-[#f0c7c2] bg-[var(--bad-bg)] text-[var(--bad-ink)]";
+  }
+  if (meeting.finalValidation === "under_review" || meeting.finalValidation === "in_dispute") {
+    return "border-[#efc99f] bg-[var(--rev-bg)] text-[var(--rev-ink)]";
+  }
+  return "border-[#e5d18d] bg-[var(--warn-bg)] text-[var(--warn-ink)]";
+}
+
+function BantTags({ meeting }: { meeting: Meeting }) {
+  if (!meeting.cpBANT.length) {
+    return <span className="text-xs text-muted-foreground">Sin variables registradas</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {meeting.cpBANT.map((criteria) => (
+        <span
+          key={criteria}
+          className="rounded-full border border-[#c7ebde] bg-[var(--ok-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--ok-ink)]"
+        >
+          {bantLabels[criteria]}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function MeetingSummaryLine({
+  caption,
+  children,
+  title,
+}: {
+  caption: string;
+  children: ReactNode;
+  title: string;
+}) {
+  return (
+    <div className="rounded-[11px] border border-border bg-[#fbfbfa] p-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          <p className="text-[11px] text-muted-foreground">{caption}</p>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function MeetingValidationCard({
+  meeting,
+  onOpen,
+}: {
+  meeting: Meeting;
+  onOpen: (meeting: Meeting) => void;
+}) {
+  const locked = isClientLocked(meeting);
+  const clientDecision = getClientDecision(meeting);
+  const contactName = meetingContactName(meeting);
+  const detailParts = [
+    meeting.jobTitle,
+    meeting.leadEmail,
+    meeting.leadPhone,
+    meeting.leadIndustry,
+    meeting.country,
+  ].filter((value): value is string => hasMeetingValue(value));
+
+  return (
+    <article className="rounded-[13px] border border-[var(--line)] bg-white p-4 shadow-card">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-start gap-3">
+            <CompanyAvatar name={meeting.company} />
+            <div className="min-w-0">
+              <h3 className="break-words text-base font-semibold leading-tight text-foreground">
+                {meeting.company}
+                {contactName && <span className="text-muted-foreground"> · {contactName}</span>}
+              </h3>
+              <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">
+                {detailParts.join(" · ")}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="font-display tnum text-sm font-semibold text-foreground">
+                  {format(new Date(meeting.meetingDate), "d MMM yyyy")}
+                </span>
+                <span className="text-muted-foreground">·</span>
+                <span className="font-display tnum text-sm font-semibold text-[var(--ink)]">
+                  {format(new Date(meeting.meetingDate), "HH:mm")}
+                </span>
+                <StatusBadge status={meeting.meetingStatus} label={meetingStatusLabels[meeting.meetingStatus]} size="sm" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <Button
+          variant={locked ? "outline" : "default"}
+          size="sm"
+          className="shrink-0"
+          onClick={() => onOpen(meeting)}
+        >
+          {locked ? "Ver detalle" : "Validar"}
+        </Button>
+      </div>
+
+      <div className={`mt-4 rounded-[11px] border px-3 py-2 text-sm font-semibold ${finalBannerClass(meeting)}`}>
+        Resultado final: {finalValidationLabels[meeting.finalValidation]}
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <MeetingSummaryLine title="Evaluación Conprospección" caption="Criterio emitido por Conprospección">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={meeting.cpValidation} label={cpValidationLabels[meeting.cpValidation]} size="sm" />
+            <span className="text-xs font-medium text-muted-foreground">
+              BANT: {meeting.cpBANT.length} de 4 variables
+            </span>
+          </div>
+          <div className="mt-2">
+            <BantTags meeting={meeting} />
+          </div>
+          {hasMeetingValue(meeting.cpComment) && (
+            <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{meeting.cpComment}</p>
+          )}
+        </MeetingSummaryLine>
+
+        <MeetingSummaryLine title="Respuesta del cliente" caption="Acción registrada por el cliente">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={meeting.finalValidation} label={clientDecisionLabels[clientDecision]} size="sm" />
+            {meeting.clientDecisionAt && (
+              <span className="font-display tnum text-xs text-muted-foreground">
+                {format(new Date(meeting.clientDecisionAt), "d MMM yyyy · HH:mm")}
+              </span>
+            )}
+          </div>
+          {hasMeetingValue(meeting.clientComment) && (
+            <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{meeting.clientComment}</p>
+          )}
+        </MeetingSummaryLine>
+      </div>
+    </article>
+  );
+}
+
 export default function MeetingValidationPage() {
   const { role, meetings, meetingsLoading, meetingsError, selectedMeetingId, setSelectedMeetingId } = useApp();
   const isInternal = role === "internal";
@@ -112,7 +275,7 @@ export default function MeetingValidationPage() {
   const [clientDecisionFilter, setClientDecisionFilter] = useState<ClientDecision | "all">("all");
   const [showExplainer, setShowExplainer] = useState(true);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [dateSort, setDateSort] = useState<"asc" | "desc" | null>(null);
+  const [dateSort, setDateSort] = useState<"asc" | "desc">("desc");
 
   const requestedMeetingId = queryMeetingId || selectedMeetingId;
   const requestedMeeting = useMemo(
@@ -500,7 +663,7 @@ export default function MeetingValidationPage() {
             )}
           </div>
 
-          <div className="space-y-3 md:hidden">
+          <div className="hidden">
             {tableFilteredMeetings.length === 0 && (
               <div className="rounded-xl border border-border bg-card p-8 text-center">
                 <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
@@ -545,7 +708,7 @@ export default function MeetingValidationPage() {
             })}
           </div>
 
-          <div className="hidden rounded-[13px] border border-[var(--line)] bg-card shadow-card md:block">
+          <div className="hidden">
             <div className="flex h-[46px] items-center justify-between border-b border-[var(--line)] px-4 text-sm text-muted-foreground">
               <span>
                 <b className="font-semibold text-foreground">Reuniones para validar</b>
@@ -623,6 +786,48 @@ export default function MeetingValidationPage() {
               </div>
             )}
           </div>
+
+          <section className="space-y-3">
+            <div className="flex flex-col gap-2 rounded-[11px] border border-[#ddd6fe] bg-[#f5f3ff] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-[#4c1d95]">Reuniones para validar</h2>
+                <p className="mt-0.5 text-xs text-[#6d28d9]">
+                  Resultado final, evaluación Conprospección y respuesta del cliente en una sola vista.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleDateSort}
+                className="inline-flex h-8 items-center justify-center rounded-[8px] border border-[#c4b5fd] bg-white px-3 text-xs font-semibold text-[#5b21b6] transition hover:bg-[#ede9fe]"
+              >
+                Fecha: {dateSort === "asc" ? "más antigua primero" : "más reciente primero"}
+              </button>
+            </div>
+
+            {meetingsLoading && (
+              <div className="rounded-[13px] border border-border bg-white p-8 text-center text-sm text-muted-foreground">
+                Cargando reuniones...
+              </div>
+            )}
+
+            {meetingsError && (
+              <div className="rounded-[13px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                {meetingsError}
+              </div>
+            )}
+
+            {!meetingsLoading && sortedMeetings.length === 0 && (
+              <div className="rounded-[13px] border border-border bg-white p-10 text-center shadow-card">
+                <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-base font-semibold text-foreground">Sin reuniones para este período</p>
+                <p className="mt-1 text-sm text-muted-foreground">Prueba otro rango de fechas o limpia los filtros activos.</p>
+              </div>
+            )}
+
+            {sortedMeetings.map((meeting) => (
+              <MeetingValidationCard key={meeting.id} meeting={meeting} onOpen={openDrawer} />
+            ))}
+          </section>
         </div>
       </ScrollArea>
 
