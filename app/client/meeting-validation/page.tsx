@@ -33,7 +33,6 @@ import {
 
 type KpiFilter = "all" | "valid" | "not_valid" | "pending" | "rejected_or_disputed";
 type AiBantFilter = "all" | "bant_met" | "bant_not_met" | "insufficient_evidence";
-type DateFilterType = "all" | "year" | "month" | "day";
 
 const meetingStatusFilterOptions: Array<{ label: string; value: MeetingStatus | "all" }> = [
   { value: "all", label: "Todas" },
@@ -68,11 +67,6 @@ const aiBantFilterOptions: Array<{ label: string; value: AiBantFilter }> = [
   { value: "bant_not_met", label: "No cumple mínimo 2/4 BANT" },
   { value: "insufficient_evidence", label: "Evidencia insuficiente" },
 ];
-
-function formatMonthLabel(month: string) {
-  const date = new Date(`${month}-01T12:00:00`);
-  return new Intl.DateTimeFormat("es-CL", { month: "long", year: "numeric" }).format(date);
-}
 
 function resolveClientFromParam(meetings: Meeting[], clientParam: string | null) {
   const requestedSlug = clientSlugFromName(clientParam || "") ?? "gbs";
@@ -130,10 +124,8 @@ export default function MeetingValidationPage() {
   const [queryClient, setQueryClient] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [kpiFilter, setKpiFilter] = useState<KpiFilter>("all");
-  const [dateFilterType, setDateFilterType] = useState<DateFilterType>("all");
-  const [yearFilter, setYearFilter] = useState("all");
-  const [monthFilter, setMonthFilter] = useState("all");
-  const [dayFilter, setDayFilter] = useState("");
+  const [dateFromFilter, setDateFromFilter] = useState("");
+  const [dateToFilter, setDateToFilter] = useState("");
   const [countryFilter, setCountryFilter] = useState("all");
   const [meetingStatusFilter, setMeetingStatusFilter] = useState<MeetingStatus | "all">("all");
   const [cpValidationFilter, setCpValidationFilter] = useState<CPValidation | "all">("all");
@@ -156,16 +148,6 @@ export default function MeetingValidationPage() {
 
   const goal = MONTHLY_GOAL_BY_CLIENT[selectedClient] ?? 10;
 
-  const years = useMemo(
-    () => [...new Set(clientMeetings.map((meeting) => meeting.meetingDate.slice(0, 4)).filter(Boolean))].sort(),
-    [clientMeetings]
-  );
-
-  const months = useMemo(
-    () => [...new Set(clientMeetings.map((meeting) => meeting.meetingDate.slice(0, 7)))].sort(),
-    [clientMeetings]
-  );
-
   const countries = useMemo(
     () => [...new Set(clientMeetings.map((meeting) => meeting.country).filter(Boolean))].sort() as string[],
     [clientMeetings]
@@ -178,7 +160,8 @@ export default function MeetingValidationPage() {
       const bantScore = getBANTScore(meeting);
       const meetingDay = meeting.meetingDate.slice(0, 10);
       const matchesSearch = !query || getClientSearchText(meeting).includes(query);
-      const matchesDate = !dayFilter || meetingDay === dayFilter;
+      const matchesDateFrom = !dateFromFilter || meetingDay >= dateFromFilter;
+      const matchesDateTo = !dateToFilter || meetingDay <= dateToFilter;
       const matchesCountry = countryFilter === "all" || meeting.country === countryFilter;
       const matchesMeetingStatus = meetingStatusFilter === "all" || meeting.meetingStatus === meetingStatusFilter;
       const matchesCPValidation = cpValidationFilter === "all" || meeting.cpValidation === cpValidationFilter;
@@ -191,7 +174,8 @@ export default function MeetingValidationPage() {
           (meeting.evidence?.aiRecommendation === "review" || (meeting.evidence?.aiConfidence ?? 1) < 0.7));
       return (
         matchesSearch &&
-        matchesDate &&
+        matchesDateFrom &&
+        matchesDateTo &&
         matchesCountry &&
         matchesMeetingStatus &&
         matchesCPValidation &&
@@ -202,7 +186,8 @@ export default function MeetingValidationPage() {
   }, [
     clientMeetings,
     searchQuery,
-    dayFilter,
+    dateFromFilter,
+    dateToFilter,
     countryFilter,
     meetingStatusFilter,
     cpValidationFilter,
@@ -260,7 +245,8 @@ export default function MeetingValidationPage() {
   const hasActiveFilters =
     searchQuery.trim() !== "" ||
     kpiFilter !== "all" ||
-    dayFilter !== "" ||
+    dateFromFilter !== "" ||
+    dateToFilter !== "" ||
     countryFilter !== "all" ||
     meetingStatusFilter !== "all" ||
     cpValidationFilter !== "all" ||
@@ -270,7 +256,8 @@ export default function MeetingValidationPage() {
   const clearFilters = () => {
     setSearchQuery("");
     setKpiFilter("all");
-    setDayFilter("");
+    setDateFromFilter("");
+    setDateToFilter("");
     setCountryFilter("all");
     setMeetingStatusFilter("all");
     setCpValidationFilter("all");
@@ -284,7 +271,8 @@ export default function MeetingValidationPage() {
     setQueryClient(slug);
     setSearchQuery("");
     setKpiFilter("all");
-    setDayFilter("");
+    setDateFromFilter("");
+    setDateToFilter("");
     setCountryFilter("all");
     setMeetingStatusFilter("all");
     setCpValidationFilter("all");
@@ -456,7 +444,7 @@ export default function MeetingValidationPage() {
           </section>
 
           <section className="rounded-[13px] border border-[var(--line)] bg-white p-3 shadow-card">
-            <div className="grid gap-3 lg:grid-cols-[minmax(300px,1fr)_180px_180px_auto] lg:items-end">
+            <div className="grid gap-3 lg:grid-cols-[minmax(300px,1fr)_300px_180px_auto] lg:items-end">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -468,76 +456,21 @@ export default function MeetingValidationPage() {
               </div>
               <div>
                 <FilterLabel>Fecha</FilterLabel>
-                <Input
-                  aria-label="Fecha"
-                  type="date"
-                  value={dayFilter}
-                  onChange={(event) => setDayFilter(event.target.value)}
-                  className="h-10 rounded-[10px] text-sm"
-                />
-              </div>
-              <div className="hidden">
-                <FilterLabel>Fecha</FilterLabel>
-                <div className="grid gap-2 sm:grid-cols-[132px_minmax(0,1fr)]">
-                  <NativeFilter
-                    ariaLabel="Tipo de filtro de fecha"
-                    className="w-full"
-                    value={dateFilterType}
-                    onChange={(value) => {
-                      const nextType = value as DateFilterType;
-                      setDateFilterType(nextType);
-                      if (nextType !== "year") setYearFilter("all");
-                      if (nextType !== "month") setMonthFilter("all");
-                      if (nextType !== "day") setDayFilter("");
-                    }}
-                    options={[
-                      { value: "all", label: "Todos" },
-                      { value: "year", label: "Año" },
-                      { value: "month", label: "Mes" },
-                      { value: "day", label: "Día específico" },
-                    ]}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input
+                    aria-label="Desde"
+                    type="date"
+                    value={dateFromFilter}
+                    onChange={(event) => setDateFromFilter(event.target.value)}
+                    className="h-10 rounded-[10px] text-sm"
                   />
-                  {dateFilterType === "year" && (
-                    <NativeFilter
-                      ariaLabel="Filtrar por año"
-                      className="w-full"
-                      value={yearFilter}
-                      onChange={setYearFilter}
-                      options={[
-                        { value: "all", label: "Todos los años" },
-                        ...years.map((year) => ({ value: year, label: year })),
-                      ]}
-                    />
-                  )}
-                  {dateFilterType === "month" && (
-                    <NativeFilter
-                      ariaLabel="Filtrar por mes"
-                      className="w-full"
-                      value={monthFilter}
-                      onChange={setMonthFilter}
-                      options={[
-                        { value: "all", label: "Todos los meses" },
-                        ...months.map((month) => ({
-                          value: month,
-                          label: formatMonthLabel(month),
-                        })),
-                      ]}
-                    />
-                  )}
-                  {dateFilterType === "day" && (
-                    <Input
-                      aria-label="Filtrar por día específico"
-                      type="date"
-                      value={dayFilter}
-                      onChange={(event) => setDayFilter(event.target.value)}
-                      className="h-10 rounded-[10px] text-sm"
-                    />
-                  )}
-                  {dateFilterType === "all" && (
-                    <div className="flex h-10 items-center rounded-[10px] border border-input bg-muted/35 px-3 text-sm text-muted-foreground">
-                      Todas las fechas
-                    </div>
-                  )}
+                  <Input
+                    aria-label="Hasta"
+                    type="date"
+                    value={dateToFilter}
+                    onChange={(event) => setDateToFilter(event.target.value)}
+                    className="h-10 rounded-[10px] text-sm"
+                  />
                 </div>
               </div>
               <div>
