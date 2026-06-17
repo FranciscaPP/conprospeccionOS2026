@@ -276,11 +276,11 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-[calc(100vw-1rem)] p-0 sm:max-w-[480px]">
-        <SheetHeader className="border-b border-border p-4 pb-3 sm:p-6 sm:pb-4">
+      <SheetContent className="w-[calc(100vw-36px)] overflow-hidden border border-[var(--line)] p-0 shadow-[0_16px_45px_rgba(20,20,20,.16)] sm:max-w-[560px]">
+        <SheetHeader className="border-b border-border p-4 pb-3 sm:p-[18px]">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <SheetTitle className="text-lg font-semibold">{meeting.company}</SheetTitle>
+              <SheetTitle className="text-xl font-medium leading-tight">{meeting.company}</SheetTitle>
               <p className="mt-1 text-sm text-muted-foreground">
                 {meeting.firstName} {meeting.lastName} · {meeting.jobTitle}
               </p>
@@ -290,12 +290,23 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100dvh-8rem)] sm:h-[calc(100vh-180px)]">
-          <div className="space-y-5 p-4 sm:space-y-6 sm:p-6">
+          <div className="space-y-3 p-4 sm:p-[18px]">
+            {isClientMode && (
+              <section className="rounded-[11px] border border-[var(--line)] bg-[#f8f8f6] p-3 text-sm leading-5 text-muted-foreground">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <StatusBadge status={meeting.finalValidation} label={getValidationResultLabel(meeting)} size="sm" />
+                  <StatusBadge status={meeting.cpValidation} label={cpValidationLabels[meeting.cpValidation]} size="sm" />
+                </div>
+                <p>
+                  Flujo de validación: reunión realizada, ICP trabajado desde base/campaña, mínimo 2/4 variables BANT detectadas por IA/CP y evidencia suficiente.
+                </p>
+              </section>
+            )}
             {showClientSection("contact") && (
-            <section className="space-y-4">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <section className="space-y-3 rounded-[12px] border border-[var(--line)] bg-white p-3">
+              <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.07em] text-[var(--ink-3)]">
                 <Building2 className="h-4 w-4" />
-                Información básica
+                {isClientMode ? "Qué reunión fue" : "Información básica"}
               </h3>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -333,7 +344,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   </>
                 )}
               </div>
-              <div className="grid gap-4 rounded-lg border border-border bg-muted/20 p-3 sm:grid-cols-2">
+              <div className="grid gap-3 rounded-[11px] border border-border bg-[#fbfbfa] p-3 sm:grid-cols-2">
                 <div className={leadFieldClass}>
                   <Label className="text-xs text-muted-foreground">País</Label>
                   <p className={leadValueClass}>{meeting.country || "Chile"}</p>
@@ -409,16 +420,16 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             {showClientSection("evaluation") && <Separator />}
 
             {showClientSection("evaluation") && (
-            <section className="space-y-3">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <section className="space-y-3 rounded-[12px] border border-[var(--line)] bg-white p-3">
+              <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.07em] text-[var(--ink-3)]">
                 <MessageSquare className="h-4 w-4 text-violet-600" />
-                Información de preparación
+                Resumen de reunión
               </h3>
-              <p className="rounded-lg bg-muted/50 p-3 text-sm leading-6 text-muted-foreground">
+              <p className="rounded-[9px] border border-[var(--line)] bg-[#f8f8f6] p-3 text-sm leading-6 text-muted-foreground">
                 {meeting.preparationInfo || meeting.meetingSummary}
               </p>
               <p className="text-xs leading-5 text-muted-foreground">
-                Validez y resultado comercial son cosas distintas: una reunión válida puede contar para la meta aunque el negocio se gane, se pierda o quede en seguimiento.
+                Esta revisión corresponde solo a la validez contractual de la reunión.
               </p>
             </section>
             )}
@@ -426,8 +437,8 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             {showClientSection("evaluation") && <Separator />}
 
             {showClientSection("evaluation") && (
-            <section className="space-y-4">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <section className="space-y-3 rounded-[12px] border border-[var(--line)] bg-white p-3">
+              <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.07em] text-[var(--ink-3)]">
                 <ShieldCheck className="h-4 w-4 text-violet-600" />
                 {mode === "internal" ? "Validación Conprospección" : "Evaluación de Conprospección"}
               </h3>
@@ -469,13 +480,13 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                <div className="space-y-3 rounded-[11px] border border-border bg-[#f8f8f6] p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={meeting.finalValidation} label={getValidationResultLabel(meeting)} size="sm" />
                     <StatusBadge status={meeting.meetingStatus} label={meetingStatusLabels[meeting.meetingStatus]} size="sm" />
                   </div>
                   <p className="text-sm leading-6 text-muted-foreground">
-                    Revisada según el ICP acordado y las variables comerciales detectadas en la reunión.
+                    Conprospección revisó evidencia, cumplimiento del ICP trabajado desde base/campaña y variables BANT detectadas por IA/CP.
                   </p>
                 </div>
               )}
@@ -485,8 +496,8 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             {showClientSection("evaluation") && <Separator />}
 
             {showClientSection("evaluation") && (
-            <section className="space-y-4">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <section className="space-y-3 rounded-[12px] border border-[var(--line)] bg-white p-3">
+              <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.07em] text-[var(--ink-3)]">
                 <BookOpen className="h-4 w-4 text-emerald-600" />
                 {mode === "internal" ? "Evidencia y justificación" : "Grabación y evaluación de la reunión"}
               </h3>
@@ -527,17 +538,17 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                   </div>
                 </>
               ) : (
-                <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                <div className="space-y-3">
                   <div>
                     <Label className="text-xs text-muted-foreground">Evaluación asistida de la reunión</Label>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {meeting.evidence?.aiSummary || meeting.validityReason || "Evaluación preparada con la información disponible de la reunión. Pendiente de integración real."}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-violet-100 bg-violet-50/60 p-3">
+                  <div className="rounded-[11px] border border-[var(--line)] bg-[#fbfbfa] p-3">
                     <Label className="text-xs text-muted-foreground">Grabación y análisis IA</Label>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      La estructura queda preparada para usar grabación y transcripción de la reunión. La IA podrá resumir conversación, detectar señales comerciales y sugerir el avance recomendado.
+                      La evidencia disponible permite revisar grabación, transcripción, resumen IA y señales BANT detectadas por IA/CP.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <a
@@ -565,7 +576,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                         meeting.cpBANT.map((criteria) => (
                           <span
                             key={criteria}
-                            className="rounded-full border border-violet-100 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700"
+                            className="rounded-full border border-[#c7ebde] bg-[var(--ok-bg)] px-2.5 py-1 text-xs font-medium text-[var(--ok-ink)]"
                           >
                             {bantLabels[criteria]}
                           </span>
@@ -590,13 +601,13 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
             {isClientMode && (
               <>
                 <Separator />
-                <section className="space-y-4">
-                  <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <section className="space-y-3 rounded-[12px] border border-[var(--line)] bg-white p-3">
+                  <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.07em] text-[var(--ink-3)]">
                     <User className="h-4 w-4 text-violet-700" />
                     Tu validación
                   </h3>
                   {locked ? (
-                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                    <div className="rounded-[11px] border border-border bg-[#f8f8f6] p-4">
                       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
                         <Lock className="h-4 w-4" />
                         {clientDecisionLabels[clientDecision]}
@@ -617,8 +628,8 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                       <div className="grid gap-2 sm:grid-cols-3">
                         {[
                           { value: "accepted", label: "Aceptar reunión" },
-                          { value: "rejected", label: "Disputar validez" },
                           { value: "review_requested", label: "Observar" },
+                          { value: "rejected", label: "Disputar validez" },
                         ].map((option) => (
                           <button
                             key={option.value}
@@ -627,9 +638,13 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                               const nextAction = option.value as Exclude<ClientDecision, "pending">;
                               setClientAction(nextAction);
                             }}
-                            className={`min-h-10 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                            className={`min-h-10 rounded-[9px] border px-3 py-2 text-sm font-semibold transition ${
                               clientAction === option.value
-                                ? "border-violet-400 bg-violet-100 text-violet-800"
+                                ? option.value === "accepted"
+                                  ? "border-[#78c5a3] bg-[var(--ok-bg)] text-[var(--ok-ink)]"
+                                  : option.value === "review_requested"
+                                    ? "border-[#dc9c63] bg-[var(--rev-bg)] text-[var(--rev-ink)]"
+                                    : "border-[#dc958d] bg-[var(--bad-bg)] text-[var(--bad-ink)]"
                                 : "border-border bg-background text-foreground hover:bg-muted"
                             }`}
                           >
@@ -677,6 +692,18 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                       {saveError}
                     </div>
                   )}
+                  <div className="rounded-[11px] border border-[var(--line)] bg-[#fbfbfa] p-3 text-xs leading-5 text-muted-foreground">
+                    <div className="mb-1 font-semibold uppercase tracking-[.07em] text-[var(--ink-3)]">Historial</div>
+                    <p>
+                      Estado cliente: <span className="font-medium text-foreground">{clientDecisionLabels[clientDecision]}</span>
+                    </p>
+                    <p>
+                      Registrado:{" "}
+                      <span className="font-medium text-foreground">
+                        {meeting.clientDecisionAt ? format(new Date(meeting.clientDecisionAt), "d MMM yyyy · HH:mm") : "Pendiente"}
+                      </span>
+                    </p>
+                  </div>
                 </section>
               </>
             )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import {
   AlertTriangle,
@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { ACTIVE_CLIENTS, clientSlugFromName, type ActiveClientSlug } from "@/lib/access-control";
-import { KPICard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { MeetingDrawer } from "@/components/meeting-drawer";
@@ -34,7 +33,7 @@ import {
   MONTHLY_GOAL_BY_CLIENT,
 } from "@/lib/meeting-rules";
 
-type KpiFilter = "all" | "valid" | "pending" | "rejected_or_disputed";
+type KpiFilter = "all" | "valid" | "not_valid" | "pending" | "rejected_or_disputed";
 type AiBantFilter = "all" | "bant_met" | "bant_not_met" | "ai_valid" | "ai_review" | "ai_not_valid";
 
 function resolveClientFromParam(meetings: Meeting[], clientParam: string | null) {
@@ -85,7 +84,7 @@ function ValidationState({ meeting }: { meeting: Meeting }) {
 }
 
 export default function MeetingValidationPage() {
-  const { role, meetings, selectedMeetingId, setSelectedMeetingId } = useApp();
+  const { role, meetings, meetingsLoading, meetingsError, selectedMeetingId, setSelectedMeetingId } = useApp();
   const isInternal = role === "internal";
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -184,16 +183,20 @@ export default function MeetingValidationPage() {
 
   const kpis = useMemo(() => {
     const finalValid = baseFilteredMeetings.filter((meeting) => meeting.finalValidation === "final_valid").length;
+    const finalNotValid = baseFilteredMeetings.filter(
+      (meeting) => meeting.finalValidation === "final_not_valid" || meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed"
+    ).length;
     const pending = baseFilteredMeetings.filter((meeting) => meeting.cpValidation === "valid_cp" && getClientDecision(meeting) === "pending").length;
     const rejected = baseFilteredMeetings.filter((meeting) => getClientDecision(meeting) === "rejected").length;
     const observed = baseFilteredMeetings.filter((meeting) => getClientDecision(meeting) === "review_requested").length;
     return {
       total: baseFilteredMeetings.length,
       finalValid,
+      finalNotValid,
       pending,
       rejected,
       observed,
-      progress: Math.round((finalValid / goal) * 100),
+      progress: goal > 0 ? Math.round((finalValid / goal) * 100) : 0,
     };
   }, [baseFilteredMeetings, goal]);
 
@@ -202,6 +205,9 @@ export default function MeetingValidationPage() {
       baseFilteredMeetings.filter((meeting) => {
         if (kpiFilter === "all") return true;
         if (kpiFilter === "valid") return meeting.finalValidation === "final_valid";
+        if (kpiFilter === "not_valid") {
+          return meeting.finalValidation === "final_not_valid" || meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed";
+        }
         if (kpiFilter === "pending") return meeting.cpValidation === "valid_cp" && getClientDecision(meeting) === "pending";
         return (
           getClientDecision(meeting) === "rejected" ||
@@ -282,12 +288,25 @@ export default function MeetingValidationPage() {
       <header className="border-b border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-foreground sm:text-xl">Avance reuniones</h1>
-            <p className="max-w-full break-words text-sm leading-5 text-muted-foreground">
-              {selectedClient} · Revisión de reuniones entregadas
+            <div className="flex flex-wrap items-baseline gap-2">
+              <h1 className="text-[22px] font-semibold leading-tight text-[var(--ink)]">Avance reuniones</h1>
+              <span className="text-lg text-[var(--ink-3)]">·</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--ink)]">{selectedClient}</span>
+            </div>
+            <p className="mt-1 max-w-full break-words text-sm leading-5 text-muted-foreground">
+              Validación cliente de reuniones entregadas por Conprospección
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:items-end">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:min-w-[240px] sm:items-end">
+            <div className="w-full sm:w-[260px]">
+              <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                <span className="text-xs font-medium text-[var(--ink-2)]">Avance meta</span>
+                <strong className="font-display tnum text-[15px] font-semibold text-[var(--ink)]">
+                  {kpis.finalValid}/{goal} · {kpis.progress}%
+                </strong>
+              </div>
+              <Progress value={kpis.progress} className="h-1.5 bg-[#ececea]" />
+            </div>
             {isInternal && (
               <div className="flex flex-wrap gap-2 sm:justify-end">
                 {ACTIVE_CLIENTS.map((client) => (
@@ -311,52 +330,50 @@ export default function MeetingValidationPage() {
       </header>
 
       <ScrollArea className="h-[calc(100dvh-7rem)] lg:h-[calc(100vh-65px)]">
-        <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KPICard
+        <div className="space-y-4 p-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
+            <MeetingKpi
               title="Total generadas"
               value={kpis.total}
               icon={<Calendar className="h-5 w-5" />}
               active={kpiFilter === "all"}
               onClick={() => applyKpiFilter("all")}
             />
-            <KPICard
-              title="Validadas para meta"
+            <MeetingKpi
+              title="Validadas"
               value={kpis.finalValid}
               icon={<CheckCircle2 className="h-5 w-5" />}
               variant="success"
               active={kpiFilter === "valid"}
               onClick={() => applyKpiFilter("valid")}
             />
-            <KPICard
-              title="Pendientes de validación"
+            <MeetingKpi
+              title="No válidas"
+              value={kpis.finalNotValid}
+              icon={<AlertTriangle className="h-5 w-5" />}
+              variant="danger"
+              active={kpiFilter === "not_valid"}
+              onClick={() => applyKpiFilter("not_valid")}
+            />
+            <MeetingKpi
+              title="Pendiente cliente"
               value={kpis.pending}
               icon={<Clock className="h-5 w-5" />}
               variant="warning"
               active={kpiFilter === "pending"}
               onClick={() => applyKpiFilter("pending")}
             />
-            <KPICard
-              title="Observadas / en disputa"
+            <MeetingKpi
+              title="En revisión / disputa"
               value={kpis.rejected + kpis.observed}
               icon={<AlertTriangle className="h-5 w-5" />}
-              variant="danger"
+              variant="review"
               active={kpiFilter === "rejected_or_disputed"}
               onClick={() => applyKpiFilter("rejected_or_disputed")}
             />
           </div>
 
-          <section className="rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-foreground">Avance de meta</h3>
-              <span className="font-display tnum text-lg font-bold text-[var(--ink)]">
-                {kpis.finalValid}/{goal} · {kpis.progress}%
-              </span>
-            </div>
-            <Progress value={kpis.progress} className="h-2" />
-          </section>
-
-          <section className="rounded-xl border border-[var(--line)] bg-white p-4 shadow-card">
+          <section className="rounded-[12px] border border-[var(--line)] bg-white p-4 shadow-card">
             <button
               type="button"
               onClick={() => setShowExplainer((value) => !value)}
@@ -393,125 +410,127 @@ export default function MeetingValidationPage() {
             )}
           </section>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_190px_160px_160px_160px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por empresa, nombre, apellido o cargo"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                className="pl-9"
+          <section className="rounded-[13px] border border-[var(--line)] bg-white p-3 shadow-card">
+            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(260px,1fr)_190px_170px_170px_160px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar empresa, contacto, cargo, correo, teléfono o país"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  className="h-10 rounded-[10px] pl-9 text-sm"
+                />
+              </div>
+              <NativeFilter
+                ariaLabel="Filtrar por estado"
+                className="w-full"
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={[
+                  { value: "all", label: "Estado: Todos" },
+                  ...["Pendiente", "Validada", "En disputa", "En revisión", "Reagendada", "No realizada"].map((status) => ({
+                    value: status,
+                    label: status,
+                  })),
+                ]}
+              />
+              <NativeFilter
+                ariaLabel="Filtrar por mes"
+                className="w-full"
+                value={monthFilter}
+                onChange={(value) => {
+                  setMonthFilter(value);
+                  setDayFilter("all");
+                }}
+                options={[
+                  { value: "all", label: "Mes: Todos" },
+                  ...months.map((month) => ({
+                    value: month,
+                    label: format(new Date(`${month}-01T12:00:00`), "MMMM yyyy"),
+                  })),
+                ]}
+              />
+              <NativeFilter
+                ariaLabel="Filtrar por día"
+                className="w-full"
+                value={dayFilter}
+                onChange={setDayFilter}
+                options={[
+                  { value: "all", label: "Día: Todos" },
+                  ...days.map((date) => ({
+                    value: date,
+                    label: format(new Date(`${date}T12:00:00`), "d MMM yyyy"),
+                  })),
+                ]}
+              />
+              <NativeFilter
+                ariaLabel="Filtrar por país"
+                className="w-full"
+                value={countryFilter}
+                onChange={setCountryFilter}
+                options={[
+                  { value: "all", label: "País: Todos" },
+                  ...countries.map((country) => ({ value: country, label: country })),
+                ]}
               />
             </div>
-            <NativeFilter
-              ariaLabel="Filtrar por estado"
-              className="w-full"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={[
-                { value: "all", label: "Estado: Todos" },
-                ...["Pendiente", "Validada", "En disputa", "En revisión", "Reagendada", "No realizada"].map((status) => ({
-                  value: status,
-                  label: status,
-                })),
-              ]}
-            />
-            <NativeFilter
-              ariaLabel="Filtrar por mes"
-              className="w-full"
-              value={monthFilter}
-              onChange={(value) => {
-                setMonthFilter(value);
-                setDayFilter("all");
-              }}
-              options={[
-                { value: "all", label: "Mes: Todos" },
-                ...months.map((month) => ({
-                  value: month,
-                  label: format(new Date(`${month}-01T12:00:00`), "MMMM yyyy"),
-                })),
-              ]}
-            />
-            <NativeFilter
-              ariaLabel="Filtrar por día"
-              className="w-full"
-              value={dayFilter}
-              onChange={setDayFilter}
-              options={[
-                { value: "all", label: "Día: Todos" },
-                ...days.map((date) => ({
-                  value: date,
-                  label: format(new Date(`${date}T12:00:00`), "d MMM yyyy"),
-                })),
-              ]}
-            />
-            <NativeFilter
-              ariaLabel="Filtrar por país"
-              className="w-full"
-              value={countryFilter}
-              onChange={setCountryFilter}
-              options={[
-                { value: "all", label: "País: Todos" },
-                ...countries.map((country) => ({ value: country, label: country })),
-              ]}
-            />
-          </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <NativeFilter
-              ariaLabel="Filtrar por estado de reunión"
-              className="w-full"
-              value={meetingStatusFilter}
-              onChange={(value) => setMeetingStatusFilter(value as MeetingStatus | "all")}
-              options={[
-                { value: "all", label: "Reunión: Todas" },
-                ...Object.entries(meetingStatusLabels).map(([value, label]) => ({
-                  value,
-                  label,
-                })),
-              ]}
-            />
-            <NativeFilter
-              ariaLabel="Filtrar por validación CP"
-              className="w-full"
-              value={cpValidationFilter}
-              onChange={(value) => setCpValidationFilter(value as CPValidation | "all")}
-              options={[
-                { value: "all", label: "CP: Todas" },
-                ...Object.entries(cpValidationLabels).map(([value, label]) => ({
-                  value,
-                  label,
-                })),
-              ]}
-            />
-            <NativeFilter
-              ariaLabel="Filtrar por respuesta cliente"
-              className="w-full"
-              value={clientDecisionFilter}
-              onChange={(value) => setClientDecisionFilter(value as ClientDecision | "all")}
-              options={[
-                { value: "all", label: "Cliente: Todas" },
-                ...Object.entries(clientDecisionLabels).map(([value, label]) => ({
-                  value,
-                  label,
-                })),
-              ]}
-            />
-            <NativeFilter
-              ariaLabel="Filtrar por resultado IA/BANT"
-              className="w-full"
-              value={aiBantFilter}
-              onChange={(value) => setAiBantFilter(value as AiBantFilter)}
-              options={[
-                { value: "all", label: "IA/BANT: Todos" },
-                { value: "bant_met", label: "BANT: cumple 2/4" },
-                { value: "bant_not_met", label: "BANT: no cumple 2/4" },
-                { value: "ai_valid", label: "IA: válida" },
-                { value: "ai_review", label: "IA: revisión" },
-                { value: "ai_not_valid", label: "IA: no válida" },
-              ]}
-            />
-          </div>
+            <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+              <NativeFilter
+                ariaLabel="Filtrar por estado de reunión"
+                className="w-full"
+                value={meetingStatusFilter}
+                onChange={(value) => setMeetingStatusFilter(value as MeetingStatus | "all")}
+                options={[
+                  { value: "all", label: "Reunión: Todas" },
+                  ...Object.entries(meetingStatusLabels).map(([value, label]) => ({
+                    value,
+                    label,
+                  })),
+                ]}
+              />
+              <NativeFilter
+                ariaLabel="Filtrar por validación CP"
+                className="w-full"
+                value={cpValidationFilter}
+                onChange={(value) => setCpValidationFilter(value as CPValidation | "all")}
+                options={[
+                  { value: "all", label: "CP: Todas" },
+                  ...Object.entries(cpValidationLabels).map(([value, label]) => ({
+                    value,
+                    label,
+                  })),
+                ]}
+              />
+              <NativeFilter
+                ariaLabel="Filtrar por respuesta cliente"
+                className="w-full"
+                value={clientDecisionFilter}
+                onChange={(value) => setClientDecisionFilter(value as ClientDecision | "all")}
+                options={[
+                  { value: "all", label: "Cliente: Todas" },
+                  ...Object.entries(clientDecisionLabels).map(([value, label]) => ({
+                    value,
+                    label,
+                  })),
+                ]}
+              />
+              <NativeFilter
+                ariaLabel="Filtrar por resultado IA/BANT"
+                className="w-full"
+                value={aiBantFilter}
+                onChange={(value) => setAiBantFilter(value as AiBantFilter)}
+                options={[
+                  { value: "all", label: "IA/BANT: Todos" },
+                  { value: "bant_met", label: "BANT: cumple 2/4" },
+                  { value: "bant_not_met", label: "BANT: no cumple 2/4" },
+                  { value: "ai_valid", label: "IA: válida" },
+                  { value: "ai_review", label: "IA: revisión" },
+                  { value: "ai_not_valid", label: "IA: no válida" },
+                ]}
+              />
+            </div>
+          </section>
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
@@ -521,7 +540,7 @@ export default function MeetingValidationPage() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-[9px] border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted"
               >
                 <X className="h-3.5 w-3.5" />
                 Limpiar filtros
@@ -574,10 +593,17 @@ export default function MeetingValidationPage() {
             })}
           </div>
 
-          <div className="hidden rounded-xl border border-border bg-card md:block">
+          <div className="hidden rounded-[13px] border border-[var(--line)] bg-card shadow-card md:block">
+            <div className="flex h-[46px] items-center justify-between border-b border-[var(--line)] px-4 text-sm text-muted-foreground">
+              <span>
+                <b className="font-semibold text-foreground">Reuniones para validar</b>
+              </span>
+              {meetingsLoading && <span>Cargando reuniones...</span>}
+              {meetingsError && <span className="text-red-600">{meetingsError}</span>}
+            </div>
             <div className="max-h-[60vh] overflow-auto rounded-xl">
               <table className="w-full min-w-[760px]">
-                <thead className="sticky top-0 z-10 bg-muted shadow-sm">
+                <thead className="sticky top-0 z-10 bg-[#f0f1f2] shadow-sm">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Fecha</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Empresa</th>
@@ -591,7 +617,7 @@ export default function MeetingValidationPage() {
                   {tableFilteredMeetings.map((meeting) => {
                     const locked = isClientLocked(meeting);
                     return (
-                      <tr key={meeting.id} className="cursor-pointer transition-colors hover:bg-muted/30" onClick={() => openDrawer(meeting)}>
+                      <tr key={meeting.id} className="cursor-pointer bg-white transition-colors hover:bg-[#fffdf0]" onClick={() => openDrawer(meeting)}>
                         <td className="px-4 py-3">
                           <p className="font-display tnum text-sm font-medium text-foreground">{format(new Date(meeting.meetingDate), "d MMM")}</p>
                           <p className="font-display tnum text-xs text-muted-foreground">{format(new Date(meeting.meetingDate), "HH:mm")}</p>
@@ -665,7 +691,7 @@ function NativeFilter({
   return (
     <select
       aria-label={ariaLabel}
-      className={`h-8 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50 ${className ?? ""}`}
+      className={`h-10 rounded-[10px] border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-[#d1bd50] focus:ring-3 focus:ring-[#ffd700]/20 ${className ?? ""}`}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     >
@@ -675,5 +701,47 @@ function NativeFilter({
         </option>
       ))}
     </select>
+  );
+}
+
+function MeetingKpi({
+  active,
+  icon,
+  onClick,
+  title,
+  value,
+  variant = "default",
+}: {
+  active: boolean;
+  icon: ReactNode;
+  onClick: () => void;
+  title: string;
+  value: number;
+  variant?: "default" | "success" | "warning" | "danger" | "review";
+}) {
+  const variantClass = {
+    default: "border-[#d7bd18] bg-[#fff7b8] text-[var(--ink)]",
+    success: "border-[#78c5a3] bg-[var(--ok-bg)] text-[var(--ok-ink)]",
+    warning: "border-[#dfa94d] bg-[var(--warn-bg)] text-[var(--warn-ink)]",
+    danger: "border-[#dc958d] bg-[var(--bad-bg)] text-[var(--bad-ink)]",
+    review: "border-[#dc9c63] bg-[var(--rev-bg)] text-[var(--rev-ink)]",
+  }[variant];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-[11px] border p-3 text-left shadow-card transition hover:-translate-y-px hover:shadow-[0_5px_14px_rgba(20,20,20,.08)] ${variantClass} ${
+        active ? "outline outline-1 outline-offset-2 outline-[rgba(43,43,43,.35)]" : ""
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <small className="block text-[10px] font-medium uppercase tracking-[.06em] opacity-75">{title}</small>
+          <strong className="font-display tnum mt-2 block text-[25px] font-semibold leading-none text-[var(--ink)]">{value}</strong>
+        </div>
+        <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-white/55 text-current">{icon}</span>
+      </div>
+    </button>
   );
 }
