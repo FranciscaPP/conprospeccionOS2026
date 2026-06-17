@@ -289,7 +289,7 @@ export default function MeetingValidationPage() {
                     type="button"
                     className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-xs font-semibold transition sm:min-h-9 ${
                       clientSlugFromName(selectedClient) === client.slug
-                        ? "border-[#7c3aed] bg-[#f5f3ff] text-[#5b21b6]"
+                        ? "border-[#333] bg-[#f0f0ee] text-[#333]"
                         : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                     onClick={() => switchClient(client.slug)}
@@ -536,7 +536,7 @@ export default function MeetingValidationPage() {
                     <ValidationState meeting={meeting} />
                   </div>
                   <div className="flex justify-end">
-                    <span className={`rounded-lg px-3 py-1.5 text-sm font-medium ${locked ? "border border-border bg-background text-foreground" : "bg-[#7c3aed] text-white"}`}>
+                    <span className={`rounded-lg px-3 py-1.5 text-sm font-medium ${locked ? "border border-border bg-background text-foreground" : "bg-[#333] text-white"}`}>
                       {locked ? "Ver detalle" : "Validar"}
                     </span>
                   </div>
@@ -659,7 +659,7 @@ function NativeFilter({
   return (
     <select
       aria-label={ariaLabel}
-      className={`h-9 rounded-[9px] border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-[#a78bfa] focus:ring-3 focus:ring-[#7c3aed]/20 ${className ?? ""}`}
+      className={`h-9 rounded-[9px] border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-[#d1bd50] focus:ring-3 focus:ring-[#ffd700]/20 ${className ?? ""}`}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     >

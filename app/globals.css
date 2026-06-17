@@ -61,12 +61,12 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.02 260);
   
-  /* Primary — morado de marca, único para todos los clientes (sin tema por cliente) */
-  --primary: #6d28d9;
+  /* Carbon primary (brand) */
+  --primary: #333333;
   --primary-foreground: #ffffff;
 
   /* Brand tokens (Conprospección) */
-  --gold: #7c3aed;
+  --gold: #ffd700;
   --carbon: #333333;
   --canvas: #f6f6f4;
   --ink: #1a1a1a;
@@ -192,8 +192,6 @@
 [data-slot="progress-indicator"] {
   background: var(--gold);
 }
-
-.font-sans { font-family: var(--font-inter), system-ui, sans-serif; }
 
 .font-display { font-family: var(--font-inter), system-ui, sans-serif; }
 .tnum { font-variant-numeric: tabular-nums; }

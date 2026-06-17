@@ -37,8 +37,8 @@ const internalNavItems = [
   { href: "/internal/sdr-performance", label: "Performance SDR", icon: UserCheck },
 ];
 
-const ACTIVE_NAV = "bg-[rgba(124,58,237,0.26)] text-white";
-const INACTIVE_NAV = "text-[#b8b1c9] hover:bg-white/5 hover:text-white";
+const ACTIVE_NAV = "bg-[rgba(255,215,0,0.14)] text-[#ffd700]";
+const INACTIVE_NAV = "text-[#aaaaa3] hover:bg-white/5 hover:text-white";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -52,13 +52,10 @@ export function Sidebar() {
 
   const navItems = visibleRole === "client" ? clientNavItems : internalNavItems;
   const subtitle = visibleRole === "client" ? "Portal cliente" : "Panel interno";
-  // Tema único (morado de marca) para cliente e interno — sin customización por cliente.
-  const barBg = "bg-[#241046]";
-  const barHover = "hover:bg-[#2f1559]";
 
   return (
     <>
-      <header className={cn("fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-white/10 px-4 lg:hidden", barBg)}>
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-white/10 bg-[#2b2b2b] px-4 lg:hidden">
         <Link
           href={visibleRole === "client" ? "/client/meeting-validation" : "/internal/meeting-followup"}
           className="flex items-center gap-2"
@@ -97,7 +94,7 @@ export function Sidebar() {
         </DropdownMenu>
       </header>
 
-      <nav className={cn("fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-white/10 px-2 py-1.5 lg:hidden", barBg)}>
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-white/10 bg-[#2b2b2b] px-2 py-1.5 lg:hidden">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -107,7 +104,7 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 "flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-medium leading-tight transition-colors",
-                isActive ? "text-white" : "text-[#aaaaa3]"
+                isActive ? "text-[#ffd700]" : "text-[#aaaaa3]"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -119,8 +116,7 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-black/20 text-[#e9e9e6] transition-[width] duration-200 lg:flex",
-          barBg,
+          "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-black/20 bg-[#2b2b2b] text-[#e9e9e6] transition-[width] duration-200 lg:flex",
           sidebarCollapsed ? "w-16" : "w-64"
         )}
       >
@@ -128,7 +124,7 @@ export function Sidebar() {
           type="button"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           aria-label={sidebarCollapsed ? "Expandir menú" : "Contraer menú"}
-          className={cn("absolute -right-3 top-[68px] z-50 grid h-6 w-6 place-items-center rounded-full border border-black/20 text-[#e9e9e6] shadow-md transition-colors", barBg, barHover)}
+          className="absolute -right-3 top-[68px] z-50 grid h-6 w-6 place-items-center rounded-full border border-black/20 bg-[#2b2b2b] text-[#e9e9e6] shadow-md transition-colors hover:bg-[#3a3a3a]"
         >
           {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
