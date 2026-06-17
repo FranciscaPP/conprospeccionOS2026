@@ -108,7 +108,6 @@ export default function MeetingValidationPage() {
   const [kpiFilter, setKpiFilter] = useState<KpiFilter>("all");
   const [dateFromFilter, setDateFromFilter] = useState("");
   const [dateToFilter, setDateToFilter] = useState("");
-  const [countryFilter, setCountryFilter] = useState("all");
   const [cpValidationFilter, setCpValidationFilter] = useState<CPValidation | "all">("all");
   const [clientDecisionFilter, setClientDecisionFilter] = useState<ClientDecision | "all">("all");
   const [showExplainer, setShowExplainer] = useState(true);
@@ -128,11 +127,6 @@ export default function MeetingValidationPage() {
 
   const goal = MONTHLY_GOAL_BY_CLIENT[selectedClient] ?? 10;
 
-  const countries = useMemo(
-    () => [...new Set(clientMeetings.map((meeting) => meeting.country).filter(Boolean))].sort() as string[],
-    [clientMeetings]
-  );
-
   const baseFilteredMeetings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return clientMeetings.filter((meeting) => {
@@ -141,14 +135,12 @@ export default function MeetingValidationPage() {
       const matchesSearch = !query || getClientSearchText(meeting).includes(query);
       const matchesDateFrom = !dateFromFilter || meetingDay >= dateFromFilter;
       const matchesDateTo = !dateToFilter || meetingDay <= dateToFilter;
-      const matchesCountry = countryFilter === "all" || meeting.country === countryFilter;
       const matchesCPValidation = cpValidationFilter === "all" || meeting.cpValidation === cpValidationFilter;
       const matchesClientDecision = clientDecisionFilter === "all" || clientDecision === clientDecisionFilter;
       return (
         matchesSearch &&
         matchesDateFrom &&
         matchesDateTo &&
-        matchesCountry &&
         matchesCPValidation &&
         matchesClientDecision
       );
@@ -158,7 +150,6 @@ export default function MeetingValidationPage() {
     searchQuery,
     dateFromFilter,
     dateToFilter,
-    countryFilter,
     cpValidationFilter,
     clientDecisionFilter,
   ]);
@@ -215,7 +206,6 @@ export default function MeetingValidationPage() {
     kpiFilter !== "all" ||
     dateFromFilter !== "" ||
     dateToFilter !== "" ||
-    countryFilter !== "all" ||
     cpValidationFilter !== "all" ||
     clientDecisionFilter !== "all";
 
@@ -224,7 +214,6 @@ export default function MeetingValidationPage() {
     setKpiFilter("all");
     setDateFromFilter("");
     setDateToFilter("");
-    setCountryFilter("all");
     setCpValidationFilter("all");
     setClientDecisionFilter("all");
   };
@@ -237,7 +226,6 @@ export default function MeetingValidationPage() {
     setKpiFilter("all");
     setDateFromFilter("");
     setDateToFilter("");
-    setCountryFilter("all");
     setCpValidationFilter("all");
     setClientDecisionFilter("all");
     window.history.replaceState(null, "", clientPath(slug));
@@ -406,7 +394,7 @@ export default function MeetingValidationPage() {
           </section>
 
           <section className="rounded-[13px] border border-[var(--line)] bg-white p-2 shadow-card">
-            <div className="grid gap-2 lg:grid-cols-[minmax(300px,1fr)_300px_180px_auto] lg:items-end">
+            <div className="grid gap-2 lg:grid-cols-[minmax(300px,1fr)_300px_auto] lg:items-end">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -434,19 +422,6 @@ export default function MeetingValidationPage() {
                     className="h-9 rounded-[9px] text-sm"
                   />
                 </div>
-              </div>
-              <div>
-                <FilterLabel>País</FilterLabel>
-                <NativeFilter
-                  ariaLabel="Filtrar por país"
-                  className="w-full"
-                  value={countryFilter}
-                  onChange={setCountryFilter}
-                  options={[
-                    { value: "all", label: "Todos" },
-                    ...countries.map((country) => ({ value: country, label: country })),
-                  ]}
-                />
               </div>
               <button
                 type="button"
