@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import {
   BookOpen,
@@ -10,8 +10,11 @@ import {
   CheckCircle2,
   ExternalLink,
   FileText,
+  History,
   Lock,
   MessageSquare,
+  PlayCircle,
+  RotateCcw,
   ShieldCheck,
   User,
   XCircle,
@@ -63,9 +66,109 @@ interface MeetingDrawerProps {
 type ClientDrawerTab = "validation" | "contact" | "evaluation";
 
 const bantOptions: BANTCriteria[] = ["budget", "authority", "need", "timeline"];
+const clientBantOrder: BANTCriteria[] = ["need", "authority", "timeline", "budget"];
 const leadFieldClass = "min-w-0 space-y-1";
 const leadValueClass = "min-w-0 break-words text-sm font-medium text-foreground [overflow-wrap:anywhere]";
 const leadLinkClass = "min-w-0 break-words text-sm font-medium text-[#333] underline-offset-2 hover:underline [overflow-wrap:anywhere]";
+
+function safeFormatDate(value?: string, pattern = "d MMM yyyy") {
+  if (!value) return "";
+  try {
+    return format(new Date(value), pattern);
+  } catch {
+    return "";
+  }
+}
+
+function displayContactName(meeting: Meeting) {
+  return [meeting.firstName, meeting.lastName].filter(Boolean).join(" ") || meeting.contact || "";
+}
+
+function clientIcpStatus(meeting: Meeting) {
+  if (meeting.cpValidation === "valid_cp") return true;
+  if (meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed") return false;
+  if (meeting.personAreaCorrect === false || meeting.regionValid === false) return false;
+  return meeting.personAreaCorrect === true || meeting.regionValid === true ? true : null;
+}
+
+function clientCpJustification(meeting: Meeting) {
+  return meeting.validityReason || meeting.cpComment || "";
+}
+
+function ClientSectionTitle({
+  icon,
+  number,
+  title,
+}: {
+  icon: ReactNode;
+  number: number;
+  title: string;
+}) {
+  return (
+    <h3 className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
+      <span className="text-[#1d4ed8]">{icon}</span>
+      <span className="font-semibold text-[var(--ink-3)]">{number}.</span>
+      <span>{title}</span>
+    </h3>
+  );
+}
+
+function ClientField({ label, value }: { label: string; value?: ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+      <div className="min-h-[20px] break-words text-sm font-medium leading-5 text-foreground [overflow-wrap:anywhere]">
+        {value || ""}
+      </div>
+    </div>
+  );
+}
+
+function ClientExternalLink({ href, children }: { href?: string; children: ReactNode }) {
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-1 text-sm font-semibold text-[#1d4ed8] underline-offset-2 hover:underline"
+    >
+      {children}
+      <ExternalLink className="h-3 w-3 shrink-0" />
+    </a>
+  );
+}
+
+function ClientEvidenceButton({
+  icon,
+  label,
+  href,
+  onClick,
+}: {
+  icon: ReactNode;
+  label: string;
+  href?: string;
+  onClick?: () => void;
+}) {
+  const className =
+    "inline-flex h-9 items-center justify-center gap-2 rounded-[9px] border border-border bg-white px-4 text-sm font-semibold text-[#1d4ed8] transition hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:text-muted-foreground disabled:hover:bg-white";
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className={className}>
+        {icon}
+        {label}
+      </a>
+    );
+  }
+
+  return (
+    <button type="button" className={className} onClick={onClick} disabled={!onClick}>
+      {icon}
+      {label}
+    </button>
+  );
+}
 
 function EvidenceChecklist({ meeting }: { meeting: Meeting }) {
   const evidence = meeting.bantEvidence?.length
@@ -146,6 +249,8 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
   const [clientComment, setClientComment] = useState("");
   const [clientAction, setClientAction] = useState<Exclude<ClientDecision, "pending">>("accepted");
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showReviewRequest, setShowReviewRequest] = useState(false);
+  const [showAiSummary, setShowAiSummary] = useState(false);
 
   useEffect(() => {
     if (!meeting) return;
@@ -154,6 +259,8 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
     setClientComment(meeting.clientComment || "");
     setClientAction(meeting.clientDecision && meeting.clientDecision !== "pending" ? meeting.clientDecision : "accepted");
     setSaveError(null);
+    setShowReviewRequest(false);
+    setShowAiSummary(false);
   }, [meeting]);
 
   const previewFinal = useMemo(() => {
@@ -273,6 +380,331 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
     }
     void rejectMeeting();
   };
+
+  const submitReviewRequest = () => {
+    setSaveError(null);
+    if (!rejectionReason || clientComment.trim().length === 0) {
+      setSaveError("Para solicitar revisión, selecciona un motivo y agrega un comentario.");
+      return;
+    }
+    void requestReview();
+  };
+
+  if (isClientMode) {
+    const icpStatus = clientIcpStatus(meeting);
+    const cpBant = meeting.cpBANT || [];
+    const cpJustification = clientCpJustification(meeting);
+    const meetingSummary = meeting.meetingSummary || meeting.preparationInfo || "";
+    const aiSummary = meeting.evidence?.aiSummary || "";
+    const meetingDate = safeFormatDate(meeting.meetingDate);
+    const meetingTime = safeFormatDate(meeting.meetingDate, "HH:mm");
+    const fullMeetingDate = safeFormatDate(meeting.meetingDate, "d MMM yyyy - HH:mm");
+    const timeline: Array<{ title: string; date?: string; detail?: string; tone?: "ok" | "warn" | "bad" | "info" }> = [
+      {
+        title: "Reunión agendada",
+        date: fullMeetingDate,
+        tone: "info",
+      },
+    ];
+
+    if (meeting.meetingStatus !== "scheduled") {
+      timeline.push({
+        title: `Reunión ${meetingStatusLabels[meeting.meetingStatus].toLowerCase()}`,
+        date: fullMeetingDate,
+        tone: meeting.meetingStatus === "completed" ? "ok" : meeting.meetingStatus === "no_show" || meeting.meetingStatus === "cancelled" ? "bad" : "warn",
+      });
+    }
+
+    if (meeting.cpValidation !== "waiting_validation") {
+      timeline.push({
+        title: "Evaluación Conprospección emitida",
+        detail: cpValidationLabels[meeting.cpValidation],
+        tone: meeting.cpValidation === "valid_cp" ? "ok" : meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed" ? "bad" : "warn",
+      });
+    }
+
+    if (clientDecision !== "pending") {
+      timeline.push({
+        title: clientDecision === "accepted" ? "Cliente confirmó reunión" : "Cliente solicitó revisión",
+        date: safeFormatDate(meeting.clientDecisionAt, "d MMM yyyy - HH:mm"),
+        detail: meeting.clientComment || (meeting.rejectionReason ? rejectionReasonLabels[meeting.rejectionReason] : ""),
+        tone: clientDecision === "accepted" ? "ok" : "warn",
+      });
+    }
+
+    if (meeting.finalValidation === "final_valid" || meeting.finalValidation === "final_not_valid" || meeting.finalValidation === "under_review" || meeting.finalValidation === "in_dispute") {
+      timeline.push({
+        title: finalValidationLabels[meeting.finalValidation],
+        detail: getValidationResultLabel(meeting),
+        tone: meeting.finalValidation === "final_valid" ? "ok" : meeting.finalValidation === "final_not_valid" ? "bad" : "warn",
+      });
+    }
+
+    return (
+      <Sheet open={open} onOpenChange={onClose}>
+        <SheetContent className="w-[calc(100vw-32px)] overflow-hidden border-l border-[var(--line)] p-0 shadow-[0_16px_45px_rgba(20,20,20,.16)] sm:max-w-[560px]">
+          <SheetHeader className="border-b border-border px-5 py-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <SheetTitle className="text-lg font-semibold leading-tight text-[var(--ink)]">
+                  Detalle de reunión
+                </SheetTitle>
+                <div className="mt-2 flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
+                  <span className={`h-2.5 w-2.5 rounded-full ${meeting.meetingStatus === "completed" ? "bg-emerald-500" : meeting.meetingStatus === "no_show" || meeting.meetingStatus === "cancelled" ? "bg-red-500" : "bg-amber-500"}`} />
+                  <span>
+                    {meetingStatusLabels[meeting.meetingStatus]} {fullMeetingDate ? `el ${fullMeetingDate}` : ""}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Cerrar detalle"
+                className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            </div>
+          </SheetHeader>
+
+          <ScrollArea className="h-[calc(100dvh-9rem)] sm:h-[calc(100vh-9rem)]">
+            <div className="space-y-5 px-5 py-5">
+              <section className="space-y-3">
+                <ClientSectionTitle icon={<User className="h-4 w-4" />} number={1} title="Contacto y empresa" />
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                  <ClientField label="Empresa" value={meeting.company} />
+                  <ClientField label="País" value={meeting.country} />
+                  <ClientField label="Contacto" value={displayContactName(meeting)} />
+                  <ClientField
+                    label="Website"
+                    value={
+                      <ClientExternalLink href={meeting.companyWebsite}>
+                        {meeting.companyWebsite?.replace(/^https?:\/\//, "")}
+                      </ClientExternalLink>
+                    }
+                  />
+                  <ClientField label="Cargo" value={meeting.jobTitle} />
+                  <ClientField
+                    label="LinkedIn empresa"
+                    value={<ClientExternalLink href={meeting.companyLinkedinUrl}>Ver empresa</ClientExternalLink>}
+                  />
+                  <ClientField label="Email" value={meeting.leadEmail} />
+                  <ClientField
+                    label="LinkedIn contacto"
+                    value={<ClientExternalLink href={meeting.contactLinkedinUrl}>Ver perfil</ClientExternalLink>}
+                  />
+                  <ClientField label="Teléfono" value={meeting.leadPhone} />
+                  <ClientField
+                    label="Link reunión"
+                    value={<ClientExternalLink href={meeting.meetingUrl}>Unirse a la reunión</ClientExternalLink>}
+                  />
+                  <ClientField label="Fecha reunión" value={meetingDate} />
+                  <ClientField label="Hora reunión" value={meetingTime} />
+                </div>
+              </section>
+
+              <Separator />
+
+              <section className="space-y-2">
+                <ClientSectionTitle icon={<MessageSquare className="h-4 w-4" />} number={2} title="Resumen de reunión" />
+                <p className="line-clamp-6 text-sm leading-6 text-muted-foreground">
+                  {meetingSummary}
+                </p>
+              </section>
+
+              <Separator />
+
+              <section className="space-y-3">
+                <ClientSectionTitle icon={<ShieldCheck className="h-4 w-4" />} number={3} title="Evaluación Conprospección" />
+                <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
+                  <div className="rounded-[12px] border border-border bg-white p-3 shadow-sm">
+                    <p className="text-[11px] font-semibold uppercase tracking-[.05em] text-muted-foreground">ICP</p>
+                    <div className={`mt-2 flex items-center gap-2 text-sm font-bold ${icpStatus === false ? "text-red-600" : "text-emerald-600"}`}>
+                      {icpStatus === false ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                      {icpStatus === false ? "No cumple" : "Cumple"}
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      ICP trabajado desde base/campaña y revisado por Conprospección.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[12px] border border-border bg-white p-3 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[.05em] text-muted-foreground">BANT</p>
+                      <p className="text-sm font-bold text-foreground">{cpBant.length} de 4 variables</p>
+                    </div>
+                    <div className="mt-2 space-y-1.5">
+                      {clientBantOrder.map((criteria) => {
+                        const detected = cpBant.includes(criteria);
+                        return (
+                          <div key={criteria} className="flex items-center justify-between gap-3 text-xs text-foreground">
+                            <span>{bantLabels[criteria]}</span>
+                            <span className={detected ? "text-emerald-600" : "text-muted-foreground/50"}>
+                              {detected ? <CheckCircle2 className="h-4 w-4" /> : "—"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-[12px] border border-[#dbeafe] bg-[#eff6ff] px-3.5 py-2.5 text-xs leading-5 text-[#1e40af]">
+                  La IA aporta evidencia y señales de la conversación. La decisión de validez la emite Conprospección.
+                </div>
+              </section>
+
+              <Separator />
+
+              <section className="space-y-2">
+                <ClientSectionTitle icon={<BookOpen className="h-4 w-4" />} number={4} title="Justificación Conprospección" />
+                <p className="rounded-[12px] border border-border bg-white p-3 text-sm leading-6 text-foreground shadow-sm">
+                  {cpJustification}
+                </p>
+              </section>
+
+              <Separator />
+
+              <section className="space-y-3">
+                <ClientSectionTitle icon={<FileText className="h-4 w-4" />} number={5} title="Evidencia" />
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <ClientEvidenceButton
+                    icon={<PlayCircle className="h-4 w-4" />}
+                    label="Ver grabación"
+                    href={meeting.evidence?.recordingUrl}
+                  />
+                  <ClientEvidenceButton
+                    icon={<FileText className="h-4 w-4" />}
+                    label="Ver transcripción"
+                    href={meeting.evidence?.transcriptUrl}
+                  />
+                  <ClientEvidenceButton
+                    icon={<BookOpen className="h-4 w-4" />}
+                    label="Ver resumen IA"
+                    onClick={aiSummary ? () => setShowAiSummary((value) => !value) : undefined}
+                  />
+                </div>
+                {showAiSummary && aiSummary && (
+                  <p className="rounded-[10px] border border-border bg-[#f8f8f6] p-3 text-xs leading-6 text-muted-foreground">
+                    {aiSummary}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {clientBantOrder.map((criteria) => (
+                    <span
+                      key={criteria}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                        cpBant.includes(criteria)
+                          ? "border-[#c7ebde] bg-[var(--ok-bg)] text-[var(--ok-ink)]"
+                          : "border-border bg-white text-muted-foreground"
+                      }`}
+                    >
+                      {bantLabels[criteria]}
+                    </span>
+                  ))}
+                </div>
+              </section>
+
+              <Separator />
+
+              <section className="space-y-3">
+                <ClientSectionTitle icon={<CheckCircle2 className="h-4 w-4" />} number={6} title="Acción cliente" />
+                {locked ? (
+                  <div className="rounded-[11px] border border-border bg-[#f8f8f6] p-3 text-sm leading-6 text-muted-foreground">
+                    <div className="mb-1 flex items-center gap-2 font-semibold text-foreground">
+                      <Lock className="h-4 w-4" />
+                      {clientDecisionLabels[clientDecision]}
+                    </div>
+                    {clientDecision === "accepted"
+                      ? "Confirmación registrada. La reunión quedó bloqueada para nuevas acciones."
+                      : "Solicitud de revisión registrada. Conprospección revisará la evidencia y el motivo informado."}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm leading-5 text-muted-foreground">
+                      Confirma la evaluación realizada por Conprospección o solicita revisión.
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Button onClick={() => void acceptMeeting()} className="h-10 gap-2 bg-emerald-600 text-white hover:bg-emerald-700">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Confirmar reunión
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowReviewRequest((value) => !value)}
+                        className="h-10 gap-2 border-orange-400 text-orange-600 hover:bg-orange-50"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                        Solicitar revisión
+                      </Button>
+                    </div>
+                    {showReviewRequest && (
+                      <div className="space-y-2 rounded-[11px] border border-orange-200 bg-orange-50/50 p-3">
+                        <Label className="text-xs text-muted-foreground">Motivo</Label>
+                        <select
+                          aria-label="Motivo de revisión"
+                          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
+                          value={rejectionReason}
+                          onChange={(event) => setRejectionReason(event.target.value as RejectionReason)}
+                        >
+                          {Object.entries(rejectionReasonLabels).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                        <Label className="text-xs text-muted-foreground">Comentario obligatorio</Label>
+                        <Textarea
+                          value={clientComment}
+                          onChange={(event) => setClientComment(event.target.value)}
+                          placeholder="Describe el motivo de la revisión."
+                          rows={3}
+                        />
+                        <Button onClick={submitReviewRequest} className="bg-orange-600 text-white hover:bg-orange-700">
+                          Enviar solicitud de revisión
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+                {saveError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-700">
+                    {saveError}
+                  </div>
+                )}
+              </section>
+
+              <Separator />
+
+              <section className="space-y-3">
+                <ClientSectionTitle icon={<History className="h-4 w-4" />} number={7} title="Historial" />
+                <ol className="relative space-y-4 border-l border-border pl-5">
+                  {timeline.map((item, index) => {
+                    const dotClass =
+                      item.tone === "ok"
+                        ? "bg-emerald-500"
+                        : item.tone === "bad"
+                          ? "bg-red-500"
+                          : item.tone === "warn"
+                            ? "bg-orange-500"
+                            : "bg-[#1d4ed8]";
+                    return (
+                      <li key={`${item.title}-${index}`} className="relative">
+                        <span className={`absolute -left-[23px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white ${dotClass}`} />
+                        {item.date && <p className="font-display tnum text-[11px] font-medium text-muted-foreground">{item.date}</p>}
+                        <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                        {item.detail && <p className="text-xs leading-5 text-muted-foreground">{item.detail}</p>}
+                      </li>
+                    );
+                  })}
+                </ol>
+              </section>
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
