@@ -623,7 +623,7 @@ export default function MeetingValidationPage() {
               {meetingsLoading && <span>Cargando reuniones...</span>}
               {meetingsError && <span className="text-red-600">{meetingsError}</span>}
             </div>
-            <div className="max-h-[60vh] overflow-auto rounded-xl">
+            <div className="overflow-x-auto overflow-y-visible rounded-xl">
               <table className="w-full min-w-[760px]">
                 <thead className="sticky top-0 z-10 bg-[#f0f1f2] shadow-sm">
                   <tr>
