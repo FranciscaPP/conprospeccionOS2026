@@ -112,6 +112,7 @@ export default function MeetingValidationPage() {
   const [clientDecisionFilter, setClientDecisionFilter] = useState<ClientDecision | "all">("all");
   const [showExplainer, setShowExplainer] = useState(true);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [dateSort, setDateSort] = useState<"asc" | "desc" | null>(null);
 
   const requestedMeetingId = queryMeetingId || selectedMeetingId;
   const requestedMeeting = useMemo(
@@ -191,6 +192,18 @@ export default function MeetingValidationPage() {
       }),
     [baseFilteredMeetings, kpiFilter]
   );
+
+  const sortedMeetings = useMemo(() => {
+    if (!dateSort) return tableFilteredMeetings;
+    const copy = [...tableFilteredMeetings];
+    copy.sort((a, b) => {
+      const diff = new Date(a.meetingDate).getTime() - new Date(b.meetingDate).getTime();
+      return dateSort === "asc" ? diff : -diff;
+    });
+    return copy;
+  }, [tableFilteredMeetings, dateSort]);
+
+  const toggleDateSort = () => setDateSort((current) => (current === "asc" ? "desc" : "asc"));
 
   const openDrawer = (meeting: Meeting) => {
     setSelectedMeeting(meeting);
@@ -494,7 +507,7 @@ export default function MeetingValidationPage() {
                 <p className="text-sm text-muted-foreground">No se encontraron reuniones con esos filtros.</p>
               </div>
             )}
-            {tableFilteredMeetings.map((meeting) => {
+            {sortedMeetings.map((meeting) => {
               const locked = isClientLocked(meeting);
 
               return (
@@ -540,11 +553,23 @@ export default function MeetingValidationPage() {
               {meetingsLoading && <span>Cargando reuniones...</span>}
               {meetingsError && <span className="text-red-600">{meetingsError}</span>}
             </div>
-            <div className="overflow-x-auto overflow-y-visible rounded-xl">
+            <div className="rounded-xl">
               <table className="w-full min-w-[760px]">
                 <thead className="sticky top-0 z-10 bg-[#f0f1f2] shadow-sm">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Fecha</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <button
+                        type="button"
+                        onClick={toggleDateSort}
+                        aria-label="Ordenar por fecha"
+                        className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        Fecha
+                        <span className="text-[11px] leading-none">
+                          {dateSort === "asc" ? "↑" : dateSort === "desc" ? "↓" : ""}
+                        </span>
+                      </button>
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Empresa</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Contacto</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Cargo</th>
@@ -553,7 +578,7 @@ export default function MeetingValidationPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {tableFilteredMeetings.map((meeting) => {
+                  {sortedMeetings.map((meeting) => {
                     const locked = isClientLocked(meeting);
                     return (
                       <tr key={meeting.id} className="cursor-pointer bg-white transition-colors hover:bg-[#fffdf0]" onClick={() => openDrawer(meeting)}>
