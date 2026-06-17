@@ -1,4 +1,4 @@
-﻿// Validation Types
+// Validation Types
 export type CPValidation =
   | "waiting_validation"
   | "valid_cp"
@@ -19,6 +19,7 @@ export type FinalValidation =
   | "pending"
   | "final_valid"
   | "final_not_valid"
+  | "under_review"
   | "in_dispute"
   | "rescheduled"
   | "excluded_by_agreement";
@@ -49,13 +50,14 @@ export type MeetingAction = "count" | "reschedule" | "escalate" | "manual_review
 export type ClientDecision = "pending" | "accepted" | "rejected" | "review_requested";
 
 export type RejectionReason =
-  | "wrong_role"
-  | "outside_profile"
+  | "icp_mismatch"
+  | "bant_minimum_not_met"
+  | "meeting_not_completed"
   | "prospect_no_show"
-  | "no_real_interest"
-  | "duplicate_meeting"
-  | "existing_client_or_contact"
-  | "other";
+  | "wrong_contact_no_valid_referral"
+  | "insufficient_evidence"
+  | "duplicate_or_excluded_company"
+  | "other_contractual_reason";
 
 export type CompanyValidationStatus =
   | "none"
@@ -112,7 +114,6 @@ export interface Meeting {
   bantScore?: number;
   cpComment: string;
   clientValidation: ClientValidation;
-  clientBANT: BANTCriteria[];
   clientComment: string;
   clientDecision?: ClientDecision;
   clientDecisionAt?: string;
@@ -147,17 +148,18 @@ export const cpValidationLabels: Record<CPValidation, string> = {
 
 export const clientValidationLabels: Record<ClientValidation, string> = {
   waiting_client_validation: "En espera cliente",
-  valid_client: "Válida cliente",
-  not_valid_client: "No válida cliente",
-  requires_review: "Requiere revisión",
+  valid_client: "Aceptada por cliente",
+  not_valid_client: "Validez disputada",
+  requires_review: "Observada por cliente",
   rescheduled: "Reagendada",
   not_completed: "No realizada",
 };
 
 export const finalValidationLabels: Record<FinalValidation, string> = {
-  pending: "Pendiente",
+  pending: "Pendiente cliente",
   final_valid: "Válida final",
   final_not_valid: "No válida final",
+  under_review: "En revisión",
   in_dispute: "En disputa",
   rescheduled: "Reagendada",
   excluded_by_agreement: "Excluida por acuerdo",
@@ -192,20 +194,21 @@ export const bantLabels: Record<BANTCriteria, string> = {
 };
 
 export const rejectionReasonLabels: Record<RejectionReason, string> = {
-  wrong_role: "Cargo incorrecto",
-  outside_profile: "Empresa fuera del perfil acordado",
+  icp_mismatch: "No cumple ICP definido",
+  bant_minimum_not_met: "No cumple mínimo 2 variables BANT",
+  meeting_not_completed: "Reunión no realizada",
   prospect_no_show: "No asistió el prospecto",
-  no_real_interest: "No hubo interés real",
-  duplicate_meeting: "Reunión duplicada",
-  existing_client_or_contact: "Ya era cliente/contacto existente",
-  other: "Otro motivo",
+  wrong_contact_no_valid_referral: "Contacto incorrecto sin derivación válida",
+  insufficient_evidence: "Evidencia insuficiente",
+  duplicate_or_excluded_company: "Empresa duplicada o excluida",
+  other_contractual_reason: "Otro motivo contractual",
 };
 
 export const clientDecisionLabels: Record<ClientDecision, string> = {
   pending: "Pendiente de validación",
-  accepted: "Validada por cliente",
-  rejected: "Objetada por cliente",
-  review_requested: "Revisión solicitada",
+  accepted: "Aceptada por cliente",
+  rejected: "Validez disputada",
+  review_requested: "Observada por cliente",
 };
 
 export const meetingActionLabels: Record<MeetingAction, string> = {

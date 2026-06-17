@@ -36,7 +36,7 @@ const getTone = (status: StatusType): Tone => {
     return "ok";
   }
 
-  if (status === "in_dispute" || status === "requires_review") {
+  if (status === "in_dispute" || status === "under_review" || status === "requires_review") {
     return "rev";
   }
 

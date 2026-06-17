@@ -1,40 +1,38 @@
-﻿import type { Meeting, BANTCriteria, ClientContract, SDR, Campaign, Alert, SDRActivity } from "./types";
+import type { Meeting, BANTCriteria, ClientContract, SDR, Campaign, Alert, SDRActivity } from "./types";
 
 // Helper to calculate final validation based on rules
 function calculateFinalValidation(
   cpValidation: Meeting["cpValidation"],
   clientValidation: Meeting["clientValidation"]
 ): Meeting["finalValidation"] {
-  // If client validation is waiting, Final Validation remains Pending
-  if (clientValidation === "waiting_client_validation") {
-    return "pending";
-  }
-  
-  // If CP Validation = Valid CP and Client Validation = Not valid client, mark as In dispute
-  if (cpValidation === "valid_cp" && clientValidation === "not_valid_client") {
-    return "in_dispute";
-  }
-  
-  // If both are rescheduled
   if (cpValidation === "rescheduled" || clientValidation === "rescheduled") {
     return "rescheduled";
   }
-  
-  // If both CP and client validations are valid, Final Validation can be Final valid
+
+  if (cpValidation === "not_valid_cp" || cpValidation === "not_completed") {
+    return "final_not_valid";
+  }
+
+  if (cpValidation === "requires_review") {
+    return "under_review";
+  }
+
+  if (cpValidation === "valid_cp" && clientValidation === "waiting_client_validation") {
+    return "pending";
+  }
+
   if (cpValidation === "valid_cp" && clientValidation === "valid_client") {
     return "final_valid";
   }
-  
-  // If CP says not valid
-  if (cpValidation === "not_valid_cp") {
-    return "final_not_valid";
+
+  if (cpValidation === "valid_cp" && clientValidation === "requires_review") {
+    return "under_review";
   }
-  
-  // If client says not valid and CP also says not valid
-  if (clientValidation === "not_valid_client") {
-    return "final_not_valid";
+
+  if (cpValidation === "valid_cp" && clientValidation === "not_valid_client") {
+    return "in_dispute";
   }
-  
+
   return "pending";
 }
 
@@ -52,7 +50,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["budget", "need"] as BANTCriteria[],
     cpComment: "Validated meeting with clear logistics need and budget request.",
     clientValidation: "valid_client",
-    clientBANT: ["budget", "authority", "need"] as BANTCriteria[],
     clientComment: "Requested proposal.",
     finalValidation: "final_valid",
     commercialStatus: "proposal_sent",
@@ -75,7 +72,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["authority", "need"] as BANTCriteria[],
     cpComment: "Good authority and clear need for logistics services.",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     finalValidation: "pending",
     commercialStatus: "pending_followup",
@@ -98,7 +94,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["budget", "authority", "need", "timeline"] as BANTCriteria[],
     cpComment: "Full BANT qualified. Urgent need for Q3.",
     clientValidation: "not_valid_client",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "Contact was not decision maker as expected.",
     finalValidation: "in_dispute",
     commercialStatus: "pending_followup",
@@ -121,7 +116,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["authority", "need", "timeline"] as BANTCriteria[],
     cpComment: "Decision maker confirmed. Timeline Q4 2026.",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     finalValidation: "pending",
     commercialStatus: "pending_followup",
@@ -144,7 +138,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: [] as BANTCriteria[],
     cpComment: "Client requested reschedule due to travel.",
     clientValidation: "rescheduled",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "Agreed to reschedule.",
     finalValidation: "rescheduled",
     commercialStatus: "next_step_scheduled",
@@ -167,7 +160,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["budget", "authority", "need"] as BANTCriteria[],
     cpComment: "Strong need for retail distribution solutions.",
     clientValidation: "valid_client",
-    clientBANT: ["budget", "authority", "need", "timeline"] as BANTCriteria[],
     clientComment: "Excellent meeting. Moving to negotiation.",
     finalValidation: "final_valid",
     commercialStatus: "negotiation",
@@ -190,7 +182,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["authority", "need", "timeline"] as BANTCriteria[],
     cpComment: "VP confirmed. Need cold chain logistics.",
     clientValidation: "valid_client",
-    clientBANT: ["authority", "need"] as BANTCriteria[],
     clientComment: "Valid meeting but budget discussion pending.",
     finalValidation: "final_valid",
     commercialStatus: "requested_proposal",
@@ -213,7 +204,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: [] as BANTCriteria[],
     cpComment: "Contact not relevant for logistics decisions.",
     clientValidation: "not_valid_client",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "Agreed. Wrong contact.",
     finalValidation: "final_not_valid",
     commercialStatus: "not_commercially_qualified",
@@ -236,7 +226,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["budget", "authority", "need", "timeline"] as BANTCriteria[],
     cpComment: "Full BANT. COO has full authority.",
     clientValidation: "valid_client",
-    clientBANT: ["budget", "authority", "need", "timeline"] as BANTCriteria[],
     clientComment: "Excellent match. Proceeding to close.",
     finalValidation: "final_valid",
     commercialStatus: "client_won",
@@ -259,7 +248,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["authority", "need"] as BANTCriteria[],
     cpComment: "Good authority. Budget TBD.",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     finalValidation: "pending",
     commercialStatus: "pending_followup",
@@ -282,7 +270,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["need", "timeline"] as BANTCriteria[],
     cpComment: "Clear need. Timeline Q1 2027.",
     clientValidation: "valid_client",
-    clientBANT: ["need", "timeline"] as BANTCriteria[],
     clientComment: "Valid but need to involve finance.",
     finalValidation: "final_valid",
     commercialStatus: "proposal_followup",
@@ -305,7 +292,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["budget", "authority", "need"] as BANTCriteria[],
     cpComment: "Export logistics need confirmed.",
     clientValidation: "valid_client",
-    clientBANT: ["budget", "authority"] as BANTCriteria[],
     clientComment: "Good meeting. Exploring partnership.",
     finalValidation: "final_valid",
     commercialStatus: "proposal_sent",
@@ -328,7 +314,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: [] as BANTCriteria[],
     cpComment: "Contact did not attend.",
     clientValidation: "not_completed",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "Agreed. Meeting not held.",
     finalValidation: "final_not_valid",
     commercialStatus: "no_response",
@@ -351,7 +336,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["need"] as BANTCriteria[],
     cpComment: "Need clarification on authority level.",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     finalValidation: "pending",
     commercialStatus: "pending_followup",
@@ -374,7 +358,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["budget", "authority", "need", "timeline"] as BANTCriteria[],
     cpComment: "CEO with full authority. Immediate need.",
     clientValidation: "valid_client",
-    clientBANT: ["budget", "authority", "need", "timeline"] as BANTCriteria[],
     clientComment: "Deal lost to competitor.",
     finalValidation: "final_valid",
     commercialStatus: "client_lost",
@@ -397,7 +380,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: ["authority", "need", "timeline"] as BANTCriteria[],
     cpComment: "Strong authority. Multi-site logistics need.",
     clientValidation: "valid_client",
-    clientBANT: ["authority", "need"] as BANTCriteria[],
     clientComment: "Proceeding to proposal stage.",
     finalValidation: "final_valid",
     commercialStatus: "requested_proposal",
@@ -420,7 +402,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: [] as BANTCriteria[],
     cpComment: "",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     finalValidation: "pending",
     commercialStatus: "pending_followup",
@@ -443,7 +424,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: [] as BANTCriteria[],
     cpComment: "",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     finalValidation: "pending",
     commercialStatus: "pending_followup",
@@ -466,7 +446,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: [] as BANTCriteria[],
     cpComment: "",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     finalValidation: "pending",
     commercialStatus: "pending_followup",
@@ -489,7 +468,6 @@ export const mockMeetings: Meeting[] = [
     cpBANT: [] as BANTCriteria[],
     cpComment: "",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     finalValidation: "pending",
     commercialStatus: "pending_followup",
@@ -525,7 +503,6 @@ export const mockMeetings: Meeting[] = [
     ],
     cpComment: "Prospecto con autoridad, necesidad clara y horizonte cercano.",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     clientDecision: "pending",
     finalValidation: "pending",
@@ -571,7 +548,6 @@ export const mockMeetings: Meeting[] = [
     ],
     cpComment: "Contacto no parece ser el área/persona correcta; requiere revisión.",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     clientDecision: "pending",
     finalValidation: "pending",
@@ -617,7 +593,6 @@ export const mockMeetings: Meeting[] = [
     ],
     cpComment: "Prospecto asistió y cumple BANT 2/4. El equipo cliente no se conectó.",
     clientValidation: "waiting_client_validation",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "",
     clientDecision: "pending",
     finalValidation: "pending",
@@ -660,7 +635,6 @@ export const mockMeetings: Meeting[] = [
     bantEvidence: [],
     cpComment: "El prospecto no asistió. No se considera reunión concretada.",
     clientValidation: "not_completed",
-    clientBANT: [] as BANTCriteria[],
     clientComment: "No asistió el prospecto.",
     clientDecision: "rejected",
     clientDecisionAt: "2026-06-12T13:00:00",
@@ -943,4 +917,3 @@ export const sdrActivities: SDRActivity[] = [
   { sdrId: "SDR-003", date: "2026-06-05", callsMade: 40, callMinutes: 160, emailsSent: 52, whatsappMessages: 14, linkedinMessages: 20, meetingsBooked: 1, meetingsCompleted: 2 },
   { sdrId: "SDR-003", date: "2026-06-06", callsMade: 36, callMinutes: 144, emailsSent: 46, whatsappMessages: 10, linkedinMessages: 16, meetingsBooked: 1, meetingsCompleted: 1 },
 ];
-

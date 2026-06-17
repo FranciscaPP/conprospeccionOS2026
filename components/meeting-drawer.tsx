@@ -50,7 +50,6 @@ import {
   getClientDecision,
   getValidationResultLabel,
   isClientLocked,
-  isContractuallyValid,
   meetingStatusToCP,
 } from "@/lib/meeting-rules";
 
@@ -61,7 +60,7 @@ interface MeetingDrawerProps {
   mode: "client" | "internal";
 }
 
-type ClientDrawerTab = "validation" | "contact" | "evaluation" | "commercial";
+type ClientDrawerTab = "validation" | "contact" | "evaluation";
 
 const bantOptions: BANTCriteria[] = ["budget", "authority", "need", "timeline"];
 const leadFieldClass = "min-w-0 space-y-1";
@@ -96,7 +95,7 @@ function EvidenceChecklist({ meeting }: { meeting: Meeting }) {
           <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.note}</p>
           {item.quote && (
             <p className="mt-2 rounded-md bg-background p-2 text-xs leading-5 text-foreground">
-              “{item.quote}”
+              "{item.quote}"
             </p>
           )}
         </div>
@@ -143,23 +142,17 @@ function BantSelector({
 export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerProps) {
   const { refreshMeetings, updateMeeting } = useApp();
   const [formData, setFormData] = useState<Partial<Meeting>>({});
-  const [rejectionReason, setRejectionReason] = useState<RejectionReason>("wrong_role");
+  const [rejectionReason, setRejectionReason] = useState<RejectionReason>("icp_mismatch");
   const [clientComment, setClientComment] = useState("");
   const [clientAction, setClientAction] = useState<Exclude<ClientDecision, "pending">>("accepted");
-  const [commercialStatus, setCommercialStatus] = useState<CommercialStatus>("pending_followup");
-  const [commercialNextStep, setCommercialNextStep] = useState("");
-  const [clientTab, setClientTab] = useState<ClientDrawerTab>("validation");
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!meeting) return;
     setFormData(meeting);
-    setRejectionReason(meeting.rejectionReason || "wrong_role");
+    setRejectionReason(meeting.rejectionReason || "icp_mismatch");
     setClientComment(meeting.clientComment || "");
     setClientAction(meeting.clientDecision && meeting.clientDecision !== "pending" ? meeting.clientDecision : "accepted");
-    setCommercialStatus(meeting.commercialStatus || "pending_followup");
-    setCommercialNextStep(meeting.nextStep || "");
-    setClientTab("validation");
     setSaveError(null);
   }, [meeting]);
 
@@ -172,7 +165,6 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
 
   const clientDecision = getClientDecision(meeting);
   const locked = isClientLocked(meeting);
-  const validByContract = isContractuallyValid(meeting);
   const isClientMode = mode === "client";
   const showClientSection = (_tab: ClientDrawerTab) => true;
 
@@ -187,51 +179,72 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
   };
 
   const acceptMeeting = async () => {
+    const finalValidation = deriveFinalValidation({
+      ...meeting,
+      clientValidation: "valid_client",
+      clientDecision: "accepted",
+    });
     const updates: Partial<Meeting> = {
       clientValidation: "valid_client",
       clientDecision: "accepted",
       clientDecisionAt: new Date().toISOString(),
       clientComment,
-      finalValidation: validByContract ? "final_valid" : "in_dispute",
+      finalValidation,
     };
     updateMeeting(meeting.id, updates);
-    const ok = await persistClientValidation(meeting.id, updates.finalValidation as FinalValidation);
+    const ok = await persistClientValidation(meeting.id, updates);
     if (ok) onClose();
   };
 
   const rejectMeeting = async () => {
+    const finalValidation = deriveFinalValidation({
+      ...meeting,
+      clientValidation: "not_valid_client",
+      clientDecision: "rejected",
+    });
     const updates: Partial<Meeting> = {
       clientValidation: "not_valid_client",
       clientDecision: "rejected",
       clientDecisionAt: new Date().toISOString(),
       rejectionReason,
       clientComment,
-      finalValidation: meeting.cpValidation === "valid_cp" ? "in_dispute" : "final_not_valid",
+      finalValidation,
     };
     updateMeeting(meeting.id, updates);
-    const ok = await persistClientValidation(meeting.id, updates.finalValidation as FinalValidation);
+    const ok = await persistClientValidation(meeting.id, updates);
     if (ok) onClose();
   };
 
   const requestReview = async () => {
+    const finalValidation = deriveFinalValidation({
+      ...meeting,
+      clientValidation: "requires_review",
+      clientDecision: "review_requested",
+    });
     const updates: Partial<Meeting> = {
       clientValidation: "requires_review",
       clientDecision: "review_requested",
       clientDecisionAt: new Date().toISOString(),
+      rejectionReason,
       clientComment,
-      finalValidation: "in_dispute",
+      finalValidation,
     };
     updateMeeting(meeting.id, updates);
-    const ok = await persistClientValidation(meeting.id, "in_dispute");
+    const ok = await persistClientValidation(meeting.id, updates);
     if (ok) onClose();
   };
 
-  const persistClientValidation = async (id: string, finalValidation: FinalValidation): Promise<boolean> => {
+  const persistClientValidation = async (id: string, updates: Partial<Meeting>): Promise<boolean> => {
     try {
       const response = await fetch("/api/internal/meetings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, finalValidation }),
+        body: JSON.stringify({
+          id,
+          finalValidation: updates.finalValidation,
+          comment: updates.clientComment,
+          reasons: updates.rejectionReason ? [rejectionReasonLabels[updates.rejectionReason]] : undefined,
+        }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "No se pudo guardar la validación.");
@@ -246,6 +259,10 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
 
   const saveClientDecision = () => {
     setSaveError(null);
+    if (clientAction !== "accepted" && (!rejectionReason || clientComment.trim().length === 0)) {
+      setSaveError("Para observar o disputar la validez, selecciona un motivo y agrega un comentario.");
+      return;
+    }
     if (clientAction === "accepted") {
       void acceptMeeting();
       return;
@@ -255,31 +272,6 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
       return;
     }
     void rejectMeeting();
-  };
-
-  const saveCommercialProgress = async () => {
-    const updates: Partial<Meeting> = {
-      commercialStatus,
-      nextStep: commercialNextStep,
-    };
-    updateMeeting(meeting.id, updates);
-    try {
-      const response = await fetch("/api/internal/meetings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: meeting.id,
-          commercialStatus,
-          nextStep: commercialNextStep,
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "No se pudo guardar el avance comercial.");
-      await refreshMeetings();
-      onClose();
-    } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "No se pudo guardar el avance comercial. Reintenta en unos segundos.");
-    }
   };
 
   return (
@@ -567,7 +559,7 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                     </div>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Variables comerciales consideradas</Label>
+                    <Label className="text-xs text-muted-foreground">BANT detectado por IA/CP</Label>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {meeting.cpBANT.length > 0 ? (
                         meeting.cpBANT.map((criteria) => (
@@ -584,7 +576,11 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                     </div>
                   </div>
                   <p className="text-xs leading-5 text-muted-foreground">
-                    Criterio base: perfil dentro del ICP acordado y al menos dos variables comerciales válidas.
+                    Mínimo requerido para validez: 2/4 variables BANT detectadas por IA/CP.
+                  </p>
+                  <EvidenceChecklist meeting={meeting} />
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Criterio base: ICP trabajado desde base/campaña, mínimo requerido 2/4 variables BANT detectadas por IA/CP y evidencia suficiente.
                   </p>
                 </div>
               )}
@@ -606,9 +602,9 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                         {clientDecisionLabels[clientDecision]}
                       </div>
                       <p className="text-sm leading-6 text-muted-foreground">
-                        {clientDecision === "accepted" && "Reunión validada. Esta validación quedó registrada."}
-                        {clientDecision === "rejected" && "Reunión no validada. Solo Conprospección puede reabrirla internamente si corresponde."}
-                        {clientDecision === "review_requested" && "Solicitud de revisión registrada. No se puede modificar hasta respuesta de Conprospección."}
+                        {clientDecision === "accepted" && "Reunión aceptada. Esta validación quedó registrada."}
+                        {clientDecision === "rejected" && "Validez disputada. Conprospección revisará el respaldo y el motivo contractual."}
+                        {clientDecision === "review_requested" && "Observación registrada. Conprospección revisará el respaldo y el motivo contractual."}
                       </p>
                       {meeting.rejectionReason && (
                         <p className="mt-2 text-xs text-muted-foreground">
@@ -620,9 +616,9 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                     <>
                       <div className="grid gap-2 sm:grid-cols-3">
                         {[
-                          { value: "accepted", label: "Validar" },
-                          { value: "rejected", label: "No validar" },
-                          { value: "review_requested", label: "Pedir revisión" },
+                          { value: "accepted", label: "Aceptar reunión" },
+                          { value: "rejected", label: "Disputar validez" },
+                          { value: "review_requested", label: "Observar" },
                         ].map((option) => (
                           <button
                             key={option.value}
@@ -630,9 +626,6 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                             onClick={() => {
                               const nextAction = option.value as Exclude<ClientDecision, "pending">;
                               setClientAction(nextAction);
-                              if (nextAction === "review_requested") {
-                                setClientTab("evaluation");
-                              }
                             }}
                             className={`min-h-10 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
                               clientAction === option.value
@@ -644,11 +637,11 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                           </button>
                         ))}
                       </div>
-                      {clientAction === "rejected" && (
+                      {clientAction !== "accepted" && (
                         <div className="space-y-2">
-                          <Label className="text-xs text-muted-foreground">Motivo si no la validas</Label>
+                          <Label className="text-xs text-muted-foreground">Motivo contractual</Label>
                           <select
-                            aria-label="Motivo si no la validas"
+                            aria-label="Motivo contractual"
                             className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
                             value={rejectionReason}
                             onChange={(event) => setRejectionReason(event.target.value as RejectionReason)}
@@ -661,18 +654,19 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                           </select>
                         </div>
                       )}
-                      {clientAction === "rejected" && meeting.cpValidation === "valid_cp" && (
+                      {clientAction !== "accepted" && meeting.cpValidation === "valid_cp" && (
                         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
-                          CP ya validó esta reunión con evidencia, ICP y variables BANT. Si no estás de acuerdo,
-                          guardaremos la solicitud como reevaluación para revisar el respaldo y el motivo.
+                          CP ya validó esta reunión con evidencia, ICP trabajado y variables BANT IA/CP. Si observas o disputas la validez, revisaremos el respaldo y el motivo contractual.
                         </div>
                       )}
                       <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Comentario opcional</Label>
+                        <Label className="text-xs text-muted-foreground">
+                          {clientAction === "accepted" ? "Comentario opcional" : "Comentario obligatorio"}
+                        </Label>
                         <Textarea
                           value={clientComment}
                           onChange={(event) => setClientComment(event.target.value)}
-                          placeholder="Agrega contexto si corresponde."
+                          placeholder="Describe el motivo contractual con el contexto necesario."
                           rows={3}
                         />
                       </div>
@@ -739,66 +733,6 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
                 </section>
               </>
             )}
-
-            {isClientMode && (
-              <>
-                <Separator />
-                <section className="space-y-4">
-                  <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    Avance comercial
-                    <span className="font-normal text-xs text-muted-foreground">· tu seguimiento, no afecta la validación</span>
-                  </h3>
-                  <div className="rounded-lg border border-border bg-muted/30 p-3">
-                    <p className="mb-3 text-sm leading-6 text-muted-foreground">
-                      Registro simple para seguimiento posterior a la reunión. Este avance comercial no modifica la validación para meta.
-                    </p>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Estado comercial</Label>
-                        <select
-                          aria-label="Estado comercial"
-                          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/50"
-                          value={commercialStatus}
-                          onChange={(event) => setCommercialStatus(event.target.value as CommercialStatus)}
-                        >
-                          {Object.entries(commercialStatusLabels).map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Próximo paso comercial</Label>
-                        <p className="text-xs leading-5 text-muted-foreground">
-                          ¿Qué acordaron hacer después de la reunión? Si todavía no hay nada definido, podés dejarlo vacío.
-                        </p>
-                        <Input
-                          value={commercialNextStep}
-                          onChange={(event) => setCommercialNextStep(event.target.value)}
-                          placeholder="Ej: Enviar propuesta comercial"
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-3 rounded-lg border border-violet-100 bg-violet-50/60 p-3">
-                      <Label className="text-xs text-muted-foreground">Análisis IA de avance</Label>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        {commercialNextStep
-                          ? `Siguiente acción detectada: ${commercialNextStep}. La IA podrá cruzar este avance con la grabación y la transcripción cuando exista integración real.`
-                          : "Pendiente de próximo paso comercial. La IA podrá sugerir avance cuando exista grabación/transcripción conectada."}
-                      </p>
-                    </div>
-                    <div className="mt-3 flex justify-end">
-                      <Button type="button" variant="outline" size="sm" onClick={() => void saveCommercialProgress()}>
-                        Guardar
-                      </Button>
-                    </div>
-                  </div>
-                </section>
-
-              </>
-            )}
           </div>
         </ScrollArea>
 
@@ -813,15 +747,6 @@ export function MeetingDrawer({ meeting, open, onClose, mode }: MeetingDrawerPro
           ) : locked ? (
             <Button disabled className="flex-1">
               Validación registrada
-            </Button>
-          ) : clientTab !== "validation" ? (
-            <Button
-              type="button"
-              onClick={() => setClientTab("validation")}
-              className="flex-1 gap-1 bg-violet-600 text-white hover:bg-violet-700"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Ir a validar
             </Button>
           ) : (
             <Button onClick={saveClientDecision} className="flex-1 gap-1 bg-violet-600 text-white hover:bg-violet-700">

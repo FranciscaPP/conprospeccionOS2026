@@ -123,16 +123,16 @@ export function deriveAction(meeting: Meeting): MeetingAction {
 
 export function deriveFinalValidation(meeting: Meeting): FinalValidation {
   if (meeting.meetingStatus === "rescheduled") return "rescheduled";
-  if (isProspectNoShow(meeting)) return "final_not_valid";
-  if (meeting.clientDecision === "accepted" || meeting.clientValidation === "valid_client") {
-    return isContractuallyValid(meeting) ? "final_valid" : "in_dispute";
+  if (meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed" || isProspectNoShow(meeting)) {
+    return "final_not_valid";
   }
-  if (meeting.clientDecision === "rejected" || meeting.clientValidation === "not_valid_client") {
-    return meeting.cpValidation === "valid_cp" ? "in_dispute" : "final_not_valid";
-  }
-  if (meeting.clientDecision === "review_requested" || meeting.clientValidation === "requires_review") {
-    return "in_dispute";
-  }
+
+  const decision = getClientDecision(meeting);
+  if (decision === "review_requested") return "under_review";
+  if (decision === "rejected") return "in_dispute";
+  if (meeting.cpValidation === "requires_review") return "under_review";
+  if (meeting.cpValidation !== "valid_cp") return "pending";
+  if (decision === "accepted") return "final_valid";
   return "pending";
 }
 
@@ -154,19 +154,21 @@ export function getSimpleClientStatus(meeting: Meeting) {
   if (meeting.meetingStatus === "rescheduled" || meeting.finalValidation === "rescheduled") return "Reagendada";
   if (isProspectNoShow(meeting) || meeting.clientValidation === "not_completed") return "No realizada";
   if (decision === "accepted") return "Validada";
-  if (decision === "rejected") return "No validada";
-  if (decision === "review_requested" || meeting.finalValidation === "in_dispute") return "En revisión";
+  if (decision === "rejected") return "En disputa";
+  if (decision === "review_requested" || meeting.finalValidation === "under_review") return "En revisión";
   return "Pendiente";
 }
 
 export function getValidationResultLabel(meeting: Meeting) {
   if (meeting.finalValidation === "final_valid") return "Validada";
   if (meeting.finalValidation === "final_not_valid") return "No válida";
-  if (meeting.finalValidation === "in_dispute") return "En revisión";
+  if (meeting.finalValidation === "under_review") return "En revisión";
+  if (meeting.finalValidation === "in_dispute") return "En disputa";
   if (meeting.finalValidation === "rescheduled") return "Reagendada";
   if (meeting.cpValidation === "valid_cp") return "Validada";
   if (meeting.cpValidation === "not_valid_cp") return "No válida";
-  return "Pendiente";
+  if (meeting.cpValidation === "requires_review") return "En revisión";
+  return "Pendiente cliente";
 }
 
 export function getValidationTooltip(meeting: Meeting) {
@@ -179,7 +181,7 @@ export function getValidationTooltip(meeting: Meeting) {
 
   return [
     `Criterios detectados: ${variableText}.`,
-    `ICP: ${meeting.regionValid === false || meeting.personAreaCorrect === false ? "requiere revisión" : "compatible con el perfil acordado"}.`,
+    `ICP trabajado desde base/campaña: ${meeting.regionValid === false || meeting.personAreaCorrect === false ? "alerta de posible incumplimiento con evidencia" : "sin alertas críticas del perfil acordado"}.`,
     evidenceText,
     interestText ? `Contexto: ${interestText}` : "",
   ]

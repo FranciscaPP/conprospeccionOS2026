@@ -313,11 +313,33 @@ function validationFromRow(row: SupabaseMeetingRow): {
     };
   }
 
+  if (validationStatus.includes("disputa")) {
+    return {
+      cpValidation: "valid_cp",
+      clientValidation: "not_valid_client",
+      finalValidation: "in_dispute",
+      clientDecision: "rejected",
+      commercialStatus: "pending_followup",
+      cpBANT: [],
+    };
+  }
+
+  if (validationStatus.includes("observada")) {
+    return {
+      cpValidation: "valid_cp",
+      clientValidation: "requires_review",
+      finalValidation: "under_review",
+      clientDecision: "review_requested",
+      commercialStatus: "pending_followup",
+      cpBANT: [],
+    };
+  }
+
   if (validationStatus.includes("revision")) {
     return {
       cpValidation: "requires_review",
       clientValidation: "requires_review",
-      finalValidation: "in_dispute",
+      finalValidation: "under_review",
       clientDecision: "review_requested",
       commercialStatus: "pending_followup",
       cpBANT: [],
@@ -421,7 +443,6 @@ export function mapSupabaseRowsToMeetings(
       cpBANT: validation.cpBANT,
       cpComment: clean(row.motivo_no_valida) || clean(row.motivo_rechazo) || clean(row.observacion) || "Sin dato",
       clientValidation: validation.clientValidation,
-      clientBANT: [],
       clientComment: clean(row.motivo_no_valida) || clean(row.motivo_rechazo) || "",
       clientDecision: validation.clientDecision,
       finalValidation: validation.finalValidation,

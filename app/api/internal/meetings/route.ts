@@ -153,7 +153,16 @@ function validationPatch(finalValidation: string | undefined) {
 
   if (finalValidation === "in_dispute") {
     return {
-      estado_validacion: "revision_solicitada",
+      estado_validacion: "en_disputa",
+      es_valida: null,
+      reagendada: false,
+      pendiente_validacion: false,
+    };
+  }
+
+  if (finalValidation === "under_review") {
+    return {
+      estado_validacion: "observada_cliente",
       es_valida: null,
       reagendada: false,
       pendiente_validacion: false,
