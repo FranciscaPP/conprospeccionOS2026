@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-saira), var(--font-inter), system-ui, sans-serif;
-  --font-display: var(--font-saira), var(--font-inter), system-ui, sans-serif;
-  --font-sans: var(--font-saira-body), var(--font-inter), system-ui, sans-serif;
+  --font-heading: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-inter), system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), 'Geist Mono', monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -61,12 +61,12 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.02 260);
   
-  /* Carbon primary (brand) */
-  --primary: #333333;
+  /* Primary — morado de marca, único para todos los clientes (sin tema por cliente) */
+  --primary: #6d28d9;
   --primary-foreground: #ffffff;
 
   /* Brand tokens (Conprospección) */
-  --gold: #ffd700;
+  --gold: #7c3aed;
   --carbon: #333333;
   --canvas: #f6f6f4;
   --ink: #1a1a1a;
@@ -193,18 +193,9 @@
   background: var(--gold);
 }
 
-/* Tema GBS (morado de marca) para el portal cliente. Tipografía sin cambios. */
-.gbs-theme {
-  --primary: #5b21b6;
-  --primary-foreground: #ffffff;
-  --gold: #7c3aed;
-  --accent: #f5f3ff;
-  --accent-foreground: #5b21b6;
-  --ring: oklch(0.55 0.2 300);
-}
-.gbs-theme [data-slot="progress-indicator"] { background: #7c3aed; }
+.font-sans { font-family: var(--font-inter), system-ui, sans-serif; }
 
-.font-display { font-family: var(--font-saira), var(--font-inter), system-ui, sans-serif; }
+.font-display { font-family: var(--font-inter), system-ui, sans-serif; }
 .tnum { font-variant-numeric: tabular-nums; }
 .shadow-card { box-shadow: var(--shadow-card); }
 body { font-feature-settings: "cv05", "ss01"; }

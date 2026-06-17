@@ -37,8 +37,7 @@ const internalNavItems = [
   { href: "/internal/sdr-performance", label: "Performance SDR", icon: UserCheck },
 ];
 
-const ACTIVE_NAV_INTERNAL = "bg-[rgba(255,215,0,0.14)] text-[#ffd700]";
-const ACTIVE_NAV_CLIENT = "bg-[rgba(124,58,237,0.26)] text-white";
+const ACTIVE_NAV = "bg-[rgba(124,58,237,0.26)] text-white";
 const INACTIVE_NAV = "text-[#b8b1c9] hover:bg-white/5 hover:text-white";
 
 export function Sidebar() {
@@ -53,11 +52,9 @@ export function Sidebar() {
 
   const navItems = visibleRole === "client" ? clientNavItems : internalNavItems;
   const subtitle = visibleRole === "client" ? "Portal cliente" : "Panel interno";
-  // Tema GBS (morado) para la vista cliente; carbón/dorado para la interna.
-  const isClient = visibleRole === "client";
-  const activeNav = isClient ? ACTIVE_NAV_CLIENT : ACTIVE_NAV_INTERNAL;
-  const barBg = isClient ? "bg-[#241046]" : "bg-[#2b2b2b]";
-  const barHover = isClient ? "hover:bg-[#2f1559]" : "hover:bg-[#3a3a3a]";
+  // Tema único (morado de marca) para cliente e interno — sin customización por cliente.
+  const barBg = "bg-[#241046]";
+  const barHover = "hover:bg-[#2f1559]";
 
   return (
     <>
@@ -110,7 +107,7 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 "flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-medium leading-tight transition-colors",
-                isActive ? (isClient ? "text-white" : "text-[#ffd700]") : "text-[#aaaaa3]"
+                isActive ? "text-white" : "text-[#aaaaa3]"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -205,7 +202,7 @@ export function Sidebar() {
                 className={cn(
                   "flex items-center rounded-lg text-sm font-medium transition-colors",
                   sidebarCollapsed ? "justify-center px-0 py-3" : "gap-3 px-3 py-2.5",
-                  isActive ? activeNav : INACTIVE_NAV
+                  isActive ? ACTIVE_NAV : INACTIVE_NAV
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />

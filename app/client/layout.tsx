@@ -16,7 +16,7 @@ function ClientLayoutContent({ children }: { children: React.ReactNode }) {
   }, [role, pathname, setRole]);
 
   return (
-    <div className="gbs-theme min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <Sidebar />
       <main
         className={`min-w-0 overflow-hidden pt-14 pb-16 transition-[margin,width] duration-200 lg:pt-0 lg:pb-0 ${
