@@ -193,6 +193,17 @@
   background: var(--gold);
 }
 
+/* Tema GBS (morado de marca) para el portal cliente. Tipografía sin cambios. */
+.gbs-theme {
+  --primary: #5b21b6;
+  --primary-foreground: #ffffff;
+  --gold: #7c3aed;
+  --accent: #f5f3ff;
+  --accent-foreground: #5b21b6;
+  --ring: oklch(0.55 0.2 300);
+}
+.gbs-theme [data-slot="progress-indicator"] { background: #7c3aed; }
+
 .font-display { font-family: var(--font-saira), var(--font-inter), system-ui, sans-serif; }
 .tnum { font-variant-numeric: tabular-nums; }
 .shadow-card { box-shadow: var(--shadow-card); }

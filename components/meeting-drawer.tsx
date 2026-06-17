@@ -65,7 +65,7 @@ type ClientDrawerTab = "validation" | "contact" | "evaluation";
 const bantOptions: BANTCriteria[] = ["budget", "authority", "need", "timeline"];
 const leadFieldClass = "min-w-0 space-y-1";
 const leadValueClass = "min-w-0 break-words text-sm font-medium text-foreground [overflow-wrap:anywhere]";
-const leadLinkClass = "min-w-0 break-words text-sm font-medium text-[#333] underline-offset-2 hover:underline [overflow-wrap:anywhere]";
+const leadLinkClass = "min-w-0 break-words text-sm font-medium text-[#5b21b6] underline-offset-2 hover:underline [overflow-wrap:anywhere]";
 
 function EvidenceChecklist({ meeting }: { meeting: Meeting }) {
   const evidence = meeting.bantEvidence?.length
@@ -114,7 +114,7 @@ function BantSelector({
   tone?: "violet" | "amber";
 }) {
   const active = tone === "violet"
-    ? "bg-[#f0f0ee] text-[#333] border-[#333]"
+    ? "bg-[#f5f3ff] text-[#5b21b6] border-[#7c3aed]"
     : "bg-amber-100 text-amber-700 border-amber-300";
   return (
     <div className="flex flex-wrap gap-2">
