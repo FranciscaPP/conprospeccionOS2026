@@ -177,14 +177,8 @@ export default function MeetingValidationPage() {
       const clientDecision = getClientDecision(meeting);
       const bantScore = getBANTScore(meeting);
       const meetingDay = meeting.meetingDate.slice(0, 10);
-      const meetingMonth = meeting.meetingDate.slice(0, 7);
-      const meetingYear = meeting.meetingDate.slice(0, 4);
       const matchesSearch = !query || getClientSearchText(meeting).includes(query);
-      const matchesDate =
-        dateFilterType === "all" ||
-        (dateFilterType === "year" && (yearFilter === "all" || meetingYear === yearFilter)) ||
-        (dateFilterType === "month" && (monthFilter === "all" || meetingMonth === monthFilter)) ||
-        (dateFilterType === "day" && (!dayFilter || meetingDay === dayFilter));
+      const matchesDate = !dayFilter || meetingDay === dayFilter;
       const matchesCountry = countryFilter === "all" || meeting.country === countryFilter;
       const matchesMeetingStatus = meetingStatusFilter === "all" || meeting.meetingStatus === meetingStatusFilter;
       const matchesCPValidation = cpValidationFilter === "all" || meeting.cpValidation === cpValidationFilter;
@@ -208,9 +202,6 @@ export default function MeetingValidationPage() {
   }, [
     clientMeetings,
     searchQuery,
-    dateFilterType,
-    yearFilter,
-    monthFilter,
     dayFilter,
     countryFilter,
     meetingStatusFilter,
@@ -269,9 +260,6 @@ export default function MeetingValidationPage() {
   const hasActiveFilters =
     searchQuery.trim() !== "" ||
     kpiFilter !== "all" ||
-    dateFilterType !== "all" ||
-    yearFilter !== "all" ||
-    monthFilter !== "all" ||
     dayFilter !== "" ||
     countryFilter !== "all" ||
     meetingStatusFilter !== "all" ||
@@ -282,9 +270,6 @@ export default function MeetingValidationPage() {
   const clearFilters = () => {
     setSearchQuery("");
     setKpiFilter("all");
-    setDateFilterType("all");
-    setYearFilter("all");
-    setMonthFilter("all");
     setDayFilter("");
     setCountryFilter("all");
     setMeetingStatusFilter("all");
@@ -299,9 +284,6 @@ export default function MeetingValidationPage() {
     setQueryClient(slug);
     setSearchQuery("");
     setKpiFilter("all");
-    setDateFilterType("all");
-    setYearFilter("all");
-    setMonthFilter("all");
     setDayFilter("");
     setCountryFilter("all");
     setMeetingStatusFilter("all");
@@ -326,7 +308,7 @@ export default function MeetingValidationPage() {
 
   return (
     <div className="flex-1 overflow-hidden">
-      <header className="border-b border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
+      <header className="border-b border-border bg-card px-4 py-3 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-2">
@@ -371,8 +353,8 @@ export default function MeetingValidationPage() {
       </header>
 
       <ScrollArea className="h-[calc(100dvh-7rem)] lg:h-[calc(100vh-65px)]">
-        <div className="space-y-4 p-4 sm:p-6">
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="space-y-3 p-3 sm:p-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
             <MeetingKpi
               title="Total generadas"
               value={kpis.total}
@@ -414,7 +396,29 @@ export default function MeetingValidationPage() {
             />
           </div>
 
-          <section className="rounded-[12px] border border-[var(--line)] bg-white p-4 shadow-card">
+          <section className="rounded-[12px] border border-[var(--line)] bg-white px-3 py-2.5 shadow-card">
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+              <h3 className="flex shrink-0 items-center gap-2 text-sm font-semibold text-foreground">
+                <BookOpen className="h-4 w-4 text-[var(--ink-2)]" />
+                Criterios de reunión válida
+              </h3>
+              <ul className="grid flex-1 gap-1.5 text-xs text-muted-foreground sm:grid-cols-2 xl:grid-cols-4">
+                {[
+                  "Reunión realizada",
+                  "Mínimo 2 variables BANT detectadas por IA/CP",
+                  "ICP trabajado desde base/campaña, sin alerta contractual",
+                  "Evidencia suficiente",
+                ].map((criterion) => (
+                  <li key={criterion} className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[var(--ok)]" />
+                    <span>{criterion}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          <section className="hidden">
             <button
               type="button"
               onClick={() => setShowExplainer((value) => !value)}
@@ -452,7 +456,7 @@ export default function MeetingValidationPage() {
           </section>
 
           <section className="rounded-[13px] border border-[var(--line)] bg-white p-3 shadow-card">
-            <div className="grid gap-3 lg:grid-cols-[minmax(300px,1fr)_minmax(320px,420px)_180px_auto] lg:items-end">
+            <div className="grid gap-3 lg:grid-cols-[minmax(300px,1fr)_180px_180px_auto] lg:items-end">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -463,6 +467,16 @@ export default function MeetingValidationPage() {
                 />
               </div>
               <div>
+                <FilterLabel>Fecha</FilterLabel>
+                <Input
+                  aria-label="Fecha"
+                  type="date"
+                  value={dayFilter}
+                  onChange={(event) => setDayFilter(event.target.value)}
+                  className="h-10 rounded-[10px] text-sm"
+                />
+              </div>
+              <div className="hidden">
                 <FilterLabel>Fecha</FilterLabel>
                 <div className="grid gap-2 sm:grid-cols-[132px_minmax(0,1fr)]">
                   <NativeFilter
