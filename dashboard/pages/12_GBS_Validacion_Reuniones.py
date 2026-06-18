@@ -1,404 +1,912 @@
-"""Portal cliente GBS Logistics — Validación de Reuniones (3 capas, idéntico a Seguimiento)."""
-import sys, calendar, requests, pandas as pd, streamlit as st
-from datetime import date, datetime, timezone
+"""Portal cliente GBS Logistics - validacion contractual de reuniones."""
+
+import calendar
+import html
+import sys
+from datetime import date
 from pathlib import Path
+
+import pandas as pd
+import requests
+import streamlit as st
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DASHBOARD_DIR = Path(__file__).resolve().parent.parent
-
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 
-from shared.config import supabase_url, supabase_key, ghl_tokens
-from shared.gbs_brand import GBS_PURPLE, GBS_DARK, GBS_PURPLE_BG, GBS_BORDER_2
+from portal_auth import img_b64, render_client_nav, require_auth_client
+from shared.config import supabase_key, supabase_url
+from shared.gbs_brand import GBS_BORDER_2, GBS_DARK, GBS_PURPLE, GBS_PURPLE_BG
 from shared.metas import meta_de
 from shared.seguimiento import (
-    cargar as cargar_seg_unif, guardar_nivel, bant_to_list,
-    recalcular_final_y_flags, registrar_historial, COLUMNAS_CLIENTE,
+    COLUMNAS_CLIENTE,
+    bant_to_list,
+    payload_respuesta_cliente,
+    recalcular_final_y_flags,
+    registrar_historial,
 )
-from shared.validacion import VAL_ESTADOS, MOTIVO_NO_VALIDEZ, ESTADO_COMERCIAL
+from shared.validacion import (
+    ESTADOS_FLUJO,
+    LABEL_ESTADO_FLUJO,
+    MOTIVO_NO_VALIDEZ,
+    acciones_cliente_permitidas,
+    bant_desde_fuentes,
+    construir_justificacion,
+    derivar_estado_flujo,
+    derivar_final,
+    icp_gbs,
+    informacion_reunion,
+    texto_real,
+    valor_custom_field,
+)
 from shared.validacion_ui import (
-    LABEL_VALIDEZ, LABEL_ESTADO_COMERCIAL, LABEL_MOTIVO, BANT_LABEL,
-    chip_status, banner_final, fila_resumen, bloque_resumen, encabezado_seccion,
-    barra_avance, mini_label, CAP_CP, CAP_CLI,
+    BANT_LABEL,
+    LABEL_FINAL,
+    LABEL_MOTIVO,
+    LABEL_STATUS,
+    LABEL_VALIDEZ,
+    banner_final,
+    bant_chips,
+    barra_avance,
+    chip_status,
+    chip_estado_flujo,
+    chip_validez,
+    tarjeta_estado_flujo,
 )
-from portal_auth import require_auth_client, render_client_nav, img_b64
 
-st.set_page_config(page_title="GBS Logistics — Validación Reuniones", layout="wide", page_icon="")
+st.set_page_config(
+    page_title="GBS Logistics - Validacion Reuniones",
+    layout="wide",
+    page_icon="",
+)
 
 SUPABASE_URL = supabase_url()
 SUPABASE_KEY = supabase_key()
-GHL_TOKEN = ghl_tokens().get("gbs", "")
+_H = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+_HW = {**_H, "Content-Type": "application/json"}
 
-MESES_ES = ["enero","febrero","marzo","abril","mayo","junio",
-            "julio","agosto","septiembre","octubre","noviembre","diciembre"]
-DIAS_ES = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]
+MESES_ES = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+]
+DIAS_ES = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
 
-_CLI_VAL_TO_CAT = {"valida": "reunion_valida", "no_valida": "reunion_no_valida"}
-_FILTRO_ESTADO_OPTS = ["Todos", "Válidas", "No válidas", "Pendientes"]
-
-_H  = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
-_HW = {**_H, "Content-Type": "application/json", "Prefer": "return=minimal"}
-
-GBS_BG     = GBS_PURPLE_BG
-GBS_BORDER = GBS_BORDER_2
-GBS_BLUE   = GBS_PURPLE
+FILTROS_KPI = {
+    "all": "Total reuniones",
+    "valid": "Válidas",
+    "not_valid": "No válidas",
+    "progress": "Avance meta",
+}
 
 
-def _safe(v, d="—"):
-    if v is None or (isinstance(v, float) and pd.isna(v)): return d
-    s = str(v).strip(); return s or d
+def _clean(value, default=""):
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return default
+    return texto_real(value) or default
 
-def fmt_fecha(d):
-    if d is None or (isinstance(d, float) and pd.isna(d)): return "—"
-    dt = pd.to_datetime(str(d))
-    return f"{DIAS_ES[dt.weekday()]} {dt.day} de {MESES_ES[dt.month-1]} {dt.year}"
+
+def _safe_html(value):
+    return html.escape(_clean(value))
+
 
 def mes_rango(anio, mes):
-    _, ult = calendar.monthrange(anio, mes)
-    return f"{anio}-{mes:02d}-01", f"{anio}-{mes:02d}-{ult:02d}"
+    _, ultimo = calendar.monthrange(anio, mes)
+    return f"{anio}-{mes:02d}-01", f"{anio}-{mes:02d}-{ultimo:02d}"
+
+
+def fmt_fecha(value):
+    if not value:
+        return ""
+    dt = pd.to_datetime(str(value), errors="coerce")
+    if pd.isna(dt):
+        return ""
+    return f"{DIAS_ES[dt.weekday()]} {dt.day} de {MESES_ES[dt.month - 1]} {dt.year}"
+
+
+def normalizar_status(value):
+    status = _clean(value).lower()
+    return {
+        "completed": "realizada",
+        "confirmed": "agendada",
+        "scheduled": "agendada",
+        "cancelled": "cancelada_cliente",
+        "canceled": "cancelada_cliente",
+        "no_show": "no_asistio_lead",
+        "rescheduled": "reagendada",
+        "solicita_cotizacion": "agendada",
+    }.get(status, status if status in LABEL_STATUS else "sin_info")
+
+
+def normalizar_cp(row, seg):
+    cp = _clean(seg.get("val_estado_cp"))
+    if cp:
+        return cp
+    estado = _clean(row.get("estado_validacion")).lower()
+    if estado in {"valida", "reunion_valida"} or row.get("es_valida") is True:
+        return "valida"
+    if estado in {"no_valida", "reunion_no_valida"}:
+        return "no_valida"
+    return "espera"
+
+
+def bant_cp(row, seg):
+    return bant_desde_fuentes(row, seg)
+
+
+def evidencia_disponible(row, seg):
+    return any(
+        _clean(value)
+        for value in (
+            seg.get("recording_url"),
+            seg.get("transcript_url"),
+            seg.get("ai_summary"),
+            seg.get("ai_evidence"),
+            row.get("recording_url"),
+            row.get("transcript_url"),
+            row.get("ai_summary"),
+            row.get("ai_evidence"),
+        )
+    )
+
+
+def valor_evidencia(row, seg, field):
+    return _clean(seg.get(field)) or _clean(row.get(field))
 
 
 @st.cache_data(ttl=60)
-def cargar_reuniones(fi, ff):
-    url = (f"{SUPABASE_URL}/rest/v1/vw_reuniones_semana"
-           f"?select=*&cliente_slug=eq.gbs&fecha=gte.{fi}&fecha=lte.{ff}&order=fecha.asc,hora.asc")
-    r = requests.get(url, headers=_H, timeout=15)
-    df = pd.DataFrame(r.json() if r.ok and r.json() else [])
+def cargar_reuniones(fecha_inicio, fecha_fin):
+    base_fields = (
+        "id,fecha_reunion,hora_reunion,empresa,contacto,cargo,email,telefono,"
+        "industria,pais,estado_reunion,estado_validacion,es_valida,observacion,raw_data,"
+        "motivo_no_valida,direccion_reunion,recording_url,transcript_url,"
+        "ai_summary,ai_evidence,ai_bant_detected,ai_recommendation,ai_confidence"
+    )
+    fields = f"{base_fields},informacion_reunion,bant_sdr"
+    url = (
+        f"{SUPABASE_URL}/rest/v1/reuniones?select={fields}"
+        f"&cliente_slug=eq.gbs"
+        f"&fecha_reunion=gte.{fecha_inicio}&fecha_reunion=lte.{fecha_fin}"
+        f"&order=fecha_reunion.desc,hora_reunion.desc"
+    )
+    response = requests.get(url, headers=_H, timeout=15)
+    if not response.ok:
+        fallback_url = url.replace(fields, base_fields)
+        response = requests.get(fallback_url, headers=_H, timeout=15)
+    rows = response.json() if response.ok else []
+    df = pd.DataFrame(rows)
     if not df.empty:
-        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce").dt.date
-        if "nombre" in df.columns and "contacto" not in df.columns:
-            df["contacto"] = df["nombre"]
+        df["fecha"] = pd.to_datetime(df["fecha_reunion"], errors="coerce").dt.date
+        df["hora"] = df["hora_reunion"].fillna("").astype(str).str[:5]
     return df
 
-@st.cache_data(ttl=300)
-def cargar_stages():
-    r = requests.get(
-        f"{SUPABASE_URL}/rest/v1/ghl_pipeline_stages"
-        f"?select=pipeline_id,pipeline_name,stage_id,stage_category&cliente_slug=eq.gbs",
-        headers=_H, timeout=15)
-    if not r.ok: return {}
-    rows = r.json()
-    src = ([x for x in rows if "gbs" in x.get("pipeline_name","").lower() or
-            "sales" in x.get("pipeline_name","").lower()] or rows)
-    out = {}
-    for x in src:
-        cat = x.get("stage_category")
-        if cat and cat not in out:
-            out[cat] = (x["pipeline_id"], x["stage_id"])
-    return out
 
 @st.cache_data(ttl=30)
 def cargar_seguimiento():
-    # Solo columnas visibles al cliente: nunca trae notas internas ni datos operativos.
-    return cargar_seg_unif("gbs", select=COLUMNAS_CLIENTE)
+    base_url = (
+        f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones"
+        f"?select={COLUMNAS_CLIENTE}&cliente_slug=eq.gbs"
+    )
+    response = requests.get(
+        base_url,
+        headers=_H,
+        timeout=15,
+    )
+    if not response.ok:
+        legacy_columns = COLUMNAS_CLIENTE.replace(
+            ",informacion_reunion_manual,icp_cumple",
+            "",
+        )
+        response = requests.get(
+            base_url.replace(COLUMNAS_CLIENTE, legacy_columns),
+            headers=_H,
+            timeout=15,
+        )
+    if not response.ok:
+        return {}
+    return {
+        int(row["reunion_id"]): row
+        for row in response.json()
+        if row.get("reunion_id")
+    }
+
 
 @st.cache_data(ttl=30)
-def contar_validas_finales():
-    r = requests.get(
-        f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones"
-        f"?cliente_slug=eq.gbs&flag_meta_countable=eq.true&select=reunion_id",
-        headers=_H, timeout=15)
-    return len(r.json()) if r.ok else 0
+def cargar_historial(reunion_id):
+    response = requests.get(
+        f"{SUPABASE_URL}/rest/v1/meeting_status_history"
+        f"?select=*&meeting_id=eq.{reunion_id}&order=changed_at.asc",
+        headers=_H,
+        timeout=15,
+    )
+    return response.json() if response.ok else []
 
 
-def upd_validacion(rid, estado):
-    return requests.patch(f"{SUPABASE_URL}/rest/v1/reuniones?id=eq.{rid}",
-                          json={"estado_validacion": estado}, headers=_HW, timeout=10).ok
-
-def mover_ghl(opp_id, pid, sid):
-    if not all([opp_id, pid, sid, GHL_TOKEN]): return None
-    return requests.put(
-        f"https://services.leadconnectorhq.com/opportunities/{opp_id}",
-        json={"pipelineId": pid, "pipelineStageId": sid},
-        headers={"Authorization": f"Bearer {GHL_TOKEN}",
-                 "Content-Type": "application/json", "Version": "2021-07-28"}, timeout=15).ok
-
-def buscar_contacto(term: str) -> pd.DataFrame:
-    t = term.strip().replace("*", "")
-    if not t: return pd.DataFrame()
+@st.cache_data(ttl=300)
+def buscar_contacto(term):
+    clean_term = term.strip().replace("*", "")
+    if not clean_term:
+        return pd.DataFrame()
+    fields = "contacto,empresa,email,telefono,cargo,industria,fecha_reunion,hora_reunion"
     url = (
-        f"{SUPABASE_URL}/rest/v1/reuniones"
-        f"?select=contacto,empresa,email,telefono,cargo,industria,fecha_reunion,hora_reunion"
-        f"&cliente_slug=eq.gbs"
-        f"&or=(email.ilike.*{t}*,empresa.ilike.*{t}*,telefono.ilike.*{t}*,contacto.ilike.*{t}*)"
-        f"&order=fecha_reunion.desc")
-    r = requests.get(url, headers=_H, timeout=15)
-    return pd.DataFrame(r.json() if r.ok else [])
+        f"{SUPABASE_URL}/rest/v1/reuniones?select={fields}&cliente_slug=eq.gbs"
+        f"&or=(email.ilike.*{clean_term}*,empresa.ilike.*{clean_term}*,"
+        f"telefono.ilike.*{clean_term}*,contacto.ilike.*{clean_term}*)"
+        f"&order=fecha_reunion.desc"
+    )
+    response = requests.get(url, headers=_H, timeout=15)
+    return pd.DataFrame(response.json() if response.ok else [])
 
 
-def _vf_de(seg, rid):
-    return seg.get(int(rid) if rid else 0, {}).get("val_estado_final") or "pendiente"
+def enriquecer(df, seguimiento):
+    rows = []
+    for _, source in df.iterrows():
+        row = source.to_dict()
+        reunion_id = int(row.get("id") or 0)
+        seg = seguimiento.get(reunion_id, {})
+        status = _clean(seg.get("status_reunion")) or normalizar_status(row.get("estado_reunion"))
+        cp = normalizar_cp(row, seg)
+        bant = bant_cp(row, seg)
+        client = _clean(seg.get("val_estado_cli")) or "espera"
+        evidence = evidencia_disponible(row, seg)
+        override = seg.get("val_estado_final") if seg.get("final_override") else None
+        final = derivar_final(
+            status,
+            cp,
+            client,
+            bant,
+            override=override,
+            evidencia_suficiente=evidence,
+            resultado_actual=seg.get("val_estado_final"),
+        )
+        row.update({
+            "_seg": seg,
+            "_status": status,
+            "_cp": cp,
+            "_bant": bant,
+            "_client": client,
+            "_evidence": evidence,
+            "_final": final,
+            "_flow": derivar_estado_flujo(
+                row.get("fecha"),
+                status,
+                cp,
+                client,
+                final,
+            ),
+        })
+        rows.append(row)
+    return pd.DataFrame(rows)
 
-def _aplicar_filtro_estado(df, seg, sel):
-    if sel == "Todos":
-        return df
-    if sel == "Válidas":
-        return df[df["id"].apply(lambda r: _vf_de(seg, r) == "valida")]
-    if sel == "No válidas":
-        return df[df["id"].apply(lambda r: _vf_de(seg, r) in ("no_valida", "en_disputa"))]
-    if sel == "Pendientes":
-        return df[df["id"].apply(lambda r: _vf_de(seg, r) in ("pendiente", "reagendada", "excluida", None, ""))]
-    return df
 
-
-def render_buscador():
-    st.markdown(
-        f'<div style="background:{GBS_BG};border:1px solid {GBS_BORDER};border-radius:12px;'
-        f'padding:16px 20px;margin-bottom:18px">'
-        f'<div style="font-size:15px;font-weight:700;color:#4c1d95;margin-bottom:8px">'
-        f'Verificar si un contacto ya tuvo reuniones con GBS Logistics</div>'
-        f'<div style="font-size:12px;color:#6d28d9;margin-bottom:10px">'
-        f'Ingresar correo, nombre de empresa, teléfono o nombre del contacto</div></div>',
-        unsafe_allow_html=True)
-    col_inp, col_btn = st.columns([5, 1])
-    with col_inp:
-        term = st.text_input("Buscar contacto",
-            placeholder="ej: gerente@empresa.cl / Kaufmann / +56912345678",
-            label_visibility="collapsed", key="buscador_term")
-    with col_btn:
-        st.button("Buscar", key="buscador_btn", use_container_width=True)
-    if not (term and len(term.strip()) >= 3):
-        return
-    df_res = buscar_contacto(term)
-    if df_res.empty:
-        st.markdown(
-            '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;'
-            'padding:14px 18px;color:#991b1b;font-weight:600">'
-            'Este contacto no ha tenido reuniones previas con GBS Logistics.</div>',
-            unsafe_allow_html=True)
-    else:
-        n = len(df_res)
-        st.markdown(
-            f'<div style="background:#ede9fe;border:1px solid #c4b5fd;border-radius:10px;'
-            f'padding:14px 18px;color:#4c1d95;font-weight:700;margin-bottom:10px">'
-            f'Encontramos <b>{n}</b> reunión{"es" if n > 1 else ""} previa{"s" if n > 1 else ""} con GBS</div>',
-            unsafe_allow_html=True)
-    st.markdown("---")
+def guardar_respuesta_cliente(reunion_id, estado, comentario="", motivo=None):
+    previous = cargar_seguimiento().get(int(reunion_id), {})
+    try:
+        payload = payload_respuesta_cliente(
+            int(reunion_id),
+            "gbs",
+            estado,
+            comentario=comentario,
+            motivo=motivo,
+        )
+    except ValueError:
+        return False
+    try:
+        response = requests.post(
+            f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones",
+            json=payload,
+            headers={**_HW, "Prefer": "resolution=merge-duplicates,return=minimal"},
+            timeout=15,
+        )
+    except requests.RequestException:
+        return False
+    if not response.ok:
+        return False
+    current = {**previous, **payload}
+    recalculated = recalcular_final_y_flags(
+        int(reunion_id),
+        "gbs",
+        fila=current,
+    )
+    client_history_ok = registrar_historial(
+        int(reunion_id),
+        "val_estado_cli",
+        previous.get("val_estado_cli"),
+        estado,
+        "cliente",
+        "cliente",
+        "validacion_gbs",
+    )
+    final_history_ok = registrar_historial(
+        int(reunion_id),
+        "val_estado_final",
+        previous.get("val_estado_final"),
+        recalculated["final"],
+        "sistema",
+        "sistema",
+        "validacion_gbs",
+    )
+    cargar_seguimiento.clear()
+    cargar_historial.clear()
+    return bool(recalculated["persisted"] and client_history_ok and final_history_ok)
 
 
 def render_header():
-    g = img_b64("gbs_logo.png", 56) or (
-        f'<div style="background:{GBS_BLUE};color:#fff;padding:10px 22px;border-radius:8px;'
-        f'font-size:18px;font-weight:800;letter-spacing:2px">GBS</div>')
-    c = img_b64("conprospeccion_logo.png", 44) or (
-        '<div style="background:#111827;padding:8px 18px;border-radius:8px;'
-        'font-size:13px;font-weight:700;color:#fbbf24">Conprospección</div>')
+    goal = meta_de("gbs") or {"validas": 0}
+    target = int(goal.get("validas") or 0)
     st.markdown(
-        f'<div style="display:flex;align-items:center;justify-content:space-between;'
-        f'background:linear-gradient(135deg,#faf5ff,#ede9fe);padding:18px 28px;'
-        f'border-radius:14px;border:1px solid {GBS_BORDER};margin-bottom:18px;'
-        f'box-shadow:0 2px 8px rgba(0,0,0,.06)">'
-        f'<div style="display:flex;align-items:center;gap:18px">{g}'
-        f'<div><div style="font-size:22px;font-weight:800;color:#1e293b">Portal de Reuniones</div>'
-        f'<div style="font-size:13px;color:#64748b;margin-top:3px">'
-        f'Evaluar cada reunión y registrar el estado comercial</div></div></div>{c}</div>',
-        unsafe_allow_html=True)
+        f'<div style="display:flex;justify-content:space-between;align-items:center;gap:20px;'
+        f'background:linear-gradient(135deg,#faf5ff,#ede9fe);border:1px solid {GBS_BORDER_2};'
+        f'border-radius:12px;padding:13px 22px;margin-bottom:14px">'
+        f'<div><div style="font-size:20px;font-weight:800;color:{GBS_DARK};line-height:1.1">'
+        f'Validación de reuniones</div>'
+        f'<div style="font-size:12px;color:#64748b;margin-top:3px">'
+        f'Revisa las reuniones generadas por Conprospección y confirma o solicita revisión '
+        f'de su evaluación.</div></div>'
+        f'<div style="display:flex;align-items:center;gap:14px">'
+        f'<span style="font-size:12px;font-weight:800;color:{GBS_PURPLE}">'
+        f'Meta · {target} reuniones válidas</span>'
+        f'{img_b64("gbs_logo.png", 42)}{img_b64("conprospeccion_logo.png", 36)}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_buscador():
+    with st.expander("Verificar reuniones anteriores de un contacto", expanded=False):
+        term = st.text_input(
+            "Buscar contacto",
+            placeholder="Correo, empresa, telefono o nombre del contacto",
+            key="gbs_busqueda_historica",
+        )
+        if term and len(term.strip()) >= 3:
+            results = buscar_contacto(term)
+            if results.empty:
+                st.info("No encontramos reuniones anteriores con ese contacto.")
+            else:
+                view = results.rename(columns={
+                    "fecha_reunion": "Fecha",
+                    "hora_reunion": "Hora",
+                    "empresa": "Empresa",
+                    "contacto": "Contacto",
+                    "cargo": "Cargo",
+                    "email": "Email",
+                    "telefono": "Telefono",
+                })
+                columns = [c for c in ["Fecha", "Hora", "Empresa", "Contacto", "Cargo", "Email", "Telefono"] if c in view]
+                st.dataframe(view[columns], use_container_width=True, hide_index=True)
+
+
+def set_kpi_filter(value):
+    st.session_state["gbs_kpi_filter"] = value
+
+
+def render_kpis(base_df):
+    goal = meta_de("gbs") or {"validas": 0}
+    target = int(goal.get("validas") or 0)
+    validas = int((base_df["_final"] == "valida").sum())
+    counts = {
+        "all": len(base_df),
+        "valid": validas,
+        "not_valid": int((base_df["_final"] == "no_valida").sum()),
+        "progress": round(validas / target * 100) if target else 0,
+    }
+    active = st.session_state.get("gbs_kpi_filter")
+    palette = {
+        "all": ("#eff6ff", "#bfdbfe", "#1d4ed8"),
+        "valid": ("#f0fdf4", "#86efac", "#166534"),
+        "not_valid": ("#fef2f2", "#fecaca", "#991b1b"),
+        "progress": ("#fffbeb", "#fde68a", "#92400e"),
+    }
+    styles = []
+    for key, (background, border, color) in palette.items():
+        active_style = f"box-shadow:0 0 0 2px {color}55!important;" if active == key else ""
+        styles.append(
+            f'div[class*="st-key-gbs_kpi_{key}"] button{{'
+            f'background:{background}!important;border:1px solid {border}!important;'
+            f'color:{color}!important;min-height:82px!important;text-align:left!important;'
+            f'font-weight:800!important;white-space:pre-line!important;{active_style}}}'
+            f'div[class*="st-key-gbs_kpi_{key}"] button p{{'
+            f'color:{color}!important;font-size:14px!important;line-height:1.45!important}}'
+        )
+    st.markdown(f"<style>{''.join(styles)}</style>", unsafe_allow_html=True)
+
+    columns = st.columns(4, gap="small")
+    for column, (key, label) in zip(columns, FILTROS_KPI.items()):
+        with column:
+            value = f"{counts[key]}%"
+            if key == "progress":
+                value += f"\n{validas}/{target}"
+                st.button(
+                    f"{label}\n{value}",
+                    key=f"gbs_kpi_{key}",
+                    use_container_width=True,
+                    disabled=True,
+                )
+            else:
+                st.button(
+                    f"{label}\n{counts[key]}",
+                    key=f"gbs_kpi_{key}",
+                    use_container_width=True,
+                    type="primary" if active == key else "secondary",
+                    on_click=set_kpi_filter,
+                    args=(None if active == key else key,),
+                )
+    return counts
+
+
+def aplicar_kpi(df):
+    active = st.session_state.get("gbs_kpi_filter", "all")
+    if active == "valid":
+        return df[df["_final"] == "valida"].copy()
+    if active == "not_valid":
+        return df[df["_final"] == "no_valida"].copy()
+    return df.copy()
+
+
+def tabla_reuniones(df):
+    table = pd.DataFrame({
+        "ID": df["id"].astype(int),
+        "Fecha": pd.to_datetime(df["fecha"], errors="coerce"),
+        "Hora": df["hora"],
+        "Empresa": df["empresa"].fillna(""),
+        "Contacto": df["contacto"].fillna(""),
+        "Cargo": df["cargo"].fillna(""),
+        "Estado": df["_flow"].map(lambda value: LABEL_ESTADO_FLUJO.get(value, value)),
+    })
+    st.caption(
+        "Selecciona una fila para ver el detalle. Haz clic en Fecha para ordenar "
+        "ascendente o descendente."
+    )
+    event = st.dataframe(
+        table,
+        use_container_width=True,
+        hide_index=True,
+        height=min(560, 74 + max(len(table), 1) * 35),
+        on_select="rerun",
+        selection_mode="single-row",
+        column_config={
+            "ID": None,
+            "Fecha": st.column_config.DateColumn("Fecha", format="DD/MM/YYYY"),
+        },
+    )
+    selected_rows = event.selection.rows if event and event.selection else []
+    if not selected_rows:
+        return None
+    selected_index = selected_rows[0]
+    if selected_index < 0 or selected_index >= len(df):
+        return None
+    return df.iloc[selected_index]
+
+
+def render_evidencia(row, seg):
+    recording = valor_evidencia(row, seg, "recording_url")
+    transcript = valor_evidencia(row, seg, "transcript_url")
+    ai_summary = valor_evidencia(row, seg, "ai_summary")
+    ai_evidence = valor_evidencia(row, seg, "ai_evidence")
+    available = [bool(recording), bool(transcript), bool(ai_summary)]
+    cols = st.columns(sum(available)) if any(available) else []
+    index = 0
+    if recording:
+        with cols[index]:
+            st.link_button("Ver grabacion", recording, use_container_width=True)
+        index += 1
+    if transcript:
+        with cols[index]:
+            st.link_button("Ver transcripcion", transcript, use_container_width=True)
+        index += 1
+    if ai_summary:
+        with st.expander("Resumen IA"):
+            st.write(ai_summary)
+    if ai_evidence:
+        with st.expander("Evidencia IA"):
+            st.write(ai_evidence)
+
+
+def render_historial(reunion_id, row):
+    history = cargar_historial(int(reunion_id))
+    items = [(
+        f"{_clean(row.get('fecha_reunion'))} {_clean(row.get('hora_reunion'))}".strip(),
+        "Reunión agendada",
+        "",
+    )]
+    event_labels = {
+        "status_reunion": "Estado de la reunión",
+        "val_estado_cp": "Evaluación Conprospección",
+        "val_estado_cli": "Respuesta del cliente",
+        "val_estado_final": "Resolución Conprospección",
+        "bant_cp": "BANT actualizado por Conprospección",
+        "informacion_reunion_manual": "Información para reunión actualizada",
+        "icp_cumple": "Antecedente ICP actualizado",
+    }
+    for event in history:
+        field = _clean(event.get("field_changed"), "Actualización")
+        new_value = _clean(event.get("new_value"))
+        if field == "val_estado_cli":
+            detail = {
+                "valida": "Cliente confirmó la reunión",
+                "requiere_revision": "Cliente solicitó revisión",
+                "no_valida": "Cliente solicitó revisión",
+            }.get(new_value, new_value)
+        elif field == "val_estado_cp":
+            detail = LABEL_VALIDEZ.get(new_value, new_value)
+        elif field == "val_estado_final":
+            detail = LABEL_FINAL.get(new_value, new_value)
+        elif field == "status_reunion":
+            detail = LABEL_STATUS.get(new_value, new_value)
+            if new_value == "realizada":
+                detail = "Reunión realizada"
+        else:
+            detail = new_value
+        items.append((
+            _clean(event.get("changed_at")),
+            event_labels.get(field, field),
+            detail,
+        ))
+    items.append(("", "Estado actual", LABEL_ESTADO_FLUJO.get(row.get("_flow"), row.get("_flow"))))
+
+    timeline = []
+    for when, event, detail in items:
+        timeline.append(
+            f'<div style="display:grid;grid-template-columns:12px 145px 1fr;gap:10px;'
+            f'padding:7px 0;align-items:start">'
+            f'<span style="width:9px;height:9px;border-radius:50%;background:{GBS_PURPLE};'
+            f'margin-top:5px"></span>'
+            f'<span style="font-size:11px;color:#94a3b8;font-weight:700">{_safe_html(when)}</span>'
+            f'<span><b style="font-size:13px;color:#334155">{_safe_html(event)}</b>'
+            f'<br><span style="font-size:12px;color:#64748b">{_safe_html(detail)}</span></span>'
+            f'</div>'
+        )
+    st.markdown("".join(timeline), unsafe_allow_html=True)
+
+
+def _section_header(number, title):
+    return (
+        f'<div style="font-size:12px;font-weight:800;color:{GBS_PURPLE};'
+        f'margin:17px 0 8px;padding-bottom:6px;border-bottom:1px solid #e9d5ff">'
+        f'{number}. {title}</div>'
+    )
+
+
+def _detail_line(label, value, link=False):
+    clean = _clean(value)
+    if not clean:
+        return ""
+    rendered = (
+        f'<a href="{html.escape(clean)}" target="_blank" '
+        f'style="color:{GBS_PURPLE};font-weight:600;text-decoration:none">{html.escape(clean)}</a>'
+        if link else f'<span style="font-weight:600;color:#0f172a">{html.escape(clean)}</span>'
+    )
+    return (
+        f'<div style="display:grid;grid-template-columns:125px 1fr;gap:8px;'
+        f'padding:3px 0;font-size:12px">'
+        f'<span style="color:#64748b">{label}</span>{rendered}</div>'
+    )
+
+
+def _bant_evaluation(bant):
+    if not bant:
+        return ""
+    labels = [("N", "Need"), ("A", "Authority"), ("B", "Budget"), ("T", "Timing")]
+    rows = []
+    for code, label in labels:
+        detected = code in bant
+        if detected:
+            rows.append(
+            f'<div style="display:flex;justify-content:space-between;padding:3px 0;'
+            f'font-size:12px;color:#334155"><span>{label}</span>'
+            f'<b style="color:#16a34a">Detectada</b></div>'
+        )
+    return (
+        f'<div style="border:1px solid #e2e8f0;border-radius:8px;padding:11px 13px">'
+        f'<div style="font-size:11px;font-weight:800;color:{GBS_PURPLE};margin-bottom:4px">'
+        f'BANT · {len(bant)} de 4 variables</div>{"".join(rows)}</div>'
+    )
+
+
+def render_detalle(row):
+    seg = row["_seg"]
+    reunion_id = int(row["id"])
+    cp = row["_cp"]
+    bant = row["_bant"]
+    client = row["_client"]
+    final = row["_final"]
+    status = row["_status"]
+    flow = row["_flow"]
+    future = flow == "reunion_futura"
+    evidence = bool(row["_evidence"])
+    info_reunion = informacion_reunion(row, seg)
+    icp = icp_gbs(status, seg.get("icp_cumple"))
+    locked = client in {"valida", "requiere_revision", "no_valida", "reagendada"}
+    client_actions = acciones_cliente_permitidas(flow, cp, client)
+    contractually_valid = "confirmar" in client_actions
+
+    meeting_link = _clean(row.get("direccion_reunion"))
+    justification = construir_justificacion(
+        cp,
+        icp=icp,
+        bant=bant,
+        evidencia=evidence,
+        tiene_informacion=bool(info_reunion),
+        comentario=_clean(seg.get("comentario_cp"))
+        or _clean(row.get("motivo_no_valida")),
+    )
+    website = valor_custom_field(row.get("raw_data"), ("website", "sitio web"))
+    company_linkedin = valor_custom_field(row.get("raw_data"), ("linkedin_empresa", "linkedin empresa"))
+    contact_linkedin = valor_custom_field(row.get("raw_data"), ("linkedin_personal", "linkedin personal"))
+
+    st.markdown(
+        f'<div style="display:flex;align-items:center;gap:8px;font-size:12px;'
+        f'font-weight:700;color:#334155"><span style="width:9px;height:9px;'
+        f'border-radius:50%;background:#16a34a"></span>'
+        f'{chip_estado_flujo(flow)} · '
+        f'{_safe_html(fmt_fecha(row.get("fecha")))} · {_safe_html(row.get("hora"))}</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(tarjeta_estado_flujo(flow), unsafe_allow_html=True)
+
+    st.markdown(_section_header(1, "Contacto y empresa"), unsafe_allow_html=True)
+    left, right = st.columns(2)
+    with left:
+        st.markdown(
+            _detail_line("Empresa", row.get("empresa"))
+            + _detail_line("Contacto", row.get("contacto"))
+            + _detail_line("Cargo", row.get("cargo"))
+            + _detail_line("Email", row.get("email"))
+            + _detail_line("Teléfono", row.get("telefono")),
+            unsafe_allow_html=True,
+        )
+    with right:
+        st.markdown(
+            _detail_line("País", row.get("pais"))
+            + _detail_line("Website", website, link=True)
+            + _detail_line("LinkedIn empresa", company_linkedin, link=True)
+            + _detail_line("LinkedIn contacto", contact_linkedin, link=True)
+            + _detail_line("Fecha reunión", fmt_fecha(row.get("fecha")))
+            + _detail_line("Hora reunión", row.get("hora"))
+            + _detail_line("Link reunión", meeting_link, link=True),
+            unsafe_allow_html=True,
+        )
+
+    if info_reunion:
+        st.markdown(_section_header(2, "Información para reunión"), unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="font-size:13px;color:#334155;line-height:1.5">'
+            f'{_safe_html(info_reunion)}</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(_section_header(3, "Evaluación Conprospección"), unsafe_allow_html=True)
+    eval_left, eval_right = st.columns([1, 1.35])
+    with eval_left:
+        icp_label = (
+            ("Cumple", "#166534", "#f0fdf4", "#86efac")
+            if icp
+            else ("No cumple", "#991b1b", "#fef2f2", "#fecaca")
+        )
+        st.markdown(
+            f'<div style="border:1px solid {icp_label[3]};background:{icp_label[2]};'
+            f'border-radius:8px;padding:11px 13px">'
+            f'<div style="font-size:11px;font-weight:800;color:{GBS_PURPLE};margin-bottom:6px">ICP</div>'
+            f'<div style="font-size:14px;font-weight:800;color:{icp_label[1]}">{icp_label[0]}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with eval_right:
+        if bant:
+            st.markdown(_bant_evaluation(bant), unsafe_allow_html=True)
+
+    if justification and not future:
+        st.markdown(_section_header(4, "Justificación Conprospección"), unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="font-size:13px;color:#334155;line-height:1.55">'
+            f'{_safe_html(justification)}</div>',
+            unsafe_allow_html=True,
+        )
+
+    if evidence:
+        st.markdown(_section_header(5, "Evidencia"), unsafe_allow_html=True)
+        render_evidencia(row, seg)
+
+    if not future:
+        st.markdown(_section_header(6, "Acción cliente"), unsafe_allow_html=True)
+    if future:
+        st.info("Reunión futura. Aún no admite confirmación ni solicitud de revisión.")
+    elif locked:
+        st.info("La respuesta del cliente ya fue registrada. La reunión queda bloqueada.")
+    elif cp == "espera":
+        st.info("Conprospección aún no emite su evaluación. No hay acciones disponibles.")
+    elif cp == "no_valida":
+        st.info("Conprospección marcó la reunión como no válida. No requiere confirmación.")
+    elif not client_actions:
+        st.info("Esta reunión no tiene acciones disponibles para el cliente.")
+    else:
+        confirm_col, review_col = st.columns(2)
+        with confirm_col:
+            if st.button(
+                "Confirmar reunión",
+                key=f"confirm_{reunion_id}",
+                type="primary",
+                use_container_width=True,
+                disabled=not contractually_valid,
+            ):
+                if guardar_respuesta_cliente(
+                    reunion_id,
+                    "valida",
+                ):
+                    st.success("Reunión confirmada.")
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error("No fue posible completar el guardado de la confirmación.")
+        with review_col:
+            st.caption("Solicita revisión para que Conprospección vuelva a evaluar.")
+
+        if not contractually_valid:
+            st.warning("Solo se puede confirmar una evaluación positiva previa de Conprospección.")
+
+        with st.form(f"review_form_{reunion_id}"):
+            reason = st.selectbox(
+                "Motivo de revisión",
+                MOTIVO_NO_VALIDEZ,
+                format_func=lambda value: LABEL_MOTIVO.get(value, value),
+                index=None,
+                placeholder="Selecciona un motivo",
+            )
+            comment = st.text_area(
+                "Comentario obligatorio",
+                placeholder="Explica el motivo contractual de la solicitud.",
+            )
+            request_review = st.form_submit_button(
+                "Solicitar revisión",
+                use_container_width=True,
+            )
+            if request_review:
+                if not reason:
+                    st.error("El motivo es obligatorio.")
+                elif not comment.strip():
+                    st.error("El comentario es obligatorio.")
+                elif guardar_respuesta_cliente(
+                    reunion_id,
+                    "requiere_revision",
+                    comentario=comment,
+                    motivo=reason,
+                ):
+                    st.success("Solicitud de revisión registrada y pendiente de resolución.")
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error("No fue posible guardar la solicitud.")
+
+    st.markdown(_section_header(7, "Historial"), unsafe_allow_html=True)
+    render_historial(reunion_id, row)
+
+
+@st.dialog("Detalle de reunión", width="large")
+def abrir_detalle(row):
+    render_detalle(row)
 
 
 def run():
     if not require_auth_client("gbs"):
         return
+
     render_client_nav("12_GBS_Validacion", "gbs")
-
     st.markdown(
-        f'<style>'
-        f'button[kind="primary"]{{background:{GBS_PURPLE}!important;border:none!important;'
-        f'color:#fff!important;font-weight:700!important}}'
-        f'button[kind="primary"]:hover{{filter:brightness(1.08)}}'
-        f'span[data-baseweb="tag"]{{background:#ede9fe!important;color:#5b21b6!important}}'
-        f'span[data-baseweb="tag"] span{{color:#5b21b6!important}}'
-        f'span[data-baseweb="tag"] svg{{fill:#5b21b6!important}}'
-        f'</style>', unsafe_allow_html=True)
-
+        f"""
+        <style>
+        button[kind="primary"] {{
+            background:{GBS_PURPLE}!important;
+            border-color:{GBS_PURPLE}!important;
+            color:#fff!important;
+            font-weight:700!important;
+        }}
+        div[data-testid="stButton"] button {{
+            white-space:pre-line;
+            font-weight:700;
+        }}
+        div[data-testid="stDataFrame"] {{
+            border:1px solid #e2e8f0;
+            border-radius:10px;
+            overflow:hidden;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     render_header()
-    render_buscador()
-    hoy = date.today()
 
-    # ── Filtros año / mes / día + Actualizar ──────────────────────────────────
-    c_anio, c_mes, c_dia_ph, c_ref = st.columns([1.2, 1.6, 2.4, 1])
-    with c_anio:
-        anio = int(st.number_input("Año", 2024, 2030, hoy.year, key="tc_anio"))
-    with c_mes:
-        mes = st.selectbox("Mes", range(1, 13),
-            format_func=lambda m: MESES_ES[m-1].capitalize(),
-            index=hoy.month - 1, key="tc_mes")
-    with c_ref:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Actualizar", key="tc_ref", use_container_width=True):
-            st.cache_data.clear(); st.rerun()
-
-    fi, ff = mes_rango(anio, int(mes))
-    df = cargar_reuniones(fi, ff)
-    stages = cargar_stages()
-    seguimiento = cargar_seguimiento()
-
-    estado_f = "Todos"
-    if not df.empty:
-        fechas = sorted(df["fecha"].dropna().unique())
-        opts_dia = ["Todos los días"] + [
-            f"{DIAS_ES[pd.Timestamp(str(f)).weekday()]} {pd.Timestamp(str(f)).day} "
-            f"de {MESES_ES[pd.Timestamp(str(f)).month-1]}" for f in fechas]
-        with c_dia_ph:
-            dia_sel = st.selectbox("Día", opts_dia, key="tc_dia")
-        c_ef, _ = st.columns([2, 4])
-        with c_ef:
-            estado_f = st.selectbox("Estado de validación", _FILTRO_ESTADO_OPTS, key="tc_estado_f")
-        if dia_sel != "Todos los días":
-            df = df[df["fecha"] == fechas[opts_dia.index(dia_sel) - 1]].copy()
-        df = _aplicar_filtro_estado(df, seguimiento, estado_f)
-
-    # ── KPIs principales (validez final, consistente con la meta) ─────────────
-    if not df.empty:
-        rids = [int(r) for r in df["id"].dropna()]
+    today = date.today()
+    month_start = date(today.year, today.month, 1)
+    month_end = date(today.year, today.month, calendar.monthrange(today.year, today.month)[1])
+    selected_range = st.session_state.get("gbs_date_range", (month_start, month_end))
+    if isinstance(selected_range, (tuple, list)) and len(selected_range) == 2:
+        fecha_inicio, fecha_fin = str(selected_range[0]), str(selected_range[1])
+    elif isinstance(selected_range, (tuple, list)) and len(selected_range) == 1:
+        fecha_inicio = fecha_fin = str(selected_range[0])
     else:
-        rids = []
-    n_val  = sum(1 for rid in rids if seguimiento.get(rid, {}).get("val_estado_final") == "valida")
-    n_nv   = sum(1 for rid in rids if seguimiento.get(rid, {}).get("val_estado_final") == "no_valida")
-    n_disp = sum(1 for rid in rids if seguimiento.get(rid, {}).get("val_estado_final") == "en_disputa")
-    n_pend = len(rids) - n_val - n_nv - n_disp
+        fecha_inicio, fecha_fin = str(month_start), str(month_end)
+    query = st.session_state.get("gbs_search", "")
+    selected_status = st.session_state.get("gbs_flow_status", "all")
+    if selected_status not in {"all", *ESTADOS_FLUJO}:
+        selected_status = "all"
+        st.session_state["gbs_flow_status"] = "all"
 
-    m1, m2, m3, m4, m5 = st.columns(5)
-    m1.metric("Reuniones", len(rids))
-    m2.metric("Válidas", n_val)
-    m3.metric("No válidas", n_nv)
-    m4.metric("En revisión", n_disp)
-    m5.metric("Pendientes", n_pend)
+    meetings = cargar_reuniones(fecha_inicio, fecha_fin)
+    tracking = cargar_seguimiento()
+    enriched = enriquecer(meetings, tracking) if not meetings.empty else meetings
+    if not enriched.empty and query.strip():
+        needle = query.strip().lower()
+        enriched = enriched[
+            enriched.apply(
+                lambda row: needle in " ".join(
+                    _clean(row.get(field)).lower()
+                    for field in ("empresa", "contacto", "cargo", "email", "telefono", "pais")
+                ),
+                axis=1,
+            )
+        ].copy()
+    if not enriched.empty and selected_status != "all":
+        enriched = enriched[enriched["_flow"] == selected_status].copy()
 
-    meta = meta_de("gbs") or {"validas": 0}
-    st.markdown(barra_avance(contar_validas_finales(), meta["validas"], color=GBS_PURPLE),
-                unsafe_allow_html=True)
+    counts = render_kpis(enriched) if "_final" in enriched.columns else {
+        "all": 0,
+        "valid": 0,
+        "not_valid": 0,
+        "progress": 0,
+    }
+    goal = meta_de("gbs") or {"validas": 0}
+    st.markdown(
+        barra_avance(counts["valid"], goal["validas"], color=GBS_PURPLE),
+        unsafe_allow_html=True,
+    )
 
-    if df.empty:
-        st.markdown(
-            f'<div style="text-align:center;padding:48px 20px">'
-            f'<div style="font-size:18px;font-weight:800;color:#1e293b;margin-bottom:6px">'
-            f'Sin reuniones para el período</div>'
-            f'<div style="font-size:14px;color:#64748b">Probá con otro mes o quitá el filtro de estado.</div></div>',
-            unsafe_allow_html=True)
+    filter_cols = st.columns([4, 3, 3, 1.2])
+    with filter_cols[0]:
+        st.text_input(
+            "Buscar",
+            placeholder="Buscar empresa, contacto o cargo",
+            label_visibility="collapsed",
+            key="gbs_search",
+        )
+    with filter_cols[1]:
+        st.date_input(
+            "Fecha",
+            value=(month_start, month_end),
+            format="DD/MM/YYYY",
+            label_visibility="collapsed",
+            key="gbs_date_range",
+        )
+    with filter_cols[2]:
+        st.selectbox(
+            "Estado",
+            ["all", *ESTADOS_FLUJO],
+            format_func=lambda value: "Todos los estados" if value == "all" else LABEL_ESTADO_FLUJO[value],
+            label_visibility="collapsed",
+            key="gbs_flow_status",
+        )
+    with filter_cols[3]:
+        if st.button("Actualizar", use_container_width=True, key="gbs_refresh"):
+            st.cache_data.clear()
+            st.session_state["gbs_kpi_filter"] = None
+            st.rerun()
+
+    render_buscador()
+
+    filtered = aplicar_kpi(enriched) if not enriched.empty else enriched
+    if filtered.empty:
+        st.info("No hay reuniones para el periodo y filtros seleccionados.")
         return
 
     st.markdown(
         f'<div style="background:linear-gradient(135deg,#4c1d95,#7c3aed);color:white;'
-        f'padding:11px 20px;border-radius:10px;margin:10px 0 6px;font-weight:700;font-size:15px">'
-        f'{MESES_ES[int(mes)-1].capitalize()} {anio} — de más antigua a más reciente</div>',
-        unsafe_allow_html=True)
-    st.markdown("")
-
-    for i, (_, row) in enumerate(df.iterrows()):
-        rid     = int(row.get("id") or 0)
-        opp_id  = _safe(row.get("opportunity_id"), "")
-        contacto = _safe(row.get("contacto") or row.get("nombre"), "Sin nombre").title()
-        cargo   = _safe(row.get("cargo"), "Cargo no registrado").title()
-        empresa = _safe(row.get("empresa"), "Empresa no registrada").title()
-        email   = _safe(row.get("email"), "Email no registrado")
-        tel     = _safe(row.get("telefono"), "Teléfono no registrado")
-        ind     = _safe(row.get("industria"), "Industria no registrada").title()
-        pais    = _safe(row.get("pais"), "")
-        hora    = str(row.get("hora") or "")[:5] or "—"
-        fecha_txt = fmt_fecha(row.get("fecha"))
-        seg = seguimiento.get(rid, {})
-
-        cp_val   = seg.get("val_estado_cp") or "espera"
-        cp_bant  = bant_to_list(seg.get("bant_cp"))
-        cli_val  = seg.get("val_estado_cli") or "espera"
-        cli_bant = bant_to_list(seg.get("bant_cli"))
-        final    = seg.get("val_estado_final") or "pendiente"
-        datos    = " · ".join(x for x in [cargo, email, tel, ind, pais]
-                              if x and x not in ("—", "Cargo no registrado",
-                                                 "Email no registrado", "Teléfono no registrado",
-                                                 "Industria no registrada"))
-
-        with st.container(border=True):
-            # Cabecera: empresa · contacto + datos + fecha/hora/estado reunión
-            st.markdown(
-                f'<div style="font-size:16px;font-weight:800;color:#0f172a">{empresa}'
-                f'<span style="color:#cbd5e1;margin:0 6px">·</span>{contacto}</div>'
-                f'<div style="font-size:12px;color:#64748b;margin-top:2px">{datos}</div>'
-                f'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px">'
-                f'<span style="font-size:13px;font-weight:700;color:#334155">{fecha_txt}</span>'
-                f'<span style="color:#94a3b8">·</span>'
-                f'<span style="font-size:14px;font-weight:800;color:{GBS_BLUE}">{hora}</span>'
-                f'<span style="font-size:11px;color:#64748b;margin-left:6px">Reunión:</span>'
-                f'{chip_status(seg.get("status_reunion"))}</div>',
-                unsafe_allow_html=True)
-            st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
-
-            # 1) Validez final (banner) — lo que manda
-            st.markdown(banner_final(final), unsafe_allow_html=True)
-
-            # 2) Resumen comparativo (read-only): Conprospección + Cliente
-            st.markdown(bloque_resumen(
-                fila_resumen("Evaluación Conprospección", CAP_CP[1], cp_val, cp_bant,
-                             seg.get("comentario_cp"), primera=True),
-                fila_resumen("Validación del cliente", CAP_CLI[1], cli_val, cli_bant,
-                             seg.get("comentario_cli")),
-            ), unsafe_allow_html=True)
-
-            # 3) Zona de edición — solo lo que el cliente controla
-            st.markdown(encabezado_seccion("Tu validación", CAP_CLI[1]), unsafe_allow_html=True)
-            e1, e2 = st.columns(2)
-            with e1:
-                st.markdown(mini_label("Validez"), unsafe_allow_html=True)
-                v_cli = st.selectbox("Tu validación", VAL_ESTADOS,
-                    index=VAL_ESTADOS.index(cli_val) if cli_val in VAL_ESTADOS else 0,
-                    format_func=lambda x: LABEL_VALIDEZ.get(x, x),
-                    key=f"vcli_{rid}_{i}", label_visibility="collapsed")
-            with e2:
-                st.markdown(mini_label("Criterios BANT (opcional)"), unsafe_allow_html=True)
-                b_cli = st.multiselect("BANT", ["B", "A", "N", "T"], default=cli_bant,
-                    format_func=lambda x: f"{x} · {BANT_LABEL[x]}",
-                    placeholder="Opcional", key=f"bcli_{rid}_{i}", label_visibility="collapsed")
-            e3, e4 = st.columns(2)
-            with e3:
-                st.markdown(mini_label("Estado comercial"), unsafe_allow_html=True)
-                ec_prev = seg.get("estado_comercial") or ""
-                ec_idx = (ESTADO_COMERCIAL.index(ec_prev) + 1) if ec_prev in ESTADO_COMERCIAL else 0
-                ec = st.selectbox("Estado comercial", ["—"] + ESTADO_COMERCIAL, index=ec_idx,
-                    format_func=lambda x: LABEL_ESTADO_COMERCIAL.get(x, x),
-                    key=f"ec_{rid}_{i}", label_visibility="collapsed")
-            with e4:
-                motivo = None
-                if v_cli == "no_valida":
-                    st.markdown(mini_label("Motivo (opcional)"), unsafe_allow_html=True)
-                    mot_prev = seg.get("motivo_no_validez") or MOTIVO_NO_VALIDEZ[0]
-                    mot_idx = MOTIVO_NO_VALIDEZ.index(mot_prev) if mot_prev in MOTIVO_NO_VALIDEZ else 0
-                    motivo = st.selectbox("Motivo (opcional)", MOTIVO_NO_VALIDEZ, index=mot_idx,
-                        format_func=lambda x: LABEL_MOTIVO.get(x, x),
-                        key=f"mot_{rid}_{i}", label_visibility="collapsed")
-            st.markdown(mini_label("Comentario (opcional)"), unsafe_allow_html=True)
-            coment = st.text_input("Comentario (opcional)", value=seg.get("comentario_cli") or "",
-                key=f"ccli_{rid}_{i}", label_visibility="collapsed")
-
-            _, col_btn = st.columns([5, 1])
-            with col_btn:
-                if st.button("Guardar", key=f"csave_{rid}_{i}", type="primary",
-                             use_container_width=True):
-                    _leg = {"valida": "valida", "no_valida": "no_valida"}.get(v_cli, "pendiente_validacion")
-                    upd_validacion(rid, _leg)
-                    _cat = _CLI_VAL_TO_CAT.get(v_cli)
-                    if _cat and _cat in stages:
-                        mover_ghl(opp_id, *stages[_cat])
-                    guardar_nivel(rid, "gbs", "cli", val_estado=v_cli, bant=b_cli,
-                        etapa=(ec if ec != "—" else None), status=coment)
-                    _patch = {
-                        "estado_comercial": (ec if ec != "—" else None),
-                        "comentario_cli": coment.strip() or None,
-                        "motivo_no_validez": motivo,
-                        "validated_by_cli": "cliente",
-                        "validated_cli_at": datetime.now(timezone.utc).isoformat(),
-                    }
-                    requests.patch(
-                        f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones?reunion_id=eq.{rid}",
-                        json={k: v for k, v in _patch.items() if v is not None},
-                        headers=_HW, timeout=10)
-                    recalcular_final_y_flags(rid, "gbs")
-                    registrar_historial(rid, "val_estado_cli", seg.get("val_estado_cli"), v_cli,
-                                        "cliente", "cliente", "validacion")
-                    st.toast("Guardado")
-                    st.cache_data.clear(); st.rerun()
-
-        st.markdown('<div style="margin-bottom:20px"></div>', unsafe_allow_html=True)
+        f'padding:11px 20px;border-radius:10px;margin:10px 0 8px;font-weight:700;'
+        f'font-size:15px">{_safe_html(fecha_inicio)} a {_safe_html(fecha_fin)} · '
+        f'{len(filtered)} reuniones</div>',
+        unsafe_allow_html=True,
+    )
+    selected = tabla_reuniones(filtered)
+    if selected is not None:
+        abrir_detalle(selected)
 
 
 run()

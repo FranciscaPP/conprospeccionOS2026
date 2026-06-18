@@ -54,6 +54,11 @@ class GHLClient:
         response.raise_for_status()
         return response.json()
 
+    def list_custom_fields(self, location_id: str) -> dict[str, Any]:
+        response = self.client.get(f"/locations/{location_id}/customFields")
+        response.raise_for_status()
+        return response.json()
+
     def list_opportunities_page(
         self,
         location_id: str,

@@ -30,19 +30,50 @@ def chunked(rows: list[dict[str, Any]], size: int = 100) -> list[list[dict[str, 
     return [rows[index : index + size] for index in range(0, len(rows), size)]
 
 
-def custom_field_value(contact: dict[str, Any], *names: str) -> str | None:
+def _field_tokens(value: Any) -> set[str]:
+    text = str(value or "").strip().lower()
+    if not text:
+        return set()
+    compact = "".join(char for char in text if char.isalnum())
+    return {text, compact}
+
+
+def custom_field_definitions(payload: dict[str, Any]) -> dict[str, set[str]]:
+    rows = payload.get("customFields") or payload.get("fields") or []
+    definitions: dict[str, set[str]] = {}
+    for field in rows:
+        field_id = str(field.get("id") or "")
+        if not field_id:
+            continue
+        tokens: set[str] = set()
+        for key in ("name", "fieldKey", "key", "placeholder"):
+            tokens.update(_field_tokens(field.get(key)))
+        definitions[field_id] = tokens
+    return definitions
+
+
+def custom_field_value(
+    contact: dict[str, Any],
+    *names: str,
+    definitions: dict[str, set[str]] | None = None,
+) -> str | None:
     # GHL API returns custom fields with only 'id' and 'value' — no name.
     # We try matching by name first (future-proof), then fall back to known field IDs.
-    targets = {name.lower() for name in names}
+    targets: set[str] = set()
+    for name in names:
+        targets.update(_field_tokens(name))
     fields = contact.get("customFields") or []
 
     # Try by name/key (in case GHL ever includes it)
     for field in fields:
-        key = str(field.get("name") or field.get("fieldName") or field.get("key") or "").lower()
-        if key in targets:
+        tokens: set[str] = set()
+        for key in ("name", "fieldName", "fieldKey", "key"):
+            tokens.update(_field_tokens(field.get(key)))
+        tokens.update((definitions or {}).get(str(field.get("id") or ""), set()))
+        if tokens & targets:
             value = field.get("value")
-            if value is not None:
-                return str(value)
+            if value is not None and str(value).strip():
+                return str(value).strip()
 
     # Fallback: match by known GHL custom field IDs per semantic meaning.
     # IDs collected from raw_data across all active client locations.
@@ -86,14 +117,21 @@ def active_clients(supabase: SupabaseRestClient) -> list[dict[str, Any]]:
 
 
 def token_for_client(client: dict[str, Any]) -> str:
-    env_key = f"GHL_TOKEN_{client['slug'].upper()}"
+    env_key = {
+        "gbs": "GHL_TOKEN_GBS_LOGISTICS",
+    }.get(client["slug"], f"GHL_TOKEN_{client['slug'].upper()}")
     token = get_optional_env(env_key)
     if not token:
         raise RuntimeError(f"Falta {env_key} en .env/.env.txt")
     return token
 
 
-def normalize_contact(contact: dict[str, Any], client: dict[str, Any], owner_by_user: dict[tuple[str, str], str]) -> dict[str, Any]:
+def normalize_contact(
+    contact: dict[str, Any],
+    client: dict[str, Any],
+    owner_by_user: dict[tuple[str, str], str],
+    definitions: dict[str, set[str]] | None = None,
+) -> dict[str, Any]:
     owner_id = contact.get("assignedTo")
     sdr_slug = owner_by_user.get((client["slug"], owner_id)) if owner_id else None
     return {
@@ -112,8 +150,25 @@ def normalize_contact(contact: dict[str, Any], client: dict[str, Any], owner_by_
         "pais": contact.get("country"),
         "ciudad": contact.get("city"),
         "estado_region": contact.get("state"),
-        "industria": custom_field_value(contact, "industria", "industry"),
-        "cargo": custom_field_value(contact, "cargo", "puesto", "job title", "job_title"),
+        "industria": custom_field_value(contact, "industria", "industry", definitions=definitions),
+        "cargo": custom_field_value(contact, "cargo", "puesto", "job title", "job_title", definitions=definitions),
+        "informacion_reunion": custom_field_value(
+            contact,
+            "informacin_de_preparacin_para_la_reunin",
+            "informacion_de_preparacion_para_la_reunion",
+            "información de preparación para la reunión",
+            "preparacion_para_la_reunion",
+            "informacion para reunion",
+            definitions=definitions,
+        ),
+        "bant_sdr": custom_field_value(
+            contact,
+            "validacin_sdr_bant",
+            "validacion_sdr_bant",
+            "validación_sdr_bant",
+            "validacion sdr bant",
+            definitions=definitions,
+        ),
         "tags": contact.get("tags") or [],
         "custom_fields": contact.get("customFields") or [],
         "raw_data": contact,
@@ -169,6 +224,14 @@ def sync_entity(
     owner_by_user: dict[tuple[str, str], str],
 ) -> int:
     ghl = GHLClient(token_for_client(client))
+    definitions: dict[str, set[str]] = {}
+    if entity == "contactos":
+        try:
+            definitions = custom_field_definitions(
+                ghl.list_custom_fields(client["ghl_location_id"])
+            )
+        except httpx.HTTPStatusError:
+            logging.warning("%s: no fue posible cargar definiciones de custom fields", client["nombre"])
     start_after = None
     start_after_id = None
     total = 0
@@ -182,7 +245,11 @@ def sync_entity(
         if entity == "contactos":
             data = ghl.list_contacts_page(client["ghl_location_id"], page_limit, start_after, start_after_id)
             items = data.get("contacts") or []
-            rows = [normalize_contact(item, client, owner_by_user) for item in items if item.get("id")]
+            rows = [
+                normalize_contact(item, client, owner_by_user, definitions)
+                for item in items
+                if item.get("id")
+            ]
             table = "contactos"
             conflict = "ghl_contact_id"
         elif entity == "oportunidades":

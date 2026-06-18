@@ -71,6 +71,24 @@ async function getClientToken(slug: string): Promise<string> {
   return tokens[slug] ?? "";
 }
 
+function normalizedFieldToken(value: unknown): string {
+  return String(value ?? "").toLowerCase().replace(/[^a-z0-9áéíóúüñ]/g, "");
+}
+
+function customFieldValue(contact: Record<string, unknown>, aliases: string[]): string | null {
+  const targets = new Set(aliases.map(normalizedFieldToken));
+  const fields = Array.isArray(contact.customFields) ? contact.customFields as Record<string, unknown>[] : [];
+  for (const field of fields) {
+    const tokens = ["name", "fieldName", "fieldKey", "key"]
+      .map((key) => normalizedFieldToken(field[key]));
+    if (tokens.some((token) => targets.has(token))) {
+      const value = String(field.value ?? "").trim();
+      if (value) return value;
+    }
+  }
+  return null;
+}
+
 serve(async (req) => {
   // GHL envía GET para verificar el webhook — responder 200 siempre
   if (req.method === "GET") {
@@ -160,7 +178,20 @@ serve(async (req) => {
     row.cargo      = contact.title ?? null;
     row.industria  = contact.customFields?.find((f: Record<string,string>) => f.key === "industry")?.value ?? null;
     row.pais       = contact.country ?? null;
+    row.informacion_reunion = customFieldValue(contact, [
+      "informacin_de_preparacin_para_la_reunin",
+      "informacion_de_preparacion_para_la_reunion",
+      "información de preparación para la reunión",
+      "informacion para reunion",
+    ]);
+    row.bant_sdr = customFieldValue(contact, [
+      "validacin_sdr_bant",
+      "validacion_sdr_bant",
+      "validación_sdr_bant",
+      "validacion sdr bant",
+    ]);
   }
+  row.raw_data = { appointment: payload, contact: contact ?? {} };
 
   // Upsert — no sobreescribir excluida=true ni el estado_validacion si ya fue validado
   const resp = await fetch(

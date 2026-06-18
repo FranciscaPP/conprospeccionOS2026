@@ -42,6 +42,14 @@ def main() -> None:
         "oportunidades",
         "ghl_opportunity_id,ghl_contact_id,cliente_slug,location_id,sdr_slug,ghl_owner_user_id,nombre,pipeline_id,pipeline_stage_id,estado,contacto_nombre,contacto_empresa,contacto_email,contacto_telefono,ghl_created_at,last_stage_change_at,raw_data",
     )
+    contacts = {
+        row["ghl_contact_id"]: row
+        for row in supabase.select_all(
+            "contactos",
+            "ghl_contact_id,informacion_reunion,bant_sdr",
+        )
+        if row.get("ghl_contact_id")
+    }
 
     opp_updates = []
     meeting_rows = []
@@ -89,6 +97,8 @@ def main() -> None:
                 "estado_reunion": stage.get("stage_name"),
                 "es_valida": stage.get("is_valid_meeting"),
                 "observacion": "Reunion inferida desde etapa de oportunidad GHL.",
+                "informacion_reunion": contacts.get(opp.get("ghl_contact_id"), {}).get("informacion_reunion"),
+                "bant_sdr": contacts.get(opp.get("ghl_contact_id"), {}).get("bant_sdr"),
                 "raw_data": opp.get("raw_data") or {},
                 "synced_at": iso_now(),
             }
