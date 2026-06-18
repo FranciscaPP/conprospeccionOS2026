@@ -119,7 +119,7 @@ COLUMNAS_CLIENTE = (
     "reunion_id,cliente_slug,status_reunion,"
     "val_estado_cp,bant_cp,comentario_cp,informacion_reunion_manual,icp_cumple,"
     "val_estado_cli,comentario_cli,motivo_no_validez,validated_cli_at,"
-    "val_estado_final,final_override,"
+    "val_estado_final,final_override,flag_meta_countable,flag_disputa,flag_cliente_pendiente,"
     "recording_url,transcript_url,ai_summary,ai_bant_detected,"
     "ai_confidence,ai_evidence"
 )

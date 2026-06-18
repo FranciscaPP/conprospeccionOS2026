@@ -19,7 +19,7 @@ def _load() -> None:
     global _loaded
     if _loaded:
         return
-    for candidate in [_ROOT / ".env", _ROOT / ".env.txt"]:
+    for candidate in [_ROOT / ".env.local", _ROOT / ".env", _ROOT / ".env.txt"]:
         if candidate.exists():
             load_dotenv(candidate, override=True)
             break
@@ -93,6 +93,7 @@ def portal_passwords() -> dict[str, str]:
         "tiresias": _get("PORTAL_PASSWORD_TIRESIAS"),
         "clickie":  _get("PORTAL_PASSWORD_CLICKIE"),
         "gbs":      _get("PORTAL_PASSWORD_GBS"),
+        "bambutech": _get("PORTAL_PASSWORD_BAMBUTECH"),
     }
 
 

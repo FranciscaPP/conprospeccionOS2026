@@ -30,6 +30,8 @@ LABEL_FINAL = {
 LABEL_STATUS = {
     "agendada": "Agendada",
     "realizada": "Realizada",
+    "cotizacion": "Cotización",
+    "solicita_cotizacion": "Cotización",
     "no_asistio_lead": "No asistió el prospecto",
     "no_asistio_cliente": "No asistió el cliente",
     "cancelada_lead": "Cancelada por el prospecto",
@@ -57,9 +59,6 @@ LABEL_MOTIVO = {
     "bant_insuficiente": "No cumple mínimo 2 variables BANT",
     "no_realizada": "Reunión no realizada",
     "prospecto_no_asistio": "Prospecto no asistió",
-    "contacto_incorrecto": "Contacto incorrecto sin derivación válida",
-    "evidencia_insuficiente": "Evidencia insuficiente",
-    "empresa_duplicada_excluida": "Empresa duplicada o excluida",
     "otro_contractual": "Otro motivo contractual",
 }
 
@@ -81,6 +80,8 @@ _COL_FINAL = {
 _COL_STATUS = {
     "realizada":           ("#dcfce7", "#166534"),
     "agendada":            ("#e0f2fe", "#075985"),
+    "cotizacion":          ("#f3e8ff", "#7e22ce"),
+    "solicita_cotizacion": ("#f3e8ff", "#7e22ce"),
     "reagendada":          ("#fef9c3", "#854d0e"),
     "pendiente_reagendar": ("#fef9c3", "#854d0e"),
     "no_asistio_lead":     ("#fee2e2", "#991b1b"),
@@ -95,7 +96,7 @@ _COL_ESTADO_FLUJO = {
     "reunion_futura": ("#e0f2fe", "#075985"),
     "reunion_cancelada": ("#fee2e2", "#991b1b"),
     "pendiente_evaluacion_cp": ("#fef9c3", "#854d0e"),
-    "pendiente_evaluacion_cliente": ("#fef9c3", "#854d0e"),
+    "pendiente_evaluacion_cliente": ("#ede9fe", "#6d28d9"),
     "cliente_solicita_revision": ("#ffedd5", "#9a3412"),
     "evaluacion_cerrada_valida": ("#dcfce7", "#166534"),
     "evaluacion_cerrada_no_valida": ("#fee2e2", "#991b1b"),
@@ -231,13 +232,11 @@ def barra_avance(validas: int, meta: int, *, sufijo: str = "", color: str = "#7c
     meta_txt = f"{validas}/{meta}{sufijo}" if meta else "—"
     return (
         f'<div style="background:#fff;border:1px solid #e9d5ff;border-radius:12px;'
-        f'padding:14px 18px;margin:6px 0 14px">'
-        f'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
-        f'<span style="font-size:13px;font-weight:700;color:#1e293b">Avance de meta</span>'
-        f'<span style="font-size:13px;font-weight:800;color:{color};'
+        f'padding:8px 14px;margin:5px 0 10px">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+        f'<span style="font-size:12px;font-weight:700;color:#1e293b">Avance de meta</span>'
+        f'<span style="font-size:12px;font-weight:800;color:{color};'
         f'font-variant-numeric:tabular-nums">{meta_txt} · {pct}%</span></div>'
-        f'<div style="background:#f1f5f9;border-radius:6px;height:10px;overflow:hidden">'
-        f'<div style="width:{pct_barra}%;background:{color};height:10px;border-radius:6px"></div></div>'
-        f'<div style="font-size:11px;color:#64748b;margin-top:6px">'
-        f'Reuniones válidas (validación final) sobre la meta del contrato.</div>'
+        f'<div style="background:#f1f5f9;border-radius:5px;height:6px;overflow:hidden">'
+        f'<div style="width:{pct_barra}%;background:{color};height:6px;border-radius:5px"></div></div>'
         f'</div>')

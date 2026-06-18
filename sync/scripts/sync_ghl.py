@@ -82,11 +82,19 @@ def custom_field_value(
                      "f43LHxcbFBDAKCm9gdQh"}  # Bambutech
     INDUSTRIA_IDS = {"Wqc8iUl5U1GVF59WTqrt", "luvGYtBxYc2ngUDvuZeT",
                      "E9lTjhX14s5EDsTmnsSF", "f2WEpcm03VvepzdUvxl8"}
+    INFO_REUNION_IDS = {"mwCPOKdikR3VfS7Xf9bm", "G7iqx0zfyyIY211r2td2"}
+    BANT_SDR_IDS = {"sPpRmRxaHRehCVr0UX29", "slMz9VP1KRyAeJZiWss1"}
 
     if targets & {"cargo", "puesto", "job title", "job_title"}:
         id_set = CARGO_IDS
     elif targets & {"industria", "industry"}:
         id_set = INDUSTRIA_IDS
+    elif "informacion para reunion" in targets or any(
+        "preparacion" in target and "reunion" in target for target in targets
+    ):
+        id_set = INFO_REUNION_IDS
+    elif any("bant" in target for target in targets):
+        id_set = BANT_SDR_IDS
     else:
         return None
 

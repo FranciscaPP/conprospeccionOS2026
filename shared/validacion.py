@@ -10,6 +10,7 @@ from datetime import date
 STATUS_REUNION = [
     "agendada",
     "realizada",
+    "cotizacion",
     "no_asistio_lead",
     "no_asistio_cliente",
     "cancelada_lead",
@@ -27,9 +28,6 @@ MOTIVO_NO_VALIDEZ = [
     "bant_insuficiente",
     "no_realizada",
     "prospecto_no_asistio",
-    "contacto_incorrecto",
-    "evidencia_insuficiente",
-    "empresa_duplicada_excluida",
     "otro_contractual",
 ]
 ESTADO_COMERCIAL = [
@@ -62,11 +60,55 @@ ESTADOS_FLUJO = [
     "evaluacion_cerrada_no_valida",
 ]
 
+ETAPAS_AGENDA = [
+    "reunion_futura",
+    "reunion_agendada",
+    "reunion_realizada",
+    "cotizacion",
+    "reagendar",
+    "reunion_cancelada",
+]
+
+LABEL_ETAPA_AGENDA = {
+    "reunion_futura": "Reunión futura",
+    "reunion_agendada": "Reunión agendada",
+    "reunion_realizada": "Reunión realizada",
+    "cotizacion": "Cotización",
+    "reagendar": "Reagendar",
+    "reunion_cancelada": "Reunión cancelada",
+}
+
+ESTATUS_VALIDACION = [
+    "pendiente_evaluacion_cp",
+    "validada_por_cp",
+    "rechazada_por_cp",
+    "pendiente_confirmacion_cliente",
+    "cliente_solicita_revision",
+    "cotizacion_valida",
+    "reagendar",
+    "reunion_cancelada",
+    "evaluacion_cerrada_valida",
+    "evaluacion_cerrada_no_valida",
+]
+
+LABEL_ESTATUS_VALIDACION = {
+    "pendiente_evaluacion_cp": "Pendiente evaluación Conprospección",
+    "validada_por_cp": "Validada por Conprospección",
+    "rechazada_por_cp": "Rechazada por Conprospección",
+    "pendiente_confirmacion_cliente": "Pendiente confirmación cliente",
+    "cliente_solicita_revision": "Cliente solicita revisión",
+    "cotizacion_valida": "Cotización · Válida",
+    "reagendar": "Reagendar",
+    "reunion_cancelada": "Reunión cancelada",
+    "evaluacion_cerrada_valida": "Evaluación cerrada · Válida",
+    "evaluacion_cerrada_no_valida": "Evaluación cerrada · No válida",
+}
+
 LABEL_ESTADO_FLUJO = {
     "reunion_futura": "Reunión futura",
     "reunion_cancelada": "Reunión cancelada",
-    "pendiente_evaluacion_cp": "Pendiente de evaluación CP",
-    "pendiente_evaluacion_cliente": "Pendiente de evaluación cliente",
+    "pendiente_evaluacion_cp": "Pendiente de evaluación Conprospección",
+    "pendiente_evaluacion_cliente": "Pendiente confirmación cliente",
     "cliente_solicita_revision": "Cliente solicita revisión",
     "evaluacion_cerrada_valida": "Evaluación cerrada · Válida",
     "evaluacion_cerrada_no_valida": "Evaluación cerrada · No válida",
@@ -76,7 +118,7 @@ DESCRIPCION_ESTADO_FLUJO = {
     "reunion_futura": "Esta reunión aún no ocurre. No admite confirmación ni solicitud de revisión.",
     "reunion_cancelada": "Reunión cancelada y resuelta operativamente.",
     "pendiente_evaluacion_cp": "Conprospección aún debe revisar la reunión.",
-    "pendiente_evaluacion_cliente": "Conprospección evaluó positivamente y espera respuesta del cliente.",
+    "pendiente_evaluacion_cliente": "Conprospección evaluó la reunión y espera la confirmación del cliente.",
     "cliente_solicita_revision": "El cliente pidió revisión. Conprospección debe resolver.",
     "evaluacion_cerrada_valida": "Reunión cerrada como válida.",
     "evaluacion_cerrada_no_valida": "Reunión cerrada como no válida por Conprospección.",
@@ -98,7 +140,7 @@ def _normalizar_clave(value) -> str:
     return re.sub(r"[^a-z0-9áéíóúüñ]", "", text)
 
 
-def valor_custom_field(source, aliases) -> str:
+def valor_custom_field(source, aliases):
     """Busca un custom field por key/nombre dentro de estructuras GHL conocidas."""
     if not source:
         return ""
@@ -131,14 +173,16 @@ def valor_custom_field(source, aliases) -> str:
             continue
         keys = {
             _normalizar_clave(field.get(key))
-            for key in ("name", "fieldName", "fieldKey", "key")
+            for key in ("id", "name", "fieldName", "fieldKey", "key")
         }
         if keys & targets:
-            return texto_real(field.get("value"))
+            value = field.get("value")
+            return value if isinstance(value, (list, tuple, dict)) else texto_real(value)
     return ""
 
 
 INFO_REUNION_ALIASES = (
+    "mwCPOKdikR3VfS7Xf9bm",
     "informacin_de_preparacin_para_la_reunin",
     "informacion_de_preparacion_para_la_reunion",
     "información de preparación para la reunión",
@@ -148,6 +192,7 @@ INFO_REUNION_ALIASES = (
 )
 
 BANT_SDR_ALIASES = (
+    "sPpRmRxaHRehCVr0UX29",
     "validacin_sdr_bant",
     "validacion_sdr_bant",
     "validación_sdr_bant",
@@ -156,8 +201,8 @@ BANT_SDR_ALIASES = (
 
 
 def informacion_reunion(row=None, seguimiento=None) -> str:
-    row = row or {}
-    seguimiento = seguimiento or {}
+    row = {} if row is None else row
+    seguimiento = {} if seguimiento is None else seguimiento
     for value in (
         seguimiento.get("informacion_reunion_manual"),
         row.get("informacion_reunion"),
@@ -169,8 +214,8 @@ def informacion_reunion(row=None, seguimiento=None) -> str:
 
 
 def bant_desde_fuentes(row=None, seguimiento=None) -> list:
-    row = row or {}
-    seguimiento = seguimiento or {}
+    row = {} if row is None else row
+    seguimiento = {} if seguimiento is None else seguimiento
     values = (
         seguimiento.get("bant_cp"),
         row.get("bant_sdr"),
@@ -233,23 +278,101 @@ def derivar_estado_flujo(
 ):
     """Estado único de UX para portal cliente y seguimiento interno."""
     hoy = hoy or date.today()
-    try:
-        fecha = fecha_reunion if isinstance(fecha_reunion, date) else date.fromisoformat(str(fecha_reunion)[:10])
-    except (TypeError, ValueError):
+    fecha_texto = str(fecha_reunion).strip()
+    if fecha_reunion is None or fecha_texto.lower() in {"", "nat", "nan", "none"}:
         fecha = None
+    else:
+        try:
+            fecha = (
+                fecha_reunion
+                if isinstance(fecha_reunion, date)
+                else date.fromisoformat(fecha_texto[:10])
+            )
+        except (TypeError, ValueError):
+            fecha = None
 
     if fecha and fecha > hoy and status_reunion not in _NO_REALIZADA:
         return "reunion_futura"
     if status_reunion in {"cancelada_lead", "cancelada_cliente"}:
         return "reunion_cancelada"
-    if val_cli in {"requiere_revision", "no_valida", "reagendada"} or val_final == "en_disputa":
-        return "cliente_solicita_revision"
     if val_final == "valida":
         return "evaluacion_cerrada_valida"
     if val_final in {"no_valida", "excluida"}:
         return "evaluacion_cerrada_no_valida"
+    # El cliente puede responder antes que CP. Esa respuesta queda registrada
+    # como antecedente, pero el flujo sigue pendiente de la autoridad final.
+    if val_cp not in {"valida", "no_valida"}:
+        return "pendiente_evaluacion_cp"
+    if val_cli in {"requiere_revision", "no_valida", "reagendada"} or val_final == "en_disputa":
+        return "cliente_solicita_revision"
     if val_cp == "valida":
         return "pendiente_evaluacion_cliente"
+    return "pendiente_evaluacion_cp"
+
+
+def derivar_etapa_agenda(fecha_reunion, status_reunion, *, hoy=None):
+    """Proyecta exclusivamente la etapa operativa de agenda."""
+    hoy = hoy or date.today()
+    fecha = None
+    fecha_texto = str(fecha_reunion).strip()
+    if fecha_reunion is not None and fecha_texto.lower() not in {"", "nat", "nan", "none"}:
+        try:
+            fecha = (
+                fecha_reunion
+                if isinstance(fecha_reunion, date)
+                else date.fromisoformat(fecha_texto[:10])
+            )
+        except (TypeError, ValueError):
+            fecha = None
+    if status_reunion in {"cotizacion", "solicita_cotizacion"}:
+        return "cotizacion"
+    if status_reunion in {"cancelada_lead", "cancelada_cliente"}:
+        return "reunion_cancelada"
+    if status_reunion in {
+        "no_asistio_lead",
+        "no_asistio_cliente",
+        "reagendada",
+        "pendiente_reagendar",
+    }:
+        return "reagendar"
+    if fecha and fecha > hoy:
+        return "reunion_futura"
+    if status_reunion == "realizada" or (fecha and fecha < hoy):
+        return "reunion_realizada"
+    return "reunion_agendada"
+
+
+def derivar_estatus_validacion(
+    etapa_agenda,
+    val_cp,
+    val_cli,
+    val_final,
+    *,
+    flag_disputa=False,
+):
+    """Proyecta exclusivamente el avance contractual de validación."""
+    if etapa_agenda == "cotizacion":
+        return "cotizacion_valida"
+    if flag_disputa or val_cli in {"requiere_revision", "no_valida", "reagendada"}:
+        return "cliente_solicita_revision"
+    if etapa_agenda == "reagendar":
+        return "reagendar"
+    if etapa_agenda == "reunion_cancelada":
+        return "reunion_cancelada"
+    if etapa_agenda == "reunion_futura":
+        if val_cp == "valida":
+            return "validada_por_cp"
+        if val_cp == "no_valida":
+            return "rechazada_por_cp"
+        return "pendiente_evaluacion_cp"
+    if val_final == "valida":
+        return "evaluacion_cerrada_valida"
+    if val_final == "no_valida" and val_cp == "no_valida":
+        return "evaluacion_cerrada_no_valida"
+    if val_cp == "no_valida":
+        return "rechazada_por_cp"
+    if val_cp == "valida":
+        return "pendiente_confirmacion_cliente"
     return "pendiente_evaluacion_cp"
 
 
@@ -285,9 +408,12 @@ def gate_valida_permitida(status_reunion) -> bool:
 
 
 def acciones_cliente_permitidas(estado_flujo, val_cp, val_cli) -> tuple[str, ...]:
-    if estado_flujo != "pendiente_evaluacion_cliente":
+    if estado_flujo not in {
+        "pendiente_evaluacion_cp",
+        "pendiente_evaluacion_cliente",
+    }:
         return ()
-    if val_cp != "valida" or val_cli not in (None, "", "espera"):
+    if val_cp == "no_valida" or val_cli not in (None, "", "espera"):
         return ()
     return ("confirmar", "solicitar_revision")
 
@@ -309,6 +435,8 @@ def derivar_final(
     """
     if override:
         return override
+    if status_reunion in {"cotizacion", "solicita_cotizacion"}:
+        return "valida"
     if val_cp == "no_valida":
         return "no_valida"
     if val_cp != "valida":
