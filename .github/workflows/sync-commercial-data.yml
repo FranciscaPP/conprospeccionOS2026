@@ -1,0 +1,52 @@
+name: Sync commercial data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check local schedule
+        id: schedule
+        shell: python
+        run: |
+          import os
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          local = datetime.now(ZoneInfo("America/Santiago"))
+          allowed = local.hour in {8, 13, 20}
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"run={'true' if allowed else 'false'}\n")
+          print(f"Local time: {local.isoformat()} · run={allowed}")
+
+      - name: Install sync dependencies
+        if: steps.schedule.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
+        run: pip install -r sync/requirements.txt
+
+      - name: Sync BambuTech and GBS
+        if: steps.schedule.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GHL_AGENCY_TOKEN: ${{ secrets.GHL_AGENCY_TOKEN }}
+          GHL_TOKEN_BAMBUTECH: ${{ secrets.GHL_TOKEN_BAMBUTECH }}
+          GHL_LOCATION_BAMBUTECH: ${{ secrets.GHL_LOCATION_BAMBUTECH }}
+          GHL_TOKEN_GBS_LOGISTICS: ${{ secrets.GHL_TOKEN_GBS_LOGISTICS }}
+          GHL_LOCATION_GBS: ${{ secrets.GHL_LOCATION_GBS }}
+        run: |
+          python sync/scripts/sync_ghl.py --entity all --client-slug bambutech
+          python sync/scripts/sync_meetings.py --client-slug bambutech
+          python sync/scripts/sync_pipelines.py --client-slug bambutech
+          python sync/scripts/sync_ghl.py --entity all --client-slug gbs
+          python sync/scripts/sync_meetings.py --client-slug gbs
+          python sync/scripts/sync_pipelines.py --client-slug gbs
+          python sync/scripts/derive_meetings_from_opportunities.py

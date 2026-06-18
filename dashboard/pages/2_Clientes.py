@@ -87,6 +87,20 @@ CLIENTES = [
             ("Onboarding", "pages/14_GBS_Onboarding.py"),
         ],
     },
+    {
+        "slug": "bambutech",
+        "nombre": "BambuTech Services",
+        "logo": "bambutech_logo.png",
+        "color": "#208d25",
+        "bg": "#f4f6f4",
+        "border": "#cfe4d0",
+        "pages": [
+            ("Onboarding", "pages/17_BambuTech_Onboarding.py"),
+            ("Validación Reuniones", "pages/18_BambuTech_Validacion_Reuniones.py"),
+            ("Intelligence Insight", "pages/19_BambuTech_Intelligence_Insight.py"),
+            ("Playbook SDR", "pages/20_BambuTech_Playbook_SDR.py"),
+        ],
+    },
 ]
 
 # ── Tarjetas de cliente ───────────────────────────────────────────────────────

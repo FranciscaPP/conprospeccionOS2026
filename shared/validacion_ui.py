@@ -10,6 +10,7 @@ Reglas de color (alineadas a shared/gbs_brand):
 Color + TEXTO siempre (nunca solo color), por accesibilidad.
 """
 from __future__ import annotations
+from shared.validacion import DESCRIPCION_ESTADO_FLUJO, LABEL_ESTADO_FLUJO
 
 # ── Labels amigables (sin slugs ni nombres de plataformas) ────────────────────
 LABEL_VALIDEZ = {
@@ -29,6 +30,8 @@ LABEL_FINAL = {
 LABEL_STATUS = {
     "agendada": "Agendada",
     "realizada": "Realizada",
+    "cotizacion": "Cotización",
+    "solicita_cotizacion": "Cotización",
     "no_asistio_lead": "No asistió el prospecto",
     "no_asistio_cliente": "No asistió el cliente",
     "cancelada_lead": "Cancelada por el prospecto",
@@ -52,13 +55,11 @@ LABEL_ESTADO_COMERCIAL = {
     "no_califica": "No califica",
 }
 LABEL_MOTIVO = {
-    "no_calza_icp": "No calza con el perfil buscado",
-    "sin_necesidad": "Sin necesidad inmediata",
-    "sin_autoridad": "Sin autoridad de decisión",
-    "sin_presupuesto": "Sin presupuesto",
-    "sin_timing": "Sin timing / momento inadecuado",
-    "no_realizada": "La reunión no se realizó",
-    "otro": "Otro motivo",
+    "no_calza_icp": "No cumple ICP definido",
+    "bant_insuficiente": "No cumple mínimo 2 variables BANT",
+    "no_realizada": "Reunión no realizada",
+    "prospecto_no_asistio": "Prospecto no asistió",
+    "otro_contractual": "Otro motivo contractual",
 }
 
 # ── Pares de color accesibles (bg claro + texto oscuro, contraste ≥ 4.5:1) ────
@@ -79,6 +80,8 @@ _COL_FINAL = {
 _COL_STATUS = {
     "realizada":           ("#dcfce7", "#166534"),
     "agendada":            ("#e0f2fe", "#075985"),
+    "cotizacion":          ("#f3e8ff", "#7e22ce"),
+    "solicita_cotizacion": ("#f3e8ff", "#7e22ce"),
     "reagendada":          ("#fef9c3", "#854d0e"),
     "pendiente_reagendar": ("#fef9c3", "#854d0e"),
     "no_asistio_lead":     ("#fee2e2", "#991b1b"),
@@ -89,9 +92,19 @@ _COL_STATUS = {
 }
 _PURPLE_BG, _PURPLE_TX = "#ede9fe", "#5b21b6"
 
+_COL_ESTADO_FLUJO = {
+    "reunion_futura": ("#e0f2fe", "#075985"),
+    "reunion_cancelada": ("#fee2e2", "#991b1b"),
+    "pendiente_evaluacion_cp": ("#fef9c3", "#854d0e"),
+    "pendiente_evaluacion_cliente": ("#ede9fe", "#6d28d9"),
+    "cliente_solicita_revision": ("#ffedd5", "#9a3412"),
+    "evaluacion_cerrada_valida": ("#dcfce7", "#166534"),
+    "evaluacion_cerrada_no_valida": ("#fee2e2", "#991b1b"),
+}
+
 # Tokens de capa (títulos consistentes en AMBOS dashboards)
 CAP_CP    = ("Evaluación Conprospección", "#7c3aed")   # morado de marca — quién: la agencia
-CAP_CLI   = ("Validación del cliente", "#0e7490")      # cian — quién: el cliente
+CAP_CLI   = ("Respuesta del cliente", "#0e7490")       # cian — quién: el cliente
 CAP_FINAL = ("Validez final", "#0f172a")               # neutro fuerte
 
 
@@ -119,11 +132,30 @@ def chip_status(status) -> str:
     return _chip(LABEL_STATUS.get(e, "Agendada"), bg, tx, size="11px")
 
 
+def chip_estado_flujo(estado) -> str:
+    e = estado or "pendiente_evaluacion_cp"
+    bg, tx = _COL_ESTADO_FLUJO.get(e, ("#f1f5f9", "#475569"))
+    return _chip(LABEL_ESTADO_FLUJO.get(e, e), bg, tx, size="11px")
+
+
+def tarjeta_estado_flujo(estado) -> str:
+    e = estado or "pendiente_evaluacion_cp"
+    bg, tx = _COL_ESTADO_FLUJO.get(e, ("#f1f5f9", "#475569"))
+    return (
+        f'<div style="background:{bg};border:1px solid {tx}33;border-left:5px solid {tx};'
+        f'border-radius:10px;padding:12px 16px;margin:10px 0 14px">'
+        f'<div style="font-size:14px;font-weight:800;color:{tx}">'
+        f'{LABEL_ESTADO_FLUJO.get(e, e)}</div>'
+        f'<div style="font-size:12px;color:{tx};opacity:.85;margin-top:3px">'
+        f'{DESCRIPCION_ESTADO_FLUJO.get(e, "")}</div></div>'
+    )
+
+
 def bant_chips(lista) -> str:
     """Chips BANT (B·A·N·T) en morado de marca. '—' si no hay ninguno."""
     items = [x for x in (lista or []) if x in BANT_LABEL]
     if not items:
-        return '<span style="font-size:13px;color:#cbd5e1">Sin datos</span>'
+        return ""
     return " ".join(
         f'<span style="background:{_PURPLE_BG};color:{_PURPLE_TX};padding:2px 9px;'
         f'border-radius:7px;font-size:12px;font-weight:700;display:inline-block" '
@@ -138,7 +170,10 @@ def mini_label(txt: str) -> str:
 
 # ── Layout A: banner de validez final + resumen comparativo (todo HTML, sin widgets) ──
 
-def banner_final(estado, subtitulo: str = "Automática — manda el cliente") -> str:
+def banner_final(
+    estado,
+    subtitulo: str = "Definida por la evaluación Conprospección y la respuesta del cliente",
+) -> str:
     """Banner grande de validez final: lo primero y más importante de la tarjeta."""
     e = estado or "pendiente"
     bg, tx = _COL_FINAL.get(e, ("#f1f5f9", "#475569"))
@@ -197,13 +232,11 @@ def barra_avance(validas: int, meta: int, *, sufijo: str = "", color: str = "#7c
     meta_txt = f"{validas}/{meta}{sufijo}" if meta else "—"
     return (
         f'<div style="background:#fff;border:1px solid #e9d5ff;border-radius:12px;'
-        f'padding:14px 18px;margin:6px 0 14px">'
-        f'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
-        f'<span style="font-size:13px;font-weight:700;color:#1e293b">Avance de meta</span>'
-        f'<span style="font-size:13px;font-weight:800;color:{color};'
+        f'padding:8px 14px;margin:5px 0 10px">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+        f'<span style="font-size:12px;font-weight:700;color:#1e293b">Avance de meta</span>'
+        f'<span style="font-size:12px;font-weight:800;color:{color};'
         f'font-variant-numeric:tabular-nums">{meta_txt} · {pct}%</span></div>'
-        f'<div style="background:#f1f5f9;border-radius:6px;height:10px;overflow:hidden">'
-        f'<div style="width:{pct_barra}%;background:{color};height:10px;border-radius:6px"></div></div>'
-        f'<div style="font-size:11px;color:#64748b;margin-top:6px">'
-        f'Reuniones válidas (validación final) sobre la meta del contrato.</div>'
+        f'<div style="background:#f1f5f9;border-radius:5px;height:6px;overflow:hidden">'
+        f'<div style="width:{pct_barra}%;background:{color};height:6px;border-radius:5px"></div></div>'
         f'</div>')

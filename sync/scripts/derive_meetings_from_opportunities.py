@@ -42,6 +42,14 @@ def main() -> None:
         "oportunidades",
         "ghl_opportunity_id,ghl_contact_id,cliente_slug,location_id,sdr_slug,ghl_owner_user_id,nombre,pipeline_id,pipeline_stage_id,estado,contacto_nombre,contacto_empresa,contacto_email,contacto_telefono,ghl_created_at,last_stage_change_at,raw_data",
     )
+    contacts = {
+        row["ghl_contact_id"]: row
+        for row in supabase.select_all(
+            "contactos",
+            "ghl_contact_id,informacion_reunion,bant_sdr",
+        )
+        if row.get("ghl_contact_id")
+    }
 
     opp_updates = []
     meeting_rows = []
@@ -66,12 +74,13 @@ def main() -> None:
 
         stage_dt = parse_dt(opp.get("last_stage_change_at")) or parse_dt(opp.get("ghl_created_at"))
         created_dt = parse_dt(opp.get("ghl_created_at"))
+        is_quote = stage.get("stage_category") == "cotizacion"
         meeting_rows.append(
             {
                 "ghl_appointment_id": f"opportunity:{opp['ghl_opportunity_id']}",
                 "opportunity_id": opp["ghl_opportunity_id"],
                 "origen_reunion": "oportunidad_pipeline",
-                "fecha_reunion_estimada": True,
+                "fecha_reunion_estimada": not is_quote,
                 "cliente_slug": opp.get("cliente_slug"),
                 "sdr_slug": opp.get("sdr_slug"),
                 "ghl_contact_id": opp.get("ghl_contact_id"),
@@ -83,14 +92,21 @@ def main() -> None:
                 "telefono": opp.get("contacto_telefono"),
                 "email": opp.get("contacto_email"),
                 "fecha_agendada": created_dt.date().isoformat() if created_dt else None,
-                "fecha_reunion": stage_dt.date().isoformat() if stage_dt else None,
-                "hora_reunion": stage_dt.time().replace(tzinfo=None).isoformat() if stage_dt else None,
+                "fecha_reunion": None if is_quote else (stage_dt.date().isoformat() if stage_dt else None),
+                "hora_reunion": None if is_quote else (stage_dt.time().replace(tzinfo=None).isoformat() if stage_dt else None),
                 "starts_at": opp.get("last_stage_change_at") or opp.get("ghl_created_at"),
-                "estado_reunion": stage.get("stage_name"),
-                "es_valida": stage.get("is_valid_meeting"),
-                "observacion": "Reunion inferida desde etapa de oportunidad GHL.",
+                "estado_reunion": "solicita_cotizacion" if is_quote else stage.get("stage_name"),
+                "es_valida": True if is_quote else stage.get("is_valid_meeting"),
+                "observacion": (
+                    "Solicitud de cotizacion: interes inmediato y traspaso al equipo comercial del cliente."
+                    if is_quote
+                    else "Reunion inferida desde etapa de oportunidad GHL."
+                ),
+                "informacion_reunion": contacts.get(opp.get("ghl_contact_id"), {}).get("informacion_reunion"),
+                "bant_sdr": contacts.get(opp.get("ghl_contact_id"), {}).get("bant_sdr"),
                 "raw_data": opp.get("raw_data") or {},
                 "synced_at": iso_now(),
+                **({"estado_validacion": "valida"} if is_quote else {}),
             }
         )
 
