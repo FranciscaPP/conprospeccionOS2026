@@ -44,19 +44,7 @@ if not require_auth_client("gbs"):
 # Guard premium: Intelligence Insight es plan premium (o acceso interno admin).
 from shared.planes import plan_de as _plan_de
 if _plan_de("gbs") != "premium" and not st.session_state.get("admin_mode"):
-    render_client_nav("11_GBS", "gbs")
-    st.markdown(
-        f'<div style="background:#fff;border:1px solid {GBS_BORDER};border-left:4px solid {GBS_PURPLE};'
-        f'border-radius:12px;padding:22px 26px;margin-top:18px">'
-        f'<div style="font-size:18px;font-weight:800;color:{GBS_DARK};margin-bottom:6px">'
-        f'Intelligence Insight — plan premium</div>'
-        f'<div style="font-size:13px;color:#475569;line-height:1.6">'
-        f'El análisis completo en vivo (efectividad por segmento, ICP real, recomendaciones, '
-        f'proyección y filtros libres) es parte del plan premium. Tu plan actual incluye '
-        f'<b>Validación de Reuniones</b> y el <b>Reporte Mensual</b> en PDF. '
-        f'Para activar el acceso completo, contactá a tu ejecutivo de Conprospección.</div></div>',
-        unsafe_allow_html=True)
-    st.stop()
+    st.switch_page("pages/12_GBS_Validacion_Reuniones.py")
 
 render_client_nav("11_GBS", "gbs")
 
