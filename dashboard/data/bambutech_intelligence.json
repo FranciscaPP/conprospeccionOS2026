@@ -1,0 +1,4466 @@
+{
+  "periodo": {
+    "inicio": "2026-05-18",
+    "fin": "2026-06-18",
+    "nota": "Prospección activa desde el 18 de mayo. El mes previo fue configuración."
+  },
+  "universo_unico": 2558,
+  "correo": {
+    "enviados": 3374,
+    "contactados": 1940,
+    "entregados": 3289,
+    "rebotes": 85,
+    "respuestas": 7,
+    "auto_respuestas": 16,
+    "bajas": 3
+  },
+  "gestion": {
+    "gestionados": 601,
+    "conversaciones": 93
+  },
+  "resultados_totales": {
+    "no_contesta": 448,
+    "numero_malo": 60,
+    "negativa": 58,
+    "positiva": 19,
+    "deriva": 15,
+    "reagendar": 1
+  },
+  "por_industria": {
+    "Banca / Servicios Financieros": {
+      "no_contesta": 5,
+      "numero_malo": 1
+    },
+    "Construcción / Inmobiliario": {
+      "no_contesta": 2
+    },
+    "Industrial / Manufactura / Minería / Energía": {
+      "no_contesta": 116,
+      "negativa": 19,
+      "numero_malo": 10,
+      "positiva": 6,
+      "deriva": 4,
+      "reagendar": 1
+    },
+    "Logística / Transporte / Supply Chain": {
+      "no_contesta": 39,
+      "negativa": 11,
+      "positiva": 4,
+      "numero_malo": 2
+    },
+    "Retail / Consumo / Multisucursal": {
+      "no_contesta": 39,
+      "negativa": 13,
+      "numero_malo": 6,
+      "deriva": 4,
+      "positiva": 2
+    },
+    "Salud / Farma / Hospitales": {
+      "no_contesta": 40,
+      "numero_malo": 20,
+      "positiva": 2,
+      "negativa": 1
+    },
+    "Sin clasificar": {
+      "no_contesta": 149,
+      "numero_malo": 11,
+      "negativa": 9,
+      "positiva": 5,
+      "deriva": 4
+    },
+    "Tecnología / Telecom": {
+      "no_contesta": 58,
+      "numero_malo": 10,
+      "negativa": 5,
+      "deriva": 3
+    }
+  },
+  "por_area": {
+    "Comercial / Marketing": {
+      "no_contesta": 11,
+      "negativa": 2,
+      "numero_malo": 2,
+      "deriva": 1
+    },
+    "Dirección / Negocio": {
+      "no_contesta": 104,
+      "numero_malo": 14,
+      "negativa": 9,
+      "deriva": 5,
+      "positiva": 1
+    },
+    "Operaciones / Procesos": {
+      "no_contesta": 59,
+      "numero_malo": 15,
+      "negativa": 14,
+      "positiva": 7,
+      "reagendar": 1
+    },
+    "Otros": {
+      "no_contesta": 22,
+      "negativa": 9,
+      "numero_malo": 8
+    },
+    "Riesgo / Seguridad": {
+      "no_contesta": 5,
+      "negativa": 1
+    },
+    "Tecnología / Transformación": {
+      "no_contesta": 247,
+      "negativa": 23,
+      "numero_malo": 21,
+      "positiva": 11,
+      "deriva": 9
+    }
+  },
+  "registros": [
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Servicios",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Otros",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Otros",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Otros",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Otros",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Tecnología",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Comercial / Marketing",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Comercial / Marketing",
+      "canal": "Llamada",
+      "campana": "Tecnología",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Comercial / Marketing",
+      "canal": "Correo",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Tecnología",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Comercial / Marketing",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Banca / Servicios Financieros",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Banca / Servicios Financieros",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Comercial / Marketing",
+      "canal": "Correo",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Comercial / Marketing",
+      "canal": "Correo",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Riesgo / Seguridad",
+      "canal": "Correo",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Banca / Servicios Financieros",
+      "area": "Riesgo / Seguridad",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Banca / Servicios Financieros",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Banca / Servicios Financieros",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Construcción / Inmobiliario",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Comercial / Marketing",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Correo",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "Correo",
+      "campana": "Campaña MX",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Riesgo / Seguridad",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Riesgo / Seguridad",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Riesgo / Seguridad",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Riesgo / Seguridad",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercial / Marketing",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Banca / Servicios Financieros",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Construcción / Inmobiliario",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Tecnología / Telecom",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Otros",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "reagendar"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Otros",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Retail",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Retail",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Logística",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Retail",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Otros",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Otros",
+      "canal": "WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "deriva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Retail",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Logística",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "positiva"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "WhatsApp",
+      "campana": "Logística",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Op. Crítica y Continuidad",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Otros",
+      "canal": "WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Otros",
+      "canal": "Llamada",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    },
+    {
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "negativa"
+    },
+    {
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Otros",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Llamadas/WhatsApp",
+      "resultado": "numero_malo"
+    },
+    {
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp",
+      "campana": "Campaña MX",
+      "resultado": "no_contesta"
+    }
+  ],
+  "objetivo": {
+    "total": 571,
+    "prospectadas": 130,
+    "pct": 23,
+    "pendientes": 441
+  },
+  "empresas_positivas": [
+    {
+      "empresa": "Medio Pliego",
+      "estado": "Información adicional",
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "Ritch Mueller",
+      "estado": "Información adicional",
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "megaventilacion",
+      "estado": "Información adicional",
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada"
+    },
+    {
+      "empresa": "Lemancore",
+      "estado": "Información adicional",
+      "industria": "Sin clasificar",
+      "area": "Tecnología / Transformación",
+      "canal": "Correo"
+    },
+    {
+      "empresa": "inglés individual",
+      "estado": "Información adicional",
+      "industria": "Sin clasificar",
+      "area": "Dirección / Negocio",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "Cemex",
+      "estado": "Coordinando reunión",
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "Difarmer",
+      "estado": "Reunión agendada",
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada"
+    },
+    {
+      "empresa": "HERRALUM INDUSTRIAL SA DE CV",
+      "estado": "Información adicional",
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamada"
+    },
+    {
+      "empresa": "Grupo Encanto",
+      "estado": "Información adicional",
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "CURACRETO",
+      "estado": "Reunión agendada",
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "TECNOMOTUM",
+      "estado": "Información adicional",
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "REPARE",
+      "estado": "Reunión agendada",
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Tecnología / Transformación",
+      "canal": "Llamada"
+    },
+    {
+      "empresa": "Certus Laboratorio",
+      "estado": "Información adicional",
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp"
+    },
+    {
+      "empresa": "GRUPO MAXIMA",
+      "estado": "Reunión agendada",
+      "industria": "Retail / Consumo / Multisucursal",
+      "area": "Operaciones / Procesos",
+      "canal": "WhatsApp"
+    },
+    {
+      "empresa": "BrightCell Logistics",
+      "estado": "Información adicional",
+      "industria": "Logística / Transporte / Supply Chain",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "Grupo CUBIMSA",
+      "estado": "Información adicional",
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "Metecno Americas",
+      "estado": "Información adicional",
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "AMI Automation",
+      "estado": "Información adicional",
+      "industria": "Industrial / Manufactura / Minería / Energía",
+      "area": "Operaciones / Procesos",
+      "canal": "Llamadas/WhatsApp"
+    },
+    {
+      "empresa": "Hospitales MAC",
+      "estado": "Coordinando reunión",
+      "industria": "Salud / Farma / Hospitales",
+      "area": "Tecnología / Transformación",
+      "canal": "WhatsApp"
+    }
+  ]
+}
