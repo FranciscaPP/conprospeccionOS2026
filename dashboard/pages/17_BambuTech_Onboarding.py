@@ -13,7 +13,7 @@ DASHBOARD_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 
-from portal_auth import img_b64, render_client_nav, require_auth_client
+from portal_auth import render_bambutech_page_header, render_client_nav, require_auth_client
 from shared.bambutech_brand import (
     BAMBU_BG,
     BAMBU_BORDER,
@@ -103,16 +103,14 @@ st.markdown(
 button[kind="primary"]{{background:{BAMBU_GREEN_DARK}!important;border:none!important}}
 span[data-baseweb="tag"]{{background:#ecf9ec!important;color:{BAMBU_GREEN_DARK}!important}}
 </style>
-<div style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#202321,#343936);
-padding:20px 27px;border-radius:14px;margin-bottom:16px;color:white">
-  <div style="display:flex;align-items:center;gap:20px">{img_b64("bambutech_logo.png", 58)}
-    <div><div style="font-size:23px;font-weight:850">Onboarding comercial</div>
-    <div style="font-size:12px;color:#c8d0ca;margin-top:4px">Perfil confirmado para configurar prospección, mensajes y validación</div></div>
-  </div>
-  <div style="text-align:right;font-size:12px;color:#c8d0ca"><b style="color:{BAMBU_GREEN}">Setup</b><br>18 abril 2026</div>
-</div>
 """,
     unsafe_allow_html=True,
+)
+render_bambutech_page_header(
+    "Onboarding comercial",
+    "Perfil confirmado para configurar prospección, mensajes y validación",
+    f'<div style="text-align:right;font-size:11px;color:#c8d0ca">'
+    f'<b style="color:{BAMBU_GREEN}">Setup</b><br>18 abril 2026</div>',
 )
 
 with st.expander("Documentos, enlaces y respaldos del proyecto", expanded=False):

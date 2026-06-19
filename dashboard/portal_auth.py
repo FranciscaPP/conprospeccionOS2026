@@ -22,6 +22,22 @@ def img_b64(fname: str, h: int = 56) -> str:
     return f'<img src="data:image/{ext};base64,{d}" height="{h}" style="object-fit:contain;vertical-align:middle">'
 
 
+def render_bambutech_page_header(title: str, subtitle: str, meta_html: str = "") -> None:
+    """Encabezado único para todos los módulos del portal BambuTech."""
+    logo = img_b64("bambutech_logo.png", 48)
+    st.markdown(
+        f'<div style="display:flex;align-items:center;justify-content:space-between;gap:24px;'
+        f'background:linear-gradient(135deg,#171a18,#2b302c);padding:18px 24px;'
+        f'border-radius:14px;margin-bottom:16px;color:#fff">'
+        f'<div><div style="font-size:22px;font-weight:850;line-height:1.15">{title}</div>'
+        f'<div style="font-size:11px;color:#d2d8d3;margin-top:7px">{subtitle}</div></div>'
+        f'<div style="display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-shrink:0">'
+        f'{meta_html}<div style="display:inline-flex;align-items:center;background:#07110c;'
+        f'padding:8px 13px;border-radius:9px">{logo}</div></div></div>',
+        unsafe_allow_html=True,
+    )
+
+
 def _check_login(slug: str, user: str, pwd: str) -> bool:
     expected = portal_passwords().get(slug, "")
     expected_user = {"bambutech": "bambutech"}.get(slug)
@@ -147,13 +163,14 @@ def render_client_nav(current: str, cliente: str) -> None:
             nav_accent2 = "#5b21b6" if cliente == "gbs" else "#1e3a8a"
 
         logo = img_b64(cfg["logo_file"], 44)
-        st.markdown(
-            f'<div style="text-align:center;padding:18px 0 10px">{logo}</div>'
-            if logo else
-            f'<div style="text-align:center;padding:18px 0 10px;font-weight:800;'
-            f'font-size:18px;color:{nav_accent}">{cliente.upper()}</div>',
-            unsafe_allow_html=True,
-        )
+        if cliente != "bambutech":
+            st.markdown(
+                f'<div style="text-align:center;padding:18px 0 10px">{logo}</div>'
+                if logo else
+                f'<div style="text-align:center;padding:18px 0 10px;font-weight:800;'
+                f'font-size:18px;color:{nav_accent}">{cliente.upper()}</div>',
+                unsafe_allow_html=True,
+            )
         st.markdown("---")
 
         # Todos los items son el MISMO botón (misma alineación siempre). Al activo solo
@@ -249,6 +266,12 @@ def require_auth_client(cliente: str) -> bool:
             f'border-radius:12px;font-size:24px;font-weight:900;letter-spacing:3px">'
             f'{cliente.upper()}</div>'
         )
+        if cliente == "bambutech" and img_b64(cfg["logo_file"], 64):
+            logo_html = (
+                '<div style="display:inline-flex;align-items:center;'
+                'background:linear-gradient(135deg,#07110c,#0e1b15);'
+                'padding:16px 30px;border-radius:16px">' + logo_html + '</div>'
+            )
         st.markdown(
             f'<div style="text-align:center;padding:6px 0 14px">'
             f'{logo_html}'

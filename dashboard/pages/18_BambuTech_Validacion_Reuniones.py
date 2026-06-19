@@ -15,7 +15,7 @@ DASHBOARD_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 
-from portal_auth import img_b64, render_client_nav, require_auth_client
+from portal_auth import render_bambutech_page_header, render_client_nav, require_auth_client
 from shared.config import supabase_key, supabase_url
 from shared.bambutech_brand import GBS_BORDER_2, GBS_DARK, GBS_PURPLE, GBS_PURPLE_BG, ICP_DEFAULT
 from shared.icp_summary import perfil_icp
@@ -427,20 +427,11 @@ def guardar_respuesta_cliente(reunion_id, estado, comentario="", motivo=None):
 def render_header():
     goal = meta_de("bambutech") or {"validas": 0}
     target = int(goal.get("validas") or 0)
-    st.markdown(
-        f'<div style="display:flex;justify-content:space-between;align-items:center;gap:20px;'
-        f'background:linear-gradient(135deg,#f4f6f4,#ecf9ec);border:1px solid {GBS_BORDER_2};'
-        f'border-radius:12px;padding:13px 22px;margin-bottom:14px">'
-        f'<div><div style="font-size:20px;font-weight:800;color:{GBS_DARK};line-height:1.1">'
-        f'Validación de reuniones</div>'
-        f'<div style="font-size:12px;color:#64748b;margin-top:3px">'
-        f'Revisa las reuniones generadas por Conprospección y confirma o solicita revisión '
-        f'de su evaluación.</div></div>'
-        f'<div style="display:flex;align-items:center;gap:14px">'
-        f'<span style="font-size:12px;font-weight:800;color:{GBS_PURPLE}">'
-        f'Meta · {target} reuniones válidas</span>'
-        f'{img_b64("bambutech_logo.png", 42)}{img_b64("conprospeccion_logo.png", 36)}</div></div>',
-        unsafe_allow_html=True,
+    render_bambutech_page_header(
+        "Validación de reuniones",
+        "Revisa las reuniones generadas por Conprospección y confirma o solicita revisión de su evaluación.",
+        f'<span style="font-size:11px;font-weight:800;color:#7cf276;white-space:nowrap">'
+        f'Meta · {target} reuniones válidas</span>',
     )
 
 
@@ -1372,7 +1363,7 @@ def run():
     with filter_cols[2]:
         st.selectbox(
             "Etapa de agenda",
-            ["all", *ETAPAS_AGENDA],
+            ["all", *(stage for stage in ETAPAS_AGENDA if stage != "reunion_agendada")],
             format_func=lambda value: (
                 "Todo"
                 if value == "all"

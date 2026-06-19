@@ -16,7 +16,7 @@ DASHBOARD_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 
-from portal_auth import img_b64, render_client_nav, require_auth_client
+from portal_auth import render_bambutech_page_header, render_client_nav, require_auth_client
 from shared.bambutech_brand import BAMBU_BORDER, BAMBU_DARK, BAMBU_GREEN, BAMBU_GREEN_DARK
 from shared.config import supabase_key, supabase_url
 from shared.metas import meta_de
@@ -227,15 +227,12 @@ def insight_row(insight, evidence, implication, action):
 
 # ================= HEADER =================
 st.markdown(
-    f'<style>.block-container{{max-width:1380px;padding-top:1rem!important}}</style>'
-    f'<div style="display:flex;align-items:center;gap:18px;background:#f0f4f0;border:1px solid {BAMBU_BORDER};'
-    f'padding:15px 24px;border-radius:14px;margin-bottom:10px">'
-    f'<div style="background:linear-gradient(135deg,#07110c,#0e1b15);padding:8px 14px;border-radius:12px;'
-    f'display:inline-flex;align-items:center">{img_b64("bambutech_logo.png", 46)}</div>'
-    f'<div><div style="font-size:23px;font-weight:900;color:{BAMBU_DARK}">Intelligence Insight</div>'
-    f'<div style="font-size:12px;color:#68706b">Prospección activa desde el <b>18 de mayo 2026</b> · '
-    f'el mes previo fue configuración · se actualiza 1×/mes</div></div></div>',
+    '<style>.block-container{max-width:1380px;padding-top:1rem!important}</style>',
     unsafe_allow_html=True,
+)
+render_bambutech_page_header(
+    "Intelligence Insight",
+    "Prospección activa desde el 18 de mayo 2026 · el mes previo fue configuración · se actualiza 1×/mes",
 )
 
 # ===== ① Avance de meta (arriba, compacto) =====
@@ -428,8 +425,25 @@ if segments.empty:
         "efectivas o 30 cuentas activadas en un segmento para generar una lectura confiable."
     )
 else:
-    heat = alt.Chart(segments).mark_rect(cornerRadius=4).encode(
-        x=alt.X("Macrocargo:N", title="Macrocargo (área)"),
+    area_short = {
+        "Comercial / Marketing": "Comercial",
+        "Dirección / Negocio": "Dirección",
+        "Operaciones / Procesos": "Operaciones",
+        "Riesgo / Seguridad": "Riesgo",
+        "Tecnología / Transformación": "Tecnología",
+        "Recursos Humanos": "RR. HH.",
+        "Finanzas": "Finanzas",
+    }
+    heat_segments = segments.copy()
+    heat_segments["Macrocargo visible"] = heat_segments["Macrocargo"].map(area_short).fillna(
+        heat_segments["Macrocargo"]
+    )
+    heat = alt.Chart(heat_segments).mark_rect(cornerRadius=4).encode(
+        x=alt.X(
+            "Macrocargo visible:N",
+            title="Macrocargo (área)",
+            axis=alt.Axis(labelAngle=0, labelLimit=130, labelPadding=8),
+        ),
         y=alt.Y("Macroindustria:N", title="Macroindustria"),
         color=alt.Color(
             "Score:Q", title="Score",
@@ -724,7 +738,7 @@ def informe_html():
         segment_report = segment_report[[
             "Segmento", "Cuentas activadas", "Conversaciones", "Positivas",
             "Tasa positiva", "Reuniones", "Score", "Confianza", "Señal", "Decisión",
-        ]]
+        ]].head(10)
     results_report = pd.DataFrame([
         {"Resultado": RES_LABEL[key], "Cantidad": conteo(REGf, key)}
         for key in ["positiva", "deriva", "reagendar", "negativa", "no_contesta", "numero_malo"]
