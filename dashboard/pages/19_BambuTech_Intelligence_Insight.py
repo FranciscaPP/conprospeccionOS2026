@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import date
 from pathlib import Path
 
+import altair as alt
 import pandas as pd
 import requests
 import streamlit as st
@@ -73,6 +75,7 @@ if not SNAP:
 
 REG = pd.DataFrame(SNAP["registros"])
 REG["canal"] = REG["canal"].replace({"Llamadas/WhatsApp": "Llamadas", "Llamada": "Llamadas"})
+REG["fecha"] = pd.to_datetime(REG["fecha"], errors="coerce").dt.date
 CORREO = SNAP["correo"]
 OBJ = SNAP["objetivo"]
 EMPRESAS_POSITIVAS = SNAP.get("empresas_positivas", [])
@@ -164,6 +167,64 @@ def conteo(df, *res):
     return int(df.resultado.isin(res).sum())
 
 
+def segment_matrix(df):
+    rows = []
+    quality = {
+        "Tecnología / Transformación": 1.0,
+        "Operaciones / Procesos": 1.0,
+        "Dirección / Negocio": .95,
+        "Riesgo / Seguridad": .85,
+        "Finanzas": .8,
+        "Comercial / Marketing": .72,
+        "Recursos Humanos": .65,
+        "Otros": .55,
+    }
+    for (industry, area), sub in df.groupby(["industria", "area"]):
+        if industry in EXCLUIR_SEG or area in EXCLUIR_SEG:
+            continue
+        accounts = int(sub["empresa"].replace("", pd.NA).nunique())
+        conversations = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
+        positive = conteo(sub, "positiva", "deriva")
+        meetings = int(sub["estado_raw"].str.contains("Reunión Agendada", case=False, na=False).sum())
+        rate = positive / conversations if conversations else 0
+        fit = 1.0 if industry not in {"Tecnología / Telecom"} else .8
+        volume_factor = .4 + .6 * min(accounts / 30, 1)
+        stage_factor = .7 + .3 * min(meetings / 2, 1)
+        score = round(100 * rate * volume_factor * fit * quality.get(area, .65) * stage_factor)
+        if conversations >= 20 and accounts >= 30:
+            confidence = "Alta"
+        elif conversations >= 10 or accounts >= 30:
+            confidence = "Media"
+        else:
+            confidence = "Baja"
+        if conversations < 10 and accounts < 30:
+            signal, decision = "Muestra insuficiente", "Ampliar muestra"
+        elif score >= 28:
+            signal, decision = "Alta oportunidad", "Aumentar cobertura"
+        elif score >= 16:
+            signal, decision = "Oportunidad media", "Mantener y ampliar"
+        elif score >= 8:
+            signal, decision = "Exploratorio", "Testear segunda muestra"
+        else:
+            signal, decision = "Baja señal", "Ajustar mensaje"
+        rows.append({
+            "Macroindustria": industry, "Macrocargo": area, "Cuentas activadas": accounts,
+            "Conversaciones": conversations, "Positivas": positive,
+            "Tasa positiva": rate, "Reuniones": meetings, "Score": score,
+            "Confianza": confidence, "Señal": signal, "Decisión": decision,
+        })
+    return pd.DataFrame(rows).sort_values(
+        ["Score", "Conversaciones", "Cuentas activadas"], ascending=False
+    ) if rows else pd.DataFrame()
+
+
+def insight_row(insight, evidence, implication, action):
+    return {
+        "Insight": insight, "Evidencia": evidence,
+        "Implicancia": implication, "Acción recomendada": action,
+    }
+
+
 # ================= HEADER =================
 st.markdown(
     f'<style>.block-container{{max-width:1380px;padding-top:1rem!important}}</style>'
@@ -190,16 +251,15 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ===== ② Reuniones (tarjetas chicas + acceso a validación) =====
-rc = st.columns(4)
-for c, d in zip(rc, [
-    ("Reuniones totales", REAL["total"], "Agendadas en el período", "#208d25"),
-    ("Válidas", REAL["validas"], "Confirmadas", "#16a34a"),
-    ("No válidas", REAL["no_validas"], "Descartadas", "#dc2626"),
-    ("Reagendar", REAL["reagendar"], "A reprogramar", "#d97706"),
-]):
-    c.markdown(scard(*d), unsafe_allow_html=True)
-if st.button("Ver detalle en Validación de Reuniones →", key="goto_val"):
+# ===== ② Lectura del ciclo + acceso a validación =====
+mc1, mc2 = st.columns([4, 1])
+mc1.markdown(
+    f'<div style="font-size:12px;color:#475569;padding:7px 2px">'
+    f'<b>{REAL["total"]} reuniones registradas</b> · {REAL["validas"]} válidas para la meta. '
+    f'La evaluación contractual se consulta en el módulo especializado.</div>',
+    unsafe_allow_html=True,
+)
+if mc2.button("Ver validación →", key="goto_val", use_container_width=True):
     st.switch_page("pages/18_BambuTech_Validacion_Reuniones.py")
 
 st.markdown(
@@ -210,21 +270,54 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ===== ③ Filtros cruzados =====
-section("Análisis por canal y segmento", "Los tres filtros se cruzan y actualizan todo el análisis")
-fc = st.columns(3)
-f_canal = fc[0].selectbox("Canal", ["Todos"] + sorted(REG["canal"].dropna().unique()))
-base_ind = REG if f_canal == "Todos" else REG[REG["canal"] == f_canal]
-f_ind = fc[1].selectbox(
-    "Macro-industria",
-    ["Todas"] + sorted(x for x in base_ind["industria"].dropna().unique() if str(x).strip()),
-)
-base_area = base_ind if f_ind == "Todas" else base_ind[base_ind["industria"] == f_ind]
-f_area = fc[2].selectbox(
-    "Macro-cargo (área)",
-    ["Todas"] + sorted(x for x in base_area["area"].dropna().unique() if str(x).strip()),
-)
-REGf = REG.copy()
+# ===== ③ Panel maestro de filtros cruzados =====
+valid_dates = REG["fecha"].dropna()
+min_date = valid_dates.min() if not valid_dates.empty else date(2026, 5, 18)
+max_date = valid_dates.max() if not valid_dates.empty else date.today()
+campaign_start = pd.to_datetime(SNAP["periodo"]["inicio"]).date()
+min_date = max(min_date, campaign_start)
+with st.container(border=True):
+    st.markdown(
+        '<div style="display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:5px">'
+        '<div><div style="font-size:17px;font-weight:900;color:#171918">Control del análisis</div>'
+        '<div style="font-size:12px;color:#64748b">Cada ajuste recalcula todas las métricas, tablas, '
+        'heatmaps, insights y recomendaciones que aparecen debajo.</div></div>'
+        '<span style="background:#dcfce7;color:#166534;border:1px solid #86efac;border-radius:999px;'
+        'padding:5px 11px;font-size:10px;font-weight:850;white-space:nowrap">FILTROS GLOBALES</span></div>',
+        unsafe_allow_html=True,
+    )
+    fc = st.columns([1.08, 1, 1.35, 1.25])
+    period = fc[0].date_input(
+        "Período",
+        value=(min_date, max_date),
+        min_value=min_date,
+        max_value=max_date,
+        format="DD/MM/YYYY",
+    )
+    start_date, end_date = (
+        period if isinstance(period, (tuple, list)) and len(period) == 2
+        else (min_date, max_date)
+    )
+    date_base = REG[REG["fecha"].between(start_date, end_date, inclusive="both")]
+    f_canal = fc[1].selectbox("Canal", ["Todos"] + sorted(date_base["canal"].dropna().unique()))
+    base_ind = date_base if f_canal == "Todos" else date_base[date_base["canal"] == f_canal]
+    f_ind = fc[2].selectbox(
+        "Macroindustria",
+        ["Todas"] + sorted(x for x in base_ind["industria"].dropna().unique() if str(x).strip()),
+    )
+    base_area = base_ind if f_ind == "Todas" else base_ind[base_ind["industria"] == f_ind]
+    f_area = fc[3].selectbox(
+        "Macrocargo (área)",
+        ["Todas"] + sorted(x for x in base_area["area"].dropna().unique() if str(x).strip()),
+    )
+    st.markdown(
+        f'<div style="font-size:11px;color:#64748b;margin-top:2px">'
+        f'Vista activa: <b>{start_date:%d/%m/%Y}–{end_date:%d/%m/%Y}</b> · '
+        f'<b>{f_canal}</b> · <b>{f_ind}</b> · <b>{f_area}</b></div>',
+        unsafe_allow_html=True,
+    )
+
+REGf = date_base.copy()
 if f_canal != "Todos": REGf = REGf[REGf.canal == f_canal]
 if f_ind != "Todas": REGf = REGf[REGf.industria == f_ind]
 if f_area != "Todas": REGf = REGf[REGf.area == f_area]
@@ -267,7 +360,10 @@ if channel_rows:
         axis=1,
     )
     st.dataframe(activity_df, hide_index=True, use_container_width=True)
-if f_canal in {"Todos", "Correo"} and f_ind == "Todas" and f_area == "Todas":
+if (
+    start_date == min_date and end_date == max_date
+    and f_canal in {"Todos", "Correo"} and f_ind == "Todas" and f_area == "Todas"
+):
     st.caption(
         f"Volumen agregado de correo del período: {CORREO['enviados']:,} enviados · "
         f"{CORREO['entregados']:,} entregados · {CORREO['contactados']:,} contactados · "
@@ -297,6 +393,8 @@ section(
 )
 if EMPRESAS_POSITIVAS:
     empresas_df = pd.DataFrame(EMPRESAS_POSITIVAS)
+    empresas_df["fecha"] = pd.to_datetime(empresas_df["fecha"], errors="coerce").dt.date
+    empresas_df = empresas_df[empresas_df["fecha"].between(start_date, end_date, inclusive="both")]
     if f_canal != "Todos":
         empresas_df = empresas_df[empresas_df["canal"] == f_canal]
     if f_ind != "Todas":
@@ -321,7 +419,47 @@ if EMPRESAS_POSITIVAS:
 else:
     st.info("Primer mes de estrategia: el detalle de empresas se incorporará en el próximo consolidado.")
 
-# ===== ⑦ Rankings =====
+# ===== ⑦ Respuesta por segmento =====
+section("Respuesta por segmento", "¿Dónde está respondiendo mejor el mercado?")
+segments = segment_matrix(REGf)
+if segments.empty:
+    st.info(
+        "Todavía no hay muestra suficiente para concluir. Se requieren al menos 10 conversaciones "
+        "efectivas o 30 cuentas activadas en un segmento para generar una lectura confiable."
+    )
+else:
+    heat = alt.Chart(segments).mark_rect(cornerRadius=4).encode(
+        x=alt.X("Macrocargo:N", title="Macrocargo (área)"),
+        y=alt.Y("Macroindustria:N", title="Macroindustria"),
+        color=alt.Color(
+            "Score:Q", title="Score",
+            scale=alt.Scale(domain=[0, 15, 30, 50], range=["#f1f5f2", "#c8f2ca", "#65d66a", "#167b2d"]),
+        ),
+        tooltip=[
+            "Macroindustria", "Macrocargo", "Cuentas activadas", "Conversaciones",
+            "Positivas", alt.Tooltip("Tasa positiva:Q", format=".0%"),
+            "Reuniones", "Score", "Confianza", "Señal", "Decisión",
+        ],
+    ).properties(height=max(260, 38 * segments["Macroindustria"].nunique()))
+    st.altair_chart(heat, use_container_width=True)
+    st.caption(
+        "Score de oportunidad = tasa positiva × volumen de cuentas × fit ICP × calidad del cargo × "
+        "avance de etapa. Los segmentos pequeños se marcan como muestra insuficiente aunque tengan una tasa alta."
+    )
+    segment_view = segments.copy()
+    segment_view["Segmento"] = segment_view["Macroindustria"] + " + " + segment_view["Macrocargo"]
+    segment_view["Tasa positiva"] = segment_view["Tasa positiva"].map(lambda x: f"{x:.0%}")
+    st.dataframe(
+        segment_view,
+        hide_index=True,
+        use_container_width=True,
+        column_order=[
+            "Segmento", "Cuentas activadas", "Conversaciones", "Positivas", "Tasa positiva",
+            "Reuniones", "Score", "Confianza", "Señal", "Decisión",
+        ],
+    )
+
+# ===== ⑧ Rankings =====
 section("Top industrias y cargos", "Rankings recalculados según los filtros superiores")
 si, sa = st.columns(2)
 with si:
@@ -336,33 +474,213 @@ with sa:
         st.caption("Agrupamos los cientos de cargos en **áreas funcionales** (Tecnología, Operaciones, "
                    "Dirección, Comercial, Finanzas, RRHH, Riesgo) para definir estrategia por área, no cargo a cargo.")
 
-# ===== ⑦ Cuentas objetivo =====
-section("Cuentas objetivo del cliente", "Cobertura de las empresas que BambuTech priorizó")
-o = st.columns(3)
-o[0].markdown(scard("Cuentas objetivo", OBJ["total"], "Definidas por BambuTech"), unsafe_allow_html=True)
-o[1].markdown(scard("Activadas", f'{OBJ["prospectadas"]} ({OBJ["pct"]}%)', "Contactadas este ciclo", "#16a34a"),
-              unsafe_allow_html=True)
-o[2].markdown(scard("Por activar", OBJ["pendientes"], "Para la siguiente campaña", "#d97706"), unsafe_allow_html=True)
+# ===== ⑨ Qué aprendimos del mercado =====
+section("Qué aprendimos del mercado", "Cada lectura conecta evidencia, implicancia y una acción")
+learning_rows = []
+if not segments.empty:
+    reliable = segments[(segments["Conversaciones"] >= 10) | (segments["Cuentas activadas"] >= 30)]
+    lead = (reliable if not reliable.empty else segments).iloc[0]
+    learning_rows.append(insight_row(
+        f"Mayor señal en {lead['Macroindustria']} + {lead['Macrocargo']}",
+        f"{lead['Conversaciones']} conversaciones, {lead['Positivas']} positivas y "
+        f"{lead['Reuniones']} reuniones; confianza {lead['Confianza'].lower()}.",
+        "La oportunidad depende de combinar contexto industrial y área compradora, no solo de una tasa aislada.",
+        lead["Decisión"],
+    ))
+channel_summary = []
+for channel, sub in REGf.groupby("canal"):
+    conv = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
+    positives = conteo(sub, "positiva", "deriva")
+    if conv:
+        channel_summary.append((channel, conv, positives, positives / conv))
+if channel_summary:
+    best_channel = max(channel_summary, key=lambda row: (row[3], row[1]))
+    learning_rows.append(insight_row(
+        f"{best_channel[0]} genera la mejor señal dentro de la vista",
+        f"{best_channel[1]} conversaciones y {best_channel[2]} positivas ({best_channel[3]:.0%}).",
+        "El canal debe evaluarse por calidad de conversación y no solo por volumen de impactos.",
+        "Mantenerlo dentro de una cadencia multicanal y ampliar muestra antes de reasignar esfuerzo.",
+    ))
+learning_rows.append(insight_row(
+    "La cobertura de cuentas priorizadas sigue incompleta",
+    f"{OBJ['prospectadas']} de {OBJ['total']} cuentas objetivo activadas ({OBJ['pct']}%).",
+    "Todavía existe mercado priorizado por BambooTech que no ha recibido prospección.",
+    "Activar el siguiente lote por score ICP y señal del segmento.",
+))
+learning_rows.append(insight_row(
+    "La compra consultiva requiere múltiples áreas",
+    f"La vista contiene {REGf['area'].nunique()} áreas funcionales con actividad.",
+    "Integración y automatización suelen involucrar Dirección, Operaciones y TI.",
+    "Buscar 2–3 perfiles por cuenta prioritaria y comparar respuesta por área.",
+))
+st.dataframe(pd.DataFrame(learning_rows), hide_index=True, use_container_width=True)
 
-# ===== ⑧ Próximos pasos (narrativa + mercado) =====
-section("Próximos pasos", "Lectura estratégica del mes y plan para el siguiente ciclo")
+# ===== ⑩ Mensajes y dolores =====
+section(
+    "Mensajes y dolores que están resonando",
+    "Tema asociado a campaña; es una inferencia analítica, no una transcripción del prospecto",
+)
+theme_rows = []
+for theme, sub in REGf.groupby("tema"):
+    accounts = int(sub["empresa"].replace("", pd.NA).nunique())
+    conversations = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
+    positives = conteo(sub, "positiva", "deriva")
+    best_industry = (
+        sub[sub.resultado.isin(["positiva", "deriva"])]["industria"].value_counts().index[0]
+        if positives else "Sin señal suficiente"
+    )
+    rate = positives / conversations if conversations else 0
+    recommendation = (
+        "Usar como mensaje principal" if conversations >= 10 and rate >= .3
+        else "Mantener y ampliar muestra" if positives >= 2
+        else "Testear con mayor especificidad"
+    )
+    theme_rows.append({
+        "Tema": theme, "Cuentas impactadas": accounts, "Conversaciones": conversations,
+        "Positivas": positives, "Tasa positiva": f"{rate:.0%}",
+        "Mejor industria": best_industry, "Recomendación": recommendation,
+    })
+theme_df = pd.DataFrame(theme_rows).sort_values(
+    ["Positivas", "Conversaciones"], ascending=False
+) if theme_rows else pd.DataFrame()
+if theme_df.empty:
+    st.info("Todavía no hay muestra suficiente para comparar mensajes dentro de esta selección.")
+else:
+    st.dataframe(theme_df, hide_index=True, use_container_width=True)
+    theme_lead = theme_df.iloc[0]
+    st.success(
+        f"Insight: **{theme_lead['Tema']}** concentra la mayor señal observable "
+        f"({theme_lead['Positivas']} positivas). Conviene validar este aprendizaje con copy etiquetado "
+        "por tema en el próximo ciclo."
+    )
+
+# ===== ⑪ Negativas y objeciones =====
+section("Negativas y objeciones", "Las respuestas negativas también orientan segmentación y copy")
+negative = REGf[REGf.resultado == "negativa"].copy()
+objection_rows = []
+for objection, sub in negative.groupby("estado_raw"):
+    common_industry = sub["industria"].value_counts().index[0] if not sub.empty else "—"
+    if "No Califica" in objection:
+        reading = "Puede ser desajuste de cuenta, cargo o necesidad."
+        action = "Revisar ICP y enriquecer Operaciones/TI antes de descartar."
+    else:
+        reading = "Falta de prioridad o valor percibido en el momento."
+        action = "Reformular desde dolor operativo y programar recontacto."
+    objection_rows.append({
+        "Objeción": objection, "Cantidad": len(sub), "Industria más frecuente": common_industry,
+        "Lectura": reading, "Acción": action,
+    })
+if objection_rows:
+    st.dataframe(pd.DataFrame(objection_rows), hide_index=True, use_container_width=True)
+else:
+    st.info("No hay negativas registradas dentro de la combinación de filtros seleccionada.")
+
+# ===== ⑫ Contexto de mercado =====
+section("Contexto externo relevante", "Fuentes externas para interpretar las señales; no sustituyen los datos de campaña")
+market_context = pd.DataFrame([
+    {
+        "Tendencia": "Nearshoring en México",
+        "Por qué importa para BambooTech": "Aumenta la presión por integración, trazabilidad y escalabilidad operativa.",
+        "Segmentos conectados": "Manufactura, logística e industrial",
+        "Fuente": "Deloitte Insights",
+    },
+    {
+        "Tendencia": "Inversión en smart manufacturing",
+        "Por qué importa para BambooTech": "Deloitte reportó que 78% de 600 ejecutivos destinaba más de 20% del presupuesto de mejora a estas iniciativas.",
+        "Segmentos conectados": "Manufactura, Operaciones y TI",
+        "Fuente": "Deloitte 2025 Smart Manufacturing Survey",
+    },
+    {
+        "Tendencia": "Compra B2B omnicanal",
+        "Por qué importa para BambooTech": "McKinsey observó un promedio de diez canales usados durante el proceso de compra.",
+        "Segmentos conectados": "Todos; especialmente cuentas medianas y grandes",
+        "Fuente": "McKinsey B2B Pulse 2024",
+    },
+])
+st.dataframe(market_context, hide_index=True, use_container_width=True)
 st.markdown(
-    f'<div style="background:#fff;border:1px solid {BAMBU_BORDER};border-left:4px solid {BAMBU_GREEN};'
-    f'border-radius:11px;padding:16px 20px;font-size:13px;line-height:1.75;color:#334155">'
-    f'El <b>primer mes fue de estrategia comercial</b>: cruzamos las industrias y áreas que BambuTech '
-    f'priorizó con la respuesta real del mercado. Detectamos que <b>Industrial / Manufactura</b> y '
-    f'<b>Logística</b> son las que mejor responden — y, según la investigación de mercado, también las que '
-    f'<b>más crecen por el nearshoring</b>: México concentra más del <b>72% de la relocalización de '
-    f'Latinoamérica</b>, con logística e infraestructura industrial entre los sectores ganadores. '
-    f'Salud y Retail completan el foco, con inversión digital acelerada (Retail crece 7–8% anual en TIC).'
-    f'<br><br><b>Plan para el siguiente ciclo:</b><br>'
-    f'1. Concentrar la <b>estrategia híbrida</b> (correo + llamadas + WhatsApp) en Industrial y Logística, '
-    f'los sectores que más responden y más crecen.<br>'
-    f'2. Reforzar <b>WhatsApp como canal de cierre</b> tras el primer contacto.<br>'
-    f'3. Activar las <b>{OBJ["pendientes"]} cuentas objetivo</b> aún sin trabajar, con cadencia más larga '
-    f'para las cuentas grandes.<br>'
-    f'4. Dirigir el mensaje a <b>Tecnología/Transformación y Operaciones</b>, donde está la decisión '
-    f'de integración y automatización.</div>',
+    "[Deloitte: Nearshoring in Mexico](https://www.deloitte.com/us/en/insights/topics/economy/"
+    "issues-by-the-numbers/advantages-of-nearshoring-mexico.html) · "
+    "[Deloitte: 2025 Smart Manufacturing Survey](https://www.deloitte.com/us/en/insights/industry/"
+    "manufacturing/2025-smart-manufacturing-survey.html) · "
+    "[McKinsey: B2B Pulse 2024](https://www.mckinsey.com/capabilities/growth-marketing-and-sales/"
+    "our-insights/five-fundamental-truths-how-b2b-winners-keep-growing)"
+)
+
+# ===== ⑬ Cuentas objetivo =====
+section("Cuentas objetivo", "Funnel de empresas dentro de la combinación activa de filtros")
+active_accounts = int(REGf["empresa"].replace("", pd.NA).nunique())
+conversation_accounts = int(
+    REGf[~REGf.resultado.isin(["no_contesta", "numero_malo"])]["empresa"].replace("", pd.NA).nunique()
+)
+positive_accounts = int(
+    REGf[REGf.resultado.isin(["positiva", "deriva"])]["empresa"].replace("", pd.NA).nunique()
+)
+meeting_accounts = int(
+    REGf[REGf["estado_raw"].str.contains("Reunión Agendada", case=False, na=False)]["empresa"]
+    .replace("", pd.NA).nunique()
+)
+o = st.columns(5)
+for col, item in zip(o, [
+    ("Universo objetivo", OBJ["total"], "Definido por BambooTech", "#208d25"),
+    ("Activadas en vista", active_accounts, "Según filtros y período", "#208d25"),
+    ("Con conversación", conversation_accounts, "Respuesta efectiva", "#7c3aed"),
+    ("Con señal positiva", positive_accounts, "Interés o derivación", "#16a34a"),
+    ("Con reunión", meeting_accounts, "Reunión agendada", "#0f7a2e"),
+]):
+    col.markdown(scard(*item), unsafe_allow_html=True)
+st.caption(
+    f"Cobertura global del consolidado: {OBJ['prospectadas']} de {OBJ['total']} cuentas objetivo "
+    f"activadas ({OBJ['pct']}%); quedan {OBJ['pendientes']} por activar."
+)
+
+# ===== ⑭ Próximos pasos =====
+section("Próximos pasos", "Plan ejecutivo conectado con los datos y la hipótesis del próximo ciclo")
+lead_segment = None if segments.empty else segments.iloc[0]
+lead_text = (
+    f"{lead_segment['Macroindustria']} + {lead_segment['Macrocargo']}"
+    if lead_segment is not None else "los segmentos que alcancen muestra suficiente"
+)
+next_steps = pd.DataFrame([
+    {
+        "Decisión": "Concentrar prospección",
+        "Acción Conprospección": f"Ampliar la muestra de {lead_text} sin declarar ganador hasta superar el umbral de confianza.",
+        "Acción BambooTech": "Validar industrias prioritarias y restricciones comerciales.",
+        "Indicador": "≥10 conversaciones o ≥30 cuentas por segmento",
+    },
+    {
+        "Decisión": "Vender dolor, no servicio",
+        "Acción Conprospección": "Separar copy por integración, automatización, visibilidad de datos, productividad y escalabilidad.",
+        "Acción BambooTech": "Entregar casos concretos y resultados por problema resuelto.",
+        "Indicador": "Tasa positiva por tema de mensaje",
+    },
+    {
+        "Decisión": "Aumentar multithreading",
+        "Acción Conprospección": "Buscar Dirección, Operaciones y TI en cada cuenta prioritaria.",
+        "Acción BambooTech": "Definir objeciones y propuesta de valor por área.",
+        "Indicador": "2–3 áreas activadas por cuenta",
+    },
+    {
+        "Decisión": "Activar siguiente lote",
+        "Acción Conprospección": f"Priorizar las {OBJ['pendientes']} cuentas pendientes usando score ICP + señal del segmento.",
+        "Acción BambooTech": "Confirmar exclusiones y cuentas estratégicas.",
+        "Indicador": "Cobertura de cuentas objetivo",
+    },
+    {
+        "Decisión": "Crear activos comerciales",
+        "Acción Conprospección": "Incorporar activos a secuencias y seguimiento.",
+        "Acción BambooTech": "Caso de integración, automatización, IA aplicada y cloud/ciberseguridad; one-pager por industria.",
+        "Indicador": "Respuesta y reunión por activo utilizado",
+    },
+])
+st.dataframe(next_steps, hide_index=True, use_container_width=True)
+st.markdown(
+    f'<div style="background:#ecf9ec;border:1px solid #b8dfba;border-left:5px solid {BAMBU_GREEN};'
+    f'border-radius:11px;padding:15px 18px;margin-top:12px;font-size:13px;line-height:1.65;color:#29452f">'
+    f'<b>Hipótesis del ciclo 2:</b> las cuentas industriales y logísticas contactadas desde Operaciones '
+    f'o TI responderán mejor a mensajes sobre integración y automatización que a mensajes genéricos '
+    f'de desarrollo de software.<br><b>Criterio de validación:</b> comparar tasa positiva y reuniones '
+    f'con al menos 10 conversaciones efectivas o 30 cuentas activadas por combinación.</div>',
     unsafe_allow_html=True,
 )
 

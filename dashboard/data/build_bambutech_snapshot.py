@@ -36,6 +36,32 @@ def company_display(x):
     return aliases.get(norm(value), value)
 
 
+def activity_date(last_activity, created):
+    for raw in (last_activity, created):
+        if not str(raw or "").strip():
+            continue
+        parsed = pd.to_datetime(raw, errors="coerce", utc=True)
+        if not pd.isna(parsed):
+            return parsed.date().isoformat()
+    return None
+
+
+def message_theme(campaign, meeting_info):
+    text = _ascii(f"{campaign} {meeting_info}")
+    rules = [
+        ("Ciberseguridad", ("ciber", "seguridad")),
+        ("IA aplicada", (" inteligencia artificial", " ia ", "machine learning")),
+        ("Cloud / escalabilidad", ("cloud", "nube", "escalab")),
+        ("Integración de sistemas", ("integracion", "sistemas", "tecnologia")),
+        ("Automatización de procesos", ("automatiz", "op critica", "procesos")),
+        ("Productividad operativa", ("logistica", "productividad", "tiempo", "operacion")),
+        ("Plataformas web / apps", ("retail", "plataforma", "app", "web")),
+        ("Software a medida", ("servicios", "software", "desarrollo")),
+    ]
+    return next((label for label, keys in rules if any(k in f" {text} " for k in keys)),
+                "Transformación digital")
+
+
 def find(df, *subs):
     for c in df.columns:
         cu = str(c).upper()
@@ -147,6 +173,9 @@ def main():
     c_cargo = find(g, "CARGO") if find(g, "CARGO") != c_cargo_m else None
     c_email = find(g, "EMAIL")
     c_emp = find(g, "BUSINESS")
+    c_created = find(g, "CREATED")
+    c_activity = find(g, "LAST", "ACTIVITY")
+    c_meeting_info = find(g, "INFORMACI", "REUNI")
 
     # ===== campaña por membresía en listas de correo (Snov) =====
     camp_por_email = {}
@@ -179,18 +208,25 @@ def main():
             continue  # solo contactos gestionados con resultado
         email = str(r.get(c_email) or "").lower().strip()
         canal_raw = str(r.get(c_canal) or "").strip().upper()
-        canal = {"WHATSAPP": "WhatsApp", "LLAMADA": "Llamada", "CORREO": "Correo"}.get(
-            canal_raw, "Llamadas/WhatsApp")
+        canal = {"WHATSAPP": "WhatsApp", "LLAMADA": "Llamadas", "CORREO": "Correo"}.get(
+            canal_raw, "Llamadas")
         industria = clean_ind(r.get(c_ind), r.get(c_ind_raw) if c_ind_raw else None)
         area = area_de(r.get(c_cargo_m), r.get(c_cargo))
+        campaign = camp_por_email.get(email, "Seguimiento multicanal")
+        empresa = company_display(r.get(c_emp))
+        fecha = activity_date(r.get(c_activity), r.get(c_created))
+        tema = message_theme(campaign, r.get(c_meeting_info))
         records.append({
             "industria": industria,
             "area": area,
             "canal": canal,
-            "campana": camp_por_email.get(email, "Llamadas/WhatsApp"),
+            "campana": campaign,
             "resultado": b,
+            "estado_raw": status_raw,
+            "fecha": fecha,
+            "empresa": empresa,
+            "tema": tema,
         })
-        empresa = company_display(r.get(c_emp))
         if b == "positiva" and empresa:
             estado_ascii = _ascii(status_raw)
             if "reunion agendada" in estado_ascii:
@@ -205,6 +241,7 @@ def main():
                 "industria": industria,
                 "area": area,
                 "canal": canal,
+                "fecha": fecha,
             })
 
     df = pd.DataFrame(records)
