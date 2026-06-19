@@ -40,8 +40,8 @@ def render_bambutech_page_header(title: str, subtitle: str, meta_html: str = "")
 
 def _check_login(slug: str, user: str, pwd: str) -> bool:
     expected = portal_passwords().get(slug, "")
-    expected_user = {"bambutech": "bambutech"}.get(slug)
-    user_ok = True if expected_user is None else user.strip().lower() == expected_user
+    expected_user = {"bambutech": "Bambutech"}.get(slug)
+    user_ok = True if expected_user is None else user.strip() == expected_user
     return bool(expected) and user_ok and pwd == expected
 
 
