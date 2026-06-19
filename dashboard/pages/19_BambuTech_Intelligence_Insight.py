@@ -504,7 +504,7 @@ if channel_summary:
 learning_rows.append(insight_row(
     "La cobertura de cuentas priorizadas sigue incompleta",
     f"{OBJ['prospectadas']} de {OBJ['total']} cuentas objetivo activadas ({OBJ['pct']}%).",
-    "Todavía existe mercado priorizado por BambooTech que no ha recibido prospección.",
+    "Todavía existe mercado priorizado por BambuTech que no ha recibido prospección.",
     "Activar el siguiente lote por score ICP y señal del segmento.",
 ))
 learning_rows.append(insight_row(
@@ -580,19 +580,19 @@ section("Contexto externo relevante", "Fuentes externas para interpretar las se�
 market_context = pd.DataFrame([
     {
         "Tendencia": "Nearshoring en México",
-        "Por qué importa para BambooTech": "Aumenta la presión por integración, trazabilidad y escalabilidad operativa.",
+        "Por qué importa para BambuTech": "Aumenta la presión por integración, trazabilidad y escalabilidad operativa.",
         "Segmentos conectados": "Manufactura, logística e industrial",
         "Fuente": "Deloitte Insights",
     },
     {
         "Tendencia": "Inversión en smart manufacturing",
-        "Por qué importa para BambooTech": "Deloitte reportó que 78% de 600 ejecutivos destinaba más de 20% del presupuesto de mejora a estas iniciativas.",
+        "Por qué importa para BambuTech": "Deloitte reportó que 78% de 600 ejecutivos destinaba más de 20% del presupuesto de mejora a estas iniciativas.",
         "Segmentos conectados": "Manufactura, Operaciones y TI",
         "Fuente": "Deloitte 2025 Smart Manufacturing Survey",
     },
     {
         "Tendencia": "Compra B2B omnicanal",
-        "Por qué importa para BambooTech": "McKinsey observó un promedio de diez canales usados durante el proceso de compra.",
+        "Por qué importa para BambuTech": "McKinsey observó un promedio de diez canales usados durante el proceso de compra.",
         "Segmentos conectados": "Todos; especialmente cuentas medianas y grandes",
         "Fuente": "McKinsey B2B Pulse 2024",
     },
@@ -622,7 +622,7 @@ meeting_accounts = int(
 )
 o = st.columns(5)
 for col, item in zip(o, [
-    ("Universo objetivo", OBJ["total"], "Definido por BambooTech", "#208d25"),
+    ("Universo objetivo", OBJ["total"], "Definido por BambuTech", "#208d25"),
     ("Activadas en vista", active_accounts, "Según filtros y período", "#208d25"),
     ("Con conversación", conversation_accounts, "Respuesta efectiva", "#7c3aed"),
     ("Con señal positiva", positive_accounts, "Interés o derivación", "#16a34a"),
@@ -645,31 +645,31 @@ next_steps = pd.DataFrame([
     {
         "Decisión": "Concentrar prospección",
         "Acción Conprospección": f"Ampliar la muestra de {lead_text} sin declarar ganador hasta superar el umbral de confianza.",
-        "Acción BambooTech": "Validar industrias prioritarias y restricciones comerciales.",
+        "Acción BambuTech": "Validar industrias prioritarias y restricciones comerciales.",
         "Indicador": "≥10 conversaciones o ≥30 cuentas por segmento",
     },
     {
         "Decisión": "Vender dolor, no servicio",
         "Acción Conprospección": "Separar copy por integración, automatización, visibilidad de datos, productividad y escalabilidad.",
-        "Acción BambooTech": "Entregar casos concretos y resultados por problema resuelto.",
+        "Acción BambuTech": "Entregar casos concretos y resultados por problema resuelto.",
         "Indicador": "Tasa positiva por tema de mensaje",
     },
     {
         "Decisión": "Aumentar multithreading",
         "Acción Conprospección": "Buscar Dirección, Operaciones y TI en cada cuenta prioritaria.",
-        "Acción BambooTech": "Definir objeciones y propuesta de valor por área.",
+        "Acción BambuTech": "Definir objeciones y propuesta de valor por área.",
         "Indicador": "2–3 áreas activadas por cuenta",
     },
     {
         "Decisión": "Activar siguiente lote",
         "Acción Conprospección": f"Priorizar las {OBJ['pendientes']} cuentas pendientes usando score ICP + señal del segmento.",
-        "Acción BambooTech": "Confirmar exclusiones y cuentas estratégicas.",
+        "Acción BambuTech": "Confirmar exclusiones y cuentas estratégicas.",
         "Indicador": "Cobertura de cuentas objetivo",
     },
     {
         "Decisión": "Crear activos comerciales",
         "Acción Conprospección": "Incorporar activos a secuencias y seguimiento.",
-        "Acción BambooTech": "Caso de integración, automatización, IA aplicada y cloud/ciberseguridad; one-pager por industria.",
+        "Acción BambuTech": "Caso de integración, automatización, IA aplicada y cloud/ciberseguridad; one-pager por industria.",
         "Indicador": "Respuesta y reunión por activo utilizado",
     },
 ])
@@ -685,7 +685,7 @@ st.markdown(
 )
 
 # ===== Descargar informe =====
-def informe_html():
+def informe_html_resumido():
     seg_i, _ = top_tabla(REG, "industria")
     seg_a, _ = top_tabla(REG, "area")
     total_conv = len(REG) - conteo(REG, "no_contesta") - conteo(REG, "numero_malo")
@@ -705,6 +705,123 @@ def informe_html():
 <li>Cuentas objetivo activadas: <b>{OBJ['prospectadas']} / {OBJ['total']}</b> ({OBJ['pct']}%)</li></ul>
 <h3 style="color:{BAMBU_GREEN_DARK}">Respuesta por macro-industria (top 5)</h3>{seg_i}
 <h3 style="color:{BAMBU_GREEN_DARK}">Respuesta por área (top 5)</h3>{seg_a}
+</body></html>"""
+
+
+def report_table(df):
+    if df is None or df.empty:
+        return '<div class="empty">Sin registros para la selección activa.</div>'
+    return df.to_html(index=False, border=0, classes="report-table", escape=True)
+
+
+def informe_html():
+    segment_report = segments.copy()
+    if not segment_report.empty:
+        segment_report["Segmento"] = (
+            segment_report["Macroindustria"] + " + " + segment_report["Macrocargo"]
+        )
+        segment_report["Tasa positiva"] = segment_report["Tasa positiva"].map(lambda x: f"{x:.0%}")
+        segment_report = segment_report[[
+            "Segmento", "Cuentas activadas", "Conversaciones", "Positivas",
+            "Tasa positiva", "Reuniones", "Score", "Confianza", "Señal", "Decisión",
+        ]]
+    results_report = pd.DataFrame([
+        {"Resultado": RES_LABEL[key], "Cantidad": conteo(REGf, key)}
+        for key in ["positiva", "deriva", "reagendar", "negativa", "no_contesta", "numero_malo"]
+    ])
+    def ranking_report(dimension):
+        rows = []
+        for name, sub in REGf.groupby(dimension):
+            if name in EXCLUIR_SEG:
+                continue
+            conversations = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
+            positives = conteo(sub, "positiva", "deriva")
+            rows.append({
+                dimension: name, "Gestiones": len(sub), "Conversaciones": conversations,
+                "Positivas": positives,
+                "Tasa positiva": f"{positives / conversations:.0%}" if conversations else "0%",
+            })
+        return pd.DataFrame(rows).sort_values(
+            ["Positivas", "Conversaciones"], ascending=False
+        ).head(5) if rows else pd.DataFrame()
+    top_industries_report = ranking_report("industria").rename(columns={"industria": "Macroindustria"})
+    top_areas_report = ranking_report("area").rename(columns={"area": "Macrocargo"})
+    company_report = empresas_df.rename(columns={
+        "empresa": "Empresa", "estado": "Estado", "industria": "Macroindustria",
+        "area": "Macrocargo", "canal": "Canal", "fecha": "Fecha",
+    }) if EMPRESAS_POSITIVAS else pd.DataFrame()
+    if not company_report.empty:
+        company_report = company_report[[
+            "Empresa", "Estado", "Macroindustria", "Macrocargo", "Canal", "Fecha",
+        ]]
+    kpis = [
+        ("Gestiones", len(REGf)), ("Conversaciones", fconv),
+        ("Respuestas positivas", fpostot), ("Tasa positiva", f"{tasa:.0%}"),
+        ("Cuentas activadas", active_accounts), ("Cuentas con reunión", meeting_accounts),
+    ]
+    kpi_html = "".join(
+        f'<div class="kpi"><strong>{value}</strong><span>{label}</span></div>'
+        for label, value in kpis
+    )
+    return f"""<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BambuTech · Intelligence Insight</title>
+<style>
+body{{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f4f6f4;color:#17211a;max-width:1280px;margin:0 auto;padding:28px;line-height:1.5}}
+.hero{{background:linear-gradient(135deg,#07110c,#15251b);color:#fff;padding:28px 32px;border-radius:16px}}
+.hero h1{{margin:0;font-size:28px}} .hero p{{margin:7px 0 0;color:#c8f7d1}}
+.filter{{margin:18px 0;padding:15px 18px;border:2px solid #38d430;background:#f4fff5;border-radius:12px}}
+.kpis{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}}
+.kpi{{background:#fff;border:1px solid #d9e2db;border-top:4px solid #208d25;border-radius:11px;padding:15px;text-align:center}}
+.kpi strong{{display:block;font-size:24px;color:#208d25}} .kpi span{{font-size:11px;text-transform:uppercase;font-weight:800}}
+h2{{font-size:19px;border-left:5px solid #38d430;padding-left:12px;margin-top:30px}}
+.question{{font-size:12px;color:#64748b;margin-top:-8px;margin-bottom:12px}}
+.report-table{{width:100%;border-collapse:collapse;background:#fff;font-size:11px;margin:10px 0 18px}}
+.report-table th{{background:#edf5ee;color:#24342a;text-align:left;padding:9px;border:1px solid #dce6de}}
+.report-table td{{padding:8px;border:1px solid #e4ebe5;vertical-align:top}}
+.note{{background:#ecf9ec;border-left:5px solid #38d430;padding:14px 17px;border-radius:8px}}
+.method{{font-size:11px;color:#64748b;background:#fff;padding:14px;border:1px solid #dce6de;border-radius:9px}}
+.empty{{padding:14px;background:#f8faf8;color:#64748b;border:1px dashed #cbd5cc}}
+a{{color:#167b2d}} @media print{{body{{padding:0}} .hero{{break-inside:avoid}}}}
+</style></head><body>
+<div class="hero"><h1>Intelligence Insight · BambuTech</h1>
+<p>Reporte completo del ciclo comercial · generado desde el dashboard parametrizado</p></div>
+<div class="filter"><b>Selección exportada:</b> {start_date:%d/%m/%Y}–{end_date:%d/%m/%Y} ·
+Canal: {f_canal} · Macroindustria: {f_ind} · Macrocargo: {f_area}</div>
+<h2>Resumen ejecutivo</h2><div class="question">¿Cuál es el estado del ciclo?</div>
+<div class="kpis">{kpi_html}</div>
+<div class="note"><b>Avance contractual:</b> {REAL['validas']} de {META} reuniones válidas ({pct_meta}%).</div>
+<h2>Actividad por canal</h2>{report_table(activity_df if channel_rows else pd.DataFrame())}
+<div class="method">Correo agregado: {CORREO['enviados']:,} enviados · {CORREO['entregados']:,} entregados ·
+{CORREO['contactados']:,} contactados · {CORREO['respuestas']} respuestas. No se distribuye artificialmente por segmento.</div>
+<h2>Resultados de conversación</h2>{report_table(results_report)}
+<h2>Empresas que respondieron</h2>{report_table(company_report)}
+<h2>Respuesta por segmento</h2>{report_table(segment_report)}
+<div class="method">Score = tasa positiva × volumen de cuentas × fit ICP × calidad del cargo × avance de etapa.
+Menos de 10 conversaciones y menos de 30 cuentas se marca como muestra insuficiente.</div>
+<h2>Top industrias</h2>{report_table(top_industries_report)}
+<h2>Top cargos</h2>{report_table(top_areas_report)}
+<h2>Qué aprendimos del mercado</h2>{report_table(pd.DataFrame(learning_rows))}
+<h2>Mensajes y dolores que están resonando</h2>
+<div class="question">Tema asociado a campaña; inferencia analítica, no transcripción del prospecto.</div>
+{report_table(theme_df)}
+<h2>Negativas y objeciones</h2>{report_table(pd.DataFrame(objection_rows))}
+<h2>Contexto externo relevante</h2>{report_table(market_context)}
+<p><a href="https://www.deloitte.com/us/en/insights/topics/economy/issues-by-the-numbers/advantages-of-nearshoring-mexico.html">Deloitte · Nearshoring</a> ·
+<a href="https://www.deloitte.com/us/en/insights/industry/manufacturing/2025-smart-manufacturing-survey.html">Deloitte · Smart Manufacturing</a> ·
+<a href="https://www.mckinsey.com/capabilities/growth-marketing-and-sales/our-insights/five-fundamental-truths-how-b2b-winners-keep-growing">McKinsey · B2B Pulse</a></p>
+<h2>Cuentas objetivo</h2>
+<div class="kpis">
+<div class="kpi"><strong>{OBJ['total']}</strong><span>Universo objetivo</span></div>
+<div class="kpi"><strong>{active_accounts}</strong><span>Activadas en vista</span></div>
+<div class="kpi"><strong>{conversation_accounts}</strong><span>Con conversación</span></div>
+<div class="kpi"><strong>{positive_accounts}</strong><span>Con señal positiva</span></div>
+<div class="kpi"><strong>{meeting_accounts}</strong><span>Con reunión</span></div>
+<div class="kpi"><strong>{OBJ['pendientes']}</strong><span>Globales por activar</span></div></div>
+<h2>Próximos pasos</h2>{report_table(next_steps)}
+<div class="note"><b>Hipótesis del ciclo 2:</b> las cuentas industriales y logísticas contactadas desde
+Operaciones o TI responderán mejor a mensajes de integración y automatización. Validar con al menos
+10 conversaciones o 30 cuentas activadas.</div>
 </body></html>"""
 
 
