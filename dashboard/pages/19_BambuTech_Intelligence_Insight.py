@@ -72,7 +72,7 @@ if not SNAP:
     st.stop()
 
 REG = pd.DataFrame(SNAP["registros"])
-DET = REG[REG["canal"] != "Correo"].copy()
+REG["canal"] = REG["canal"].replace({"Llamadas/WhatsApp": "Llamadas", "Llamada": "Llamadas"})
 CORREO = SNAP["correo"]
 OBJ = SNAP["objetivo"]
 EMPRESAS_POSITIVAS = SNAP.get("empresas_positivas", [])
@@ -120,39 +120,40 @@ def bars(rows, color):
     )
 
 
-def seg_tabla(df, dim):
+def top_tabla(df, dim):
     rows = []
     for key, sub in df.groupby(dim):
         if key in EXCLUIR_SEG:
             continue
         pos = int(sub.resultado.isin(["positiva", "deriva"]).sum())
-        neg = int((sub.resultado == "negativa").sum())
-        conv = pos + neg + int((sub.resultado == "reagendar").sum())
-        tasa = pos / conv if conv >= 6 else None
-        if pos < 2:  # no mostrar segmentos con 0 o 1 positiva
-            continue
-        rows.append((key, pos, conv, tasa, len(sub)))
-    rows.sort(key=lambda r: (-r[1], -(r[3] or 0)))
+        conv = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
+        tasa = pos / conv if conv else 0
+        rows.append((key, len(sub), conv, pos, tasa))
+    rows.sort(key=lambda r: (-r[3], -r[2], -r[1]))
     rows = rows[:5]
-    mx = max((r[1] for r in rows), default=0) or 1
-    body = ""
-    for name, pos, conv, tasa, tot in rows:
-        tasa_txt = f"{tasa:.0%}" if tasa is not None else "·"
+    body = (
+        '<div style="display:grid;grid-template-columns:1fr 72px 82px 62px 58px;gap:8px;'
+        'padding:0 4px 7px;border-bottom:1px solid #e5e7eb;font-size:10px;font-weight:800;'
+        'text-transform:uppercase;color:#64748b">'
+        '<span>Segmento</span><span>Gestiones</span><span>Conversaciones</span>'
+        '<span>Positivas</span><span>Tasa</span></div>'
+    )
+    for name, gest, conv, pos, tasa in rows:
         body += (
-            f'<div style="display:grid;grid-template-columns:1fr 90px 46px;gap:10px;align-items:center;margin:8px 0">'
-            f'<div><div style="font-size:12px;color:#334155;margin-bottom:3px">{name}</div>'
-            f'<div style="height:14px;background:#edf1ee;border-radius:6px;overflow:hidden">'
-            f'<div style="height:100%;width:{max(5, round(pos / mx * 100))}%;background:{BAMBU_GREEN};border-radius:6px"></div></div></div>'
-            f'<span style="font-size:11px;color:#64748b">{pos} pos · {conv} conv</span>'
-            f'<b style="font-size:13px;color:#16a34a;text-align:right">{tasa_txt}</b></div>'
+            '<div style="display:grid;grid-template-columns:1fr 72px 82px 62px 58px;gap:8px;'
+            'padding:9px 4px;border-bottom:1px solid #edf1ee;font-size:11.5px;align-items:center">'
+            f'<b style="color:#334155">{name}</b><span>{gest}</span><span>{conv}</span>'
+            f'<span style="color:#16a34a;font-weight:800">{pos}</span>'
+            f'<span style="color:#16a34a;font-weight:800">{tasa:.0%}</span></div>'
         )
     empty = (
         "<span style='font-size:12px;color:#64748b'>"
         "Primer mes de estrategia: todavía no hay muestra suficiente para comparar este segmento."
         "</span>"
     )
+    content = body if rows else empty
     return (f'<div style="background:#fff;border:1px solid {BAMBU_BORDER};border-radius:11px;'
-            f'padding:14px 16px">{body or empty}</div>'), rows
+            f'padding:14px 16px">{content}</div>'), rows
 
 
 def _opts(col):
@@ -209,69 +210,69 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ===== ③ Resumen del mes =====
-section("Resumen del mes")
-pos = conteo(REG, "positiva"); der = conteo(REG, "deriva")
-neg = conteo(REG, "negativa"); reag = conteo(REG, "reagendar")
-postot = pos + der
-conv_g = pos + der + neg + reag
-conv_tot = conv_g + CORREO["respuestas"]
-tasa = postot / conv_g if conv_g else 0
-tip = f"Positivas: información adicional {conteo(REG,'positiva')}, derivaciones {der}. " \
-      f"Pasa el cursor para el detalle."
-rs = st.columns(4)
-rs[0].markdown(scard("Contactos únicos", f"{SNAP['universo_unico']:,}".replace(",", "."),
-                     "Alcanzados en todos los canales"), unsafe_allow_html=True)
-rs[1].markdown(scard("Conversaciones", conv_tot, "Respuesta efectiva: llamadas, WhatsApp y correo"),
-               unsafe_allow_html=True)
-rs[2].markdown(scard("Respuestas positivas", postot, f"{pos} interés directo + {der} derivaciones", "#16a34a"),
-               unsafe_allow_html=True)
-rs[3].markdown(scard("Tasa positiva", f"{tasa:.0%}", "Positivas / conversaciones", "#16a34a",
-                     tip=f"Información adicional {pos} · Derivaciones {der} · Negativas {neg}"),
-               unsafe_allow_html=True)
-
-# ===== ④ Filtros (debajo del resumen) =====
-section("Detalle de conversaciones", "Los filtros aplican solo a llamadas y WhatsApp")
-fc = st.columns(2)
-f_ind = fc[0].selectbox(
+# ===== ③ Filtros cruzados =====
+section("Análisis por canal y segmento", "Los tres filtros se cruzan y actualizan todo el análisis")
+fc = st.columns(3)
+f_canal = fc[0].selectbox("Canal", ["Todos"] + sorted(REG["canal"].dropna().unique()))
+base_ind = REG if f_canal == "Todos" else REG[REG["canal"] == f_canal]
+f_ind = fc[1].selectbox(
     "Macro-industria",
-    ["Todas"] + sorted(x for x in DET["industria"].dropna().unique() if str(x).strip()),
+    ["Todas"] + sorted(x for x in base_ind["industria"].dropna().unique() if str(x).strip()),
 )
-f_area = fc[1].selectbox(
+base_area = base_ind if f_ind == "Todas" else base_ind[base_ind["industria"] == f_ind]
+f_area = fc[2].selectbox(
     "Macro-cargo (área)",
-    ["Todas"] + sorted(x for x in DET["area"].dropna().unique() if str(x).strip()),
+    ["Todas"] + sorted(x for x in base_area["area"].dropna().unique() if str(x).strip()),
 )
-REGf = DET.copy()
+REGf = REG.copy()
+if f_canal != "Todos": REGf = REGf[REGf.canal == f_canal]
 if f_ind != "Todas": REGf = REGf[REGf.industria == f_ind]
 if f_area != "Todas": REGf = REGf[REGf.area == f_area]
 
 fp, fd = conteo(REGf, "positiva"), conteo(REGf, "deriva")
 fn, fr = conteo(REGf, "negativa"), conteo(REGf, "reagendar")
 fnoc, fmalo = conteo(REGf, "no_contesta"), conteo(REGf, "numero_malo")
-fconv = fp + fd + fn + fr
+fconv = len(REGf) - fnoc - fmalo
 fpostot = fp + fd
 
-# ===== Actividad por canal (vista fija, no responde a filtros) =====
-section("Actividad por canal", "Vista general fija del período; no cambia con los filtros")
-canal_counts = DET.canal.value_counts().to_dict()
-actividad_conv = conteo(DET, "positiva", "deriva", "negativa", "reagendar")
-actividad_pos = conteo(DET, "positiva", "deriva")
-a, b = st.columns(2)
-with a:
-    st.markdown("<b style='font-size:13px'>Correo</b>", unsafe_allow_html=True)
-    st.markdown(bars([("Enviados", CORREO["enviados"]), ("Entregados", CORREO["entregados"]),
-                      ("Contactados", CORREO["contactados"]), ("Respuestas", CORREO["respuestas"])], "#208d25"),
-                unsafe_allow_html=True)
-    st.markdown(f'<div style="font-size:11px;color:#94a3b8;margin-top:3px">Entrega '
-                f'{CORREO["entregados"] / CORREO["enviados"]:.0%} · {CORREO["rebotes"]} rebotes</div>',
-                unsafe_allow_html=True)
-with b:
-    st.markdown("<b style='font-size:13px'>Llamadas y WhatsApp</b>", unsafe_allow_html=True)
-    st.markdown(bars([("Gestionados", len(DET)), ("Conversaciones", actividad_conv),
-                      ("Positivas", actividad_pos)], "#7c3aed"), unsafe_allow_html=True)
-    st.markdown('<div style="font-size:11px;color:#94a3b8;margin-top:3px">WhatsApp aporta ~20% de las '
-                'positivas · metodología: 3 contactos cada 3 días antes de pausar.</div>',
-                unsafe_allow_html=True)
+# ===== ④ Resumen filtrado =====
+section("Resumen del mes", "Las métricas responden a los filtros seleccionados")
+tasa = fpostot / fconv if fconv else 0
+rs = st.columns(4)
+rs[0].markdown(scard("Gestiones", len(REGf), "Registros dentro del filtro"), unsafe_allow_html=True)
+rs[1].markdown(scard("Conversaciones", fconv, "Excluye sin respuesta y contacto inválido"),
+               unsafe_allow_html=True)
+rs[2].markdown(scard("Respuestas positivas", fpostot, f"{fp} interés directo + {fd} derivaciones", "#16a34a"),
+               unsafe_allow_html=True)
+rs[3].markdown(scard("Tasa positiva", f"{tasa:.0%}", "Positivas / conversaciones", "#16a34a"),
+               unsafe_allow_html=True)
+st.caption(
+    f"Base multicanal total: {SNAP['universo_unico']:,} contactos únicos. "
+    "Las métricas superiores corresponden al detalle disponible para el filtro."
+)
+
+# ===== ⑤ Actividad por canal filtrada =====
+section("Actividad por canal", "Distribución de gestiones, conversaciones y positivas dentro del filtro")
+channel_rows = []
+for channel, sub in REGf.groupby("canal"):
+    conv = len(sub) - conteo(sub, "no_contesta") - conteo(sub, "numero_malo")
+    channel_rows.append((channel, len(sub), conv, conteo(sub, "positiva", "deriva")))
+channel_rows.sort(key=lambda row: (-row[1], row[0]))
+if channel_rows:
+    activity_df = pd.DataFrame(
+        channel_rows, columns=["Canal", "Gestiones", "Conversaciones", "Positivas"]
+    )
+    activity_df["Tasa positiva"] = activity_df.apply(
+        lambda row: f"{row['Positivas'] / row['Conversaciones']:.0%}" if row["Conversaciones"] else "0%",
+        axis=1,
+    )
+    st.dataframe(activity_df, hide_index=True, use_container_width=True)
+if f_canal in {"Todos", "Correo"} and f_ind == "Todas" and f_area == "Todas":
+    st.caption(
+        f"Volumen agregado de correo del período: {CORREO['enviados']:,} enviados · "
+        f"{CORREO['entregados']:,} entregados · {CORREO['contactados']:,} contactados · "
+        f"{CORREO['respuestas']} respuestas. Este volumen no se distribuye artificialmente por segmento."
+    )
 
 # ===== ⑤ Resultados de conversación =====
 section("Resultados de conversación", "Cómo respondió el mercado en llamadas y WhatsApp")
@@ -296,6 +297,8 @@ section(
 )
 if EMPRESAS_POSITIVAS:
     empresas_df = pd.DataFrame(EMPRESAS_POSITIVAS)
+    if f_canal != "Todos":
+        empresas_df = empresas_df[empresas_df["canal"] == f_canal]
     if f_ind != "Todas":
         empresas_df = empresas_df[empresas_df["industria"] == f_ind]
     if f_area != "Todas":
@@ -318,26 +321,20 @@ if EMPRESAS_POSITIVAS:
 else:
     st.info("Primer mes de estrategia: el detalle de empresas se incorporará en el próximo consolidado.")
 
-# ===== ⑥ Respuesta por segmento (limpio, top 5) =====
-section("Respuesta por segmento", "Top 5 — dónde rinde más el esfuerzo (industria y área)")
+# ===== ⑦ Rankings =====
+section("Top industrias y cargos", "Rankings recalculados según los filtros superiores")
 si, sa = st.columns(2)
 with si:
-    st.markdown("<b style='font-size:12.5px'>Por macro-industria</b>", unsafe_allow_html=True)
-    html_i, rows_i = seg_tabla(REGf, "industria")
+    st.markdown("<b style='font-size:12.5px'>Top macro-industrias</b>", unsafe_allow_html=True)
+    html_i, rows_i = top_tabla(REGf, "industria")
     st.markdown(html_i, unsafe_allow_html=True)
 with sa:
-    st.markdown("<b style='font-size:12.5px'>Por macro-cargo (área)</b>", unsafe_allow_html=True)
-    html_a, rows_a = seg_tabla(REGf, "area")
+    st.markdown("<b style='font-size:12.5px'>Top macro-cargos (áreas)</b>", unsafe_allow_html=True)
+    html_a, rows_a = top_tabla(REGf, "area")
     st.markdown(html_a, unsafe_allow_html=True)
     with st.expander("¿Qué es un macro-cargo (área)?"):
         st.caption("Agrupamos los cientos de cargos en **áreas funcionales** (Tecnología, Operaciones, "
                    "Dirección, Comercial, Finanzas, RRHH, Riesgo) para definir estrategia por área, no cargo a cargo.")
-mejores = [r for r in rows_i if r[3] is not None]
-if mejores:
-    top = max(mejores, key=lambda r: r[3])
-    st.markdown(f'<div style="font-size:12px;color:#334155;margin-top:8px">▸ <b>{top[0]}</b> es la '
-                f'macro-industria con mejor respuesta positiva ({top[3]:.0%} sobre {top[2]} conversaciones).</div>',
-                unsafe_allow_html=True)
 
 # ===== ⑦ Cuentas objetivo =====
 section("Cuentas objetivo del cliente", "Cobertura de las empresas que BambuTech priorizó")
@@ -371,8 +368,10 @@ st.markdown(
 
 # ===== Descargar informe =====
 def informe_html():
-    seg_i, _ = seg_tabla(REG, "industria")
-    seg_a, _ = seg_tabla(REG, "area")
+    seg_i, _ = top_tabla(REG, "industria")
+    seg_a, _ = top_tabla(REG, "area")
+    total_conv = len(REG) - conteo(REG, "no_contesta") - conteo(REG, "numero_malo")
+    total_pos = conteo(REG, "positiva", "deriva")
     return f"""<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <title>BambuTech · Intelligence Insight</title></head>
 <body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#f4f6f4;color:#0f172a;max-width:980px;margin:0 auto;padding:24px">
@@ -382,7 +381,8 @@ def informe_html():
 <h3 style="color:{BAMBU_GREEN_DARK}">Resumen</h3><ul>
 <li>Avance de la meta: <b>{REAL['validas']} / {META}</b> ({pct_meta}%)</li>
 <li>Contactos únicos: <b>{SNAP['universo_unico']:,}</b></li>
-<li>Conversaciones: <b>{conv_tot}</b> · Positivas: <b>{postot}</b> ({tasa:.0%}) — {pos} interés directo + {der} derivaciones</li>
+<li>Conversaciones: <b>{total_conv}</b> · Positivas: <b>{total_pos}</b>
+({total_pos / total_conv:.0%})</li>
 <li>Correo: {CORREO['enviados']} enviados → {CORREO['contactados']} contactados → {CORREO['respuestas']} respuestas</li>
 <li>Cuentas objetivo activadas: <b>{OBJ['prospectadas']} / {OBJ['total']}</b> ({OBJ['pct']}%)</li></ul>
 <h3 style="color:{BAMBU_GREEN_DARK}">Respuesta por macro-industria (top 5)</h3>{seg_i}
