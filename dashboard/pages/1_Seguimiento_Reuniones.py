@@ -179,7 +179,7 @@ _EMPTY_COLS = [
 ]
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=10)
 def cargar_reuniones() -> pd.DataFrame:
     resp = requests.get(
         f"{SUPABASE_URL}/rest/v1/vw_reuniones_semana?select=*",
@@ -226,7 +226,7 @@ def cargar_reuniones() -> pd.DataFrame:
     return df
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=10)
 def cargar_reuniones_extra() -> pd.DataFrame:
     response = requests.get(
         f"{SUPABASE_URL}/rest/v1/reuniones"
@@ -256,7 +256,7 @@ def cargar_stages() -> pd.DataFrame:
     return pd.DataFrame(resp.json())
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=10)
 def cargar_validacion_final() -> dict:
     r = requests.get(
         f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones?select=reunion_id,val_estado_final",
@@ -357,13 +357,13 @@ def cargar_clientes() -> list[str]:
     return [r["nombre"] for r in resp.json() if r.get("nombre")]
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=10)
 def cargar_seg_slug(slug: str) -> dict:
     """Carga seguimiento_reuniones para un slug (cacheado 30 s)."""
     return _cargar_seg(slug)
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=10)
 def cargar_flags_validacion() -> dict:
     """Cuenta flags globales de validación final."""
     r = requests.get(
@@ -880,6 +880,7 @@ def _final_de(final_map, rid):
     return str(final_map.get(int(rid), "") or "pendiente")
 
 
+@st.fragment(run_every="15s")
 def run():
     st.markdown("""
     <div style="background:#1e1e2e;padding:20px 28px;border-radius:12px;margin-bottom:20px">
@@ -892,6 +893,7 @@ def run():
         if st.button("Actualizar", use_container_width=True):
             st.cache_data.clear()
             st.rerun()
+    st.caption("Actualización en vivo cada 15 segundos mientras este panel esté abierto.")
 
     df = cargar_reuniones()
     stages_df = cargar_stages()

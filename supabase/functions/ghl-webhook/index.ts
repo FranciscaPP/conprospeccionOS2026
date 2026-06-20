@@ -11,6 +11,7 @@ const SB_HEADERS = {
   "Content-Type": "application/json",
   Prefer: "resolution=merge-duplicates,return=minimal",
 };
+const ACTIVE_WEBHOOK_CLIENTS = new Set(["clickie", "gbs", "bambutech"]);
 
 // GHL location_id → datos del cliente en Supabase
 const LOCATION_MAP: Record<string, { slug: string; cliente_id: number }> = {
@@ -19,7 +20,7 @@ const LOCATION_MAP: Record<string, { slug: string; cliente_id: number }> = {
   "ZC4A2bNvo876Csmz4I9T": { slug: "just4u",        cliente_id: 3 },
   "DpvcxBw1Jfi4KUC232AT": { slug: "tiresias",      cliente_id: 4 },
   "FJ1YCwi4UVvwcBb8qlOb": { slug: "bambutech",     cliente_id: 5 },
-  "u9b8KkJXhM8lqJfzxa7G": { slug: "gbs", cliente_id: 6 },
+  "u9b8KkJXhM8lqJfzxa7G": { slug: "gbs", cliente_id: 7 },
 };
 
 // GHL userId → SDR en Supabase
@@ -45,7 +46,7 @@ const GHL_USER_TO_SDR: Record<string, { sdr_slug: string; sdr_id: number }> = {
   "C1suTbyBg4JYYeUkkPe1": { sdr_slug: "luciana_acuna",     sdr_id: 12 },
 };
 
-async function getContactInfo(locationId: string, contactId: string, token: string) {
+async function getContactInfo(contactId: string, token: string) {
   try {
     const r = await fetch(
       `https://services.leadconnectorhq.com/contacts/${contactId}`,
@@ -57,6 +58,49 @@ async function getContactInfo(locationId: string, contactId: string, token: stri
   } catch {
     return null;
   }
+}
+
+async function getRows(path: string): Promise<Record<string, unknown>[]> {
+  const response = await fetch(SB(path), { headers: SB_HEADERS });
+  if (!response.ok) return [];
+  const data = await response.json();
+  return Array.isArray(data) ? data : [];
+}
+
+async function resolveSdr(clienteSlug: string, ownerUserId: string) {
+  if (!ownerUserId) return null;
+
+  const mappings = await getRows(
+    `sdr_cliente?select=sdr_slug&cliente_slug=eq.${encodeURIComponent(clienteSlug)}` +
+    `&ghl_user_id=eq.${encodeURIComponent(ownerUserId)}&activo=eq.true&limit=1`
+  );
+  const sdrSlug = String(mappings[0]?.sdr_slug ?? "");
+  if (sdrSlug) {
+    const sdrs = await getRows(
+      `sdrs?select=id,slug&slug=eq.${encodeURIComponent(sdrSlug)}&limit=1`
+    );
+    if (sdrs[0]) {
+      return { sdr_slug: String(sdrs[0].slug), sdr_id: Number(sdrs[0].id) };
+    }
+  }
+  return GHL_USER_TO_SDR[ownerUserId] ?? null;
+}
+
+function stringValue(...values: unknown[]): string {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function normalizedMeetingStatus(status: string): string {
+  const normalized = status.toLowerCase();
+  if (["booked", "confirmed", "new"].includes(normalized)) return "reunion_agendada";
+  if (["showed", "completed"].includes(normalized)) return "realizada";
+  if (["noshow", "no_show", "no-show"].includes(normalized)) return "no_show";
+  if (["cancelled", "canceled"].includes(normalized)) return "cancelada";
+  return normalized || "reunion_agendada";
 }
 
 async function getClientToken(slug: string): Promise<string> {
@@ -105,42 +149,75 @@ serve(async (req) => {
     return new Response("bad json", { status: 400 });
   }
 
-  const type = (payload.type as string) ?? "";
+  const appointment = (
+    payload.appointment && typeof payload.appointment === "object"
+      ? payload.appointment
+      : payload
+  ) as Record<string, unknown>;
+  const type = stringValue(payload.type, appointment.type);
 
   // Solo procesar eventos de citas
   if (!["AppointmentCreate", "AppointmentUpdate"].includes(type)) {
     return new Response(JSON.stringify({ ignored: type }), { status: 200 });
   }
 
-  const locationId    = (payload.locationId as string) ?? "";
-  const appointmentId = (payload.id as string) ?? (payload.appointmentId as string) ?? "";
-  const contactId     = (payload.contactId as string) ?? "";
-  const startTime     = (payload.startTime as string) ?? "";
-  const endTime       = (payload.endTime as string) ?? "";
-  const title         = (payload.title as string) ?? "";
-  const calendarId    = (payload.calendarId as string) ?? "";
-  const assignedUserId = (payload.assignedUserId as string) ?? (payload.userId as string) ?? "";
-  const status        = (payload.status as string) ?? "booked";
+  const locationId = stringValue(payload.locationId, appointment.locationId);
+  const appointmentId = stringValue(
+    appointment.id, appointment.appointmentId, payload.appointmentId, payload.id
+  );
+  const contactId = stringValue(appointment.contactId, payload.contactId);
+  const startTime = stringValue(
+    appointment.startTime, appointment.start, payload.startTime, payload.start
+  );
+  const endTime = stringValue(
+    appointment.endTime, appointment.end, payload.endTime, payload.end
+  );
+  const title = stringValue(appointment.title, payload.title);
+  const calendarId = stringValue(appointment.calendarId, payload.calendarId);
+  const assignedUserId = stringValue(
+    appointment.assignedUserId, appointment.userId,
+    payload.assignedUserId, payload.userId
+  );
+  const status = stringValue(
+    appointment.appointmentStatus, appointment.status,
+    payload.appointmentStatus, payload.status, "booked"
+  );
+
+  if (!appointmentId || !startTime) {
+    return new Response(
+      JSON.stringify({ error: "appointmentId and startTime are required" }),
+      { status: 400 }
+    );
+  }
 
   const cliente = LOCATION_MAP[locationId];
   if (!cliente) {
     return new Response(JSON.stringify({ ignored: `unknown location ${locationId}` }), { status: 200 });
   }
+  if (!ACTIVE_WEBHOOK_CLIENTS.has(cliente.slug)) {
+    return new Response(JSON.stringify({ ignored: `inactive client ${cliente.slug}` }), { status: 200 });
+  }
 
   // Filtrar citas de dominios internos (clickie.io)
   if (cliente.slug === "clickie") {
-    const emailRaw = (payload.email as string) ?? "";
+    const emailRaw = stringValue(payload.email, appointment.email);
     if (emailRaw.toLowerCase().endsWith("@clickie.io")) {
       return new Response(JSON.stringify({ ignored: "internal clickie domain" }), { status: 200 });
     }
   }
 
-  // Resolver SDR
-  const sdrInfo = GHL_USER_TO_SDR[assignedUserId] ?? null;
-
   // Obtener datos del contacto desde GHL
   const token   = await getClientToken(cliente.slug);
-  const contact = contactId ? await getContactInfo(locationId, contactId, token) : null;
+  const contact = contactId && token ? await getContactInfo(contactId, token) : null;
+  const ownerUserId = stringValue(contact?.assignedTo, contact?.assignedUserId, assignedUserId);
+  const sdrInfo = await resolveSdr(cliente.slug, ownerUserId);
+
+  if (
+    cliente.slug === "clickie" &&
+    stringValue(contact?.email).toLowerCase().endsWith("@clickie.io")
+  ) {
+    return new Response(JSON.stringify({ ignored: "internal clickie domain" }), { status: 200 });
+  }
 
   // Filtrar "llevenes" (Clickie)
   if (cliente.slug === "clickie") {
@@ -150,6 +227,14 @@ serve(async (req) => {
     }
   }
 
+  const existing = await getRows(
+    `reuniones?select=id,estado_validacion,excluida` +
+    `&ghl_appointment_id=eq.${encodeURIComponent(appointmentId)}&limit=1`
+  );
+  const isNewMeeting = existing.length === 0;
+  const now = new Date().toISOString();
+  const meetingStatus = normalizedMeetingStatus(status);
+
   const row: Record<string, unknown> = {
     ghl_appointment_id: appointmentId,
     cliente_slug:       cliente.slug,
@@ -157,13 +242,23 @@ serve(async (req) => {
     location_id:        locationId,
     ghl_contact_id:     contactId || null,
     ghl_calendar_id:    calendarId || null,
-    appointment_at:     startTime || null,
+    appointment_at:     startTime,
+    starts_at:          startTime,
+    fecha_reunion:      startTime,
+    fecha_agendada:     now,
+    hora_reunion:       startTime.slice(11, 19) || null,
     ends_at:            endTime || null,
     titulo:             title || null,
-    estado_reunion:     status === "booked" ? "reunion_agendada" : status,
-    estado_validacion:  "pendiente_validacion",
-    ghl_owner_user_id:  assignedUserId || null,
+    estado_reunion:     meetingStatus,
+    pendiente_validacion: meetingStatus === "reunion_agendada",
+    ghl_owner_user_id:  ownerUserId || null,
+    synced_at:          now,
   };
+
+  if (isNewMeeting) {
+    row.estado_validacion = "pendiente_validacion";
+    row.excluida = false;
+  }
 
   if (sdrInfo) {
     row.sdr_slug = sdrInfo.sdr_slug;
@@ -195,10 +290,13 @@ serve(async (req) => {
 
   // Upsert — no sobreescribir excluida=true ni el estado_validacion si ya fue validado
   const resp = await fetch(
-    SB("reuniones?on_conflict=ghl_appointment_id"),
+    SB("reuniones?on_conflict=ghl_appointment_id&select=id"),
     {
       method: "POST",
-      headers: SB_HEADERS,
+      headers: {
+        ...SB_HEADERS,
+        Prefer: "resolution=merge-duplicates,return=representation",
+      },
       body: JSON.stringify(row),
     }
   );
@@ -209,6 +307,56 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: err }), { status: 500 });
   }
 
+  const savedRows = await resp.json();
+  const reunionId = Number(savedRows?.[0]?.id ?? existing[0]?.id ?? 0);
+  if (reunionId) {
+    if (isNewMeeting) {
+      const trackingResponse = await fetch(
+        SB("seguimiento_reuniones?on_conflict=reunion_id"),
+        {
+          method: "POST",
+          headers: SB_HEADERS,
+          body: JSON.stringify({
+            reunion_id: reunionId,
+            cliente_slug: cliente.slug,
+            val_estado_cp: "espera",
+            val_estado_cli: "espera",
+            val_estado_final: "pendiente",
+            status_reunion: meetingStatus,
+            final_override: false,
+            flag_meta_countable: false,
+            flag_disputa: false,
+            flag_cliente_pendiente: false,
+            updated_at: now,
+          }),
+        }
+      );
+      if (!trackingResponse.ok) {
+        console.error("Seguimiento insert error:", await trackingResponse.text());
+      }
+    } else {
+      const trackingResponse = await fetch(
+        SB(`seguimiento_reuniones?reunion_id=eq.${reunionId}`),
+        {
+          method: "PATCH",
+          headers: SB_HEADERS,
+          body: JSON.stringify({ status_reunion: meetingStatus, updated_at: now }),
+        }
+      );
+      if (!trackingResponse.ok) {
+        console.error("Seguimiento update error:", await trackingResponse.text());
+      }
+    }
+  }
+
   console.log(`[ghl-webhook] ${type} | ${cliente.slug} | ${title} | sdr=${sdrInfo?.sdr_slug ?? "unknown"}`);
-  return new Response(JSON.stringify({ ok: true, cliente: cliente.slug, sdr: sdrInfo?.sdr_slug }), { status: 200 });
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      cliente: cliente.slug,
+      reunion_id: reunionId || null,
+      sdr: sdrInfo?.sdr_slug ?? null,
+    }),
+    { status: 200 }
+  );
 });
