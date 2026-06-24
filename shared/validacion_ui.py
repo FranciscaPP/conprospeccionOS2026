@@ -18,6 +18,7 @@ LABEL_VALIDEZ = {
     "valida": "Válida",
     "no_valida": "No válida",
     "requiere_revision": "Requiere revisión",
+    "cancelacion": "Cancelación",
 }
 LABEL_FINAL = {
     "pendiente": "Pendiente",
@@ -26,6 +27,7 @@ LABEL_FINAL = {
     "en_disputa": "En revisión",
     "reagendada": "Reagendada",
     "excluida": "Excluida",
+    "cancelacion": "Cancelación",
 }
 LABEL_STATUS = {
     "agendada": "Agendada",
@@ -68,6 +70,7 @@ _COL_VALIDEZ = {
     "no_valida":         ("#fee2e2", "#991b1b"),
     "espera":            ("#fef9c3", "#854d0e"),
     "requiere_revision": ("#e0e7ff", "#3730a3"),
+    "cancelacion":       ("#e2e8f0", "#475569"),
 }
 _COL_FINAL = {
     "valida":     ("#dcfce7", "#166534"),
@@ -76,6 +79,7 @@ _COL_FINAL = {
     "en_disputa": ("#ffedd5", "#9a3412"),
     "reagendada": ("#e0f2fe", "#075985"),
     "excluida":   ("#f1f5f9", "#475569"),
+    "cancelacion":("#e2e8f0", "#475569"),
 }
 _COL_STATUS = {
     "realizada":           ("#dcfce7", "#166534"),

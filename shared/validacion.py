@@ -19,8 +19,8 @@ STATUS_REUNION = [
     "pendiente_reagendar",
     "sin_info",
 ]
-VAL_ESTADOS = ["espera", "valida", "no_valida", "requiere_revision"]
-VAL_FINAL = ["pendiente", "valida", "no_valida", "en_disputa", "reagendada", "excluida"]
+VAL_ESTADOS = ["espera", "valida", "no_valida", "requiere_revision", "cancelacion"]
+VAL_FINAL = ["pendiente", "valida", "no_valida", "en_disputa", "reagendada", "excluida", "cancelacion"]
 BANT_OPTS = ["B", "A", "N", "T"]
 KPI_GBS = ("total", "validas", "no_validas", "avance_meta")
 MOTIVO_NO_VALIDEZ = [
@@ -359,6 +359,8 @@ def derivar_estatus_validacion(
         return "reagendar"
     if etapa_agenda == "reunion_cancelada":
         return "reunion_cancelada"
+    if val_cp == "cancelacion" or val_final == "cancelacion":
+        return "reunion_cancelada"
     if etapa_agenda == "reunion_futura":
         if val_cp == "valida":
             return "validada_por_cp"
@@ -435,6 +437,8 @@ def derivar_final(
     """
     if override:
         return override
+    if val_cp == "cancelacion":
+        return "cancelacion"
     if status_reunion in {"cotizacion", "solicita_cotizacion"}:
         return "valida"
     if val_cp == "no_valida":

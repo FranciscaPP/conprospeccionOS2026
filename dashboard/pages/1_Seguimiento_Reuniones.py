@@ -37,7 +37,7 @@ from shared.seguimiento import (
 )
 from shared.validacion import ESTADO_COMERCIAL
 from shared.validacion_ui import (
-    LABEL_VALIDEZ, LABEL_STATUS, LABEL_ESTADO_COMERCIAL, chip_status,
+    LABEL_VALIDEZ, LABEL_FINAL, LABEL_STATUS, LABEL_ESTADO_COMERCIAL, chip_status,
     banner_final, fila_resumen, bloque_resumen, encabezado_seccion,
     mini_label, CAP_CP, CAP_CLI, chip_estado_flujo, tarjeta_estado_flujo,
 )
@@ -482,7 +482,7 @@ def resumen_clientes_html(dff: pd.DataFrame, final_map: dict) -> str:
     return f'<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px">{cards}</div>'
 
 
-_OVERRIDE_OPTS = ["(automática)", "valida", "no_valida", "en_disputa", "excluida"]
+_OVERRIDE_OPTS = ["(automática)", "valida", "no_valida", "en_disputa", "excluida", "cancelacion"]
 
 
 def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> list[dict]:
@@ -601,6 +601,7 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
             with e4:
                 st.markdown(mini_label("Forzar validez final"), unsafe_allow_html=True)
                 vf = st.selectbox("Forzar validez final", _OVERRIDE_OPTS, index=0,
+                    format_func=lambda x: LABEL_FINAL.get(x, x),
                     key=f"{prefix}_vf_{reunion_id}_{i}",
                     help="Dejar en automática salvo que quieras fijarla a mano.",
                     label_visibility="collapsed")
