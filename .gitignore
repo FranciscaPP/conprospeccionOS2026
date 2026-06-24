@@ -16,6 +16,9 @@ __v0_jsx-dev-runtime.ts
 BASES_APOLLO&SNOV/
 CLIENTES/
 data/
+!dashboard/data/
+!dashboard/data/bambutech_intelligence.json
+!dashboard/data/build_bambutech_snapshot.py
 apollo_export/
 *.xlsx
 *.xls

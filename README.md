@@ -23,6 +23,13 @@ La aplicación queda disponible en:
 http://localhost:8502
 ```
 
+## Despliegue Streamlit Cloud
+
+- Repo deploy: `FranciscaPP/conprospeccion-os`, rama `main`
+- URL: `https://conprospeccion-os.streamlit.app`
+- Publicar: `git push origin main` y luego `git push streamlit main`
+- No usar la rama `master` ni el repo viejo `FranciscaPP/conprospeccionOS`
+
 ## Estructura activa
 
 ```text
