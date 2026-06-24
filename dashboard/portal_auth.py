@@ -22,9 +22,27 @@ def img_b64(fname: str, h: int = 56) -> str:
     return f'<img src="data:image/{ext};base64,{d}" height="{h}" style="object-fit:contain;vertical-align:middle">'
 
 
+def render_bambutech_page_header(title: str, subtitle: str, meta_html: str = "") -> None:
+    """Encabezado único para todos los módulos del portal BambuTech."""
+    logo = img_b64("bambutech_logo.png", 48)
+    st.markdown(
+        f'<div style="display:flex;align-items:center;justify-content:space-between;gap:24px;'
+        f'background:linear-gradient(135deg,#171a18,#2b302c);padding:18px 24px;'
+        f'border-radius:14px;margin-bottom:16px;color:#fff">'
+        f'<div><div style="font-size:22px;font-weight:850;line-height:1.15">{title}</div>'
+        f'<div style="font-size:11px;color:#d2d8d3;margin-top:7px">{subtitle}</div></div>'
+        f'<div style="display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-shrink:0">'
+        f'{meta_html}<div style="display:inline-flex;align-items:center;background:#07110c;'
+        f'padding:8px 13px;border-radius:9px">{logo}</div></div></div>',
+        unsafe_allow_html=True,
+    )
+
+
 def _check_login(slug: str, user: str, pwd: str) -> bool:
     expected = portal_passwords().get(slug, "")
-    return bool(expected) and pwd == expected
+    expected_user = {"bambutech": "Bambutech"}.get(slug)
+    user_ok = True if expected_user is None else user.strip() == expected_user
+    return bool(expected) and user_ok and pwd == expected
 
 
 # ── Persistencia de sesión vía token efímero en query params ──────────────
@@ -101,6 +119,16 @@ _CLIENTS: dict[str, dict] = {
             ("Playbook SDR", "pages/13_GBS_Playbook_SDR.py", "base"),
         ],
     },
+    "bambutech": {
+        "session_key": "portal_auth_bambutech",
+        "logo_file": "bambutech_logo.png",
+        "nav": [
+            ("Onboarding", "pages/17_BambuTech_Onboarding.py", "base"),
+            ("Validación Reuniones", "pages/18_BambuTech_Validacion_Reuniones.py", "base"),
+            ("Intelligence Insight", "pages/19_BambuTech_Intelligence_Insight.py", "premium"),
+            ("Playbook SDR", "pages/20_BambuTech_Playbook_SDR.py", "base"),
+        ],
+    },
 }
 
 
@@ -128,28 +156,31 @@ def render_client_nav(current: str, cliente: str) -> None:
             st.markdown("---")
 
         # Color de acento por cliente (GBS = morado de marca).
-        nav_accent = "#7c3aed" if cliente == "gbs" else "#1e40af"
-        nav_accent2 = "#5b21b6" if cliente == "gbs" else "#1e3a8a"
+        if cliente == "bambutech":
+            nav_accent, nav_accent2 = "#38d430", "#208d25"
+        else:
+            nav_accent = "#7c3aed" if cliente == "gbs" else "#1e40af"
+            nav_accent2 = "#5b21b6" if cliente == "gbs" else "#1e3a8a"
 
         logo = img_b64(cfg["logo_file"], 44)
-        st.markdown(
-            f'<div style="text-align:center;padding:18px 0 10px">{logo}</div>'
-            if logo else
-            f'<div style="text-align:center;padding:18px 0 10px;font-weight:800;'
-            f'font-size:18px;color:{nav_accent}">{cliente.upper()}</div>',
-            unsafe_allow_html=True,
-        )
+        if cliente != "bambutech":
+            st.markdown(
+                f'<div style="text-align:center;padding:18px 0 10px">{logo}</div>'
+                if logo else
+                f'<div style="text-align:center;padding:18px 0 10px;font-weight:800;'
+                f'font-size:18px;color:{nav_accent}">{cliente.upper()}</div>',
+                unsafe_allow_html=True,
+            )
         st.markdown("---")
 
         # Todos los items son el MISMO botón (misma alineación siempre). Al activo solo
         # se le cambia el color con CSS, para que nada se "desordene" según la página.
-        # Cada item puede traer un tier ("base"/"premium"); el premium solo se muestra a
-        # clientes premium (o en modo admin interno).
+        # Los módulos contratables permanecen visibles. La página de destino explica
+        # cuando un plan todavía no habilita su contenido.
         def _nav_key(path: str) -> str:
             return "nav_" + path.replace("/", "_").replace(".", "_").replace(" ", "_")
 
-        es_premium = plan_de(cliente) == "premium" or st.session_state.get("admin_mode")
-        items = [it for it in cfg["nav"] if (it[2] if len(it) > 2 else "base") != "premium" or es_premium]
+        items = cfg["nav"]
 
         active_key = next((_nav_key(it[1]) for it in items if current in it[1]), None)
         if active_key:
@@ -189,12 +220,17 @@ def require_auth_client(cliente: str) -> bool:
     if _restore_from_token(cliente, cfg["session_key"]):
         return True
 
-    accent = "#7c3aed" if cliente == "gbs" else "#1e40af" # botón en colores del cliente
-    accent2 = "#db2777" if cliente == "gbs" else "#2563eb"
+    if cliente == "bambutech":
+        accent, accent2 = "#38d430", "#208d25"
+        login_bg = "linear-gradient(135deg,#f4f6f4 0%,#e8eee9 55%,#f8faf8 100%)"
+    else:
+        accent = "#7c3aed" if cliente == "gbs" else "#1e40af"
+        accent2 = "#db2777" if cliente == "gbs" else "#2563eb"
+        login_bg = "linear-gradient(135deg,#faf5ff 0%,#ede9fe 55%,#f5f3ff 100%)"
     st.markdown(f"""
     <style>
     .stApp {{
-        background: linear-gradient(135deg,#faf5ff 0%,#ede9fe 55%,#f5f3ff 100%) !important;
+        background: {login_bg} !important;
     }}
     [data-testid="stSidebar"] {{ display:none !important; }}
     [data-testid="collapsedControl"] {{ display:none !important; }}
@@ -230,6 +266,12 @@ def require_auth_client(cliente: str) -> bool:
             f'border-radius:12px;font-size:24px;font-weight:900;letter-spacing:3px">'
             f'{cliente.upper()}</div>'
         )
+        if cliente == "bambutech" and img_b64(cfg["logo_file"], 64):
+            logo_html = (
+                '<div style="display:inline-flex;align-items:center;'
+                'background:linear-gradient(135deg,#07110c,#0e1b15);'
+                'padding:16px 30px;border-radius:16px">' + logo_html + '</div>'
+            )
         st.markdown(
             f'<div style="text-align:center;padding:6px 0 14px">'
             f'{logo_html}'
@@ -292,3 +334,7 @@ def require_auth_tiresias() -> bool:
 
 def require_auth_gbs() -> bool:
     return require_auth_client("gbs")
+
+
+def require_auth_bambutech() -> bool:
+    return require_auth_client("bambutech")

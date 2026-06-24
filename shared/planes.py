@@ -15,6 +15,7 @@ from shared.config import supabase_url, supabase_key
 # Fallback por si la base no responde (o el cliente no está en la tabla).
 PLANES_FALLBACK = {
     "gbs":      "base",
+    "bambutech": "premium",
     "clickie":  "premium",
     "tiresias": "premium",
 }

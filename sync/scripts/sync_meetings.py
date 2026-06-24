@@ -12,6 +12,9 @@ from ghl_client import GHLClient
 from supabase_rest import SupabaseRestClient
 
 
+ACTIVE_MEETING_CLIENT_SLUGS = {"clickie", "gbs", "bambutech"}
+
+
 def setup_logging() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
@@ -69,11 +72,15 @@ def normalize_ghl_contact(payload: dict[str, Any]) -> dict[str, Any]:
         "cargo": contact.get("jobTitle") or contact.get("job_title"),
         "pais": contact.get("country"),
         "ghl_owner_user_id": contact.get("assignedTo") or contact.get("assigned_to"),
+        "custom_fields": contact.get("customFields") or [],
+        "raw_data": contact,
     }
 
 
 def token_for_client(client: dict[str, Any]) -> str:
-    env_key = f"GHL_TOKEN_{client['slug'].upper()}"
+    env_key = {
+        "gbs": "GHL_TOKEN_GBS_LOGISTICS",
+    }.get(client["slug"], f"GHL_TOKEN_{client['slug'].upper()}")
     token = get_optional_env(env_key)
     if not token:
         raise RuntimeError(f"Falta {env_key} en .env/.env.txt")
@@ -87,7 +94,11 @@ def owner_maps(supabase: SupabaseRestClient) -> dict[tuple[str, str], str]:
 
 def active_clients(supabase: SupabaseRestClient) -> list[dict[str, Any]]:
     rows = supabase.select("clientes", "nombre,slug,ghl_location_id", order="nombre.asc")
-    return [row for row in rows if row.get("ghl_location_id")]
+    return [
+        row
+        for row in rows
+        if row.get("ghl_location_id") and row.get("slug") in ACTIVE_MEETING_CLIENT_SLUGS
+    ]
 
 
 def normalize_calendar(calendar: dict[str, Any], client: dict[str, Any]) -> dict[str, Any]:
@@ -108,7 +119,9 @@ def normalize_calendar(calendar: dict[str, Any], client: dict[str, Any]) -> dict
 def contact_lookup(supabase: SupabaseRestClient) -> dict[str, dict[str, Any]]:
     rows = supabase.select_all(
         "contactos",
-        "ghl_contact_id,nombre,nombre_contacto,nombre_empresa,email,telefono,cargo,industria,pais,sdr_slug,ghl_owner_user_id,cliente_slug",
+        "ghl_contact_id,nombre,nombre_contacto,nombre_empresa,email,telefono,cargo,"
+        "industria,pais,sdr_slug,ghl_owner_user_id,cliente_slug,"
+        "informacion_reunion,bant_sdr,custom_fields,raw_data",
     )
     return {row["ghl_contact_id"]: row for row in rows if row.get("ghl_contact_id")}
 
@@ -190,6 +203,8 @@ def normalize_event(
         "cargo": contact.get("cargo"),
         "industria": contact.get("industria"),
         "pais": contact.get("pais"),
+        "informacion_reunion": contact.get("informacion_reunion"),
+        "bant_sdr": contact.get("bant_sdr"),
         "fecha_agendada": created_dt.date().isoformat() if created_dt else None,
         "fecha_reunion": start_dt.date().isoformat() if start_dt else None,
         "hora_reunion": start_dt.time().replace(tzinfo=None).isoformat() if start_dt else None,
@@ -201,7 +216,11 @@ def normalize_event(
         "observacion": pick(event, "notes", "description"),
         "direccion_reunion": pick(event, "address", "meetingLocation"),
         "notas": pick(event, "notes"),
-        "raw_data": event,
+        "raw_data": {
+            "appointment": event,
+            "contact": contact.get("raw_data") or {},
+            "contact_custom_fields": contact.get("custom_fields") or [],
+        },
         "synced_at": iso_now(),
     }
     # Solo incluir sdr_slug cuando se determinó — evita pisar valores correctos con null en re-syncs

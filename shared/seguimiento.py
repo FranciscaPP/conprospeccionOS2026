@@ -36,6 +36,7 @@ TIPO_RESPUESTA_OPTS = TIPO_RESPUESTA_POS + TIPO_RESPUESTA_NEG
 
 BANT_OPTS = ["B", "A", "N", "T"]
 NIVELES   = ("cp", "cli", "final")
+RESPUESTAS_CLIENTE_PERMITIDAS = ("valida", "requiere_revision")
 
 
 def bant_to_list(v) -> list[str]:
@@ -71,13 +72,56 @@ def payload_nivel(reunion_id: int, cliente_slug: str, nivel: str, *,
     return {k: v for k, v in p.items() if v is not None}
 
 
+def payload_respuesta_cliente(
+    reunion_id: int,
+    cliente_slug: str,
+    estado: str,
+    *,
+    comentario: str = "",
+    motivo: str | None = None,
+) -> dict:
+    """Payload estricto del portal cliente; no admite campos CP u operativos."""
+    if estado not in RESPUESTAS_CLIENTE_PERMITIDAS:
+        raise ValueError(f"respuesta cliente no permitida: {estado}")
+    if estado == "requiere_revision" and (not motivo or not comentario.strip()):
+        raise ValueError("solicitar revision exige motivo y comentario")
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "reunion_id": int(reunion_id),
+        "cliente_slug": cliente_slug,
+        "val_estado_cli": estado,
+        "comentario_cli": comentario.strip() or None,
+        "motivo_no_validez": motivo if estado == "requiere_revision" else None,
+        "validated_by_cli": "cliente",
+        "validated_cli_at": now,
+        "updated_by_cli": now,
+        "updated_at": now,
+    }
+
+
+def payload_antecedentes_internos(
+    *,
+    informacion: str = "",
+    bant=None,
+    icp_cumple: bool | None = None,
+) -> dict:
+    """Campos manuales internos que luego consume el portal cliente."""
+    return {
+        "informacion_reunion_manual": informacion.strip() or None,
+        "bant_cp": bant_to_str(bant),
+        "icp_cumple": icp_cumple,
+    }
+
+
 # Columnas que el portal del cliente puede ver (vista ejecutiva/contractual).
 # Excluye datos operativos internos: notas_internas, proximo_paso, validated_by_*, etc.
 COLUMNAS_CLIENTE = (
     "reunion_id,cliente_slug,status_reunion,"
-    "val_estado_cp,bant_cp,comentario_cp,"
-    "val_estado_cli,bant_cli,comentario_cli,motivo_no_validez,"
-    "val_estado_final,final_override,estado_comercial"
+    "val_estado_cp,bant_cp,comentario_cp,informacion_reunion_manual,icp_cumple,"
+    "val_estado_cli,comentario_cli,motivo_no_validez,validated_cli_at,"
+    "val_estado_final,final_override,flag_meta_countable,flag_disputa,flag_cliente_pendiente,"
+    "recording_url,transcript_url,ai_summary,ai_bant_detected,"
+    "ai_confidence,ai_evidence"
 )
 
 
@@ -116,9 +160,9 @@ def _val():
 def registrar_historial(meeting_id, field, old, new, by, role, dashboard):
     """Registra un cambio de campo en meeting_status_history (si realmente cambió)."""
     if str(old) == str(new):
-        return
+        return True
     try:
-        requests.post(
+        response = requests.post(
             f"{_URL}/rest/v1/meeting_status_history",
             json={"meeting_id": meeting_id, "field_changed": field,
                   "old_value": str(old) if old is not None else None,
@@ -126,25 +170,67 @@ def registrar_historial(meeting_id, field, old, new, by, role, dashboard):
                   "changed_by": by, "changed_by_role": role, "source_dashboard": dashboard},
             headers={**_HW, "Prefer": "return=minimal"}, timeout=10)
     except Exception:
-        pass
+        return False
+    return response.ok
 
 
-def recalcular_final_y_flags(reunion_id: int, cliente_slug: str) -> dict:
+def recalcular_final_y_flags(
+    reunion_id: int,
+    cliente_slug: str,
+    fila: dict | None = None,
+    evidencia_suficiente: bool | None = None,
+) -> dict:
     """Deriva la validez final automática y los flags desde la fila actual y los persiste.
-    Respeta el override manual (final_override=true)."""
+    Respeta el override manual (final_override=true).
+
+    ``fila`` permite recalcular con los valores recién guardados, evitando una
+    segunda lectura que pueda devolver datos anteriores durante el mismo rerun.
+    """
     derivar_final, flag_disputa, flag_meta_countable = _val()
-    r = cargar(cliente_slug).get(int(reunion_id), {})
+    r = fila if fila is not None else cargar(cliente_slug).get(int(reunion_id), {})
     override = r.get("val_estado_final") if r.get("final_override") else None
-    final = derivar_final(r.get("status_reunion"), r.get("val_estado_cp"),
-                          r.get("val_estado_cli"), r.get("bant_cp"), override=override)
+    evidencia = evidencia_suficiente
+    if evidencia is None:
+        evidencia = any(
+            r.get(field)
+            for field in (
+                "recording_url",
+                "transcript_url",
+                "ai_summary",
+                "ai_evidence",
+                "comentario_cp",
+            )
+        )
+    final = derivar_final(
+        r.get("status_reunion"),
+        r.get("val_estado_cp"),
+        r.get("val_estado_cli"),
+        r.get("bant_cp"),
+        override=override,
+        evidencia_suficiente=evidencia,
+        resultado_actual=r.get("val_estado_final"),
+    )
     disp = flag_disputa(r.get("val_estado_cp"), r.get("val_estado_cli"), r.get("bant_cp"))
     countable = flag_meta_countable(final)
-    pend_cli = (r.get("val_estado_cli") in (None, "", "espera"))
-    requests.post(
-        f"{_URL}/rest/v1/seguimiento_reuniones",
-        json={"reunion_id": reunion_id, "cliente_slug": cliente_slug,
-              "val_estado_final": final, "flag_disputa": disp,
-              "flag_meta_countable": countable, "flag_cliente_pendiente": pend_cli,
-              "updated_at": datetime.now(timezone.utc).isoformat()},
-        headers={**_HW, "Prefer": "resolution=merge-duplicates,return=minimal"}, timeout=10)
-    return {"final": final, "disputa": disp, "countable": countable, "pendiente_cli": pend_cli}
+    pend_cli = (
+        r.get("val_estado_cp") == "valida"
+        and r.get("val_estado_cli") in (None, "", "espera")
+    )
+    try:
+        response = requests.post(
+            f"{_URL}/rest/v1/seguimiento_reuniones",
+            json={"reunion_id": reunion_id, "cliente_slug": cliente_slug,
+                  "val_estado_final": final, "flag_disputa": disp,
+                  "flag_meta_countable": countable, "flag_cliente_pendiente": pend_cli,
+                  "updated_at": datetime.now(timezone.utc).isoformat()},
+            headers={**_HW, "Prefer": "resolution=merge-duplicates,return=minimal"}, timeout=10)
+        persisted = response.ok
+    except Exception:
+        persisted = False
+    return {
+        "final": final,
+        "disputa": disp,
+        "countable": countable,
+        "pendiente_cli": pend_cli,
+        "persisted": persisted,
+    }

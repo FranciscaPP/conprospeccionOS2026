@@ -77,7 +77,7 @@ st.markdown("""
   </div>
   <div style="color:#cbd5e1;font-size:14px;max-width:640px;line-height:1.6;margin-top:8px">
     Sistema central para gestionar reuniones, validar resultados con clientes
-    y coordinar el trabajo de los SDRs — todo conectado en tiempo real con GHL y Supabase.
+    y coordinar el trabajo de los SDRs — todo conectado con las fuentes comerciales y Supabase.
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -91,7 +91,7 @@ MODULOS = [
     {
         "icon": "",
         "nombre": "Client Setup OS",
-        "desc": "Centro operativo interno para intake, ICP, segmentos, dominios, correos, warmup, BBDD, campanas, GHL, SDR y checklist de lanzamiento.",
+        "desc": "Centro operativo interno para intake, ICP, segmentos, dominios, correos, warmup, BBDD, campañas, SDR y checklist de lanzamiento.",
         "tag": "beta", "tag_label": "GBS piloto",
         "color": "#6d28d9",
     },
@@ -105,7 +105,7 @@ MODULOS = [
     {
         "icon": "",
         "nombre": "Portal Cliente",
-        "desc": "Cada cliente revisa sus reuniones y las marca como Válida, No válida o Reagendar. El cambio se sincroniza automáticamente con GHL.",
+        "desc": "Cada cliente revisa sus reuniones y las marca como Válida, No válida o Reagendar. El cambio se sincroniza automáticamente con el sistema comercial.",
         "tag": "live", "tag_label": "En vivo",
         "color": "#0e7490",
     },
@@ -125,8 +125,8 @@ MODULOS = [
     },
     {
         "icon": "",
-        "nombre": "Pipeline GHL",
-        "desc": "Visualización del estado de oportunidades en los pipelines de GHL por cliente, directamente desde Supabase.",
+        "nombre": "Pipeline comercial",
+        "desc": "Visualización del estado de oportunidades por cliente, directamente desde Supabase.",
         "tag": "soon", "tag_label": "Próximamente",
         "color": "#9a3412",
     },
@@ -167,7 +167,7 @@ with c1:
 with c2:
     st.markdown("""
     <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 18px">
-      <div style="font-size:11px;color:#166534;font-weight:700;text-transform:uppercase;letter-spacing:.5px">GHL Sync</div>
+      <div style="font-size:11px;color:#166534;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Sincronización comercial</div>
       <div style="font-size:18px;font-weight:700;color:#166534;margin-top:4px">08:00 / 20:00</div>
     </div>""", unsafe_allow_html=True)
 with c3:

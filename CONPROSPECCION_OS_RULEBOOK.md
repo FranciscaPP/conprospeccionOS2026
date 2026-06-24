@@ -4,9 +4,6 @@ Fecha de vigencia: 2026-06-18
 Producto oficial: Streamlit  
 Estado: fuente oficial de verdad
 
-Estándar reusable de interfaz cliente:
-`docs/PORTAL_CLIENTE_UX_STANDARD.md`.
-
 ## 1. Autoridad de este documento
 
 Este Rulebook define las reglas funcionales y de UX vigentes de Conprospección OS.

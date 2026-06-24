@@ -41,28 +41,10 @@ st.set_page_config(page_title="GBS Logistics — Intelligence Insight", layout="
 if not require_auth_client("gbs"):
     st.stop()
 
-# El módulo permanece visible; el contenido completo requiere plan premium.
-# El equipo interno conserva siempre la vista operativa completa.
+# Guard premium: Intelligence Insight es plan premium (o acceso interno admin).
 from shared.planes import plan_de as _plan_de
 if _plan_de("gbs") != "premium" and not st.session_state.get("admin_mode"):
-    render_client_nav("11_GBS", "gbs")
-    st.markdown(
-        f'<div style="max-width:760px;margin:72px auto;background:#fff;border:1px solid {GBS_BORDER};'
-        f'border-left:6px solid {GBS_PURPLE};border-radius:14px;padding:30px 32px;'
-        f'box-shadow:0 8px 24px rgba(91,33,182,.08)">'
-        f'<div style="font-size:11px;font-weight:850;letter-spacing:.9px;text-transform:uppercase;'
-        f'color:{GBS_PURPLE};margin-bottom:9px">Intelligence Insight</div>'
-        f'<div style="font-size:22px;font-weight:850;color:{GBS_DARK};margin-bottom:9px">'
-        f'Dashboard disponible para clientes premium</div>'
-        f'<div style="font-size:14px;color:#475569;line-height:1.65">'
-        f'GBS puede ver este módulo en su portal, pero el análisis completo de desempeño, '
-        f'segmentos, ICP real, hallazgos y recomendaciones todavía no está habilitado '
-        f'para su plan actual.</div>'
-        f'<div style="margin-top:15px;font-size:12px;color:#64748b">'
-        f'Conprospección puede activarlo cuando se actualice el plan del cliente.</div></div>',
-        unsafe_allow_html=True,
-    )
-    st.stop()
+    st.switch_page("pages/12_GBS_Validacion_Reuniones.py")
 
 render_client_nav("11_GBS", "gbs")
 

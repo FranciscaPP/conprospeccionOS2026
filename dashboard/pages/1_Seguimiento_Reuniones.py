@@ -10,17 +10,36 @@ ROOT = DASHBOARD_DIR.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 from shared.config import supabase_url, supabase_key, ghl_tokens
+from shared.meeting_scope import ACTIVE_MEETING_CLIENT_NAMES, ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de, NOMBRE_A_SLUG
-from shared.validacion import STATUS_REUNION, VAL_ESTADOS, gate_valida_permitida
+from shared.validacion import (
+    ESTATUS_VALIDACION,
+    ESTADOS_FLUJO,
+    ETAPAS_AGENDA,
+    LABEL_ESTATUS_VALIDACION,
+    LABEL_ESTADO_FLUJO,
+    LABEL_ETAPA_AGENDA,
+    STATUS_REUNION,
+    VAL_ESTADOS,
+    bant_desde_fuentes,
+    construir_justificacion,
+    derivar_estatus_validacion,
+    derivar_estado_flujo,
+    derivar_etapa_agenda,
+    derivar_final,
+    icp_gbs,
+    informacion_reunion,
+    texto_real,
+)
 from shared.seguimiento import (
     cargar as _cargar_seg, guardar_nivel as _gn_cp,
-    recalcular_final_y_flags, registrar_historial, bant_to_list,
+    payload_antecedentes_internos, recalcular_final_y_flags, registrar_historial, bant_to_list,
 )
 from shared.validacion import ESTADO_COMERCIAL
 from shared.validacion_ui import (
     LABEL_VALIDEZ, LABEL_STATUS, LABEL_ESTADO_COMERCIAL, chip_status,
     banner_final, fila_resumen, bloque_resumen, encabezado_seccion,
-    mini_label, CAP_CP, CAP_CLI,
+    mini_label, CAP_CP, CAP_CLI, chip_estado_flujo, tarjeta_estado_flujo,
 )
 from master_auth import require_master_auth, render_master_user_sidebar
 
@@ -40,6 +59,9 @@ COLORES_CLIENTE = {
     "JUST4U": {"bg": "#ffedd5", "color": "#9a3412", "border": "#f97316"},
     "ECOSMART": {"bg": "#e0f7fa", "color": "#0e7490", "border": "#06b6d4"},
 }
+
+ACTIVE_MEETING_CLIENT_SET = set(ACTIVE_MEETING_CLIENT_SLUGS)
+ACTIVE_MEETING_CLIENT_LABELS = list(ACTIVE_MEETING_CLIENT_NAMES.values())
 
 MESES_ES = ["enero","febrero","marzo","abril","mayo","junio",
             "julio","agosto","septiembre","octubre","noviembre","diciembre"]
@@ -157,6 +179,7 @@ _EMPTY_COLS = [
     "cliente", "fecha", "fecha_d", "mes", "hora", "sdr", "contacto", "cargo",
     "empresa", "industria", "pais", "email", "telefono", "estado_reunion",
     "estado_validacion", "es_valida",
+    "raw_data", "informacion_reunion", "bant_sdr",
 ]
 
 
@@ -173,6 +196,10 @@ def cargar_reuniones() -> pd.DataFrame:
     df = pd.DataFrame(resp.json())
     if df.empty:
         return pd.DataFrame(columns=_EMPTY_COLS)
+    if "cliente_slug" in df.columns:
+        df = df[df["cliente_slug"].astype(str).str.lower().isin(ACTIVE_MEETING_CLIENT_SET)].copy()
+    if df.empty:
+        return pd.DataFrame(columns=_EMPTY_COLS)
     df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
     df["fecha_d"] = df["fecha"].dt.date
     df["mes"] = df["fecha"].dt.to_period("M")
@@ -181,8 +208,48 @@ def cargar_reuniones() -> pd.DataFrame:
     if "estado_validacion" not in df.columns:
         df["estado_validacion"] = None
     df = deduplicar_reuniones(df)
+    extras = cargar_reuniones_extra()
+    if not extras.empty and "id" in extras.columns:
+        extra_columns = [
+            column
+            for column in (
+                "id", "raw_data", "informacion_reunion", "bant_sdr",
+                "recording_url", "transcript_url", "ai_summary", "ai_evidence",
+            )
+            if column in extras.columns
+        ]
+        df = df.merge(extras[extra_columns], on="id", how="left", suffixes=("", "_extra"))
+        for column in (
+            "raw_data", "informacion_reunion", "bant_sdr",
+            "recording_url", "transcript_url", "ai_summary", "ai_evidence",
+        ):
+            extra = f"{column}_extra"
+            if extra in df.columns:
+                if column not in df.columns:
+                    df[column] = df[extra]
+                else:
+                    df[column] = df[column].where(df[column].notna(), df[extra])
+                df = df.drop(columns=[extra])
     df = df.sort_values("fecha", ascending=False, na_position="last").reset_index(drop=True)
     return df
+
+
+@st.cache_data(ttl=30)
+def cargar_reuniones_extra() -> pd.DataFrame:
+    response = requests.get(
+        f"{SUPABASE_URL}/rest/v1/reuniones"
+        "?select=id,raw_data,informacion_reunion,bant_sdr,"
+        "recording_url,transcript_url,ai_summary,ai_evidence",
+        headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
+        timeout=15,
+    )
+    if not response.ok:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/reuniones?select=id,raw_data",
+            headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
+            timeout=15,
+        )
+    return pd.DataFrame(response.json() if response.ok else [])
 
 
 @st.cache_data(ttl=300)
@@ -209,16 +276,95 @@ def cargar_validacion_final() -> dict:
             for x in r.json() if x.get("reunion_id")}
 
 
+def _normalizar_status_interno(value) -> str:
+    status = texto_real(value).lower()
+    return {
+        "completed": "realizada",
+        "confirmed": "agendada",
+        "scheduled": "agendada",
+        "reunion_agendada": "agendada",
+        "cancelled": "cancelada_cliente",
+        "canceled": "cancelada_cliente",
+        "no_show": "no_asistio_lead",
+        "rescheduled": "reagendada",
+        "solicita_cotizacion": "cotizacion",
+    }.get(status, status if status in STATUS_REUNION else "sin_info")
+
+
+def enriquecer_estado_funcional(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return df
+    seg_por_slug: dict[str, dict] = {}
+    rows = []
+    for _, source in df.iterrows():
+        row = source.to_dict()
+        slug = str(row.get("cliente_slug") or "")
+        if slug not in seg_por_slug:
+            seg_por_slug[slug] = cargar_seg_slug(slug)
+        seg = seg_por_slug[slug].get(int(row.get("id") or 0), {})
+        source_status = _normalizar_status_interno(row.get("estado_reunion"))
+        status = (
+            "cotizacion"
+            if source_status == "cotizacion"
+            else texto_real(seg.get("status_reunion")) or source_status
+        )
+        cp = texto_real(seg.get("val_estado_cp")) or (
+            "valida" if str(row.get("estado_validacion") or "").lower() in {"valida", "reunion_valida"} else "espera"
+        )
+        client = texto_real(seg.get("val_estado_cli")) or "espera"
+        if status == "cotizacion":
+            cp = "valida"
+            final = "valida"
+        elif seg.get("val_estado_final") == "valida" and seg.get("flag_meta_countable") is True:
+            final = "valida"
+        else:
+            final = derivar_final(
+                status,
+                cp,
+                client,
+                bant_desde_fuentes(row, seg),
+                override=seg.get("val_estado_final") if seg.get("final_override") else None,
+                resultado_actual=seg.get("val_estado_final"),
+            )
+        row["_seg"] = seg
+        row["_status"] = status
+        row["_cp"] = cp
+        row["_client"] = client
+        row["_final"] = final
+        row["_agenda_stage"] = derivar_etapa_agenda(
+            row.get("fecha_d") or row.get("fecha"),
+            status,
+        )
+        row["_validation_status"] = derivar_estatus_validacion(
+            row["_agenda_stage"],
+            cp,
+            client,
+            final,
+            flag_disputa=bool(seg.get("flag_disputa")),
+        )
+        row["_flow"] = derivar_estado_flujo(
+            row.get("fecha_d") or row.get("fecha"),
+            status,
+            cp,
+            client,
+            final,
+        )
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 @st.cache_data(ttl=300)
 def cargar_clientes() -> list[str]:
+    slugs = ",".join(ACTIVE_MEETING_CLIENT_SLUGS)
     resp = requests.get(
-        f"{SUPABASE_URL}/rest/v1/clientes?select=nombre&ghl_location_id=not.is.null&order=nombre.asc",
+        f"{SUPABASE_URL}/rest/v1/clientes?select=nombre,slug&slug=in.({slugs})&order=nombre.asc",
         headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
         timeout=15,
     )
     if not resp.ok:
-        return []
-    return [r["nombre"] for r in resp.json() if r.get("nombre")]
+        return ACTIVE_MEETING_CLIENT_LABELS
+    by_slug = {str(r.get("slug") or ""): r.get("nombre") for r in resp.json()}
+    return [by_slug.get(slug) or ACTIVE_MEETING_CLIENT_NAMES[slug] for slug in ACTIVE_MEETING_CLIENT_SLUGS]
 
 
 @st.cache_data(ttl=30)
@@ -232,7 +378,8 @@ def cargar_flags_validacion() -> dict:
     """Cuenta flags globales de validación final."""
     r = requests.get(
         f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones"
-        f"?select=flag_meta_countable,flag_disputa,flag_cliente_pendiente",
+        f"?select=flag_meta_countable,flag_disputa,flag_cliente_pendiente"
+        f"&cliente_slug=in.({','.join(ACTIVE_MEETING_CLIENT_SLUGS)})",
         headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
         timeout=15)
     if not r.ok:
@@ -326,10 +473,10 @@ def resumen_clientes_html(dff: pd.DataFrame, final_map: dict) -> str:
             <div style="background:{c['border']};width:{pct_barra}%;height:100%;border-radius:4px"></div>
           </div>
           <div style="font-size:11px;display:flex;flex-direction:column;gap:3px">
-            <div style="display:flex;justify-content:space-between"><span>Válidas</span><b>{_count(sub, es_valida)}</b></div>
-            <div style="display:flex;justify-content:space-between"><span>No válidas</span><b>{_count(sub, es_no_valida)}</b></div>
-            <div style="display:flex;justify-content:space-between"><span>Reagendar</span><b>{_count(sub, es_reagendar)}</b></div>
-            <div style="display:flex;justify-content:space-between"><span>Pendientes</span><b>{_count(sub, es_pendiente)}</b></div>
+            <div style="display:flex;justify-content:space-between"><span>Válidas</span><b>{int((sub.get('_final', pd.Series(dtype=str)) == 'valida').sum())}</b></div>
+            <div style="display:flex;justify-content:space-between"><span>No válidas</span><b>{int((sub.get('_final', pd.Series(dtype=str)) == 'no_valida').sum())}</b></div>
+            <div style="display:flex;justify-content:space-between"><span>Solicita revisión</span><b>{int((sub.get('_flow', pd.Series(dtype=str)) == 'cliente_solicita_revision').sum())}</b></div>
+            <div style="display:flex;justify-content:space-between"><span>Pendientes CP</span><b>{int((sub.get('_flow', pd.Series(dtype=str)) == 'pendiente_evaluacion_cp').sum())}</b></div>
           </div>
         </div>"""
     return f'<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px">{cards}</div>'
@@ -356,16 +503,25 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
         telefono = str(row.get("telefono") or "")
         industria = str(row.get("industria") or "")
         pais = str(row.get("pais") or "")
-        hora = str(row.get("hora") or "—")[:5]
-        dia = formato_dia(row.get("fecha"))
-
         if cliente_slug not in seg_por_slug:
             seg_por_slug[cliente_slug] = cargar_seg_slug(cliente_slug)
-        seg = seg_por_slug[cliente_slug].get(reunion_id, {})
+        seg = row.get("_seg") or seg_por_slug[cliente_slug].get(reunion_id, {})
 
         sc = color_sdr(sdr_raw)
         cl = COLORES_CLIENTE.get(cliente_val.upper(), {"bg": "#e5e7eb", "color": "#374151"})
-        final = seg.get("val_estado_final") or "pendiente"
+        final = row.get("_final") or seg.get("val_estado_final") or "pendiente"
+        flow = row.get("_flow") or "pendiente_evaluacion_cp"
+        status_actual = row.get("_status") or _normalizar_status_interno(row.get("estado_reunion"))
+        agenda_stage = row.get("_agenda_stage") or derivar_etapa_agenda(row.get("fecha"), status_actual)
+        validation_status = row.get("_validation_status") or "pendiente_evaluacion_cp"
+        is_quote = cliente_slug == "gbs" and agenda_stage == "cotizacion"
+        hora = "" if is_quote else str(row.get("hora") or "—")[:5]
+        dia = "Cotización" if is_quote else formato_dia(row.get("fecha"))
+        bant_actual = bant_desde_fuentes(row, seg)
+        info_actual = informacion_reunion(row, seg)
+        if is_quote and not info_actual:
+            info_actual = texto_real(row.get("observacion"))
+        icp_actual = icp_gbs(status_actual, seg.get("icp_cumple")) if cliente_slug == "gbs" else seg.get("icp_cumple")
         override = bool(seg.get("final_override"))
         sdr_bg = sc["bg"] if sdr_raw != "Sin asignar" else "#fee2e2"
         sdr_color = sc["color"] if sdr_raw != "Sin asignar" else "#991b1b"
@@ -386,10 +542,20 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
                 f'<span style="font-size:13px;font-weight:700;color:#334155">{dia}</span>'
                 f'<span style="color:#94a3b8">·</span>'
                 f'<span style="font-size:14px;font-weight:800;color:#4f46e5">{hora}</span>'
-                f'<span style="font-size:11px;color:#64748b;margin-left:6px">Reunión:</span>'
-                f'{chip_status(seg.get("status_reunion"))}</div>',
+                f'<span style="background:#eef2ff;color:#4338ca;padding:3px 10px;'
+                f'border-radius:9px;font-size:11px;font-weight:700">'
+                f'{LABEL_ETAPA_AGENDA.get(agenda_stage, agenda_stage)}</span>'
+                f'<span style="background:#f3e8ff;color:#7e22ce;padding:3px 10px;'
+                f'border-radius:9px;font-size:11px;font-weight:700">'
+                f'{LABEL_ESTATUS_VALIDACION.get(validation_status, validation_status)}</span></div>',
                 unsafe_allow_html=True)
             st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+            if is_quote:
+                st.info(
+                    "Cotización válida automáticamente: interés inmediato y traspaso al equipo comercial de GBS Logistics."
+                )
+            else:
+                st.markdown(tarjeta_estado_flujo(flow), unsafe_allow_html=True)
 
             # 1) Validez final (banner)
             st.markdown(banner_final(final), unsafe_allow_html=True)
@@ -397,7 +563,7 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
             # 2) Resumen comparativo (read-only): Conprospección + Cliente
             st.markdown(bloque_resumen(
                 fila_resumen("Evaluación Conprospección", CAP_CP[1],
-                             seg.get("val_estado_cp") or "espera", bant_to_list(seg.get("bant_cp")),
+                             seg.get("val_estado_cp") or "espera", bant_actual,
                              seg.get("comentario_cp"), primera=True),
                 fila_resumen("Validación del cliente", CAP_CLI[1],
                              seg.get("val_estado_cli") or "espera", bant_to_list(seg.get("bant_cli")),
@@ -410,24 +576,27 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
             e1, e2 = st.columns(2)
             with e1:
                 st.markdown(mini_label("Validez del equipo"), unsafe_allow_html=True)
+                vcp_actual = "valida" if is_quote else seg.get("val_estado_cp")
                 vcp = st.selectbox("Validez del equipo", VAL_ESTADOS,
-                    index=VAL_ESTADOS.index(seg.get("val_estado_cp"))
-                          if seg.get("val_estado_cp") in VAL_ESTADOS else 0,
+                    index=VAL_ESTADOS.index(vcp_actual)
+                          if vcp_actual in VAL_ESTADOS else 0,
                     format_func=lambda x: LABEL_VALIDEZ.get(x, x),
+                    disabled=is_quote,
                     key=f"{prefix}_vcp_{reunion_id}_{i}", label_visibility="collapsed")
             with e2:
                 st.markdown(mini_label("Criterios BANT"), unsafe_allow_html=True)
                 bcp = st.multiselect("BANT equipo", ["B", "A", "N", "T"],
-                    default=bant_to_list(seg.get("bant_cp")),
+                    default=bant_actual,
                     placeholder="Opcional", key=f"{prefix}_bcp_{reunion_id}_{i}",
                     label_visibility="collapsed")
             e3, e4 = st.columns(2)
             with e3:
-                st.markdown(mini_label("Estado de la reunión"), unsafe_allow_html=True)
-                sr = st.selectbox("Estado de la reunión", STATUS_REUNION,
-                    index=STATUS_REUNION.index(seg.get("status_reunion"))
-                          if seg.get("status_reunion") in STATUS_REUNION else 0,
+                st.markdown(mini_label("Etapa de agenda"), unsafe_allow_html=True)
+                sr = st.selectbox("Etapa de agenda", STATUS_REUNION,
+                    index=STATUS_REUNION.index(status_actual)
+                          if status_actual in STATUS_REUNION else 0,
                     format_func=lambda x: LABEL_STATUS.get(x, x),
+                    disabled=is_quote,
                     key=f"{prefix}_sr_{reunion_id}_{i}", label_visibility="collapsed")
             with e4:
                 st.markdown(mini_label("Forzar validez final"), unsafe_allow_html=True)
@@ -435,10 +604,92 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
                     key=f"{prefix}_vf_{reunion_id}_{i}",
                     help="Dejar en automática salvo que quieras fijarla a mano.",
                     label_visibility="collapsed")
-            st.markdown(mini_label("Comentario de respaldo (lo ve el cliente)"), unsafe_allow_html=True)
-            coment_cp = st.text_input("Comentario de respaldo", value=seg.get("comentario_cp") or "",
-                key=f"{prefix}_ccp_{reunion_id}_{i}", label_visibility="collapsed",
-                placeholder="Justifica la evaluación; aparece en el portal del cliente")
+            st.markdown(
+                mini_label(
+                    "Información (visible al cliente)"
+                    if is_quote
+                    else "Información para reunión (visible al cliente)"
+                ),
+                unsafe_allow_html=True,
+            )
+            info_manual = st.text_area(
+                "Información para reunión",
+                value=info_actual,
+                key=f"{prefix}_info_{reunion_id}_{i}",
+                label_visibility="collapsed",
+                placeholder=(
+                    "Completar contexto y antecedentes de la cotización."
+                    if is_quote
+                    else "Completar preparación, contexto y antecedentes útiles para la reunión."
+                ),
+            )
+            if cliente_slug == "gbs":
+                icp_edit = st.checkbox(
+                    "Cumple ICP",
+                    value=bool(icp_actual),
+                    key=f"{prefix}_icp_{reunion_id}_{i}",
+                    help="Antecedente de evaluación; no decide automáticamente la validez.",
+                )
+            else:
+                icp_edit = icp_actual
+            recording = texto_real(row.get("recording_url")) or texto_real(seg.get("recording_url"))
+            transcript = texto_real(row.get("transcript_url")) or texto_real(seg.get("transcript_url"))
+            confirmation = (
+                texto_real(row.get("ai_summary"))
+                or texto_real(seg.get("ai_summary"))
+                or texto_real(row.get("ai_evidence"))
+                or texto_real(seg.get("ai_evidence"))
+            )
+            st.markdown(mini_label("Evidencia y confirmación"), unsafe_allow_html=True)
+            if is_quote:
+                st.caption(
+                    "La solicitud de cotización confirma interés inmediato y activa el traspaso al equipo comercial del cliente."
+                )
+            elif any((recording, transcript, confirmation)):
+                ev1, ev2, ev3 = st.columns(3)
+                with ev1:
+                    if recording:
+                        st.link_button("Abrir grabación", recording, use_container_width=True)
+                with ev2:
+                    if transcript:
+                        st.link_button("Abrir transcripción", transcript, use_container_width=True)
+                with ev3:
+                    if confirmation:
+                        with st.popover("Confirmación Conprospección", use_container_width=True):
+                            st.write(confirmation)
+            else:
+                st.caption("Sin evidencia enlazada.")
+            justificacion_sugerida = construir_justificacion(
+                vcp,
+                icp=icp_edit,
+                bant=bcp,
+                evidencia=any(
+                    seg.get(field)
+                    for field in (
+                        "recording_url",
+                        "transcript_url",
+                        "ai_summary",
+                        "ai_evidence",
+                    )
+                ),
+                tiene_informacion=bool(info_manual.strip()),
+            )
+            st.markdown(
+                mini_label("Justificación sugerida (editable/complementable)"),
+                unsafe_allow_html=True,
+            )
+            st.caption(justificacion_sugerida or "Completa los antecedentes para generar una sugerencia.")
+            coment_cp = st.text_area(
+                "Justificación manual visible al cliente",
+                value=seg.get("comentario_cp") or "",
+                key=f"{prefix}_ccp_{reunion_id}_{i}",
+                label_visibility="collapsed",
+                placeholder=(
+                    "Agrega hechos relevantes. Ej.: el cliente cambió la reunión sin "
+                    "aviso previo y no fue posible realizar seguimiento."
+                ),
+                height=90,
+            )
             e5, e6 = st.columns(2)
             with e5:
                 st.markdown(mini_label("Próximo paso (interno)"), unsafe_allow_html=True)
@@ -464,25 +715,73 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
                                     type="primary", use_container_width=True)
 
             if guardar:
+                old_cp = seg.get("val_estado_cp")
+                old_bant = bant_to_list(seg.get("bant_cp"))
+                old_info = texto_real(seg.get("informacion_reunion_manual"))
+                old_final = seg.get("val_estado_final")
                 _gn_cp(reunion_id, cliente_slug, "cp", val_estado=vcp, bant=bcp)
                 _ahora = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                antecedentes = payload_antecedentes_internos(
+                    informacion=info_manual,
+                    bant=bcp,
+                    icp_cumple=icp_edit,
+                )
                 _patch = {"status_reunion": sr, "validated_by_cp": "cp",
                           "validated_cp_at": _ahora, "final_override": False,
                           "comentario_cp": coment_cp.strip() or None,
+                          "informacion_reunion_manual": antecedentes["informacion_reunion_manual"],
+                          "icp_cumple": antecedentes["icp_cumple"],
                           "proximo_paso": proximo.strip() or None,
                           "notas_internas": notas.strip() or None}
                 if vf != "(automática)":
                     _patch.update({"val_estado_final": vf, "final_override": True,
                                    "validated_final_by": "CP", "validated_final_at": _ahora})
-                requests.patch(
+                save_response = requests.patch(
                     f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones?reunion_id=eq.{reunion_id}",
                     json=_patch,
                     headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}",
                              "Content-Type": "application/json", "Prefer": "return=minimal"},
                     timeout=10)
-                recalcular_final_y_flags(reunion_id, cliente_slug)
+                if not save_response.ok:
+                    fallback_patch = {
+                        key: value
+                        for key, value in _patch.items()
+                        if key not in {"informacion_reunion_manual", "icp_cumple"}
+                    }
+                    save_response = requests.patch(
+                        f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones?reunion_id=eq.{reunion_id}",
+                        json=fallback_patch,
+                        headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}",
+                                 "Content-Type": "application/json", "Prefer": "return=minimal"},
+                        timeout=10)
+                    if save_response.ok and (
+                        antecedentes["informacion_reunion_manual"] or antecedentes["icp_cumple"] is not None
+                    ):
+                        st.warning(
+                            "La evaluación se guardó, pero la migración de Información para reunión/ICP "
+                            "aún no está aplicada en Supabase."
+                        )
+                current = {
+                    **seg,
+                    **_patch,
+                    "val_estado_cp": vcp,
+                    "bant_cp": ",".join(bcp),
+                }
+                if vf != "(automática)":
+                    current["val_estado_final"] = vf
+                recalculated = recalcular_final_y_flags(reunion_id, cliente_slug, fila=current)
                 registrar_historial(reunion_id, "status_reunion",
-                                    seg.get("status_reunion"), sr, "cp", "cp", "seguimiento")
+                                    status_actual, sr, "cp", "cp", "seguimiento")
+                registrar_historial(reunion_id, "val_estado_cp",
+                                    old_cp, vcp, "cp", "cp", "seguimiento")
+                registrar_historial(reunion_id, "bant_cp",
+                                    ",".join(old_bant), ",".join(bcp), "cp", "cp", "seguimiento")
+                registrar_historial(reunion_id, "informacion_reunion_manual",
+                                    old_info, info_manual.strip(), "cp", "cp", "seguimiento")
+                registrar_historial(reunion_id, "icp_cumple",
+                                    seg.get("icp_cumple"), icp_edit, "cp", "cp", "seguimiento")
+                registrar_historial(reunion_id, "val_estado_final",
+                                    old_final, recalculated["final"], "cp", "cp", "seguimiento")
                 st.cache_data.clear()
                 st.rerun()
 
@@ -512,7 +811,7 @@ def filtros_seccion(df_base: pd.DataFrame, prefix: str, idx_dia_default: int = 0
     meses_disp = sorted(df_base["mes"].dropna().unique())
     meses_labels = ["Todos"] + [f"{MESES_ES[p.month-1].capitalize()} {p.year}" for p in meses_disp]
 
-    c1, c2, c3, c4 = st.columns([2, 2, 2, 2])
+    c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 2, 2])
     with c1:
         mes_label = st.selectbox("Mes", meses_labels, index=0, key=f"{prefix}_mes")
 
@@ -536,23 +835,31 @@ def filtros_seccion(df_base: pd.DataFrame, prefix: str, idx_dia_default: int = 0
         clientes = ["Todos"] + cargar_clientes()
         sel_cliente = st.selectbox("Cliente", clientes, key=f"{prefix}_cliente")
     with c4:
-        estados_filter = ["Todos"] + list(ESTADO_FINAL_FILTER.keys())
-        sel_estado = st.selectbox("Estado de validación", estados_filter, key=f"{prefix}_estado_f")
+        etapas_filter = ["Todos", *ETAPAS_AGENDA]
+        sel_etapa = st.selectbox(
+            "Etapa de agenda",
+            etapas_filter,
+            format_func=lambda value: "Etapa de agenda" if value == "Todos" else LABEL_ETAPA_AGENDA[value],
+            key=f"{prefix}_etapa_f",
+        )
+    with c5:
+        validaciones_filter = ["Todos", *ESTATUS_VALIDACION]
+        sel_validacion = st.selectbox(
+            "Estatus de validación",
+            validaciones_filter,
+            format_func=lambda value: (
+                "Estatus de validación"
+                if value == "Todos"
+                else LABEL_ESTATUS_VALIDACION[value]
+            ),
+            key=f"{prefix}_validacion_f",
+        )
 
-    return df_mes, fechas, dias_opts, sel_dia, sel_cliente, sel_estado
-
-
-# Filtro de estado por VALIDEZ FINAL (consistente con badge, KPIs y meta).
-ESTADO_FINAL_FILTER = {
-    "Válidas":     lambda vf: vf == "valida",
-    "No válidas":  lambda vf: vf == "no_valida",
-    "En revisión": lambda vf: vf == "en_disputa",
-    "Pendientes":  lambda vf: vf in ("pendiente", "reagendada", "excluida", ""),
-}
+    return df_mes, fechas, dias_opts, sel_dia, sel_cliente, sel_etapa, sel_validacion
 
 
 def aplicar_filtros(df_mes, fechas, dias_opts, sel_dia, sel_cliente,
-                    sel_estado="Todos", final_map=None):
+                     sel_etapa="Todos", sel_validacion="Todos", final_map=None):
     final_map = final_map or {}
     dff = df_mes.copy()
     if sel_dia != "Todos":
@@ -560,9 +867,10 @@ def aplicar_filtros(df_mes, fechas, dias_opts, sel_dia, sel_cliente,
         dff = dff[dff["fecha_d"] == fecha_sel]
     if sel_cliente != "Todos":
         dff = dff[dff["cliente"] == sel_cliente]
-    fn = ESTADO_FINAL_FILTER.get(sel_estado)
-    if fn and not dff.empty:
-        dff = dff[dff["id"].apply(lambda r: fn(str(final_map.get(int(r), "") or "pendiente")))]
+    if sel_etapa != "Todos" and not dff.empty:
+        dff = dff[dff["_agenda_stage"] == sel_etapa]
+    if sel_validacion != "Todos" and not dff.empty:
+        dff = dff[dff["_validation_status"] == sel_validacion]
     dff = dff.sort_values("fecha", ascending=False, na_position="last")
     return dff
 
@@ -595,7 +903,6 @@ def run():
         if st.button("Actualizar", use_container_width=True):
             st.cache_data.clear()
             st.rerun()
-
     df = cargar_reuniones()
     stages_df = cargar_stages()
     final_map = cargar_validacion_final()
@@ -603,17 +910,25 @@ def run():
     if df.empty:
         st.info("No hay reuniones cargadas.")
         return
+    df = enriquecer_estado_funcional(df)
 
     seccion_header("Reuniones por cliente", "#065f46", "#10b981")
 
-    df_mes_f, fechas_f, dias_opts_f, sel_dia_f, sel_cliente_f, sel_estado_f = filtros_seccion(
+    (
+        df_mes_f, fechas_f, dias_opts_f, sel_dia_f, sel_cliente_f,
+        sel_etapa_f, sel_validacion_f,
+    ) = filtros_seccion(
         df, prefix="f", idx_dia_default=0,
         banner_bg="#ecfdf5", banner_border="#10b981", banner_color="#065f46",
-        banner_label="FILTROS — mes · día · cliente · estado de validación",
+        banner_label="FILTROS — mes · día · cliente · etapa de agenda",
     )
 
-    dff = aplicar_filtros(df_mes_f, fechas_f, dias_opts_f, sel_dia_f, sel_cliente_f,
-                          sel_estado=sel_estado_f, final_map=final_map)
+    dff = aplicar_filtros(
+        df_mes_f, fechas_f, dias_opts_f, sel_dia_f, sel_cliente_f,
+        sel_etapa=sel_etapa_f,
+        sel_validacion=sel_validacion_f,
+        final_map=final_map,
+    )
 
     # Buscador: empresa · nombre/apellido · correo · teléfono (filtra sobre lo ya filtrado)
     c_busca, _ = st.columns([3, 1])
@@ -636,15 +951,15 @@ def run():
         rids = [int(r) for r in dff["id"].dropna()]
     n_val  = sum(1 for r in rids if _final_de(final_map, r) == "valida")
     n_nv   = sum(1 for r in rids if _final_de(final_map, r) == "no_valida")
-    n_disp = sum(1 for r in rids if _final_de(final_map, r) == "en_disputa")
-    n_pend = len(rids) - n_val - n_nv - n_disp
+    n_revision = int((dff["_flow"] == "cliente_solicita_revision").sum())
+    n_pend_cp = int((dff["_flow"] == "pendiente_evaluacion_cp").sum())
 
     k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("Reuniones", len(rids))
+    k1.metric("Total reuniones", len(rids))
     k2.metric("Válidas", n_val)
     k3.metric("No válidas", n_nv)
-    k4.metric("En revisión", n_disp)
-    k5.metric("Pendientes", n_pend)
+    k4.metric("Solicita revisión", n_revision)
+    k5.metric("Pendiente evaluación CP", n_pend_cp)
     st.markdown("")
 
     if dff.empty:
@@ -656,9 +971,9 @@ def run():
         st.markdown("""
         **Equipo (CP):** el equipo registra su evaluación de cada reunión (validez + BANT). Queda como respaldo.
 
-        **Cliente:** el cliente valida desde su portal. **Si el cliente marca válida, la validez final pasa a válida y cuenta para la meta automáticamente.**
+        **Cliente:** el cliente solo puede confirmar una evaluación positiva previa o solicitar revisión.
 
-        **Validez final:** se deriva sola (manda el cliente). Si el cliente la rechaza pero el equipo la tenía válida con 2+ BANT, queda **en revisión** para resolución manual. Se puede forzar a mano desde "Forzar validez final".
+        **Validez final:** Conprospección es la autoridad final. BANT, ICP, evidencia e información de preparación aportan contexto, pero no deciden por sí solos.
 
         Ambos paneles leen y escriben la misma información: lo que cambia en uno se ve en el otro.
         """)
