@@ -12,6 +12,9 @@ from ghl_client import GHLClient
 from supabase_rest import SupabaseRestClient
 
 
+ACTIVE_MEETING_CLIENT_SLUGS = {"clickie", "gbs", "bambutech"}
+
+
 def setup_logging() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
@@ -91,7 +94,11 @@ def owner_maps(supabase: SupabaseRestClient) -> dict[tuple[str, str], str]:
 
 def active_clients(supabase: SupabaseRestClient) -> list[dict[str, Any]]:
     rows = supabase.select("clientes", "nombre,slug,ghl_location_id", order="nombre.asc")
-    return [row for row in rows if row.get("ghl_location_id")]
+    return [
+        row
+        for row in rows
+        if row.get("ghl_location_id") and row.get("slug") in ACTIVE_MEETING_CLIENT_SLUGS
+    ]
 
 
 def normalize_calendar(calendar: dict[str, Any], client: dict[str, Any]) -> dict[str, Any]:

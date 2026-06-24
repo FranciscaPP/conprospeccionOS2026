@@ -10,6 +10,7 @@ ROOT = DASHBOARD_DIR.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 from shared.config import supabase_url, supabase_key, ghl_tokens
+from shared.meeting_scope import ACTIVE_MEETING_CLIENT_NAMES, ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de, NOMBRE_A_SLUG
 from shared.validacion import (
     ESTATUS_VALIDACION,
@@ -58,6 +59,9 @@ COLORES_CLIENTE = {
     "JUST4U": {"bg": "#ffedd5", "color": "#9a3412", "border": "#f97316"},
     "ECOSMART": {"bg": "#e0f7fa", "color": "#0e7490", "border": "#06b6d4"},
 }
+
+ACTIVE_MEETING_CLIENT_SET = set(ACTIVE_MEETING_CLIENT_SLUGS)
+ACTIVE_MEETING_CLIENT_LABELS = list(ACTIVE_MEETING_CLIENT_NAMES.values())
 
 MESES_ES = ["enero","febrero","marzo","abril","mayo","junio",
             "julio","agosto","septiembre","octubre","noviembre","diciembre"]
@@ -190,6 +194,10 @@ def cargar_reuniones() -> pd.DataFrame:
         st.error(f"Error cargando datos: {resp.text}")
         return pd.DataFrame(columns=_EMPTY_COLS)
     df = pd.DataFrame(resp.json())
+    if df.empty:
+        return pd.DataFrame(columns=_EMPTY_COLS)
+    if "cliente_slug" in df.columns:
+        df = df[df["cliente_slug"].astype(str).str.lower().isin(ACTIVE_MEETING_CLIENT_SET)].copy()
     if df.empty:
         return pd.DataFrame(columns=_EMPTY_COLS)
     df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
@@ -347,14 +355,16 @@ def enriquecer_estado_funcional(df: pd.DataFrame) -> pd.DataFrame:
 
 @st.cache_data(ttl=300)
 def cargar_clientes() -> list[str]:
+    slugs = ",".join(ACTIVE_MEETING_CLIENT_SLUGS)
     resp = requests.get(
-        f"{SUPABASE_URL}/rest/v1/clientes?select=nombre&ghl_location_id=not.is.null&order=nombre.asc",
+        f"{SUPABASE_URL}/rest/v1/clientes?select=nombre,slug&slug=in.({slugs})&order=nombre.asc",
         headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
         timeout=15,
     )
     if not resp.ok:
-        return []
-    return [r["nombre"] for r in resp.json() if r.get("nombre")]
+        return ACTIVE_MEETING_CLIENT_LABELS
+    by_slug = {str(r.get("slug") or ""): r.get("nombre") for r in resp.json()}
+    return [by_slug.get(slug) or ACTIVE_MEETING_CLIENT_NAMES[slug] for slug in ACTIVE_MEETING_CLIENT_SLUGS]
 
 
 @st.cache_data(ttl=30)
@@ -368,7 +378,8 @@ def cargar_flags_validacion() -> dict:
     """Cuenta flags globales de validación final."""
     r = requests.get(
         f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones"
-        f"?select=flag_meta_countable,flag_disputa,flag_cliente_pendiente",
+        f"?select=flag_meta_countable,flag_disputa,flag_cliente_pendiente"
+        f"&cliente_slug=in.({','.join(ACTIVE_MEETING_CLIENT_SLUGS)})",
         headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
         timeout=15)
     if not r.ok:
