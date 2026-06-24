@@ -415,10 +415,15 @@ if (
     )
 
 # ===== ⑤ Resultados de conversación =====
-section("Resultados de conversación", "Cómo respondió el mercado en llamadas y WhatsApp")
+section("Resultados de conversación", "Cómo respondió el mercado en llamadas, WhatsApp y correo")
 res_rows = [(RES_LABEL[k], conteo(REGf, k)) for k in
             ["positiva", "deriva", "reagendar", "negativa", "no_contesta", "numero_malo"]]
-st.markdown(bars([(n, v) for n, v in res_rows if v > 0], "#208d25"), unsafe_allow_html=True)
+res_rows_sorted = sorted([(n, v) for n, v in res_rows if v > 0], key=lambda row: row[1], reverse=True)
+st.caption(
+    "Ordenado de mayor a menor por cantidad de respuestas dentro de la vista activa. "
+    "Incluye llamadas, WhatsApp y las respuestas de correo presentes en el consolidado."
+)
+st.markdown(bars(res_rows_sorted, "#208d25"), unsafe_allow_html=True)
 st.markdown(
     f'<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:9px;font-size:12px;font-weight:700">'
     f'<span style="background:#dcfce7;color:#166534;padding:4px 11px;border-radius:9px">'
@@ -801,7 +806,7 @@ def informe_html():
     results_report = pd.DataFrame([
         {"Resultado": RES_LABEL[key], "Cantidad": conteo(REGf, key)}
         for key in ["positiva", "deriva", "reagendar", "negativa", "no_contesta", "numero_malo"]
-    ])
+    ]).sort_values("Cantidad", ascending=False)
     def ranking_report(dimension):
         rows = []
         for name, sub in REGf.groupby(dimension):
@@ -868,6 +873,7 @@ Canal: {f_canal} · Macroindustria: {f_ind} · Macrocargo: {f_area}</div>
 <div class="method">Correo agregado: {CORREO['enviados']:,} enviados · {CORREO['entregados']:,} entregados ·
 {CORREO['contactados']:,} contactados · {CORREO['respuestas']} respuestas. No se distribuye artificialmente por segmento.</div>
 <h2>Resultados de conversación</h2>{report_table(results_report)}
+<div class="method">Ordenado de mayor a menor por cantidad. Incluye llamadas, WhatsApp y respuestas de correo disponibles en el consolidado.</div>
 <h2>Empresas que respondieron</h2>{report_table(company_report)}
 <h2>Respuesta por segmento</h2>{report_table(segment_report)}
 <div class="method">Score = tasa positiva × volumen de cuentas × fit ICP × calidad del cargo × avance de etapa.
@@ -1003,8 +1009,11 @@ def construir_pdf_intelligence() -> bytes:
     results_report = pd.DataFrame([
         {"Resultado": RES_LABEL[key], "Cantidad": conteo(REGf, key)}
         for key in ["positiva", "deriva", "reagendar", "negativa", "no_contesta", "numero_malo"]
-    ])
+    ]).sort_values("Cantidad", ascending=False)
     _pdf_table_cards(pdf, results_report)
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_text_color(100, 116, 139)
+    pdf.multi_cell(0, 4, _lat("Ordenado de mayor a menor por cantidad. Incluye llamadas, WhatsApp y respuestas de correo disponibles en el consolidado."))
 
     _pdf_section(pdf, "Empresas que respondieron")
     company_report = empresas_df.rename(columns={
@@ -1055,6 +1064,7 @@ def construir_pdf_intelligence() -> bytes:
 
 
 st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+section("Descargas del reporte", "Exporta la misma lectura ejecutiva en HTML o PDF")
 st.markdown(
     f'<style>div[class*="st-key-dl_informe"] button,div[class*="st-key-dl_pdf"] button{{background:{BAMBU_GREEN_DARK}!important;'
     f'border-color:{BAMBU_GREEN_DARK}!important;color:#fff!important;font-weight:800!important}}</style>',
