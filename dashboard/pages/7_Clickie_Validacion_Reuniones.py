@@ -233,12 +233,20 @@ def cargar_reuniones(fecha_inicio, fecha_fin):
                 "ghl_contact_id",
             ].dropna()
         )
-        df = df[
-            ~(
-                df["origen_reunion"].eq("oportunidad_pipeline")
-                & df["ghl_contact_id"].isin(contacts_with_calendar)
-            )
-        ].copy()
+        dup_mask = (
+            df["origen_reunion"].eq("oportunidad_pipeline")
+            & df["ghl_contact_id"].isin(contacts_with_calendar)
+        )
+        # Reuniones de oportunidad que se ocultan por duplicado: guardamos sus ids
+        # por contacto para arrastrar al gemelo visible (el de agenda) cualquier
+        # validación cargada en ellas desde el portal interno de Seguimiento.
+        dropped_by_contact = (
+            df.loc[dup_mask].groupby("ghl_contact_id")["id"].apply(list).to_dict()
+        )
+        df = df[~dup_mask].copy()
+        df["_sibling_ids"] = df["ghl_contact_id"].map(
+            lambda c: dropped_by_contact.get(c, [])
+        )
     return df
 
 
@@ -306,6 +314,12 @@ def enriquecer(df, seguimiento):
         row = source.to_dict()
         reunion_id = int(row.get("id") or 0)
         seg = seguimiento.get(reunion_id, {})
+        if not _clean(seg.get("val_estado_cp")):
+            for sibling_id in (row.get("_sibling_ids") or []):
+                sibling_seg = seguimiento.get(int(sibling_id))
+                if sibling_seg and _clean(sibling_seg.get("val_estado_cp")):
+                    seg = sibling_seg
+                    break
         source_status = normalizar_status(row.get("estado_reunion"))
         validation_source = _clean(row.get("estado_validacion")).lower()
         if validation_source in {"reagendar", "reagendada"}:
