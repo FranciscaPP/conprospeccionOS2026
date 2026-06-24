@@ -41,21 +41,27 @@ st.set_page_config(page_title="GBS Logistics — Intelligence Insight", layout="
 if not require_auth_client("gbs"):
     st.stop()
 
-# Guard premium: Intelligence Insight es plan premium (o acceso interno admin).
+# El módulo permanece visible; el contenido completo requiere plan premium.
+# El equipo interno conserva siempre la vista operativa completa.
 from shared.planes import plan_de as _plan_de
 if _plan_de("gbs") != "premium" and not st.session_state.get("admin_mode"):
     render_client_nav("11_GBS", "gbs")
     st.markdown(
-        f'<div style="background:#fff;border:1px solid {GBS_BORDER};border-left:4px solid {GBS_PURPLE};'
-        f'border-radius:12px;padding:22px 26px;margin-top:18px">'
-        f'<div style="font-size:18px;font-weight:800;color:{GBS_DARK};margin-bottom:6px">'
-        f'Intelligence Insight — plan premium</div>'
-        f'<div style="font-size:13px;color:#475569;line-height:1.6">'
-        f'El análisis completo en vivo (efectividad por segmento, ICP real, recomendaciones, '
-        f'proyección y filtros libres) es parte del plan premium. Tu plan actual incluye '
-        f'<b>Validación de Reuniones</b> y el <b>Reporte Mensual</b> en PDF. '
-        f'Para activar el acceso completo, contactá a tu ejecutivo de Conprospección.</div></div>',
-        unsafe_allow_html=True)
+        f'<div style="max-width:760px;margin:72px auto;background:#fff;border:1px solid {GBS_BORDER};'
+        f'border-left:6px solid {GBS_PURPLE};border-radius:14px;padding:30px 32px;'
+        f'box-shadow:0 8px 24px rgba(91,33,182,.08)">'
+        f'<div style="font-size:11px;font-weight:850;letter-spacing:.9px;text-transform:uppercase;'
+        f'color:{GBS_PURPLE};margin-bottom:9px">Intelligence Insight</div>'
+        f'<div style="font-size:22px;font-weight:850;color:{GBS_DARK};margin-bottom:9px">'
+        f'Dashboard disponible para clientes premium</div>'
+        f'<div style="font-size:14px;color:#475569;line-height:1.65">'
+        f'GBS puede ver este módulo en su portal, pero el análisis completo de desempeño, '
+        f'segmentos, ICP real, hallazgos y recomendaciones todavía no está habilitado '
+        f'para su plan actual.</div>'
+        f'<div style="margin-top:15px;font-size:12px;color:#64748b">'
+        f'Conprospección puede activarlo cuando se actualice el plan del cliente.</div></div>',
+        unsafe_allow_html=True,
+    )
     st.stop()
 
 render_client_nav("11_GBS", "gbs")

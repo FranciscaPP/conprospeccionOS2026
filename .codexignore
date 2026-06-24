@@ -1,0 +1,13 @@
+# Implementaciones y referencias históricas
+archive/
+
+# Builds y dependencias Node fuera del producto activo
+.next/
+node_modules/
+.vercel/
+.netlify/
+netlify-preview/
+
+# Grafo generado: consultar mediante graphify, no explorar en bruto
+graphify-out/
+

@@ -170,13 +170,23 @@ function analyzeEvidence(meeting, evidence) {
   else if (effective && enoughBant) cpValidation = "Reunion valida";
 
   const shortText = evidence.summary || text.slice(0, 900);
+  const validationSummary = evidence.validationSummary || [
+    effective
+      ? "Reconfirmación de reunión: la evidencia confirma que la reunión se realizó."
+      : "Reconfirmación de reunión: la evidencia disponible requiere revisión.",
+    meeting.cpValidation === "Reunión válida" || meeting.cpValidation === "Reunion valida"
+      ? "Validación Conprospección: se mantiene como reunión válida."
+      : `Validación Conprospección: ${displayValidation(meeting.cpValidation || cpValidation)}.`,
+    evidence.icpSummary || "ICP: revisar y reconfirmar el ajuste al perfil definido para GBS Logistics.",
+    bantDetected.length
+      ? `Antecedentes detectados: ${bantDetected.join(", ")}.`
+      : "Antecedentes BANT: sin detección suficiente para automatizar un resultado.",
+  ].join(" ");
   return {
     aiStatus: "Evidencia encontrada",
     cpValidation,
-    transcriptSummary:
-      shortText ||
-      "La transcripcion esta enlazada, pero no se pudo extraer texto suficiente para resumir automaticamente.",
-    evidenceSummary: evidence.evidenceSummary || [
+    transcriptSummary: validationSummary,
+    evidenceSummary: evidence.evidenceSummaryValidation || evidence.evidenceSummary || [
       effective ? "Se encontro transcripcion de la reunion." : "La evidencia no confirma una reunion efectiva completa.",
       bantDetected.length ? `Variables detectadas: ${bantDetected.join(", ")}.` : "No se detectaron variables BANT suficientes.",
       cancelled ? "Corresponde revisar reagenda o no asistencia." : "Revisar con cliente si cuenta para la meta.",
@@ -190,6 +200,7 @@ function analyzeEvidence(meeting, evidence) {
     bantDetected,
     evidenceUrl: evidence.url || "",
     recordingUrl: evidence.recordingUrl || "",
+    transcriptUrl: evidence.transcriptUrl || evidence.url || evidence.recordingUrl || "",
     evidenceSource: evidence.sourceLabel || (evidence.filePath ? "Google Meet exportado" : "Google Drive"),
   };
 }
@@ -242,6 +253,7 @@ const enriched = [...meetingMap.values()]
     evidenceSource: analysis.evidenceSource,
     evidenceUrl: analysis.evidenceUrl,
     recordingUrl: analysis.recordingUrl,
+    transcriptUrl: analysis.transcriptUrl,
     bantDetected: analysis.bantDetected,
     evidenceMatchScore: ranked[0]?.score || 0,
     chips: [...chips],

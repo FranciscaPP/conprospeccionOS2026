@@ -3,6 +3,7 @@
 Formulario de intake que el cliente completa antes del inicio del proyecto.
 Incluye ICP, proceso comercial, propuesta de valor, restricciones y configuración de agenda.
 """
+import html
 import sys
 from pathlib import Path
 from datetime import date
@@ -15,9 +16,11 @@ sys.path.insert(0, str(DASHBOARD_DIR))
 
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 from supabase import create_client
 from shared.config import supabase_url, supabase_key, telegram_token, telegram_chat_id
 from shared.gbs_brand import GBS_PURPLE, GBS_PURPLE_BG, GBS_BORDER_2
+from shared.icp_summary import perfil_icp
 from portal_auth import require_auth_client, render_client_nav, img_b64
 
 _sb = create_client(supabase_url(), supabase_key())
@@ -315,6 +318,80 @@ with col16:
 st.text_area("Notas adicionales para el equipo de Conprospección", height=100,
              key="notas_adicionales",
              placeholder="Cualquier contexto, restricción, oportunidad o detalle que debamos saber para hacer una mejor prospección...")
+
+
+def _onboarding_actual():
+    return {
+        "icp_pais": st.session_state.get("icp_pais", []),
+        "icp_cargos": st.session_state.get("icp_cargos", []),
+        "icp_industrias": st.session_state.get("icp_industrias", []),
+        "icp_tamano": st.session_state.get("icp_tamano", []),
+        "icp_adicional": st.session_state.get("icp_adicional", ""),
+        "icp_descarte": st.session_state.get("icp_descarte", []),
+        "propuesta_valor": st.session_state.get("propuesta_valor", ""),
+        "dolores_clientes": st.session_state.get("dolores_clientes", ""),
+        "gatillos_compra": st.session_state.get("gatillos_compra", ""),
+        "keywords_prospecto": st.session_state.get("keywords_prospecto", ""),
+    }
+
+
+profile = perfil_icp(_onboarding_actual())
+esc = lambda value: html.escape(str(value or ""))
+highlight_icp = bool(st.session_state.pop("gbs_scroll_to_icp", False)) or (
+    st.query_params.get("section") == "resumen_icp"
+)
+highlight_style = (
+    f"box-shadow:0 0 0 4px {GBS_PURPLE}30,0 12px 30px rgba(91,33,182,.12);"
+    if highlight_icp else ""
+)
+st.markdown(
+    f'<div id="resumen-icp" style="scroll-margin-top:72px;background:#fff;'
+    f'border:1px solid {GBS_BORDER};border-left:6px solid {GBS_PURPLE};'
+    f'border-radius:12px;padding:18px 20px;margin:24px 0 18px;{highlight_style}">'
+    f'<div style="font-size:16px;font-weight:850;color:#1e293b">Resumen ICP acordado</div>'
+    f'<div style="font-size:12px;color:#64748b;margin:4px 0 14px">'
+    f'Este perfil se construye con la definición ICP y las señales comerciales aportadas '
+    f'en todo el onboarding.</div>'
+    f'<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:9px;'
+    f'padding:10px 13px;margin-bottom:12px;font-size:13px;font-weight:800;color:#166534">'
+    f'{esc(profile["resumen"])}</div>'
+    f'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">'
+    f'<div><b style="color:{GBS_PURPLE}">Países</b><br>'
+    f'<span style="font-size:12px;color:#475569">{esc(", ".join(profile["paises"]) or "Por confirmar")}</span></div>'
+    f'<div><b style="color:{GBS_PURPLE}">Tamaño de empresa</b><br>'
+    f'<span style="font-size:12px;color:#475569">{esc(profile["tamano_resumido"])}</span></div>'
+    f'<div><b style="color:{GBS_PURPLE}">Industrias</b><br>'
+    f'<span style="font-size:12px;color:#475569">{esc(", ".join(profile["industrias"]) or "Por confirmar")}</span></div>'
+    f'<div><b style="color:{GBS_PURPLE}">Cargos objetivo</b><br>'
+    f'<span style="font-size:12px;color:#475569">{esc(", ".join(profile["cargos"]) or "Por confirmar")}</span></div>'
+    f'</div>'
+    + (
+        f'<div style="margin-top:13px"><b style="font-size:12px;color:{GBS_PURPLE}">'
+        f'Exclusiones</b><div style="font-size:12px;color:#475569;line-height:1.5">'
+        f'{esc(", ".join(profile["exclusiones"]))}</div></div>'
+        if profile["exclusiones"] else ""
+    )
+    + "".join(
+        f'<div style="margin-top:10px"><b style="font-size:12px;color:{GBS_PURPLE}">{label}</b>'
+        f'<div style="font-size:12px;color:#475569;line-height:1.5">{esc(value)}</div></div>'
+        for label, value in profile["complementos"].items()
+    )
+    + f'<div style="font-size:11px;color:{GBS_PURPLE};font-weight:750;margin-top:14px">'
+    f'Perfil confirmado con el cliente y utilizado como referencia de prospección.</div></div>',
+    unsafe_allow_html=True,
+)
+if highlight_icp:
+    components.html(
+        """
+        <script>
+        setTimeout(() => {
+          const target = window.parent.document.getElementById("resumen-icp");
+          if (target) target.scrollIntoView({behavior: "smooth", block: "start"});
+        }, 500);
+        </script>
+        """,
+        height=0,
+    )
 
 # ── Botón de envío ─────────────────────────────────────────────────────────────
 st.markdown("<br>", unsafe_allow_html=True)

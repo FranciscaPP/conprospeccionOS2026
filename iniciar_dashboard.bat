@@ -1,6 +1,9 @@
 @echo off
-cd /d "C:\Users\Admin\OneDrive\Documents\Con Prospección\ConprospeccionOS"
-echo Iniciando dashboard ConProspeccion...
+setlocal
+cd /d "%~dp0"
+echo Iniciando Conprospeccion OS2026 en Streamlit...
 start "" python -m streamlit run dashboard/app.py --server.port 8502
 timeout /t 4 /nobreak > nul
-start http://localhost:8502/Reuniones_del_Dia
+start "" http://localhost:8502
+endlocal
+

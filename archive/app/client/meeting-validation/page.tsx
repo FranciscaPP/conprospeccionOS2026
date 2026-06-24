@@ -1,0 +1,789 @@
+"use client";
+
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { format } from "date-fns";
+import {
+  AlertTriangle,
+  BookOpen,
+  Calendar,
+  CheckCircle2,
+  FileText,
+  Search,
+  X,
+} from "lucide-react";
+import { useApp } from "@/lib/app-context";
+import { ACTIVE_CLIENTS, clientSlugFromName, type ActiveClientSlug } from "@/lib/access-control";
+import { StatusBadge } from "@/components/status-badge";
+import { CompanyAvatar } from "@/components/company-avatar";
+import { MeetingDrawer } from "@/components/meeting-drawer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { Meeting, MeetingFlowStatus } from "@/lib/types";
+import {
+  bantLabels,
+  clientDecisionLabels,
+  cpValidationLabels,
+  meetingFlowStatusLabels,
+  meetingStatusLabels,
+} from "@/lib/types";
+import {
+  getClientDecision,
+  getClientSearchText,
+  getMeetingFlowStatus,
+  isClientLocked,
+  isFutureMeeting,
+  MONTHLY_GOAL_BY_CLIENT,
+} from "@/lib/meeting-rules";
+
+type KpiFilter = "all" | "valid" | "not_valid";
+
+const flowStatusFilterOptions: Array<{ label: string; value: MeetingFlowStatus | "all" }> = [
+  { value: "all", label: "Todos los estados" },
+  ...Object.entries(meetingFlowStatusLabels).map(([value, label]) => ({
+    value: value as MeetingFlowStatus,
+    label,
+  })),
+];
+
+function resolveClientFromParam(meetings: Meeting[], clientParam: string | null) {
+  const requestedSlug = clientSlugFromName(clientParam || "") ?? "gbs";
+  return (
+    meetings.find((meeting) => clientSlugFromName(meeting.client) === requestedSlug)?.client ||
+    ACTIVE_CLIENTS.find((client) => client.slug === requestedSlug)?.displayName ||
+    "GBS LOGISTICS"
+  );
+}
+
+function clientPath(slug: ActiveClientSlug) {
+  return `/client/meeting-validation?client=${slug}`;
+}
+
+function ValidationState({ meeting }: { meeting: Meeting }) {
+  const status = getMeetingFlowStatus(meeting);
+  return (
+    <StatusBadge status={status} label={meetingFlowStatusLabels[status]} size="sm" />
+  );
+}
+
+function meetingContactName(meeting: Meeting) {
+  return [meeting.firstName, meeting.lastName].filter(Boolean).join(" ") || meeting.contact || "";
+}
+
+function hasMeetingValue(value?: string) {
+  const normalized = value?.trim().toLowerCase();
+  return Boolean(normalized && !["sin dato", "n/a", "no disponible", "null", "-"].includes(normalized));
+}
+
+function finalBannerClass(meeting: Meeting) {
+  if (meeting.finalValidation === "final_valid") {
+    return "border-[#c7ebde] bg-[var(--ok-bg)] text-[var(--ok-ink)]";
+  }
+  if (meeting.finalValidation === "final_not_valid") {
+    return "border-[#f0c7c2] bg-[var(--bad-bg)] text-[var(--bad-ink)]";
+  }
+  if (meeting.finalValidation === "under_review" || meeting.finalValidation === "in_dispute") {
+    return "border-[#efc99f] bg-[var(--rev-bg)] text-[var(--rev-ink)]";
+  }
+  return "border-[#e5d18d] bg-[var(--warn-bg)] text-[var(--warn-ink)]";
+}
+
+function BantTags({ meeting }: { meeting: Meeting }) {
+  if (!meeting.cpBANT.length) {
+    return <span className="text-xs text-muted-foreground">Sin variables registradas</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {meeting.cpBANT.map((criteria) => (
+        <span
+          key={criteria}
+          className="rounded-full border border-[#c7ebde] bg-[var(--ok-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--ok-ink)]"
+        >
+          {bantLabels[criteria]}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function MeetingSummaryLine({
+  caption,
+  children,
+  title,
+}: {
+  caption: string;
+  children: ReactNode;
+  title: string;
+}) {
+  return (
+    <div className="rounded-[11px] border border-border bg-[#fbfbfa] p-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          <p className="text-[11px] text-muted-foreground">{caption}</p>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function MeetingValidationCard({
+  meeting,
+  onOpen,
+}: {
+  meeting: Meeting;
+  onOpen: (meeting: Meeting) => void;
+}) {
+  const locked = isClientLocked(meeting) || isFutureMeeting(meeting);
+  const futureMeeting = isFutureMeeting(meeting);
+  const clientDecision = getClientDecision(meeting);
+  const contactName = meetingContactName(meeting);
+  const detailParts = [
+    meeting.jobTitle,
+    meeting.leadEmail,
+    meeting.leadPhone,
+    meeting.leadIndustry,
+    meeting.country,
+  ].filter((value): value is string => hasMeetingValue(value));
+
+  return (
+    <article className="rounded-[13px] border border-[var(--line)] bg-white p-4 shadow-card">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-start gap-3">
+            <CompanyAvatar name={meeting.company} />
+            <div className="min-w-0">
+              <h3 className="break-words text-base font-semibold leading-tight text-foreground">
+                {meeting.company}
+                {contactName && <span className="text-muted-foreground"> · {contactName}</span>}
+              </h3>
+              <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">
+                {detailParts.join(" · ")}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="font-display tnum text-sm font-semibold text-foreground">
+                  {format(new Date(meeting.meetingDate), "d MMM yyyy")}
+                </span>
+                <span className="text-muted-foreground">·</span>
+                <span className="font-display tnum text-sm font-semibold text-[var(--ink)]">
+                  {format(new Date(meeting.meetingDate), "HH:mm")}
+                </span>
+                <StatusBadge status={meeting.meetingStatus} label={meetingStatusLabels[meeting.meetingStatus]} size="sm" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <Button
+          variant={locked ? "outline" : "default"}
+          size="sm"
+          className="shrink-0"
+          onClick={() => onOpen(meeting)}
+        >
+          {locked ? "Ver detalle" : "Validar"}
+        </Button>
+      </div>
+
+      <div className={`mt-4 rounded-[11px] border px-3 py-2 text-sm font-semibold ${finalBannerClass(meeting)}`}>
+        <ValidationState meeting={meeting} />
+      </div>
+
+      {!futureMeeting && <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <MeetingSummaryLine title="Evaluación Conprospección" caption="Criterio emitido por Conprospección">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={meeting.cpValidation} label={cpValidationLabels[meeting.cpValidation]} size="sm" />
+            <span className="text-xs font-medium text-muted-foreground">
+              BANT: {meeting.cpBANT.length} de 4 variables
+            </span>
+          </div>
+          <div className="mt-2">
+            <BantTags meeting={meeting} />
+          </div>
+          {hasMeetingValue(meeting.cpComment) && (
+            <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{meeting.cpComment}</p>
+          )}
+        </MeetingSummaryLine>
+
+        <MeetingSummaryLine title="Respuesta del cliente" caption="Acción registrada por el cliente">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={meeting.finalValidation} label={clientDecisionLabels[clientDecision]} size="sm" />
+            {meeting.clientDecisionAt && (
+              <span className="font-display tnum text-xs text-muted-foreground">
+                {format(new Date(meeting.clientDecisionAt), "d MMM yyyy · HH:mm")}
+              </span>
+            )}
+          </div>
+          {hasMeetingValue(meeting.clientComment) && (
+            <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{meeting.clientComment}</p>
+          )}
+        </MeetingSummaryLine>
+      </div>}
+    </article>
+  );
+}
+
+export default function MeetingValidationPage() {
+  const { role, meetings, meetingsLoading, meetingsError, selectedMeetingId, setSelectedMeetingId } = useApp();
+  const isInternal = role === "internal";
+  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [queryMeetingId, setQueryMeetingId] = useState<string | null>(null);
+  const [queryClient, setQueryClient] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [kpiFilter, setKpiFilter] = useState<KpiFilter>("all");
+  const [dateFromFilter, setDateFromFilter] = useState("");
+  const [dateToFilter, setDateToFilter] = useState("");
+  const [flowStatusFilter, setFlowStatusFilter] = useState<MeetingFlowStatus | "all">("all");
+  const [dateSort, setDateSort] = useState<"asc" | "desc">("desc");
+
+  const requestedMeetingId = queryMeetingId || selectedMeetingId;
+  const requestedMeeting = useMemo(
+    () => meetings.find((meeting) => meeting.id === requestedMeetingId) || null,
+    [meetings, requestedMeetingId]
+  );
+  const selectedClient = requestedMeeting?.client || resolveClientFromParam(meetings, queryClient);
+
+  const clientMeetings = useMemo(
+    () => meetings.filter((meeting) => meeting.client === selectedClient),
+    [meetings, selectedClient]
+  );
+
+  const goal = MONTHLY_GOAL_BY_CLIENT[selectedClient] ?? 10;
+
+  const baseFilteredMeetings = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return clientMeetings.filter((meeting) => {
+      const meetingDay = meeting.meetingDate.slice(0, 10);
+      const matchesSearch = !query || getClientSearchText(meeting).includes(query);
+      const matchesDateFrom = !dateFromFilter || meetingDay >= dateFromFilter;
+      const matchesDateTo = !dateToFilter || meetingDay <= dateToFilter;
+      const matchesFlowStatus = flowStatusFilter === "all" || getMeetingFlowStatus(meeting) === flowStatusFilter;
+      return (
+        matchesSearch &&
+        matchesDateFrom &&
+        matchesDateTo &&
+        matchesFlowStatus
+      );
+    });
+  }, [
+    clientMeetings,
+    searchQuery,
+    dateFromFilter,
+    dateToFilter,
+    flowStatusFilter,
+  ]);
+
+  const kpis = useMemo(() => {
+    const meetingsReadyForValidation = baseFilteredMeetings.filter(
+      (meeting) => !isFutureMeeting(meeting)
+    );
+    const finalValid = meetingsReadyForValidation.filter((meeting) => meeting.finalValidation === "final_valid").length;
+    const finalNotValid = meetingsReadyForValidation.filter(
+      (meeting) => meeting.finalValidation === "final_not_valid" || meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed"
+    ).length;
+    return {
+      total: baseFilteredMeetings.length,
+      finalValid,
+      finalNotValid,
+      progress: goal > 0 ? Math.round((finalValid / goal) * 100) : 0,
+    };
+  }, [baseFilteredMeetings, goal]);
+
+  const tableFilteredMeetings = useMemo(
+    () =>
+      baseFilteredMeetings.filter((meeting) => {
+        if (kpiFilter === "all") return true;
+        if (kpiFilter === "valid") return meeting.finalValidation === "final_valid";
+        if (kpiFilter === "not_valid") {
+          return meeting.finalValidation === "final_not_valid" || meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed";
+        }
+        return true;
+      }),
+    [baseFilteredMeetings, kpiFilter]
+  );
+
+  const sortedMeetings = useMemo(() => {
+    if (!dateSort) return tableFilteredMeetings;
+    const copy = [...tableFilteredMeetings];
+    copy.sort((a, b) => {
+      const diff = new Date(a.meetingDate).getTime() - new Date(b.meetingDate).getTime();
+      return dateSort === "asc" ? diff : -diff;
+    });
+    return copy;
+  }, [tableFilteredMeetings, dateSort]);
+
+  const toggleDateSort = () => setDateSort((current) => (current === "asc" ? "desc" : "asc"));
+
+  const openDrawer = (meeting: Meeting) => {
+    setSelectedMeeting(meeting);
+    setDrawerOpen(true);
+  };
+
+  const applyKpiFilter = (filter: KpiFilter) => {
+    setKpiFilter(filter);
+  };
+
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    kpiFilter !== "all" ||
+    dateFromFilter !== "" ||
+    dateToFilter !== "" ||
+    flowStatusFilter !== "all";
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setKpiFilter("all");
+    setDateFromFilter("");
+    setDateToFilter("");
+    setFlowStatusFilter("all");
+  };
+
+  const switchClient = (slug: ActiveClientSlug) => {
+    setQueryMeetingId(null);
+    setSelectedMeetingId(null);
+    setQueryClient(slug);
+    setSearchQuery("");
+    setKpiFilter("all");
+    setDateFromFilter("");
+    setDateToFilter("");
+    setFlowStatusFilter("all");
+    window.history.replaceState(null, "", clientPath(slug));
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQueryMeetingId(params.get("meeting"));
+    setQueryClient(params.get("client"));
+  }, []);
+
+  useEffect(() => {
+    if (!requestedMeeting) return;
+    setSelectedMeeting(requestedMeeting);
+    setDrawerOpen(true);
+    setSelectedMeetingId(null);
+  }, [requestedMeeting, setSelectedMeetingId]);
+
+  return (
+    <div className="flex-1 overflow-hidden">
+      <header className="border-b border-border bg-card px-4 py-2.5 sm:px-6">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-baseline gap-2">
+              <h1 className="text-[22px] font-semibold leading-tight text-[var(--ink)]">Avance reuniones</h1>
+              <span className="text-lg text-[var(--ink-3)]">·</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--ink)]">{selectedClient}</span>
+            </div>
+            <p className="mt-1 max-w-full break-words text-sm leading-5 text-muted-foreground">
+              Validación cliente de reuniones entregadas por Conprospección
+            </p>
+          </div>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+            {isInternal && (
+              <div className="flex flex-wrap gap-2 sm:justify-end">
+                {ACTIVE_CLIENTS.map((client) => (
+                  <button
+                    key={client.slug}
+                    type="button"
+                    className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-xs font-semibold transition sm:min-h-9 ${
+                      clientSlugFromName(selectedClient) === client.slug
+                        ? "border-[#333] bg-[#f0f0ee] text-[#333]"
+                        : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                    onClick={() => switchClient(client.slug)}
+                  >
+                    {client.displayName}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <ScrollArea className="h-[calc(100dvh-7rem)] lg:h-[calc(100vh-65px)]">
+        <div className="space-y-2.5 p-2.5 sm:p-3">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
+            <MeetingKpi
+              title="Total reuniones"
+              value={kpis.total}
+              icon={<Calendar className="h-5 w-5" />}
+              active={kpiFilter === "all"}
+              onClick={() => applyKpiFilter("all")}
+            />
+            <MeetingKpi
+              title="Válidas"
+              value={kpis.finalValid}
+              icon={<CheckCircle2 className="h-5 w-5" />}
+              variant="success"
+              active={kpiFilter === "valid"}
+              onClick={() => applyKpiFilter("valid")}
+            />
+            <MeetingKpi
+              title="No válidas"
+              value={kpis.finalNotValid}
+              icon={<AlertTriangle className="h-5 w-5" />}
+              variant="danger"
+              active={kpiFilter === "not_valid"}
+              onClick={() => applyKpiFilter("not_valid")}
+            />
+            <MeetingKpi
+              title="Avance meta"
+              value={`${kpis.progress}%`}
+              subtitle={`${kpis.finalValid}/${goal}`}
+              icon={<CheckCircle2 className="h-5 w-5" />}
+              variant="warning"
+              active={false}
+              onClick={() => undefined}
+            />
+          </div>
+
+          <section className="rounded-[12px] border border-[var(--line)] bg-white px-2.5 py-2 shadow-card">
+            <div className="flex flex-col gap-1.5 lg:flex-row lg:items-center">
+              <h3 className="flex shrink-0 items-center gap-2 text-sm font-semibold text-foreground">
+                <BookOpen className="h-4 w-4 text-[var(--ink-2)]" />
+                Criterios de reunión válida
+              </h3>
+              <ul className="grid flex-1 gap-1 text-xs text-muted-foreground sm:grid-cols-2 xl:grid-cols-4">
+                {[
+                  "Reunión realizada",
+                  "Mínimo 2 variables BANT detectadas por IA/CP",
+                  "ICP trabajado desde base/campaña, sin alerta contractual",
+                  "Evidencia suficiente",
+                ].map((criterion) => (
+                  <li key={criterion} className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[var(--ok)]" />
+                    <span>{criterion}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          <section className="rounded-[13px] border border-[var(--line)] bg-white p-2 shadow-card">
+            <div className="grid gap-2 lg:grid-cols-[minmax(260px,1fr)_280px_300px_auto] lg:items-end">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar empresa, contacto, cargo, correo, teléfono o país"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  className="h-9 rounded-[9px] pl-9 text-sm"
+                />
+              </div>
+              <div>
+                <FilterLabel>Fecha</FilterLabel>
+                <div className="grid gap-1.5 sm:grid-cols-2">
+                  <Input
+                    aria-label="Desde"
+                    type="date"
+                    value={dateFromFilter}
+                    onChange={(event) => setDateFromFilter(event.target.value)}
+                    className="h-9 rounded-[9px] text-sm"
+                  />
+                  <Input
+                    aria-label="Hasta"
+                    type="date"
+                    value={dateToFilter}
+                    onChange={(event) => setDateToFilter(event.target.value)}
+                    className="h-9 rounded-[9px] text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <FilterLabel>Estado</FilterLabel>
+                <NativeFilter
+                  ariaLabel="Filtrar por estado"
+                  className="w-full"
+                  value={flowStatusFilter}
+                  onChange={(value) => setFlowStatusFilter(value as MeetingFlowStatus | "all")}
+                  options={flowStatusFilterOptions}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-border bg-background px-3 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!hasActiveFilters}
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpiar filtros
+              </button>
+            </div>
+
+          </section>
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              Mostrando {tableFilteredMeetings.length} de {baseFilteredMeetings.length} reuniones filtradas
+            </p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-[9px] border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted"
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
+          <div className="hidden">
+            {tableFilteredMeetings.length === 0 && (
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
+                <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No se encontraron reuniones con esos filtros.</p>
+              </div>
+            )}
+            {sortedMeetings.map((meeting) => {
+              const locked = isClientLocked(meeting);
+
+              return (
+                <button
+                  key={meeting.id}
+                  type="button"
+                  className="w-full rounded-xl border border-border bg-card p-4 text-left shadow-sm"
+                  onClick={() => openDrawer(meeting)}
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2">
+                      <CompanyAvatar name={meeting.company} />
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{meeting.company}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {meeting.firstName} {meeting.lastName} · {meeting.jobTitle}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-display tnum text-sm font-medium text-foreground">{format(new Date(meeting.meetingDate), "d MMM")}</p>
+                      <p className="font-display tnum text-xs text-muted-foreground">{format(new Date(meeting.meetingDate), "HH:mm")}</p>
+                    </div>
+                  </div>
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <ValidationState meeting={meeting} />
+                  </div>
+                  <div className="flex justify-end">
+                    <span className={`rounded-lg px-3 py-1.5 text-sm font-medium ${locked ? "border border-border bg-background text-foreground" : "bg-[#333] text-white"}`}>
+                      {locked ? "Ver detalle" : "Validar"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="hidden">
+            <div className="flex h-[46px] items-center justify-between border-b border-[var(--line)] px-4 text-sm text-muted-foreground">
+              <span>
+                <b className="font-semibold text-foreground">Reuniones para validar</b>
+              </span>
+              {meetingsLoading && <span>Cargando reuniones...</span>}
+              {meetingsError && <span className="text-red-600">{meetingsError}</span>}
+            </div>
+            <div className="rounded-xl">
+              <table className="w-full min-w-[760px]">
+                <thead className="sticky top-0 z-10 bg-[#f0f1f2] shadow-sm">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <button
+                        type="button"
+                        onClick={toggleDateSort}
+                        aria-label="Ordenar por fecha"
+                        className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        Fecha
+                        <span className="text-[11px] leading-none">
+                          {dateSort === "asc" ? "↑" : dateSort === "desc" ? "↓" : ""}
+                        </span>
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Empresa</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Contacto</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Cargo</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Estado</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Acción</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {sortedMeetings.map((meeting) => {
+                    const locked = isClientLocked(meeting);
+                    return (
+                      <tr key={meeting.id} className="cursor-pointer bg-white transition-colors hover:bg-[#fffdf0]" onClick={() => openDrawer(meeting)}>
+                        <td className="px-4 py-3">
+                          <p className="font-display tnum text-sm font-medium text-foreground">{format(new Date(meeting.meetingDate), "d MMM")}</p>
+                          <p className="font-display tnum text-xs text-muted-foreground">{format(new Date(meeting.meetingDate), "HH:mm")}</p>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <CompanyAvatar name={meeting.company} />
+                            <span className="text-sm font-medium text-foreground">{meeting.company}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground">{[meeting.firstName, meeting.lastName].filter(Boolean).join(" ") || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">{meeting.jobTitle}</td>
+                        <td className="px-4 py-3">
+                          <ValidationState meeting={meeting} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <Button
+                            variant={locked ? "outline" : "default"}
+                            size="sm"
+                            className=""
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openDrawer(meeting);
+                            }}
+                          >
+                            {locked ? "Ver detalle" : "Validar"}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {tableFilteredMeetings.length === 0 && (
+              <div className="p-8 text-center">
+                <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No se encontraron reuniones con esos filtros.</p>
+              </div>
+            )}
+          </div>
+
+          <section className="space-y-3">
+            <div className="sticky top-0 z-20 flex flex-col gap-2 rounded-[11px] border border-[#ddd6fe] bg-[#f5f3ff] px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-[#4c1d95]">Reuniones para validar</h2>
+                <p className="mt-0.5 text-xs text-[#6d28d9]">
+                  Resultado final, evaluación Conprospección y respuesta del cliente en una sola vista.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleDateSort}
+                className="inline-flex h-8 items-center justify-center rounded-[8px] border border-[#c4b5fd] bg-white px-3 text-xs font-semibold text-[#5b21b6] transition hover:bg-[#ede9fe]"
+              >
+                Fecha: {dateSort === "asc" ? "más antigua primero" : "más reciente primero"}
+              </button>
+            </div>
+
+            {meetingsLoading && (
+              <div className="rounded-[13px] border border-border bg-white p-8 text-center text-sm text-muted-foreground">
+                Cargando reuniones...
+              </div>
+            )}
+
+            {meetingsError && (
+              <div className="rounded-[13px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                {meetingsError}
+              </div>
+            )}
+
+            {!meetingsLoading && sortedMeetings.length === 0 && (
+              <div className="rounded-[13px] border border-border bg-white p-10 text-center shadow-card">
+                <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-base font-semibold text-foreground">Sin reuniones para este período</p>
+                <p className="mt-1 text-sm text-muted-foreground">Prueba otro rango de fechas o limpia los filtros activos.</p>
+              </div>
+            )}
+
+            {sortedMeetings.map((meeting) => (
+              <MeetingValidationCard key={meeting.id} meeting={meeting} onOpen={openDrawer} />
+            ))}
+          </section>
+        </div>
+      </ScrollArea>
+
+      <MeetingDrawer
+        meeting={selectedMeeting}
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+          setSelectedMeeting(null);
+        }}
+        mode="client"
+      />
+    </div>
+  );
+}
+
+function FilterLabel({ children }: { children: ReactNode }) {
+  return <span className="mb-1 block text-xs font-medium text-[var(--ink-2)]">{children}</span>;
+}
+
+function NativeFilter({
+  ariaLabel,
+  className,
+  onChange,
+  options,
+  value,
+}: {
+  ariaLabel: string;
+  className?: string;
+  onChange: (value: string) => void;
+  options: Array<{ label: string; value: string }>;
+  value: string;
+}) {
+  return (
+    <select
+      aria-label={ariaLabel}
+      className={`h-9 rounded-[9px] border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-[#d1bd50] focus:ring-3 focus:ring-[#ffd700]/20 ${className ?? ""}`}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function MeetingKpi({
+  active,
+  icon,
+  onClick,
+  subtitle,
+  title,
+  value,
+  variant = "default",
+}: {
+  active: boolean;
+  icon: ReactNode;
+  onClick: () => void;
+  subtitle?: string;
+  title: string;
+  value: number | string;
+  variant?: "default" | "success" | "warning" | "danger" | "review";
+}) {
+  const variantClass = {
+    default: "border-[#d7bd18] bg-[#fff7b8] text-[var(--ink)]",
+    success: "border-[#78c5a3] bg-[var(--ok-bg)] text-[var(--ok-ink)]",
+    warning: "border-[#dfa94d] bg-[var(--warn-bg)] text-[var(--warn-ink)]",
+    danger: "border-[#dc958d] bg-[var(--bad-bg)] text-[var(--bad-ink)]",
+    review: "border-[#dc9c63] bg-[var(--rev-bg)] text-[var(--rev-ink)]",
+  }[variant];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-[11px] border p-2.5 text-left shadow-card transition hover:-translate-y-px hover:shadow-[0_5px_14px_rgba(20,20,20,.08)] ${variantClass} ${
+        active ? "outline outline-1 outline-offset-2 outline-[rgba(43,43,43,.35)]" : ""
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <small className="block text-[10px] font-medium uppercase tracking-[.06em] opacity-75">{title}</small>
+          <strong className="font-display tnum mt-1.5 block text-[25px] font-semibold leading-none text-[var(--ink)]">{value}</strong>
+          {subtitle && <span className="mt-1 block text-[11px] font-semibold opacity-75">{subtitle}</span>}
+        </div>
+        <span className="grid h-7 w-7 place-items-center rounded-[8px] bg-white/55 text-current">{icon}</span>
+      </div>
+    </button>
+  );
+}

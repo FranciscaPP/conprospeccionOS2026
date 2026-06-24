@@ -1,0 +1,339 @@
+import { bantLabels } from "@/lib/types";
+import type {
+  BANTCriteria,
+  ClientDecision,
+  CPValidation,
+  FinalValidation,
+  Meeting,
+  MeetingFlowStatus,
+  MeetingAction,
+  MeetingStatus,
+} from "@/lib/types";
+
+export const MONTHLY_GOAL_BY_CLIENT: Record<string, number> = {
+  "GBS LOGISTICS": 45,
+  "GBS Logistics": 45,
+  "GBS": 45,
+  "CLICKIE": 6,
+  "Clickie": 6,
+  "BAMBUTECH": 12,
+  "BambuTech": 12,
+};
+
+export function titleCase(value: string) {
+  return value
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export function splitContactName(contact: string) {
+  const parts = contact.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || contact,
+    lastName: parts.slice(1).join(" ") || "",
+  };
+}
+
+function toSlug(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function toEmailSlug(value: string) {
+  return toSlug(value).replace(/-/g, ".");
+}
+
+function translateDemoNextStep(value: string) {
+  const translations: Record<string, string> = {
+    "Send proposal by June 10": "Enviar propuesta antes del 10 de junio",
+    "Waiting for client validation": "Esperar validación del cliente",
+    "Schedule review call": "Agendar llamada de revisión",
+    "Waiting for client feedback": "Esperar feedback del cliente",
+    "New meeting June 12": "Nueva reunión el 12 de junio",
+    "Contract negotiation call June 15": "Llamada de negociación de contrato el 15 de junio",
+    "Send cold chain proposal": "Enviar propuesta de cadena de frío",
+    "Find correct contact": "Buscar contacto correcto",
+    "Contract signing June 20": "Firma de contrato el 20 de junio",
+    "Waiting validation": "Esperar validación",
+    "Finance meeting June 18": "Reunión con finanzas el 18 de junio",
+    "Proposal review June 16": "Revisión de propuesta el 16 de junio",
+    "Attempt to reschedule": "Intentar reagendar",
+    "Verify decision maker": "Verificar decisor",
+    "Post-mortem analysis": "Análisis de pérdida",
+    "Prepare comprehensive proposal": "Preparar propuesta completa",
+    "Complete meeting": "Completar reunión",
+  };
+
+  return translations[value] || value;
+}
+
+function cleanOptional(value?: string) {
+  const cleaned = value?.trim();
+  return cleaned && cleaned !== "Sin dato" ? cleaned : undefined;
+}
+
+export function isProspectNoShow(meeting: Meeting) {
+  return meeting.prospectAttended === false || meeting.meetingStatus === "no_show";
+}
+
+export function isHeld(meeting: Meeting) {
+  if (typeof meeting.concretada === "boolean") return meeting.concretada;
+  return meeting.prospectAttended !== false && meeting.meetingStatus === "completed";
+}
+
+export function getBANTScore(meeting: Meeting) {
+  if (typeof meeting.bantScore === "number") return meeting.bantScore;
+  if (meeting.bantEvidence?.length) {
+    return meeting.bantEvidence.filter((item) => item.met).length;
+  }
+  return meeting.cpBANT.length;
+}
+
+export function isContractuallyValid(meeting: Meeting) {
+  return (
+    isHeld(meeting) &&
+    getBANTScore(meeting) >= 2 &&
+    meeting.regionValid !== false &&
+    (meeting.personAreaCorrect !== false || meeting.escalatedToCorrectArea === true)
+  );
+}
+
+export function deriveCPValidation(meeting: Meeting): CPValidation {
+  if (meeting.meetingStatus === "rescheduled") return "rescheduled";
+  if (meeting.meetingStatus === "scheduled") return "waiting_validation";
+  if (isProspectNoShow(meeting)) return "not_completed";
+  if (meeting.evidence?.aiRecommendation === "review") return "requires_review";
+  return isContractuallyValid(meeting) ? "valid_cp" : "not_valid_cp";
+}
+
+export function isFutureMeeting(meeting: Meeting, now = new Date()) {
+  const meetingTime = new Date(meeting.meetingDate).getTime();
+  return (
+    Number.isFinite(meetingTime) &&
+    meetingTime > now.getTime() &&
+    meeting.meetingStatus !== "cancelled" &&
+    meeting.meetingStatus !== "no_show"
+  );
+}
+
+export function getMeetingFlowStatus(meeting: Meeting, now = new Date()): MeetingFlowStatus {
+  if (isFutureMeeting(meeting, now)) return "future_meeting";
+  if (meeting.meetingStatus === "cancelled") return "cancelled_meeting";
+  if (
+    meeting.clientDecision === "review_requested" ||
+    meeting.clientDecision === "rejected" ||
+    meeting.clientValidation === "requires_review" ||
+    meeting.finalValidation === "under_review" ||
+    meeting.finalValidation === "in_dispute"
+  ) {
+    return "client_requests_review";
+  }
+  if (meeting.finalValidation === "final_valid") return "evaluation_closed_valid";
+  if (
+    meeting.finalValidation === "final_not_valid" ||
+    meeting.finalValidation === "excluded_by_agreement" ||
+    meeting.cpValidation === "not_valid_cp" ||
+    meeting.cpValidation === "not_completed" ||
+    meeting.meetingStatus === "no_show"
+  ) {
+    return "evaluation_closed_not_valid";
+  }
+  if (meeting.cpValidation === "valid_cp") return "pending_client_evaluation";
+  return "pending_cp_evaluation";
+}
+
+export function deriveAction(meeting: Meeting): MeetingAction {
+  if (isProspectNoShow(meeting)) return "reschedule";
+  if (meeting.personAreaCorrect === false && !meeting.escalatedToCorrectArea) return "escalate";
+  if ((meeting.evidence?.aiConfidence ?? 1) < 0.7 || meeting.cpValidation === "requires_review") {
+    return "manual_review";
+  }
+  return isContractuallyValid(meeting) ? "count" : "manual_review";
+}
+
+export function deriveFinalValidation(meeting: Meeting): FinalValidation {
+  if (meeting.meetingStatus === "rescheduled") return "rescheduled";
+  if (meeting.cpValidation === "not_valid_cp" || meeting.cpValidation === "not_completed" || isProspectNoShow(meeting)) {
+    return "final_not_valid";
+  }
+
+  const decision = getClientDecision(meeting);
+  if (decision === "review_requested") return "under_review";
+  if (decision === "rejected") return "in_dispute";
+  if (meeting.cpValidation === "requires_review") return "under_review";
+  if (meeting.cpValidation !== "valid_cp") return "pending";
+  if (decision === "accepted") return "final_valid";
+  return "pending";
+}
+
+export function getClientDecision(meeting: Meeting): ClientDecision {
+  if (meeting.clientDecision) return meeting.clientDecision;
+  if (meeting.clientValidation === "valid_client") return "accepted";
+  if (meeting.clientValidation === "not_valid_client") return "rejected";
+  if (meeting.clientValidation === "requires_review") return "review_requested";
+  return "pending";
+}
+
+export function isClientLocked(meeting: Meeting) {
+  const decision = getClientDecision(meeting);
+  return decision === "accepted" || decision === "rejected" || decision === "review_requested";
+}
+
+export function getSimpleClientStatus(meeting: Meeting) {
+  const decision = getClientDecision(meeting);
+  if (meeting.meetingStatus === "rescheduled" || meeting.finalValidation === "rescheduled") return "Reagendada";
+  if (isProspectNoShow(meeting) || meeting.clientValidation === "not_completed") return "No realizada";
+  if (decision === "accepted") return "Validada";
+  if (decision === "rejected") return "En disputa";
+  if (decision === "review_requested" || meeting.finalValidation === "under_review") return "En revisión";
+  return "Pendiente";
+}
+
+export function getValidationResultLabel(meeting: Meeting) {
+  if (meeting.finalValidation === "final_valid") return "Validada";
+  if (meeting.finalValidation === "final_not_valid") return "No válida";
+  if (meeting.finalValidation === "under_review") return "En revisión";
+  if (meeting.finalValidation === "in_dispute") return "En disputa";
+  if (meeting.finalValidation === "rescheduled") return "Reagendada";
+  if (meeting.cpValidation === "valid_cp") return "Validada";
+  if (meeting.cpValidation === "not_valid_cp") return "No válida";
+  if (meeting.cpValidation === "requires_review") return "En revisión";
+  return "Pendiente cliente";
+}
+
+export function getValidationTooltip(meeting: Meeting) {
+  const variables = meeting.cpBANT.map((criteria) => bantLabels[criteria]).join(", ");
+  const variableText = variables || "sin variables comerciales registradas";
+  const evidenceText = meeting.evidence?.recordingUrl || meeting.evidence?.transcriptUrl
+    ? "Reunión grabada/transcrita para análisis."
+    : "Grabación pendiente o no conectada.";
+  const interestText = meeting.preparationInfo || meeting.meetingSummary || meeting.validityReason;
+
+  return [
+    `Criterios detectados: ${variableText}.`,
+    `ICP trabajado desde base/campaña: ${meeting.regionValid === false || meeting.personAreaCorrect === false ? "alerta de posible incumplimiento con evidencia" : "sin alertas críticas del perfil acordado"}.`,
+    evidenceText,
+    interestText ? `Contexto: ${interestText}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export function normalizeMeeting(meeting: Meeting): Meeting {
+  const names = splitContactName(meeting.contact);
+  const next: Meeting = {
+    ...meeting,
+    firstName: titleCase(meeting.firstName || names.firstName),
+    lastName: titleCase(meeting.lastName || names.lastName),
+    leadEmail: cleanOptional(meeting.leadEmail),
+    leadPhone: cleanOptional(meeting.leadPhone),
+    country: meeting.country || "Sin dato",
+    leadIndustry: cleanOptional(meeting.leadIndustry),
+    companySize: cleanOptional(meeting.companySize),
+    companyWebsite: cleanOptional(meeting.companyWebsite),
+    contactLinkedinUrl: cleanOptional(meeting.contactLinkedinUrl),
+    companyLinkedinUrl: cleanOptional(meeting.companyLinkedinUrl),
+    meetingUrl: cleanOptional(meeting.meetingUrl),
+    regionValid: meeting.regionValid ?? true,
+    prospectAttended:
+      meeting.prospectAttended ?? (meeting.meetingStatus === "no_show" ? false : true),
+    clientAttended: meeting.clientAttended ?? true,
+    personAreaCorrect: meeting.personAreaCorrect ?? true,
+    escalatedToCorrectArea: meeting.escalatedToCorrectArea ?? false,
+    concretada: meeting.concretada ?? meeting.meetingStatus === "completed",
+    bantScore: meeting.bantScore ?? meeting.cpBANT.length,
+    clientDecision: getClientDecision(meeting),
+    preparationInfo: meeting.preparationInfo || meeting.meetingSummary,
+    nextStep: translateDemoNextStep(meeting.nextStep),
+    companyValidationStatus: meeting.companyValidationStatus ?? "none",
+  };
+  next.recommendedAction = next.recommendedAction ?? deriveAction(next);
+  next.cpValidation = next.cpValidation === "waiting_validation" ? deriveCPValidation(next) : next.cpValidation;
+  next.finalValidation = deriveFinalValidation(next);
+  next.disputeFlag = next.finalValidation === "in_dispute";
+  next.pendingClientFlag = getClientDecision(next) === "pending";
+  next.ghlStageKey = mapToGHLStage(next);
+  return next;
+}
+
+export function mapToGHLStage(meeting: Meeting) {
+  if (meeting.meetingStatus === "scheduled") return "agendada";
+  if (meeting.meetingStatus === "completed" && meeting.finalValidation === "pending") return "pendiente_validacion";
+  if (meeting.meetingStatus === "completed") return "realizada";
+  if (meeting.finalValidation === "final_valid") return "reunion_valida";
+  if (meeting.finalValidation === "final_not_valid") return "reunion_no_valida";
+  if (meeting.meetingStatus === "rescheduled") return "reagendada";
+  if (meeting.meetingStatus === "no_show") return "no_show";
+  return "pendiente_validacion";
+}
+
+export function updateMeetingWithRules(meeting: Meeting, updates: Partial<Meeting>) {
+  return normalizeMeeting({ ...meeting, ...updates });
+}
+
+export function getDaysRemainingInMonth(date = new Date()) {
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return Math.max(0, end.getDate() - date.getDate());
+}
+
+export function getClientPriority(validated: number, pending: number, goal: number, daysRemaining: number) {
+  const projected = validated + pending;
+  const gap = Math.max(goal - validated, 0);
+  if (gap === 0) return "Baja";
+  if (goal - projected > 0 || (gap >= 4 && daysRemaining <= 10)) return "Alta";
+  if (gap >= 2) return "Media";
+  return "Baja";
+}
+
+export function getPriorityTone(priority: string) {
+  if (priority === "Alta") return "danger";
+  if (priority === "Media") return "warning";
+  return "success";
+}
+
+export function isFinalValid(meeting: Meeting) {
+  return meeting.finalValidation === "final_valid";
+}
+
+export function getClientSearchText(meeting: Meeting) {
+  return [
+    meeting.company,
+    meeting.contact,
+    meeting.firstName,
+    meeting.lastName,
+    meeting.jobTitle,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+export function getInternalSearchText(meeting: Meeting) {
+  return [
+    meeting.client,
+    meeting.company,
+    meeting.contact,
+    meeting.firstName,
+    meeting.lastName,
+    meeting.jobTitle,
+    meeting.sdrAssigned,
+    meeting.country,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+export function meetingStatusToCP(status: MeetingStatus): Partial<Meeting> {
+  if (status === "completed") return { prospectAttended: true, concretada: true };
+  if (status === "no_show") return { prospectAttended: false, concretada: false };
+  if (status === "rescheduled") return { concretada: false };
+  return {};
+}

@@ -1,110 +1,57 @@
-# Conprospeccion OS2026
+# Conprospecci贸n OS2026
 
-Proyecto oficial del sistema operativo de Con Prospecci髇.
+Aplicaci贸n operativa oficial de Con Prospecci贸n, desarrollada en **Streamlit**.
 
-La app principal vive en Next.js y se despliega en Vercel:
+## Inicio r谩pido
 
-- Repo local oficial: `C:\Users\Admin\OneDrive\Documents\Con Prospecci髇\conprospeccionOS2026`
-- Repo GitHub oficial: `FranciscaPP/conprospeccionOS2026`
-- Produccion: https://conprospeccion-os-2026.vercel.app
-- Dashboard interno: `/internal/meeting-followup`
-- Portal cliente: `/client/meeting-validation`
+Desde la ra铆z del repositorio:
 
-## Estructura
-
-```txt
-app/                 Next.js App Router y API routes
-components/          UI compartida
-lib/                 Tipos, reglas de negocio y mapeos de datos
-sync/                Scripts heredados para sincronizar GHL, Supabase y reporting
-supabase/            Migraciones y Edge Functions
-dashboard/           Streamlit legacy de validacion y seguimiento
-shared/              Configuracion Python compartida legacy
-scripts/             Utilidades operativas
-docs/                Documentacion historica y handoff tecnico
+```powershell
+python -m pip install -r dashboard/requirements.txt
+python -m streamlit run dashboard/app.py --server.port 8502
 ```
 
-## Fuente de datos
+Tambi茅n se puede ejecutar:
 
-El dashboard interno consume Supabase desde `app/api/internal/meetings`.
-
-Fuente real:
-
-- Supabase `public.reuniones`
-- Supabase `public.clientes`
-- Supabase `public.sdrs`
-- GoHighLevel alimenta esas tablas mediante scripts `sync/` y webhook `supabase/functions/ghl-webhook`
-
-Clientes activos del dashboard:
-
-- Clickie
-- GBS
-- BambuTech
-
-## Variables
-
-Usar `.env.example` como plantilla. Los valores reales no se versionan.
-
-Para desarrollo local de Next:
-
-```txt
-.env.local
+```text
+iniciar_dashboard.bat
 ```
 
-Para produccion:
+La aplicaci贸n queda disponible en:
 
-```txt
-Vercel Project Settings -> Environment Variables
+```text
+http://localhost:8502
 ```
 
-Variables minimas para el dashboard oficial:
+## Estructura activa
 
-```txt
-SUPABASE_URL
-SUPABASE_SECRET_KEY
+```text
+dashboard/    Aplicaci贸n Streamlit, p谩ginas, autenticaci贸n y assets
+shared/       L贸gica Python compartida
+sync/         Procesos de sincronizaci贸n y reporting
+supabase/     Migraciones y funciones de infraestructura
+tests/        Pruebas del producto activo
 ```
 
-Tambien se soportan estos alias para compatibilidad:
+El punto de entrada oficial es `dashboard/app.py`.
 
-```txt
-SUPABASE_SERVICE_ROLE_KEY
-SUPABASE_SERVICE_KEY
-SUPABASE_KEY
-NEXT_PUBLIC_SUPABASE_URL
-```
+## Contexto para desarrollo
 
-## Desarrollo
+Leer antes de trabajar:
 
-```bash
-npm install
-npm run dev
-```
+- `PROJECT_MASTER_CONTEXT.md`
+- `ACTIVE_WORKSPACE.md`
+- `AGENTS.md`
 
-Build:
+`archive/` es referencia hist贸rica y no debe analizarse salvo petici贸n expl铆cita.
 
-```bash
-npm run build
-```
+## Configuraci贸n
 
-## Sincronizacion
+Usar `.env.example` como referencia y mantener las credenciales reales fuera de Git.
 
-Los scripts heredados estan en `sync/scripts`.
+La aplicaci贸n consume datos desde Supabase. Los procesos que alimentan esos datos viven en `sync/` y `supabase/`.
 
-Ejemplo de refresco completo:
+## Regla de arquitectura
 
-```bash
-python sync/scripts/sync_ghl.py --entity all
-python sync/scripts/sync_meetings.py --start-date 2026-05-01 --end-date YYYY-MM-DD
-```
+Streamlit es la 煤nica implementaci贸n actual. Next.js, React y Vercel no forman parte del producto activo.
 
-## Datos pesados
-
-Las bases locales Apollo/Snov no se versionan en GitHub.
-
-Ruta local de trabajo:
-
-```txt
-C:\Users\Admin\OneDrive\Documents\Con Prospecci髇\conprospeccionOS2026\BASES_APOLLO&SNOV
-```
-
-Si esas bases se migran definitivamente, deben ir a una persistencia controlada como Supabase Storage, Drive o un bucket privado, no al repo.

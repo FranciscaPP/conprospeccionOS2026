@@ -20,12 +20,15 @@ import { format, isSameWeek, isToday, isTomorrow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useApp } from "@/lib/app-context";
 import { MeetingDrawer } from "@/components/meeting-drawer";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { FinalValidation, Meeting, MeetingStatus } from "@/lib/types";
+import type { FinalValidation, Meeting, MeetingFlowStatus, MeetingStatus } from "@/lib/types";
+import { meetingFlowStatusLabels } from "@/lib/types";
 import {
+  getMeetingFlowStatus,
   getClientPriority,
   getDaysRemainingInMonth,
   getInternalSearchText,
@@ -73,7 +76,7 @@ export default function InternalMeetingFollowupPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
   const [sdrFilter, setSdrFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<MeetingFlowStatus | "all">("all");
   const [yearFilter, setYearFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [dayFilter, setDayFilter] = useState("all");
@@ -165,9 +168,7 @@ export default function InternalMeetingFollowupPage() {
       const matchesSdr = sdrFilter === "all" || meeting.sdrAssigned === sdrFilter;
       const matchesStatus =
         statusFilter === "all" ||
-        meeting.meetingStatus === statusFilter ||
-        meeting.clientDecision === statusFilter ||
-        meeting.finalValidation === statusFilter;
+        getMeetingFlowStatus(meeting) === statusFilter;
       const matchesYear = yearFilter === "all" || meeting.meetingDate.slice(0, 4) === yearFilter;
       const matchesMonth = monthFilter === "all" || meeting.meetingDate.slice(0, 7) === monthFilter;
       const matchesDay = dayFilter === "all" || meeting.meetingDate.slice(0, 10) === dayFilter;
@@ -484,17 +485,13 @@ export default function InternalMeetingFollowupPage() {
               <NativeFilter
                 label="Estado"
                 value={statusFilter}
-                onChange={setStatusFilter}
+                onChange={(value) => setStatusFilter(value as MeetingFlowStatus | "all")}
                 options={[
-                  { value: "all", label: "Estado: Todos" },
-                  { value: "scheduled", label: "Agendada" },
-                  { value: "completed", label: "Realizada" },
-                  { value: "pending", label: "Pendiente validación" },
-                  { value: "final_valid", label: "Validada" },
-                  { value: "final_not_valid", label: "Rechazada" },
-                  { value: "in_dispute", label: "En revisión" },
-                  { value: "rescheduled", label: "Reagendada" },
-                  { value: "no_show", label: "No realizada" },
+                  { value: "all", label: "Todos los estados" },
+                  ...Object.entries(meetingFlowStatusLabels).map(([value, label]) => ({
+                    value,
+                    label,
+                  })),
                 ]}
               />
               <NativeFilter
@@ -543,7 +540,7 @@ export default function InternalMeetingFollowupPage() {
 
           <section className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1180px]">
+              <table className="w-full min-w-[1320px]">
                 <thead className="sticky top-0 z-10 bg-muted">
                   <tr>
                     {[
@@ -555,9 +552,11 @@ export default function InternalMeetingFollowupPage() {
                       "Cargo",
                       "País",
                       "SDR",
+                      "Estado",
                       "Estado operativo",
                       "Resultado meta",
                       "BANT",
+                      "Info reunión",
                       "Link",
                       "Acción",
                     ].map((heading) => (
@@ -573,7 +572,7 @@ export default function InternalMeetingFollowupPage() {
                 <tbody className="divide-y divide-border">
                   {meetingsLoading ? (
                     <tr>
-                      <td colSpan={13} className="px-3 py-10 text-center text-sm text-muted-foreground">
+                      <td colSpan={15} className="px-3 py-10 text-center text-sm text-muted-foreground">
                         Cargando reuniones reales desde Supabase...
                       </td>
                     </tr>
@@ -615,6 +614,13 @@ export default function InternalMeetingFollowupPage() {
                         <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.jobTitle}</td>
                         <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.country ?? "Sin dato"}</td>
                         <td className="px-3 py-3 text-xs text-muted-foreground">{meeting.sdrAssigned}</td>
+                        <td className="px-3 py-3">
+                          <StatusBadge
+                            status={getMeetingFlowStatus(meeting)}
+                            label={meetingFlowStatusLabels[getMeetingFlowStatus(meeting)]}
+                            size="sm"
+                          />
+                        </td>
                         <td className="px-3 py-3" onClick={(event) => event.stopPropagation()}>
                           <InlineSelect
                             disabled={savingMeetingId === meeting.id}
@@ -673,6 +679,13 @@ export default function InternalMeetingFollowupPage() {
                         </td>
                         <td className="px-3 py-3 text-xs text-muted-foreground">
                           {meeting.cpBANT.length > 0 ? `${meeting.cpBANT.length}/4` : "Manual"}
+                        </td>
+                        <td className="px-3 py-3 text-xs">
+                          {meeting.preparationInfo?.trim() ? (
+                            <span className="font-medium text-emerald-700">Completa</span>
+                          ) : (
+                            <span className="font-semibold text-amber-700">Falta completar</span>
+                          )}
                         </td>
                         <td className="px-3 py-3">
                           {meeting.meetingUrl ? (

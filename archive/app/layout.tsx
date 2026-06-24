@@ -1,12 +1,19 @@
 ﻿import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
-import { Inter, Geist, Saira, Saira_Condensed } from 'next/font/google'
+import { Inter, Geist, Saira, Saira_Condensed, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/lib/app-context'
 
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin']
+})
+
+// Tipografía principal de la app — geométrica y un poco más redondeada (look SaaS premium).
+const dmSans = DM_Sans({
+  variable: '--font-dm-sans',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 })
 
 const geist = Geist({
@@ -55,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${geist.variable} ${saira.variable} ${sairaBody.variable} bg-background`}>
+    <html lang="en" className={`${dmSans.variable} ${inter.variable} ${geist.variable} ${saira.variable} ${sairaBody.variable} bg-background`}>
       <body className="font-sans antialiased">
         <AppProvider>
           {children}

@@ -38,6 +38,22 @@ st.markdown(
     f'span[data-baseweb="tag"] svg{{fill:#5b21b6!important}}</style>',
     unsafe_allow_html=True)
 
+if not st.session_state.get("admin_mode"):
+    st.markdown(
+        f'<div style="max-width:720px;margin:56px auto;background:#fff;border:1px solid {GBS_BORDER};'
+        f'border-left:6px solid {GBS_PURPLE};border-radius:14px;padding:28px 30px;'
+        f'box-shadow:0 8px 24px rgba(91,33,182,.08)">'
+        f'<div style="font-size:20px;font-weight:850;color:#1e293b;margin-bottom:8px">'
+        f'Reportes para tu equipo</div>'
+        f'<div style="font-size:14px;color:#475569;line-height:1.6">'
+        f'Este módulo ya forma parte de tu portal, pero todavía no tiene datos habilitados. '
+        f'Conprospección lo activará cuando el reporte operativo de GBS esté listo para publicación.'
+        f'</div><div style="margin-top:14px;font-size:12px;font-weight:750;color:{GBS_PURPLE};">'
+        f'No necesitas realizar ninguna acción.</div></div>',
+        unsafe_allow_html=True,
+    )
+    st.stop()
+
 # ── Header (mismo estilo que el resto de GBS) ──
 g = img_b64("gbs_logo.png", 52) or ""
 c = img_b64("conprospeccion_logo.png", 42) or ""

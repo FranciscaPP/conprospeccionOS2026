@@ -45,7 +45,7 @@ def classify_stage(stage_name: str) -> tuple[str, bool, bool | None]:
     if "COORDINANDO REUNION" in name:
         return "coordinando_reunion", False, None
     if "COTIZ" in name:
-        return "cotizacion", False, None
+        return "cotizacion", True, True
     if "SEGUIMIENTO" in name:
         return "seguimiento", False, None
     if "NO CONTESTA" in name:
