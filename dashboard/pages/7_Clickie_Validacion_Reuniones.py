@@ -157,6 +157,8 @@ def normalizar_status(value):
         "reunión agendada": "agendada",
         "reunion agendada": "agendada",
         "espera validación reunión": "agendada",
+        "reagendar reunión": "reagendada",
+        "reagendar reunion": "reagendada",
         "reunión válida": "realizada",
         "reunion valida": "realizada",
         "reunión no válida": "realizada",
