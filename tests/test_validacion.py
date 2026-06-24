@@ -158,8 +158,20 @@ def test_futuro_no_tiene_acciones_cliente():
 def test_kpi_gbs_definitivos():
     assert KPI_GBS == ("total", "validas", "no_validas", "avance_meta")
     portal = Path("dashboard/pages/12_GBS_Validacion_Reuniones.py").read_text(encoding="utf-8")
-    for label in ("Total reuniones", "Válidas", "No válidas", "Avance meta"):
+    for label in (
+        "Total reuniones",
+        "Válidas",
+        "No válidas",
+        "Pendiente cliente",
+        "En revisión",
+        "Reagenda",
+    ):
         assert label in portal
+    assert "gbs_meeting_table_header" in portal
+    assert "Ver detalle" in portal
+    assert "VISIBLE_ETAPAS_AGENDA" in portal
+    assert '["all", *VISIBLE_ETAPAS_AGENDA]' in portal
+    assert '"Todo"' in portal
     assert '"pending_client": "Pendiente validación cliente"' not in portal
     assert '"dispute": "En disputa"' not in portal
 
