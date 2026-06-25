@@ -149,15 +149,31 @@ def formato_dia(d) -> str:
 
 
 # <<DEDUP-PURO>>
+def _dk_val(v):
+    """Limpia un valor de celda tratando NaN/None/NaT como vacío.
+
+    Ojo: `pd.NaN or ""` devuelve NaN (NaN es truthy en Python), así que el
+    patrón `str(x or "")` colapsaba todas las filas con opportunity_id nulo en
+    una sola clave ("opp","nan") — esto borraba clientes sin pipeline (p. ej.
+    GBS, cuyas reuniones vienen de calendario sin opportunity_id)."""
+    if v is None:
+        return ""
+    s = str(v).strip()
+    return "" if s.lower() in ("nan", "none", "nat", "<na>") else s
+
+
 def _dedup_key(row):
-    opp = str(row.get("opportunity_id") or "").strip()
+    cid = _dk_val(row.get("ghl_contact_id"))
+    if cid:
+        return ("contact", cid)
+    opp = _dk_val(row.get("opportunity_id"))
     if opp:
         return ("opp", opp)
-    email = str(row.get("email") or "").strip().lower()
+    email = _dk_val(row.get("email")).lower()
     if email:
         return ("email", email)
-    contacto = str(row.get("contacto") or "").strip().lower()
-    empresa = str(row.get("empresa") or "").strip().lower()
+    contacto = _dk_val(row.get("contacto")).lower()
+    empresa = _dk_val(row.get("empresa")).lower()
     return ("cont", contacto, empresa)
 
 
