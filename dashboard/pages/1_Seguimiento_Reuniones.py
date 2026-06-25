@@ -505,6 +505,20 @@ def resumen_clientes_html(dff: pd.DataFrame, final_map: dict) -> str:
 
 _OVERRIDE_OPTS = ["(automática)", "valida", "no_valida", "en_disputa", "excluida", "cancelacion"]
 
+# SDR asignable a mano desde el panel interno. El SDR "real" viene del contacto
+# (vista), pero el equipo (Yanina) puede reasignarlo; el override se guarda en
+# seguimiento_reuniones.sdr_override (sync-safe) y NO toca reuniones.sdr_slug.
+SDR_EDITABLES = [
+    ("yanina_olivo", "Yanina Olivo"),
+    ("sebastian_gutierrez", "Sebastián Gutiérrez"),
+    ("constanza_catalan", "Constanza Catalán"),
+    ("mariela_tello", "Mariela Tello"),
+    ("luciana_acuna", "Luciana Acuña"),
+    ("francisca_polanco", "Francisca Polanco"),
+]
+SDR_SLUG_A_NOMBRE = {slug: nombre for slug, nombre in SDR_EDITABLES}
+SDR_NOMBRE_A_SLUG = {nombre: slug for slug, nombre in SDR_EDITABLES}
+
 
 def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> list[dict]:
     """Tarjeta por reunión con el MISMO bloque de 3 capas que el portal del cliente.
@@ -527,6 +541,10 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
         if cliente_slug not in seg_por_slug:
             seg_por_slug[cliente_slug] = cargar_seg_slug(cliente_slug)
         seg = row.get("_seg") or seg_por_slug[cliente_slug].get(reunion_id, {})
+
+        _sdr_ovr = texto_real(seg.get("sdr_override"))
+        if _sdr_ovr:
+            sdr_raw = SDR_SLUG_A_NOMBRE.get(_sdr_ovr, sdr_raw)
 
         sc = color_sdr(sdr_raw)
         cl = COLORES_CLIENTE.get(cliente_val.upper(), {"bg": "#e5e7eb", "color": "#374151"})
@@ -597,7 +615,7 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
             e1, e2 = st.columns(2)
             with e1:
                 st.markdown(mini_label("Validez del equipo"), unsafe_allow_html=True)
-                vcp_actual = "valida" if is_quote else seg.get("val_estado_cp")
+                vcp_actual = "valida" if is_quote else (seg.get("val_estado_cp") or row.get("_cp"))
                 vcp = st.selectbox("Validez del equipo", VAL_ESTADOS,
                     index=VAL_ESTADOS.index(vcp_actual)
                           if vcp_actual in VAL_ESTADOS else 0,
@@ -626,6 +644,15 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
                     key=f"{prefix}_vf_{reunion_id}_{i}",
                     help="Dejar en automática salvo que quieras fijarla a mano.",
                     label_visibility="collapsed")
+            st.markdown(mini_label("SDR asignado"), unsafe_allow_html=True)
+            _sdr_nombres = [nombre for _, nombre in SDR_EDITABLES]
+            _sdr_opts = _sdr_nombres if sdr_raw in _sdr_nombres else [sdr_raw, *_sdr_nombres]
+            sdr_sel = st.selectbox(
+                "SDR asignado", _sdr_opts,
+                index=_sdr_opts.index(sdr_raw),
+                key=f"{prefix}_sdr_sel_{reunion_id}_{i}",
+                help="Viene del contacto; cámbialo si corresponde otro SDR.",
+                label_visibility="collapsed")
             st.markdown(
                 mini_label(
                     "Información (visible al cliente)"
@@ -755,6 +782,8 @@ def render_tabla(dff: pd.DataFrame, stages_df: pd.DataFrame, prefix: str) -> lis
                           "icp_cumple": antecedentes["icp_cumple"],
                           "proximo_paso": proximo.strip() or None,
                           "notas_internas": notas.strip() or None}
+                if sdr_sel != sdr_raw and sdr_sel in SDR_NOMBRE_A_SLUG:
+                    _patch["sdr_override"] = SDR_NOMBRE_A_SLUG[sdr_sel]
                 if vf != "(automática)":
                     _patch.update({"val_estado_final": vf, "final_override": True,
                                    "validated_final_by": "CP", "validated_final_at": _ahora})
