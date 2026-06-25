@@ -78,6 +78,27 @@ MESES_ES = [
 DIAS_ES = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
 PROSPECCION_INICIO = date(2025, 12, 1)
 
+PAIS_LABEL = {
+    "CL": "Chile", "PE": "Perú", "MX": "México", "CO": "Colombia",
+    "AR": "Argentina", "US": "Estados Unidos", "EC": "Ecuador", "BO": "Bolivia",
+}
+
+
+def opciones_periodo(hoy=None):
+    """[(clave, label, inicio, fin)] por mes desde PROSPECCION_INICIO hasta el mes
+    en curso (descendente), con 'Todos' al final. El primero es el mes en curso."""
+    hoy = hoy or date.today()
+    out = []
+    y, m = hoy.year, hoy.month
+    while (y, m) >= (PROSPECCION_INICIO.year, PROSPECCION_INICIO.month):
+        ult = calendar.monthrange(y, m)[1]
+        out.append((f"{y}-{m:02d}", f"{MESES_ES[m - 1].capitalize()} {y}",
+                    date(y, m, 1), date(y, m, ult)))
+        y, m = (y - 1, 12) if m == 1 else (y, m - 1)
+    fin = date(hoy.year, hoy.month, calendar.monthrange(hoy.year, hoy.month)[1])
+    out.append(("todos", "Todos los meses", PROSPECCION_INICIO, fin))
+    return out
+
 FILTROS_KPI = {
     "all": "Total reuniones",
     "valid": "Válidas",
@@ -1309,15 +1330,14 @@ def run():
     render_header()
 
     today = date.today()
-    month_start = PROSPECCION_INICIO
-    month_end = date(today.year, today.month, calendar.monthrange(today.year, today.month)[1])
-    selected_range = st.session_state.get("clickie_date_range", (month_start, month_end))
-    if isinstance(selected_range, (tuple, list)) and len(selected_range) == 2:
-        fecha_inicio, fecha_fin = str(selected_range[0]), str(selected_range[1])
-    elif isinstance(selected_range, (tuple, list)) and len(selected_range) == 1:
-        fecha_inicio = fecha_fin = str(selected_range[0])
-    else:
-        fecha_inicio, fecha_fin = str(month_start), str(month_end)
+    periodos = opciones_periodo(today)
+    periodo_map = {p[0]: p for p in periodos}
+    periodo_keys = [p[0] for p in periodos]
+    sel_periodo = st.session_state.get("clickie_periodo", periodo_keys[0])
+    if sel_periodo not in periodo_map:
+        sel_periodo = periodo_keys[0]
+    fecha_inicio = str(periodo_map[sel_periodo][2])
+    fecha_fin = str(periodo_map[sel_periodo][3])
     query = st.session_state.get("clickie_search", "")
     selected_agenda = st.session_state.get("clickie_agenda_stage", "all")
     if selected_agenda not in {"all", *ETAPAS_AGENDA}:
@@ -1354,6 +1374,17 @@ def run():
             enriched["_validation_status"] == selected_validation
         ].copy()
 
+    paises_disp = (
+        sorted({_clean(p) for p in meetings.get("pais", []) if _clean(p)})
+        if not meetings.empty else []
+    )
+    sel_pais = st.session_state.get("clickie_pais", "all")
+    if sel_pais not in {"all", *paises_disp}:
+        sel_pais = "all"
+        st.session_state["clickie_pais"] = "all"
+    if sel_pais != "all" and not enriched.empty and "pais" in enriched.columns:
+        enriched = enriched[enriched["pais"].map(_clean) == sel_pais].copy()
+
     counts = render_kpis(enriched) if "_final" in enriched.columns else {
         "all": 0,
         "valid": 0,
@@ -1362,7 +1393,7 @@ def run():
         "review": 0,
         "reschedule": 0,
     }
-    filter_cols = st.columns([3.2, 2.2, 2.2, 2.6, 1.1])
+    filter_cols = st.columns([2.6, 1.7, 1.7, 1.9, 2.1, 1.0])
     with filter_cols[0]:
         st.text_input(
             "Buscar",
@@ -1372,14 +1403,22 @@ def run():
             on_change=sincronizar_busqueda_principal,
         )
     with filter_cols[1]:
-        st.date_input(
-            "Fecha",
-            value=(month_start, month_end),
-            format="DD/MM/YYYY",
-            label_visibility="collapsed",
-            key="clickie_date_range",
+        st.selectbox(
+            "Mes",
+            periodo_keys,
+            format_func=lambda k: periodo_map[k][1],
+            label_visibility="visible",
+            key="clickie_periodo",
         )
     with filter_cols[2]:
+        st.selectbox(
+            "País",
+            ["all", *paises_disp],
+            format_func=lambda v: "Todos" if v == "all" else PAIS_LABEL.get(v, v),
+            label_visibility="visible",
+            key="clickie_pais",
+        )
+    with filter_cols[3]:
         st.selectbox(
             "Etapa de agenda",
             ["all", *ETAPAS_AGENDA],
@@ -1391,7 +1430,7 @@ def run():
             label_visibility="visible",
             key="clickie_agenda_stage",
         )
-    with filter_cols[3]:
+    with filter_cols[4]:
         st.selectbox(
             "Estatus de validación",
             ["all", *ESTATUS_VALIDACION],
@@ -1403,7 +1442,8 @@ def run():
             label_visibility="visible",
             key="clickie_validation_status",
         )
-    with filter_cols[4]:
+    with filter_cols[5]:
+        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
         if st.button("Actualizar", use_container_width=True, key="clickie_refresh"):
             st.cache_data.clear()
             st.session_state["clickie_kpi_filter"] = None
