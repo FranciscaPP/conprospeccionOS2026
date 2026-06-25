@@ -308,8 +308,13 @@ def enriquecer_estado_funcional(df: pd.DataFrame) -> pd.DataFrame:
             if source_status == "cotizacion"
             else texto_real(seg.get("status_reunion")) or source_status
         )
+        _ev = str(row.get("estado_validacion") or "").lower()
+        _er = str(row.get("estado_reunion") or "").lower()
         cp = texto_real(seg.get("val_estado_cp")) or (
-            "valida" if str(row.get("estado_validacion") or "").lower() in {"valida", "reunion_valida"} else "espera"
+            "valida" if _ev in {"valida", "reunion_valida"}
+            else "no_valida" if _ev in {"no_valida", "reunion_no_valida"}
+            else "cancelacion" if ("cancel" in _er or _ev in {"cancelacion", "cancelada"})
+            else "espera"
         )
         client = texto_real(seg.get("val_estado_cli")) or "espera"
         if status == "cotizacion":
