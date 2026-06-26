@@ -1,4 +1,5 @@
 import datetime
+import base64
 import json
 import re
 
@@ -29,6 +30,7 @@ iframe { display:block; }
 SUPABASE_URL = supabase_url()
 SUPABASE_KEY = supabase_key()
 SUPABASE_HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+SUPABASE_WRITE_HEADERS = {**SUPABASE_HEADERS, "Content-Type": "application/json"}
 
 
 def _txt(value, default=""):
@@ -95,6 +97,8 @@ def _client_val_label(seg):
     value = _txt(seg.get("val_estado_cli")).lower()
     if value in {"valida", "confirmar", "confirmada", "confirmado"}:
         return "Confirmar"
+    if value in {"no_valida", "no valida", "rechazada"}:
+        return "No valida"
     if value in {"requiere_revision", "solicitar_revision", "solicita_revision"}:
         return "Solicitar revision"
     return "Pendiente"
@@ -151,6 +155,217 @@ def _evidence(row, seg):
     if _txt(row.get("ai_summary")) or _txt(seg.get("ai_summary")) or _txt(row.get("ai_evidence")) or _txt(seg.get("ai_evidence")):
         ev.append({"type": "Resumen IA", "name": "Resumen disponible", "valid": True})
     return ev
+
+
+def _decode_save_payload(raw):
+    try:
+        padded = raw + "=" * (-len(raw) % 4)
+        return json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
+    except Exception:
+        return None
+
+
+def _db_cp(value):
+    value = _txt(value).lower()
+    if value == "valida":
+        return "valida"
+    if value == "no valida":
+        return "no_valida"
+    return None
+
+
+def _db_cliente(value):
+    value = _txt(value).lower()
+    if value == "confirmar":
+        return "valida"
+    if value == "no valida":
+        return "no_valida"
+    if value == "solicitar revision":
+        return "requiere_revision"
+    return None
+
+
+def _db_final(value):
+    value = _txt(value).lower()
+    if value == "reunion valida":
+        return "valida"
+    if value == "reunion no valida":
+        return "no_valida"
+    if value == "reunion cancelada":
+        return "cancelacion"
+    if value == "reagendar reunion":
+        return "reagendar"
+    return None
+
+
+def _bant_str(value):
+    if not isinstance(value, dict):
+        return None
+    mapping = {"Budget": "B", "Authority": "A", "Need": "N", "Timeline": "T"}
+    return ",".join(code for label, code in mapping.items() if value.get(label)) or None
+
+
+def _bool_icp(value):
+    value = _txt(value).lower()
+    if value == "cumple":
+        return True
+    if value == "no cumple":
+        return False
+    return None
+
+
+def _date_db(value):
+    try:
+        day, month, year = str(value).split("/")
+        return f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
+    except Exception:
+        return None
+
+
+def _time_db(value):
+    raw = _txt(value).upper().replace(".", "")
+    if not raw:
+        return None
+    try:
+        hm, suffix = raw.split()
+        hour, minute = [int(x) for x in hm.split(":")[:2]]
+        if suffix == "PM" and hour != 12:
+            hour += 12
+        if suffix == "AM" and hour == 12:
+            hour = 0
+        return f"{hour:02d}:{minute:02d}:00"
+    except Exception:
+        return raw[:8]
+
+
+def _flag_meta_countable(final_value):
+    final_db = _db_final(final_value)
+    if final_db == "valida":
+        return True
+    if final_db in {"no_valida", "cancelacion", "reagendar"}:
+        return False
+    return None
+
+
+def _post_tracking(payload):
+    response = requests.post(
+        f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones",
+        headers={**SUPABASE_WRITE_HEADERS, "Prefer": "resolution=merge-duplicates,return=representation"},
+        json=payload,
+        timeout=15,
+    )
+    return response
+
+
+def _patch_meeting(reunion_id, payload):
+    if not payload:
+        return None
+    response = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/reuniones",
+        params={"id": f"eq.{int(reunion_id)}"},
+        headers={**SUPABASE_WRITE_HEADERS, "Prefer": "return=minimal"},
+        json=payload,
+        timeout=15,
+    )
+    return response
+
+
+def _insert_history(reunion_id, section, text):
+    requests.post(
+        f"{SUPABASE_URL}/rest/v1/meeting_status_history",
+        headers={**SUPABASE_WRITE_HEADERS, "Prefer": "return=minimal"},
+        json={
+            "meeting_id": int(reunion_id),
+            "field_changed": section,
+            "old_value": None,
+            "new_value": text,
+            "changed_by": "Francisca / Yanina",
+            "changed_by_role": "panel_interno",
+            "source_dashboard": "Seguimiento_Reuniones",
+        },
+        timeout=10,
+    )
+
+
+def _handle_save_request():
+    raw = st.query_params.get("cp_save")
+    if not raw:
+        return
+    payload = _decode_save_payload(raw)
+    if not payload:
+        st.json({"ok": False, "error": "payload_invalido"})
+        st.stop()
+
+    meeting = payload.get("meeting") or {}
+    section = _txt(payload.get("section"), "Actualizacion")
+    reunion_id = meeting.get("id")
+    cliente_slug = _txt(meeting.get("clientSlug")).lower()
+    if not reunion_id or not cliente_slug:
+        st.json({"ok": False, "error": "faltan_reunion_o_cliente"})
+        st.stop()
+
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    final_db = _db_final(meeting.get("final"))
+    tracking_payload = {
+        "reunion_id": int(reunion_id),
+        "cliente_slug": cliente_slug,
+        "status_reunion": _txt(meeting.get("status")) or None,
+        "val_estado_cp": _db_cp(meeting.get("cp")),
+        "bant_cp": _bant_str(meeting.get("bant")),
+        "icp_cumple": _bool_icp(meeting.get("icp")),
+        "comentario_cp": _txt(meeting.get("just")) or None,
+        "notas_internas": _txt(meeting.get("notes")) or None,
+        "informacion_reunion_manual": _txt(meeting.get("info")) or None,
+        "sdr_override": _txt(meeting.get("sdr")) or None,
+        "val_estado_cli": _db_cliente(meeting.get("clientVal")),
+        "comentario_cli": _txt(meeting.get("clientComment")) or None,
+        "motivo_no_validez": _txt(meeting.get("clientReason")) or None,
+        "validated_by_cli": _txt(meeting.get("clientActor")) or "Conprospeccion - override interno",
+        "validated_cli_at": now if _db_cliente(meeting.get("clientVal")) else None,
+        "proximo_paso": _txt(meeting.get("next")) or None,
+        "comentario_final": _txt(meeting.get("finalReason")) or None,
+        "val_estado_final": final_db,
+        "final_override": bool(final_db),
+        "validated_final_by": "Conprospeccion" if final_db else None,
+        "validated_final_at": now if final_db else None,
+        "flag_meta_countable": _flag_meta_countable(meeting.get("final")),
+        "updated_at": now,
+    }
+    base_payload = {
+        "empresa": _txt(meeting.get("company")) or None,
+        "contacto": _txt(meeting.get("contact")) or None,
+        "cargo": _txt(meeting.get("role")) or None,
+        "email": _txt(meeting.get("email")) or None,
+        "telefono": _txt(meeting.get("phone")) or None,
+        "pais": _txt(meeting.get("country")) or None,
+        "industria": _txt(meeting.get("industry")) or None,
+        "fecha_reunion": _date_db(meeting.get("date")),
+        "hora_reunion": _time_db(meeting.get("time")),
+        "informacion_reunion": _txt(meeting.get("info")) or None,
+        "estado_reunion": _txt(meeting.get("status")) or None,
+    }
+    base_payload = {key: value for key, value in base_payload.items() if value is not None}
+
+    track_response = _post_tracking(tracking_payload)
+    base_response = _patch_meeting(reunion_id, base_payload)
+    if track_response.ok and (base_response is None or base_response.ok):
+        _insert_history(reunion_id, section, f"{section} guardado desde panel interno")
+        st.cache_data.clear()
+        st.json({"ok": True})
+    else:
+        st.json(
+            {
+                "ok": False,
+                "tracking_status": track_response.status_code,
+                "tracking_error": track_response.text[:300],
+                "meeting_status": getattr(base_response, "status_code", None),
+                "meeting_error": getattr(base_response, "text", "")[:300],
+            }
+        )
+    st.stop()
+
+
+_handle_save_request()
 
 
 @st.cache_data(ttl=30)
@@ -249,6 +464,7 @@ def cargar_reuniones_reales_poc():
         rows.append(
             {
                 "id": int(rid),
+                "clientSlug": slug,
                 "date": _date_es(row.get("fecha")),
                 "time": _time_12(row.get("hora")),
                 "client": _client_label(slug, row.get("cliente")),
@@ -393,7 +609,7 @@ tbody td{border-bottom:1px solid var(--line);padding:9px 10px;vertical-align:mid
 <script>
 const statuses=["Reunion futura","Reunion realizada","Reunion cancelada","Reagendar reunion"];
 const cps=["","Pendiente","Valida","No valida"];
-const clientVals=["","Pendiente","Confirmar","Solicitar revision"];
+const clientVals=["","Pendiente","Confirmar","No valida","Solicitar revision"];
 const finalOptions=["Pendiente","Reunion valida","Reunion no valida","Reunion cancelada","Reagendar reunion"];
 const caseStatusOptions=["Abierto","En evaluacion CP","Esperando cliente","En revision","Cerrado"];
 const cancellationActors=["Cliente","Prospecto","SDR","Conprospeccion"];
@@ -429,9 +645,13 @@ function parseDate(s){const [d,m,y]=String(s).split("/");return y&&m&&d?`${y}-${
 function dtValue(m){const d=parseDate(m.date);const hour=m.time.includes("PM")&&m.time.slice(0,2)!=="12"?Number(m.time.slice(0,2))+12:Number(m.time.slice(0,2));return `${d} ${String(hour).padStart(2,"0")}${m.time.slice(2,5)}`}
 function finalStatus(m){return m.final||"Pendiente"}
 function finalDisplay(m){return finalStatus(m)==="Pendiente"?"Pendiente de cierre":finalStatus(m)}
+const saveEndpoint="/Seguimiento_Reuniones";
 function persist(){localStorage.setItem(storageKey,JSON.stringify(meetings))}
 function notify(msg){let n=document.getElementById("saveNote");if(!n){n=document.createElement("div");n.id="saveNote";n.className="save-note";document.body.appendChild(n)}n.textContent=msg;clearTimeout(window.__saveNoteTimer);window.__saveNoteTimer=setTimeout(()=>n.remove(),1800)}
-function saveSection(section){const m=current();addHistory(m,`Guardar ${section}`,"Pendiente","Guardado");persist();notify(`${section} guardado`);render()}
+function compactMeeting(m){return {id:m.id,clientSlug:m.clientSlug,client:m.client,date:m.date,time:m.time,company:m.company,contact:m.contact,role:m.role,email:m.email,phone:m.phone,country:m.country,industry:m.industry,sdr:m.sdr,status:m.status,cp:m.cp,clientVal:m.clientVal,final:m.final,caseStatus:m.caseStatus,info:m.info,icp:m.icp,bant:m.bant,just:m.just,notes:m.notes,next:m.next,clientReason:m.clientReason,clientComment:m.clientComment,clientActor:m.clientActor,cpResponse:m.cpResponse,finalReason:m.finalReason,finalInternalNote:m.finalInternalNote}}
+function encodePayload(payload){return btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+async function saveMeeting(m,section,silent=false){if(!m||!m.id||!m.clientSlug){if(!silent)notify("No se pudo guardar: falta cliente o reunion");return false}try{if(!silent)notify("Guardando...");const qs=encodePayload({section,meeting:compactMeeting(m)});const res=await fetch(`${saveEndpoint}?cp_save=${qs}`,{method:"GET",credentials:"include",cache:"no-store"});const data=await res.json().catch(()=>({ok:false}));if(!res.ok||!data.ok)throw new Error(data.error||data.tracking_error||"No fue posible guardar");if(!silent)notify(`${section} guardado`);return true}catch(err){console.error(err);notify(`Error al guardar: ${err.message||err}`);return false}}
+function saveSection(section){const m=current();addHistory(m,`Guardar ${section}`,"Pendiente","Guardado");persist();saveMeeting(m,section);render()}
 function buildClientTimeline(m){const items=[{when:"Pendiente inicial",actor:"Portal cliente",status:"Pendiente",reason:"",comment:"Esperando accion del cliente"}];if(m.clientVal&&m.clientVal!=="Pendiente"){items.push({when:m.clientDate||"Sin fecha registrada",actor:m.clientActor||m.contact||"Cliente",status:m.clientVal,reason:m.clientReason||"",comment:m.clientComment||""})}if(m.cpResponse){items.push({when:"Respuesta interna",actor:"Conprospeccion",status:"Respuesta enviada",reason:"",comment:m.cpResponse})}return items}
 function finalAlert(m){if(finalStatus(m)==="Pendiente")return"Estado final pendiente de cierre administrativo por Conprospeccion";return""}
 function operationalAlert(m){if(m.clientVal==="Solicitar revision")return"Cliente solicito revision: requiere respuesta interna";if(m.status==="Reunion cancelada")return"Registrar motivo de cancelacion y evaluar CP si corresponde";if(m.status==="Reagendar reunion")return"Registrar nueva fecha y evaluar CP si corresponde";if(m.cp!=="Pendiente"&&finalStatus(m)==="Pendiente")return"Evaluacion lista, caso aun sin cierre administrativo";return"Sin alertas operativas"}
@@ -440,7 +660,7 @@ function current(){return meetings.find(m=>m.id===selected)||meetings[0]}
 function addHistory(m,field,from,to){if(JSON.stringify(from)===JSON.stringify(to))return;m.history=m.history||[];m.history.unshift({when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field,from,to})}
 function labelField(f){return {status:"Etapa Agenda",cp:"Evaluacion CP",clientVal:"Evaluacion Cliente",final:"Estado Final",caseStatus:"Estado del Caso",sdr:"SDR asignada",icp:"ICP",info:"Informacion reunion",just:"Justificacion CP",notes:"Notas internas",cpResponse:"Respuesta CP"}[f]||f}
 function recordClientEvent(m,field,from,to){if(JSON.stringify(from)===JSON.stringify(to))return;const status=field==="clientVal"?to:m.clientVal;const reason=field==="clientReason"?to:m.clientReason;const comment=field==="clientComment"?to:(field==="cpResponse"?`Respuesta CP: ${to}`:m.clientComment);m.clientTimeline=m.clientTimeline||[];m.clientTimeline.unshift({when:new Date().toLocaleString("es-CL"),actor:field==="cpResponse"?"Conprospeccion":(m.clientActor||m.contact||"Cliente"),status,reason:reason||"",comment:comment||""})}
-function setField(id,field,value){const m=meetings.find(x=>x.id===id);const old=m[field];m[field]=value;if(field==="status"&&value==="Reunion cancelada"){const oldCp=m.cp,oldClient=m.clientVal;m.cp="";m.clientVal="";addHistory(m,"Evaluacion CP",oldCp,"");addHistory(m,"Evaluacion Cliente",oldClient,"")}addHistory(m,labelField(field),old,value);if(["clientVal","clientReason","clientComment","clientEvidence","cpResponse"].includes(field)){recordClientEvent(m,field,old,value)}selected=id;panelOpen=true;if(field==="cp"&&value&&value!=="Pendiente")tab="Evaluacion CP";if(field==="status"&&["Reunion cancelada","Reagendar reunion"].includes(value))tab="Informacion";if(field==="final")tab="Estado Final";if(field==="clientVal")tab="Evaluacion Cliente";persist();render()}
+function setField(id,field,value){const m=meetings.find(x=>x.id===id);const old=m[field];m[field]=value;if(field==="status"&&value==="Reunion cancelada"){const oldCp=m.cp,oldClient=m.clientVal;m.cp="";m.clientVal="";addHistory(m,"Evaluacion CP",oldCp,"");addHistory(m,"Evaluacion Cliente",oldClient,"")}addHistory(m,labelField(field),old,value);if(["clientVal","clientReason","clientComment","clientEvidence","cpResponse"].includes(field)){recordClientEvent(m,field,old,value)}selected=id;panelOpen=true;if(field==="cp"&&value&&value!=="Pendiente")tab="Evaluacion CP";if(field==="status"&&["Reunion cancelada","Reagendar reunion"].includes(value))tab="Informacion";if(field==="final")tab="Estado Final";if(field==="clientVal")tab="Evaluacion Cliente";persist();saveMeeting(m,labelField(field),true);render()}
 function setFilter(k,v){filters[k]=v;if(k==="month"||k==="year"){Object.assign(filters,rangeForMonth(filters.year,filters.month))}syncDependent(k);render()}
 function syncDependent(k){if(k==="client"){const opts=optionSets(applyFilters({ignore:["sdr","country","status","cp","clientVal","final","caseStatus"]}));["sdr","country","status","cp","clientVal","final","caseStatus"].forEach(f=>{if(filters[f]!=="Todos"&&!opts[f].includes(filters[f]))filters[f]="Todos"})}}
 function toggleMore(){more=!more;render()}
@@ -472,7 +692,7 @@ function infoSection(title,body){return `<section class="info-section"><h3 class
 function infoTab(m){let ctx="";if(m.status==="Reunion cancelada")ctx=`<div class="context"><b>Cancelacion</b><div class="grid">${selectField("cancelWho","Quien cancelo",cancellationActors)}${field("cancelReason","Motivo")}${field("cancelComment","Comentario","textarea")}</div><div class="btn-row"><button class="primary" onclick="saveSection('Cancelacion')">Guardar cancelacion</button></div></div>`;if(m.status==="Reagendar reunion")ctx=`<div class="context"><b>Reagendar reunion</b><div class="grid">${selectField("rescheduleWho","Quien solicita",cancellationActors)}${selectField("rescheduleReason","Motivo",rescheduleReasons)}${field("rescheduleOld","Fecha anterior")}${field("rescheduleNew","Nueva fecha")}${field("rescheduleComment","Comentario","textarea")}</div><div class="btn-row"><button class="primary" onclick="saveSection('Reagendamiento')">Guardar reagendamiento</button></div></div>`;return ctx+infoSection("Empresa",`${field("company","Nombre de empresa")}${field("industry","Industria")}${field("country","Pais")}${field("website","Sitio web")}${field("linkedinCompany","LinkedIn empresa")}${field("companyInfo","Informacion adicional empresa","textarea")}`)+infoSection("Contacto",`${field("contact","Nombre del contacto")}${field("role","Cargo")}${field("email","Correo electronico")}${field("phone","Telefono")}${field("linkedin","LinkedIn")}${field("contactInfo","Informacion adicional contacto","textarea")}`)+infoSection("Reunion",`${field("date","Fecha")}${field("time","Hora")}${field("sdr","SDR asignada")}${field("sourceChannel","Canal de origen")}${field("meet","Enlace reunion")}${field("ghlContact","Contacto GHL")}${field("ghlOpp","Oportunidad GHL")}${field("info","Informacion de preparacion","textarea")}${field("operationalNotes","Observaciones operativas","textarea")}`)+`<div class="btn-row"><button class="primary" onclick="saveSection('Informacion')">Guardar informacion</button></div>`}
 function cpTab(m){return `<div class="grid"><div class="field2"><label>Evaluacion CP</label><select onchange="setField(${m.id},'cp',this.value)">${opt(cps,m.cp)}</select></div><div class="field2"><label>ICP</label><select onchange="setField(${m.id},'icp',this.value)">${opt(["No evaluado","Cumple","No cumple"],m.icp)}</select></div><div class="wide"><span class="block-title">BANT</span><div class="evidence">${Object.keys(m.bant).map(k=>`<label class="evi"><input type="checkbox" ${m.bant[k]?"checked":""} onchange="const m=current();const old={...m.bant};m.bant['${k}']=this.checked;addHistory(m,'BANT',old,{...m.bant});persist();render()"> ${k}<small>${m.bant[k]?"Si":"No"}</small></label>`).join("")}</div></div>${field("just","Justificacion visible al cliente","textarea")}${field("notes","Nota interna Conprospeccion","textarea")}</div><span class="block-title" style="margin-top:12px">Evidencias</span><div class="evidence">${m.evidence.map(e=>`<div class="evi">${e.valid?"OK ":""}${esc(e.type)}<small>${esc(e.name)}</small></div>`).join("")||""}<button class="ghost" onclick="addEvidence('Archivo')">Subir archivo</button><button class="ghost" onclick="addEvidence('Enlace')">Pegar enlace</button><button class="ghost" onclick="addEvidence('Comentario')">Agregar comentario</button></div><div class="btn-row"><button class="primary" onclick="saveSection('Evaluacion CP')">Guardar Evaluacion CP</button></div>`}
 function clientTimeline(m){const items=(m.clientTimeline&&m.clientTimeline.length?m.clientTimeline:buildClientTimeline(m));return `<span class="block-title" style="margin-top:12px">Seguimiento cliente</span><div class="timeline">${items.map(i=>`<div class="tl"><small>${esc(i.when)} - ${esc(i.actor||"Cliente")}</small><b>${esc(i.status||"Pendiente")}</b>${i.reason?`<div>Motivo: ${esc(i.reason)}</div>`:""}${i.comment?`<div>${esc(i.comment)}</div>`:""}</div>`).join("")}</div>`}
-function clientTab(m){const revision=m.clientVal==="Solicitar revision";return `<div class="read"><p><b>Estado actual:</b> ${esc(m.clientVal)}</p><p><b>Ultima accion:</b> ${esc(m.clientDate)||"Sin fecha registrada"}</p><p><b>Contacto cliente:</b> ${esc(m.clientActor||m.contact)||"Sin contacto registrado"}</p><p><b>Motivo:</b> ${esc(m.clientReason)||"Sin motivo registrado"}</p><p><b>Comentario:</b> ${esc(m.clientComment)||"Sin comentario registrado"}</p></div><div class="grid" style="margin-top:12px"><div class="field2"><label>Evaluacion Cliente</label><select onchange="setField(${m.id},'clientVal',this.value)">${opt(clientVals,m.clientVal)}</select></div><div class="field2"><label>Contacto que acciono</label><input value="${esc(m.clientActor||m.contact||"")}" onchange="setField(${m.id},'clientActor',this.value)"></div>${revision?`<div class="field2"><label>Motivo revision</label><select onchange="setField(${m.id},'clientReason',this.value)">${opt(clientRevisionReasons,m.clientReason)}</select></div>`:""}${field("clientComment","Comentario cliente","textarea")}${field("clientEvidence","Evidencia cliente")}</div>${clientTimeline(m)}<div class="field2 wide" style="margin-top:12px"><label>Respuesta de Conprospeccion</label><textarea onchange="setField(${m.id},'cpResponse',this.value)">${esc(m.cpResponse)}</textarea></div><div class="btn-row"><button class="primary" onclick="saveSection('Evaluacion Cliente')">Guardar Evaluacion Cliente</button></div>`}
+function clientTab(m){const needsReason=["Solicitar revision","No valida","Confirmar"].includes(m.clientVal);const label=m.clientVal==="Solicitar revision"?"Motivo revision":"Motivo / evidencia interna";return `<div class="read"><p><b>Estado actual:</b> ${esc(m.clientVal)}</p><p><b>Ultima accion:</b> ${esc(m.clientDate)||"Sin fecha registrada"}</p><p><b>Contacto cliente:</b> ${esc(m.clientActor||m.contact)||"Sin contacto registrado"}</p><p><b>Motivo:</b> ${esc(m.clientReason)||"Sin motivo registrado"}</p><p><b>Comentario:</b> ${esc(m.clientComment)||"Sin comentario registrado"}</p></div><div class="grid" style="margin-top:12px"><div class="field2"><label>Evaluacion Cliente</label><select onchange="setField(${m.id},'clientVal',this.value)">${opt(clientVals,m.clientVal)}</select></div><div class="field2"><label>Contacto / responsable de accion</label><input value="${esc(m.clientActor||m.contact||"Conprospeccion")}" onchange="setField(${m.id},'clientActor',this.value)"></div>${needsReason?`<div class="field2"><label>${label}</label><select onchange="setField(${m.id},'clientReason',this.value)">${opt(["","Cliente confirmo en reunion","Cliente no valida en reunion","Se hablo en reunion que es valida","Evidencia en grabacion/transcripcion","Solicita revision","Otro"],m.clientReason)}</select></div>`:""}${field("clientComment","Porque / comentario de respaldo","textarea")}${field("clientEvidence","Evidencia cliente o reunion")}</div>${clientTimeline(m)}<div class="field2 wide" style="margin-top:12px"><label>Respuesta de Conprospeccion</label><textarea onchange="setField(${m.id},'cpResponse',this.value)">${esc(m.cpResponse)}</textarea></div><div class="btn-row"><button class="primary" onclick="saveSection('Evaluacion Cliente')">Guardar Evaluacion Cliente</button></div>`}
 function finalTab(m){const alert=operationalAlert(m);const fAlert=finalAlert(m);return `<div class="grid"><div class="field2"><label>Estado Final</label><select onchange="setField(${m.id},'final',this.value)">${opt(finalOptions,finalStatus(m))}</select><span class="sub">Vista actual: ${esc(finalDisplay(m))}</span></div><div class="field2"><label>Estado del Caso</label><select onchange="setField(${m.id},'caseStatus',this.value)">${opt(caseStatusOptions,m.caseStatus)}</select></div>${fAlert?`<div class="field2 wide"><label>Alerta final</label><input value="${esc(fAlert)}" readonly></div>`:""}${alert&&alert!=="Sin alertas operativas"?`<div class="field2 wide"><label>Alerta operativa</label><input value="${esc(alert)}" readonly></div>`:""}${field("finalReason","Motivo Final","textarea")}${field("finalClientText","Texto visible al cliente","textarea")}${field("finalInternalNote","Nota interna","textarea")}</div><div class="btn-row"><button class="primary" onclick="saveSection('Estado Final')">Guardar Estado Final</button></div>`}
 function historySource(h){if(h.manual)return"Nota manual";if(String(h.user||"").toLowerCase().includes("cliente"))return"Cliente";if(String(h.user||"").toLowerCase().includes("ghl")||String(h.user||"").toLowerCase().includes("sistema"))return"Sistema";return"Conprospeccion"}
 function historyText(h){if(h.description)return esc(h.description);const from=typeof h.from==="undefined"?"":JSON.stringify(h.from);const to=typeof h.to==="undefined"?"":JSON.stringify(h.to);return `${esc(from)} -> ${esc(to)}`}
