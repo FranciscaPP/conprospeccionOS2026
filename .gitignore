@@ -51,3 +51,4 @@ whatsapp_check/
 tsconfig.tsbuildinfo
 preview-premium.html
 *.pdf
+.superpowers/

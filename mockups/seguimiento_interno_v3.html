@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguimiento Interno v3 — mockup (réplica página 12)</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#ffffff; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#0f172a; }
+  .wrap { max-width:1180px; margin:0 auto; padding:18px 22px 60px; }
+  .scrim { position:fixed; inset:0; background:rgba(15,23,42,.18); z-index:40; }
+  /* drawer */
+  .drawer { position:fixed; top:0; right:0; width:560px; max-width:100vw; height:100vh; background:#fff;
+            box-shadow:-8px 0 24px rgba(15,23,42,.18); border-radius:16px 0 0 16px; overflow-y:auto;
+            z-index:50; padding:20px 22px; }
+  .sec { font-size:15px; font-weight:850; color:#7c3aed; margin:17px 0 8px; padding-bottom:6px; border-bottom:1px solid #e9d5ff; }
+  .edit { background:#eef2ff; color:#3730a3; border-radius:5px; padding:1px 7px; font-size:10px; font-weight:800; vertical-align:middle; }
+  .dl { display:grid; grid-template-columns:96px minmax(0,1fr); gap:8px; padding:3px 0; font-size:12px; }
+  .dl span.k { color:#64748b; } .dl span.v { font-weight:600; color:#0f172a; }
+  select.ctrl, textarea.ctrl, input.ctrl { width:100%; border:1px solid #cbd5e1; border-radius:7px; padding:7px 9px; font-size:12px; font-family:inherit; background:#fff; }
+  textarea.ctrl { resize:vertical; min-height:54px; }
+  .lbl { font-size:10px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:#94a3b8; margin:8px 0 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== HEADER (idéntico a render_header pág.12, adaptado a interno) ===== -->
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:20px;
+       background:linear-gradient(135deg,#faf5ff,#ede9fe);border:1px solid #ddd6fe;border-radius:12px;
+       padding:13px 22px;margin-bottom:14px">
+    <div>
+      <div style="font-size:20px;font-weight:800;color:#1e293b;line-height:1.1">Seguimiento de reuniones · Interno</div>
+      <div style="font-size:12px;color:#64748b;margin-top:3px">El equipo evalúa cada reunión; el cliente valida en su portal; la validez final sincroniza ambos.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span style="font-size:12px;font-weight:800;color:#7c3aed">3 clientes activos · GBS · Clickie · BambuTech</span>
+    </div>
+  </div>
+
+  <!-- ===== KPI PILLS (idéntico render_kpis) ===== -->
+  <div style="display:flex;gap:10px;margin-bottom:6px">
+    <button style="flex:1;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:8px;min-height:62px;text-align:left;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer">Total reuniones<br>128</button>
+    <button style="flex:1;background:#f0fdf4;border:1px solid #86efac;color:#166534;border-radius:8px;min-height:62px;text-align:left;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 0 0 2px #16653455">Válidas<br>71</button>
+    <button style="flex:1;background:#fef9c3;border:1px solid #fde047;color:#a16207;border-radius:8px;min-height:62px;text-align:left;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer">Pendiente CP<br>14</button>
+    <button style="flex:1;background:#ede9fe;border:1px solid #c4b5fd;color:#6d28d9;border-radius:8px;min-height:62px;text-align:left;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer">Pendiente cliente<br>9</button>
+    <button style="flex:1;background:#ecfeff;border:1px solid #a5f3fc;color:#0e7490;border-radius:8px;min-height:62px;text-align:left;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer">En revisión<br>5</button>
+    <button style="flex:1;background:#fff7ed;border:1px solid #fdba74;color:#9a3412;border-radius:8px;min-height:62px;text-align:left;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer">Reagenda<br>7</button>
+    <button style="flex:1;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:8px;min-height:62px;text-align:left;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer">No válidas<br>22</button>
+  </div>
+
+  <!-- ===== AVANCE DE META por cliente (mismo estilo de la barra de la pág.12) ===== -->
+  <div style="display:flex;gap:14px;margin:7px 2px 14px;flex-wrap:wrap">
+    <div style="flex:1;min-width:240px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:13px;font-weight:800;color:#5b21b6;white-space:nowrap;width:78px">GBS</span>
+      <div style="height:6px;flex:1;background:#ede9fe;border-radius:6px;overflow:hidden"><div style="height:6px;width:73%;background:#7c3aed;border-radius:6px"></div></div>
+      <span style="font-size:12px;font-weight:800;color:#6d28d9;white-space:nowrap">33/45 (73%)</span>
+    </div>
+    <div style="flex:1;min-width:240px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:13px;font-weight:800;color:#78350f;white-space:nowrap;width:78px">Clickie</span>
+      <div style="height:6px;flex:1;background:#fef9c3;border-radius:6px;overflow:hidden"><div style="height:6px;width:83%;background:#f59e0b;border-radius:6px"></div></div>
+      <span style="font-size:12px;font-weight:800;color:#a16207;white-space:nowrap">5/6 mes (83%)</span>
+    </div>
+    <div style="flex:1;min-width:240px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:13px;font-weight:800;color:#166534;white-space:nowrap;width:78px">BambuTech</span>
+      <div style="height:6px;flex:1;background:#dcfce7;border-radius:6px;overflow:hidden"><div style="height:6px;width:84%;background:#16a34a;border-radius:6px"></div></div>
+      <span style="font-size:12px;font-weight:800;color:#166534;white-space:nowrap">84/100 (84%)</span>
+    </div>
+  </div>
+
+  <!-- ===== FILTROS (idéntico filter_cols pág.12 + Cliente) ===== -->
+  <div style="display:flex;gap:10px;margin-bottom:12px">
+    <input class="ctrl" style="flex:3.2" placeholder="Buscar empresa, contacto o cargo">
+    <input class="ctrl" style="flex:2.2" value="01/06/2026 — 30/06/2026">
+    <select class="ctrl" style="flex:2"><option>Cliente · Todo</option></select>
+    <select class="ctrl" style="flex:2.2"><option>Etapa de agenda</option></select>
+    <select class="ctrl" style="flex:2.6"><option>Estatus de validación</option></select>
+    <button class="ctrl" style="flex:1.1;background:#7c3aed;color:#fff;border-color:#7c3aed;font-weight:700;cursor:pointer">Actualizar</button>
+  </div>
+
+  <!-- ===== TABLA (idéntico tabla_reuniones pág.12 + columnas Cliente y SDR) ===== -->
+  <div style="display:grid;grid-template-columns:0.9fr 0.9fr 0.95fr 1.55fr 1.3fr 1.3fr 1.5fr 1.7fr 0.9fr;gap:8px;
+       background:linear-gradient(90deg,#4c1d95,#7c3aed);color:#fff;padding:10px 14px;border-radius:10px;
+       font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;z-index:10">
+    <span>Fecha ↓</span><span>Cliente</span><span>SDR</span><span>Empresa</span><span>Contacto</span><span>Cargo</span><span>Etapa de agenda</span><span>Estatus validación</span><span></span>
+  </div>
+  <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px">
+
+    <!-- fila 1 -->
+    <div class="row" style="display:grid;grid-template-columns:0.9fr 0.9fr 0.95fr 1.55fr 1.3fr 1.3fr 1.5fr 1.7fr 0.9fr;gap:8px;padding:11px 14px;align-items:center;border-bottom:1px solid #f1f5f9">
+      <div><div style="font-size:14px;font-weight:750">12 jun</div><div style="font-size:13px;color:#64748b">10:30</div></div>
+      <span style="background:#ede9fe;color:#5b21b6;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:700;justify-self:start">GBS</span>
+      <span style="background:#fce7f3;color:#9d174d;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:600;justify-self:start">Yanina</span>
+      <div style="font-size:14px;font-weight:750">Acme SpA</div>
+      <div style="font-size:14px;color:#334155">Juan Pérez</div>
+      <div style="font-size:14px;color:#334155">Gerente Ops</div>
+      <span style="background:#ccfbf1;color:#0f766e;padding:6px 11px;border-radius:9px;font-size:13px;font-weight:800;justify-self:start">Reunión realizada</span>
+      <span style="background:#bbf7d0;color:#14532d;padding:6px 11px;border-radius:9px;font-size:13px;font-weight:800;justify-self:start">Evaluación cerrada · Válida</span>
+      <button style="background:#fff;border:1px solid #cbd5e1;border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;cursor:pointer">Ver detalle</button>
+    </div>
+
+    <!-- fila 2 (la que está abierta en el drawer) -->
+    <div class="row" style="display:grid;grid-template-columns:0.9fr 0.9fr 0.95fr 1.55fr 1.3fr 1.3fr 1.5fr 1.7fr 0.9fr;gap:8px;padding:11px 14px;align-items:center;border-bottom:1px solid #f1f5f9;background:#faf5ff">
+      <div><div style="font-size:14px;font-weight:750">12 jun</div><div style="font-size:13px;color:#64748b">16:00</div></div>
+      <span style="background:#dcfce7;color:#166534;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:700;justify-self:start">BambuTech</span>
+      <span style="background:#fee2e2;color:#991b1b;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:600;justify-self:start">Sin asignar</span>
+      <div style="font-size:14px;font-weight:750">Logística Sur</div>
+      <div style="font-size:14px;color:#334155">Ana Díaz</div>
+      <div style="font-size:14px;color:#334155">Jefa Ops</div>
+      <span style="background:#ccfbf1;color:#0f766e;padding:6px 11px;border-radius:9px;font-size:13px;font-weight:800;justify-self:start">Reunión realizada</span>
+      <span style="background:#fef9c3;color:#a16207;padding:6px 11px;border-radius:9px;font-size:13px;font-weight:800;justify-self:start">Pendiente evaluación CP</span>
+      <button style="background:#7c3aed;border:1px solid #7c3aed;color:#fff;border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;cursor:pointer">Ver detalle</button>
+    </div>
+
+    <!-- fila 3 -->
+    <div class="row" style="display:grid;grid-template-columns:0.9fr 0.9fr 0.95fr 1.55fr 1.3fr 1.3fr 1.5fr 1.7fr 0.9fr;gap:8px;padding:11px 14px;align-items:center">
+      <div><div style="font-size:14px;font-weight:750">11 jun</div><div style="font-size:13px;color:#64748b">09:00</div></div>
+      <span style="background:#fef08a;color:#78350f;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:700;justify-self:start">Clickie</span>
+      <span style="background:#dbeafe;color:#1e40af;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:600;justify-self:start">Mariela</span>
+      <div style="font-size:14px;font-weight:750">RetailCo</div>
+      <div style="font-size:14px;color:#334155">Luis Soto</div>
+      <div style="font-size:14px;color:#334155">Dueño</div>
+      <span style="background:#ffedd5;color:#9a3412;padding:6px 11px;border-radius:9px;font-size:13px;font-weight:800;justify-self:start">Reagendar</span>
+      <span style="background:#cffafe;color:#0e7490;padding:6px 11px;border-radius:9px;font-size:13px;font-weight:800;justify-self:start">Cliente solicita revisión</span>
+      <button style="background:#fff;border:1px solid #cbd5e1;border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;cursor:pointer">Ver detalle</button>
+    </div>
+
+  </div>
+  <p style="font-size:12px;color:#64748b;margin-top:16px">↑ Vista principal: idéntica a GBS Validación Reuniones (pág. 12). Lo único nuevo: columnas <b>Cliente</b> y <b>SDR</b>, filtro Cliente, y la barra de avance separada por cliente. El drawer de la derecha es lo que abre "Ver detalle".</p>
+
+</div>
+
+<!-- ===== SCRIM + DRAWER EDITABLE (sección 5 cliente → editable interno) ===== -->
+<div class="scrim"></div>
+<div class="drawer">
+  <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#334155;margin-bottom:4px">
+    <span style="width:9px;height:9px;border-radius:50%;background:#16a34a"></span>
+    <span style="background:#ccfbf1;color:#0f766e;padding:4px 9px;border-radius:9px">Reunión realizada</span>
+    <span style="background:#fef9c3;color:#a16207;padding:4px 9px;border-radius:9px">Pendiente evaluación CP</span>
+    <span>· Jue 12 de junio 2026 · 16:00</span>
+  </div>
+
+  <!-- banner validez final (banner_final) -->
+  <div style="background:#fef9c3;border-left:5px solid #854d0e;border-radius:10px;padding:12px 18px;margin:8px 0 4px">
+    <div style="font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#854d0e;opacity:.7">Validez final</div>
+    <div style="font-size:22px;font-weight:800;color:#854d0e;line-height:1.15">Pendiente</div>
+    <div style="font-size:11px;color:#854d0e;opacity:.7">Definida por la evaluación Conprospección y la respuesta del cliente</div>
+  </div>
+
+  <div class="sec">1. Contacto y empresa</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div>
+      <div class="dl"><span class="k">Empresa</span><span class="v">Logística Sur</span></div>
+      <div class="dl"><span class="k">Contacto</span><span class="v">Ana Díaz</span></div>
+      <div class="dl"><span class="k">Cargo</span><span class="v">Jefa de Operaciones</span></div>
+      <div class="dl"><span class="k">Email</span><span class="v">ana@logsur.cl</span></div>
+    </div>
+    <div>
+      <div class="dl"><span class="k">País</span><span class="v">Chile</span></div>
+      <div class="dl"><span class="k">Website</span><span class="v" style="color:#7c3aed">Abrir sitio ↗</span></div>
+      <div class="dl"><span class="k">Fecha</span><span class="v">Jue 12 jun 2026</span></div>
+      <div class="dl"><span class="k">Link reunión</span><span class="v" style="color:#7c3aed">Unirse ↗</span></div>
+    </div>
+  </div>
+
+  <div class="sec">2. Información para reunión <span class="edit">EDITABLE</span></div>
+  <textarea class="ctrl" placeholder="Si GHL no la trajo, complétala aquí…">Empresa de logística regional; busca optimizar última milla. Interesada en integración con su WMS.</textarea>
+
+  <div class="sec">3. Evaluación Conprospección <span class="edit">EDITABLE</span></div>
+  <!-- ICP -->
+  <div style="border:1px solid #86efac;background:#f0fdf4;border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:82px 1fr;gap:14px;align-items:start">
+    <div><div style="font-size:12px;font-weight:850;color:#7c3aed;margin-bottom:5px">ICP</div><div style="font-size:15px;font-weight:850;color:#166534">Cumple</div></div>
+    <div style="font-size:11px;color:#475569;line-height:1.45">Chile · Retail / Logística · 51-200 empleados · Jefatura de Operaciones / Supply Chain.</div>
+  </div>
+  <div class="lbl">Validez del equipo (tu evaluación)</div>
+  <select class="ctrl"><option>En espera</option><option>Válida</option><option>No válida</option><option>Requiere revisión</option></select>
+  <!-- BANT editable -->
+  <div style="border:1px solid #ddd6fe;background:#fff;border-radius:10px;padding:11px 12px;margin-top:9px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px"><div style="font-size:12px;font-weight:850;color:#7c3aed">Variables BANT <span class="edit">EDITABLE</span></div><div style="font-size:11px;font-weight:750;color:#64748b">2 de 4</div></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;font-size:11px;font-weight:850">
+      <div style="background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:8px;padding:7px">B · Budget<br><span style="font-size:10px;color:#16a34a">✓ marcada</span></div>
+      <div style="background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:8px;padding:7px">A · Authority<br><span style="font-size:10px;color:#16a34a">✓ marcada</span></div>
+      <div style="background:#f8fafc;border:1px dashed #94a3b8;color:#64748b;border-radius:8px;padding:7px">N · Need<br><span style="font-size:10px">+ agregar</span></div>
+      <div style="background:#f8fafc;border:1px dashed #94a3b8;color:#64748b;border-radius:8px;padding:7px">T · Timing<br><span style="font-size:10px">+ agregar</span></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:9px">
+    <div style="flex:1"><div class="lbl">Etapa de agenda</div><select class="ctrl"><option>Realizada</option><option>Agendada</option><option>Reagendada</option></select></div>
+    <div style="flex:1"><div class="lbl">Forzar validez final</div><select class="ctrl"><option>(automática)</option><option>Válida</option><option>No válida</option><option>En disputa</option><option>Excluida</option></select></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:9px">
+    <div style="flex:1"><div class="lbl">SDR asignado <span class="edit">EDITABLE</span></div>
+      <select class="ctrl" style="border-color:#fca5a5;background:#fef2f2"><option>⚠ Sin asignar — elige SDR</option><option>Yanina Olivo</option><option>Sebastián Gutiérrez</option><option>Mariela Tello</option></select></div>
+    <div style="flex:1"><div class="lbl">ICP</div><label style="display:flex;align-items:center;gap:7px;font-size:12px;padding:7px 0"><input type="checkbox" checked> Cumple ICP</label></div>
+  </div>
+
+  <div class="sec">4. Evidencia</div>
+  <div style="display:flex;gap:8px">
+    <button style="flex:1;background:#7c3aed;color:#fff;border:none;border-radius:7px;padding:8px;font-weight:700;cursor:pointer">Abrir grabación</button>
+    <button style="flex:1;background:#fff;border:1px solid #c4b5fd;color:#7c3aed;border-radius:7px;padding:8px;font-weight:700;cursor:pointer">Abrir transcripción</button>
+  </div>
+  <div style="display:grid;grid-template-columns:150px 1fr;gap:13px;background:#faf5ff;border:1px solid #d8b4fe;border-left:5px solid #7c3aed;border-radius:10px;padding:12px 14px;margin-top:8px">
+    <div style="font-size:12px;font-weight:850;color:#7c3aed;line-height:1.35">Confirmación<br>Conprospección</div>
+    <div style="font-size:12px;color:#475569;line-height:1.5">Reunión realizada; prospecto confirmó interés y presupuesto asignado para Q3.</div>
+  </div>
+
+  <div class="sec">5. Justificación y notas internas <span class="edit">EDITABLE</span></div>
+  <div class="lbl">Comentario visible al cliente</div>
+  <textarea class="ctrl" placeholder="Justificación de la validez…"></textarea>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <div style="flex:1"><div class="lbl">Próximo paso (interno)</div><input class="ctrl" placeholder="Ej: enviar propuesta"></div>
+    <div style="flex:1"><div class="lbl">Notas internas (no las ve el cliente)</div><input class="ctrl"></div>
+  </div>
+
+  <div class="sec">6. Historial</div>
+  <div style="font-size:12px;color:#64748b;line-height:1.9">
+    <div>● 12/06/2026 · 16:00 — Reunión agendada</div>
+    <div>● 12/06/2026 · 16:00 — Reunión realizada</div>
+    <div>● — Pendiente evaluación CP</div>
+  </div>
+
+  <button style="width:100%;background:#7c3aed;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:800;font-size:14px;margin-top:16px;cursor:pointer">Guardar evaluación</button>
+</div>
+</body>
+</html>
