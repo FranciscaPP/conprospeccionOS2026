@@ -456,8 +456,8 @@ POC_HTML = POC_HTML.replace(
     'function defaultRange(){const ds=meetings.map(m=>parseDate(m.date)).filter(Boolean).sort();if(ds.length)return {dateFrom:ds[0],dateTo:ds[ds.length-1]};const now=new Date();const first=new Date(now.getFullYear(),now.getMonth(),1);const last=new Date(now.getFullYear(),now.getMonth()+1,0);return {dateFrom:iso(first),dateTo:iso(last)}}',
 )
 POC_HTML = POC_HTML.replace(
-    'const clientGoals={GBS:45,Clickie:6,BambuTech:100};',
-    'const clientGoals=Object.fromEntries(meetings.map(m=>[m.client,m.goal||0]));',
+    "const goal=clientGoals[code]||0;",
+    "const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);",
 )
 
 components.html(POC_HTML, height=960, scrolling=True)
