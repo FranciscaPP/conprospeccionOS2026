@@ -196,7 +196,7 @@ def normalize_event(
         "ghl_owner_user_id": owner_id,
         "location_id": pick(event, "locationId") or client["ghl_location_id"],
         "titulo": pick(event, "title", "eventTitle", "name"),
-        "empresa": pick(event, "companyName") or contact.get("nombre_empresa") or company_from_title(pick(event, "title", "eventTitle", "name"), client["nombre"]),
+        "empresa": pick(event, "companyName") or company_from_title(pick(event, "title", "eventTitle", "name"), client["nombre"]) or contact.get("nombre_empresa"),
         "contacto": pick(event, "contactName", "contact_name") or contact.get("nombre_contacto") or contact.get("nombre") or contact_name_from_email(raw_email),
         "telefono": pick(event, "phone") or contact.get("telefono"),
         "email": pick(event, "email") or contact.get("email"),

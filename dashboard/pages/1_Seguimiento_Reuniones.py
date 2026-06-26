@@ -71,36 +71,45 @@ def _time_12(value):
 def _status_label(row, seg):
     raw = f"{_txt(seg.get('status_reunion'))} {_txt(row.get('estado_reunion'))}".lower()
     if "reagend" in raw:
-        return "Reagendar reunion"
+        return "Reagendar reunión"
     if "cancel" in raw or "no_asist" in raw:
-        return "Reunion cancelada"
+        return "Reunión cancelada"
     if "realiz" in raw or "completed" in raw or "valid" in raw or "valid" in raw:
-        return "Reunion realizada"
+        return "Reunión realizada"
     try:
         d = datetime.date.fromisoformat(str(row.get("fecha") or "")[:10])
-        return "Reunion futura" if d >= datetime.date.today() else "Reunion realizada"
+        if d > datetime.date.today():
+            return "Reunión futura"
+        if d < datetime.date.today():
+            return "Reunión realizada"
+        raw_time = _txt(row.get("hora"))
+        if raw_time:
+            parts = raw_time.split(":")
+            meeting_time = datetime.time(int(parts[0]), int(parts[1]) if len(parts) > 1 else 0)
+            return "Reunión realizada" if meeting_time <= datetime.datetime.now().time() else "Reunión futura"
+        return "Reunión futura"
     except Exception:
-        return "Reunion futura"
+        return "Reunión futura"
 
 
 def _cp_label(row, seg):
     value = _txt(seg.get("val_estado_cp")) or _txt(row.get("estado_validacion"))
     value = value.lower()
     if value in {"valida", "reunion_valida"}:
-        return "Valida"
+        return "Válida"
     if value in {"no_valida", "reunion_no_valida", "cancelacion"}:
-        return "No valida"
+        return "No válida"
     return "Pendiente"
 
 
 def _client_val_label(seg):
     value = _txt(seg.get("val_estado_cli")).lower()
     if value in {"valida", "confirmar", "confirmada", "confirmado"}:
-        return "Confirmar"
+        return "Válida"
     if value in {"no_valida", "no valida", "rechazada"}:
-        return "No valida"
+        return "No válida"
     if value in {"requiere_revision", "solicitar_revision", "solicita_revision"}:
-        return "Solicitar revision"
+        return "Solicita revisión"
     return "Pendiente"
 
 
@@ -114,23 +123,23 @@ def _sdr_display(slug, sdr_names):
 def _final_label(seg):
     value = _txt(seg.get("val_estado_final")).lower()
     if value in {"valida", "reunion_valida"}:
-        return "Reunion valida"
+        return "Reunión válida"
     if value in {"no_valida", "reunion_no_valida"}:
-        return "Reunion no valida"
+        return "Reunión no válida"
     if value in {"cancelacion", "cancelada"}:
-        return "Reunion cancelada"
+        return "Reunión cancelada"
     if value in {"reagendar", "reagendada"}:
-        return "Reagendar reunion"
+        return "Reagendar reunión"
     return "Pendiente"
 
 
 def _case_status(cp, client_val, final):
     if final != "Pendiente":
         return "Cerrado"
-    if client_val == "Solicitar revision":
-        return "En revision"
+    if client_val == "Solicita revisión":
+        return "En revisión"
     if cp == "Pendiente":
-        return "En evaluacion CP"
+        return "En evaluación CP"
     if client_val == "Pendiente":
         return "Esperando cliente"
     return "Abierto"
@@ -148,13 +157,67 @@ def _bant(value):
 
 def _evidence(row, seg):
     ev = []
-    if _txt(row.get("recording_url")) or _txt(seg.get("recording_url")):
-        ev.append({"type": "Grabacion", "name": "Grabacion disponible", "valid": True})
-    if _txt(row.get("transcript_url")) or _txt(seg.get("transcript_url")):
-        ev.append({"type": "Transcripcion", "name": "Transcripcion disponible", "valid": True})
-    if _txt(row.get("ai_summary")) or _txt(seg.get("ai_summary")) or _txt(row.get("ai_evidence")) or _txt(seg.get("ai_evidence")):
-        ev.append({"type": "Resumen IA", "name": "Resumen disponible", "valid": True})
+    recording = _txt(row.get("recording_url")) or _txt(seg.get("recording_url"))
+    transcript = _txt(row.get("transcript_url")) or _txt(seg.get("transcript_url"))
+    summary = _txt(row.get("ai_summary")) or _txt(seg.get("ai_summary"))
+    ai_evidence = _txt(row.get("ai_evidence")) or _txt(seg.get("ai_evidence"))
+    if recording:
+        ev.append({"type": "Grabación", "name": "Abrir grabación", "url": recording, "valid": True})
+    if transcript:
+        ev.append({"type": "Transcripción", "name": "Abrir transcripción", "url": transcript, "valid": True})
+    if summary:
+        ev.append({"type": "Resumen IA", "name": "Resumen disponible", "text": summary, "valid": True})
+    if ai_evidence:
+        ev.append({"type": "Evidencia IA", "name": "Evidencia detectada", "text": ai_evidence, "valid": True})
     return ev
+
+
+def _custom_field(custom_fields, *ids):
+    wanted = set(ids)
+    for field in custom_fields or []:
+        if field.get("id") in wanted and _txt(field.get("value")):
+            return _txt(field.get("value"))
+    return ""
+
+
+def _contact_enrichment(contact):
+    raw = contact.get("raw_data") or {}
+    fields = contact.get("custom_fields") or raw.get("customFields") or []
+    return {
+        "website": _txt(raw.get("website")),
+        "linkedin": _custom_field(fields, "iimkT4RjJWRONU2HcwbN"),
+        "linkedinCompany": _custom_field(fields, "SnRP2tiJlYfQOHBM3adE"),
+        "companySize": _custom_field(fields, "3uQfRamZN2ruaNg367XL"),
+        "sourceChannel": _custom_field(fields, "mipcTmLgax5URM1q3Mut") or _txt(raw.get("source")),
+        "companyInfo": _custom_field(fields, "x8bV5PXJ0MgJcmdMk9Bd", "uWCMW4RCrWDGlu02nMkp"),
+        "contactInfo": _custom_field(fields, "iZwhsMPoJZ5IgdcA3kYk", "Q6PFJIn4ETLXlgsKRwvx"),
+    }
+
+
+def _dt_sort_key(row):
+    date_part = _date_db(row.get("date")) or ""
+    time_part = _time_db(row.get("time")) or ""
+    return f"{date_part} {time_part}"
+
+
+def _dedupe_clickie_latest(rows):
+    latest = {}
+    output = []
+    for row in rows:
+        if row.get("clientSlug") != "clickie":
+            output.append(row)
+            continue
+        key = (
+            row.get("clientSlug"),
+            _txt(row.get("ghlContact")).lower()
+            or _txt(row.get("email")).lower()
+            or f"{_txt(row.get('company')).lower()}|{_txt(row.get('contact')).lower()}",
+        )
+        current = latest.get(key)
+        if current is None or _dt_sort_key(row) >= _dt_sort_key(current):
+            latest[key] = row
+    output.extend(latest.values())
+    return output
 
 
 def _decode_save_payload(raw):
@@ -167,33 +230,33 @@ def _decode_save_payload(raw):
 
 def _db_cp(value):
     value = _txt(value).lower()
-    if value == "valida":
+    if value in {"valida", "válida"}:
         return "valida"
-    if value == "no valida":
+    if value in {"no valida", "no válida"}:
         return "no_valida"
     return None
 
 
 def _db_cliente(value):
     value = _txt(value).lower()
-    if value == "confirmar":
+    if value in {"confirmar", "confirmada", "valida", "válida"}:
         return "valida"
-    if value == "no valida":
+    if value in {"no valida", "no válida"}:
         return "no_valida"
-    if value == "solicitar revision":
+    if value in {"solicitar revision", "solicita revision", "solicita revisión"}:
         return "requiere_revision"
     return None
 
 
 def _db_final(value):
     value = _txt(value).lower()
-    if value == "reunion valida":
+    if value in {"reunion valida", "reunión válida"}:
         return "valida"
-    if value == "reunion no valida":
+    if value in {"reunion no valida", "reunión no válida"}:
         return "no_valida"
-    if value == "reunion cancelada":
+    if value in {"reunion cancelada", "reunión cancelada"}:
         return "cancelacion"
-    if value == "reagendar reunion":
+    if value in {"reagendar reunion", "reagendar reunión"}:
         return "reagendar"
     return None
 
@@ -320,13 +383,13 @@ def _handle_save_request():
         "val_estado_cli": _db_cliente(meeting.get("clientVal")),
         "comentario_cli": _txt(meeting.get("clientComment")) or None,
         "motivo_no_validez": _txt(meeting.get("clientReason")) or None,
-        "validated_by_cli": _txt(meeting.get("clientActor")) or "Conprospeccion - override interno",
+        "validated_by_cli": _txt(meeting.get("clientActor")) or "Conprospección - override interno",
         "validated_cli_at": now if _db_cliente(meeting.get("clientVal")) else None,
         "proximo_paso": _txt(meeting.get("next")) or None,
         "comentario_final": _txt(meeting.get("finalReason")) or None,
         "val_estado_final": final_db,
         "final_override": bool(final_db),
-        "validated_final_by": "Conprospeccion" if final_db else None,
+        "validated_final_by": "Conprospección" if final_db else None,
         "validated_final_at": now if final_db else None,
         "flag_meta_countable": _flag_meta_countable(meeting.get("final")),
         "updated_at": now,
@@ -349,7 +412,15 @@ def _handle_save_request():
     track_response = _post_tracking(tracking_payload)
     base_response = _patch_meeting(reunion_id, base_payload)
     if track_response.ok and (base_response is None or base_response.ok):
-        _insert_history(reunion_id, section, f"{section} guardado desde panel interno")
+        manual = payload.get("manualHistory") or {}
+        if manual:
+            _insert_history(
+                reunion_id,
+                _txt(manual.get("field"), section),
+                _txt(manual.get("description")) or f"{section} guardado desde panel interno",
+            )
+        else:
+            _insert_history(reunion_id, section, f"{section} guardado desde panel interno")
         st.cache_data.clear()
         st.json({"ok": True})
     else:
@@ -385,12 +456,12 @@ def cargar_reuniones_reales_poc():
     )
     base_response = requests.get(
         f"{SUPABASE_URL}/rest/v1/reuniones"
-        "?select=id,ghl_contact_id,recording_url,transcript_url,ai_summary,ai_evidence,sdr_slug",
+        "?select=id,ghl_contact_id,fecha_agendada,recording_url,transcript_url,ai_summary,ai_evidence,sdr_slug",
         headers=SUPABASE_HEADERS,
         timeout=15,
     )
     contacts_response = requests.get(
-        f"{SUPABASE_URL}/rest/v1/contactos?select=ghl_contact_id,sdr_slug&cliente_slug=in.({slugs})",
+        f"{SUPABASE_URL}/rest/v1/contactos?select=ghl_contact_id,sdr_slug,raw_data,custom_fields&cliente_slug=in.({slugs})",
         headers=SUPABASE_HEADERS,
         timeout=15,
     )
@@ -411,11 +482,17 @@ def cargar_reuniones_reales_poc():
     if base_response.ok:
         base_meetings = {int(x["id"]): x for x in base_response.json() if x.get("id")}
     contact_sdr = {}
+    contact_extra = {}
     if contacts_response.ok:
         contact_sdr = {
             x["ghl_contact_id"]: x.get("sdr_slug")
             for x in contacts_response.json()
             if x.get("ghl_contact_id") and x.get("sdr_slug")
+        }
+        contact_extra = {
+            x["ghl_contact_id"]: _contact_enrichment(x)
+            for x in contacts_response.json()
+            if x.get("ghl_contact_id")
         }
     sdr_names = {}
     if sdr_response.ok:
@@ -430,7 +507,7 @@ def cargar_reuniones_reales_poc():
             histories.setdefault(mid, []).append(
                 {
                     "when": _txt(event.get("changed_at"))[:16].replace("T", " "),
-                    "user": _txt(event.get("changed_by"), "Conprospeccion"),
+                    "user": _txt(event.get("changed_by"), "Conprospección"),
                     "field": _txt(event.get("field_changed"), "Actualizacion"),
                     "from": event.get("old_value"),
                     "to": event.get("new_value"),
@@ -444,11 +521,12 @@ def cargar_reuniones_reales_poc():
             continue
         seg = tracking.get(int(rid), {})
         base_row = base_meetings.get(int(rid), {})
+        extra = contact_extra.get(row.get("ghl_contact_id"), {})
         slug = _txt(row.get("cliente_slug")).lower()
         status = _status_label(row, seg)
         cp = _cp_label(row, seg)
         client_val = _client_val_label(seg)
-        if status == "Reunion cancelada":
+        if status == "Reunión cancelada":
             if cp == "Pendiente":
                 cp = ""
             if client_val == "Pendiente":
@@ -467,6 +545,7 @@ def cargar_reuniones_reales_poc():
                 "clientSlug": slug,
                 "date": _date_es(row.get("fecha")),
                 "time": _time_12(row.get("hora")),
+                "scheduledDate": _date_es(base_row.get("fecha_agendada")),
                 "client": _client_label(slug, row.get("cliente")),
                 "company": _txt(row.get("empresa"), "-").title(),
                 "contact": _txt(row.get("contacto"), "-").title(),
@@ -481,8 +560,13 @@ def cargar_reuniones_reales_poc():
                 "phone": _txt(row.get("telefono")),
                 "country": _txt(row.get("pais")),
                 "industry": _txt(row.get("industria")),
-                "website": "",
-                "linkedin": "",
+                "website": extra.get("website", ""),
+                "linkedin": extra.get("linkedin", ""),
+                "linkedinCompany": extra.get("linkedinCompany", ""),
+                "companySize": extra.get("companySize", ""),
+                "sourceChannel": extra.get("sourceChannel", ""),
+                "companyInfo": extra.get("companyInfo", ""),
+                "contactInfo": extra.get("contactInfo", ""),
                 "ghlContact": _txt(row.get("ghl_contact_id")),
                 "ghlOpp": _txt(row.get("opportunity_id")),
                 "meet": "",
@@ -506,7 +590,8 @@ def cargar_reuniones_reales_poc():
                 "goal": int(meta["validas"]) if meta else 0,
             }
         )
-    rows.sort(key=lambda x: (x.get("date", ""), x.get("time", "")), reverse=True)
+    rows = _dedupe_clickie_latest(rows)
+    rows.sort(key=_dt_sort_key, reverse=True)
     return rows
 
 
@@ -540,18 +625,18 @@ button,input,select,textarea{font:inherit}
 .filters{padding:12px;display:grid;grid-template-columns:2fr .9fr .9fr 1.35fr .95fr .7fr;gap:10px}.extra{display:none;grid-template-columns:repeat(6,1fr);gap:10px;padding:0 12px 12px}.extra.open{display:grid}
 .field{height:38px;border:1px solid var(--line);border-radius:8px;background:var(--surface);display:flex;align-items:center;gap:8px;padding:0 11px;min-width:0;position:relative}.field label{position:absolute;top:-8px;left:9px;background:var(--surface);font-size:10px;color:var(--muted);font-weight:600;padding:0 4px}.field input,.field select{border:0;outline:0;background:transparent;width:100%;height:100%;color:var(--ink);font-size:12px}.field button{border:0;background:transparent;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:600;font-size:12px;color:var(--ink);cursor:pointer}.date-range{display:grid;grid-template-columns:1fr 1fr auto;gap:4px;align-items:center}.date-range input{font-size:11px}.clear-date{border:0;background:transparent;color:var(--muted);cursor:pointer}
 .active-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 12px 12px}.filter-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--muted-surface);border-radius:999px;padding:5px 8px;font-size:11px}.filter-chip button{border:0;background:transparent;cursor:pointer;color:var(--muted)}.clear-all{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer;color:var(--primary)}
-.kpis{display:grid;grid-template-columns:repeat(7,1fr);overflow:hidden}.kpi{min-height:88px;padding:14px;border-right:1px solid var(--line);display:flex;gap:12px;align-items:center;cursor:pointer}.kpi:last-child{border-right:0}.kpi.active{box-shadow:inset 0 0 0 2px var(--primary);background:var(--primary-soft)}
+.kpis{display:grid;grid-template-columns:repeat(8,1fr);overflow:hidden}.kpi{min-height:82px;padding:12px;border-right:1px solid var(--line);display:flex;gap:10px;align-items:center;cursor:pointer}.kpi:last-child{border-right:0}.kpi.active{box-shadow:inset 0 0 0 2px var(--primary);background:var(--primary-soft)}
 .ico{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700}.ico.blue{background:var(--blue-bg);color:var(--blue)}.ico.green{background:var(--green-bg);color:var(--green)}.ico.orange{background:var(--orange-bg);color:var(--orange)}.ico.purple{background:var(--purple-bg);color:var(--purple)}.ico.red{background:var(--red-bg);color:var(--red)}
 .kpi span{display:block;font-size:12px;font-weight:600}.kpi b{display:block;font-size:24px;line-height:1.1;margin-top:2px}.kpi small{display:block;font-size:11px;color:var(--muted);margin-top:5px}
 .progress{padding:14px}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.section-head b{font-size:14px}.section-head small{color:var(--primary);font-weight:600}.client-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.client{padding:12px 14px}.client-top{display:flex;justify-content:space-between;align-items:center;font-weight:600}.bar{height:7px;background:var(--muted-surface);border-radius:99px;margin:10px 0 8px;overflow:hidden}.fill{height:100%;background:#22c55e;border-radius:99px}
 .table-card{overflow:hidden}.table-head{display:flex;justify-content:space-between;align-items:end;padding:12px 14px 8px}.table-head h2{font-size:14px;margin:0}.table-head p{font-size:11px;color:var(--muted);margin:3px 0 0}
-.table-wrap{overflow:visible;border-top:1px solid var(--line)}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}thead th{position:sticky;top:0;z-index:3;background:var(--muted-surface);border-bottom:1px solid var(--line);text-align:left;color:var(--muted);font-size:11px;font-weight:600;padding:8px 10px;white-space:nowrap}.sort{border:0;background:transparent;color:inherit;font-weight:700;cursor:pointer;padding:0}.quick{margin-top:5px;width:100%;height:26px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:11px;color:var(--ink)}
-tbody td{border-bottom:1px solid var(--line);padding:9px 10px;vertical-align:middle;white-space:nowrap;height:52px}tbody tr{cursor:pointer}tbody tr:hover{background:#fafbfc}tbody tr.selected{background:#f4f1ff}.sub{display:block;color:var(--muted);font-size:11px;margin-top:3px}.company{font-weight:600}.avatar-sm{width:24px;height:24px;border-radius:50%;display:inline-grid;place-items:center;margin-right:8px;background:var(--gray-bg);color:var(--gray);font-size:11px;font-weight:700}.avatar-sm.gbs{background:var(--purple-bg);color:var(--purple)}.avatar-sm.clickie{background:#fef3c7;color:#b45309}.avatar-sm.bambutech{background:var(--green-bg);color:var(--green)}
+.table-wrap{max-height:58vh;overflow:auto;border-top:1px solid var(--line)}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}thead th{position:sticky;top:0;z-index:3;background:var(--muted-surface);border-bottom:1px solid var(--line);text-align:left;color:var(--muted);font-size:11px;font-weight:600;padding:7px 10px;white-space:nowrap}.sort{border:0;background:transparent;color:inherit;font-weight:700;cursor:pointer;padding:0}.quick{margin-top:4px;width:100%;height:24px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:11px;color:var(--ink)}
+tbody td{border-bottom:1px solid var(--line);padding:7px 10px;vertical-align:middle;white-space:nowrap;height:40px}tbody tr{cursor:pointer}tbody tr:hover{background:#fafbfc}tbody tr.selected{background:#f4f1ff}.sub{display:block;color:var(--muted);font-size:10.5px;margin-top:2px;line-height:1.2}.company{font-weight:600}.avatar-sm{width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;margin-right:8px;background:var(--gray-bg);color:var(--gray);font-size:10px;font-weight:700}.avatar-sm.gbs{background:var(--purple-bg);color:var(--purple)}.avatar-sm.clickie{background:#fef3c7;color:#b45309}.avatar-sm.bambutech{background:var(--green-bg);color:var(--green)}
 .chip,.pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:7px;padding:6px 10px;min-width:104px;font-size:12px;font-weight:600;border:1px solid transparent}.chip:before{content:"";width:7px;height:7px;border-radius:99px;background:currentColor}.pill{appearance:none;outline:0;cursor:pointer}.green{background:var(--green-bg);color:var(--green)}.orange{background:var(--orange-bg);color:var(--orange)}.red{background:var(--red-bg);color:var(--red)}.purple{background:var(--purple-bg);color:var(--purple)}.blue{background:var(--blue-bg);color:var(--blue)}.gray{background:var(--gray-bg);color:var(--gray)}
 .action{border:1px solid var(--line);background:#fff;color:var(--primary);font-size:12px;font-weight:700;cursor:pointer;border-radius:7px;padding:6px 9px}.drawer{padding:0;position:sticky;top:10px;height:calc(100vh - 20px);min-height:0;max-height:calc(100vh - 20px);display:flex;flex-direction:column;overflow:hidden}.drawer.hidden{display:none}.drawer-fixed{flex:0 0 auto;padding:12px 14px 0;background:var(--surface);border-bottom:1px solid var(--line)}.drawer-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}.drawer h2{font-size:15px;margin:0;line-height:1.2}.drawer-title-sub{font-size:11px;color:var(--muted);margin-top:2px}.close{border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer}
 .summary{display:grid;grid-template-columns:1.18fr 1fr 1fr 1fr;gap:6px;margin:8px 0}.sum{border:1px solid var(--line);border-radius:8px;padding:6px 7px;min-width:0;background:#fff}.sum.final-state{border-color:#d8cffd;background:var(--primary-soft)}.sum small{display:block;font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:3px}.sum.final-state small{color:var(--primary)}.sum .chip{min-width:0;width:100%;padding:4px 6px;font-size:11px;justify-content:flex-start}.meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px}.meta div{border:0;border-top:1px solid var(--line);padding:6px 0 0;min-width:0}.meta small{display:block;color:var(--muted);font-size:10px;font-weight:600}.meta b,.meta select{display:block;margin-top:2px;font-size:12px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis}.meta select{border:0;background:transparent;outline:0}.alertline{grid-column:1/-1;border-top:1px solid #fed7aa!important;background:#fff7ed;border-radius:7px;padding:6px 8px!important}.alertline small{color:var(--orange)}.alertline.final{background:#f5f3ff;border-top-color:#ddd6fe!important}.alertline.final small{color:var(--primary)}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:var(--muted-surface);border:1px solid var(--line);border-radius:10px;padding:4px;margin:8px 0 10px}.tabs button{border:1px solid transparent;background:transparent;border-radius:7px;padding:8px 5px;font-size:12px;font-weight:650;color:var(--muted);cursor:pointer}.tabs button.active{color:var(--primary);background:#fff;border-color:#d8cffd;box-shadow:0 1px 2px rgba(16,24,40,.08)}.panel{overflow:auto;padding:12px 14px 14px;flex:1}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.field2 label{display:block;font-size:10.5px;color:var(--muted);font-weight:600;margin-bottom:3px}.field2 input,.field2 select,.field2 textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--surface);min-height:34px;padding:7px 9px;font-size:13px;outline:0}.field2 textarea{min-height:68px;resize:vertical}.wide{grid-column:1/-1}.context{background:var(--orange-bg);border:1px solid #fde2a8;border-radius:10px;padding:9px;margin-bottom:9px}.block-title{display:block;font-size:13px;margin-bottom:7px}.info-section{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}.info-section:first-child{border-top:0;padding-top:0;margin-top:0}.section-title{font-size:13px;font-weight:700;margin:0 0 8px;color:var(--ink)}.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}.primary,.ghost{border-radius:8px;padding:8px 11px;font-size:12.5px;font-weight:600;cursor:pointer}.primary{border:0;background:var(--primary);color:white}.ghost{border:1px dashed var(--line);background:white;color:var(--primary)}
-.evidence{display:grid;grid-template-columns:1fr 1fr;gap:8px}.evi{border:1px solid var(--line);border-radius:8px;padding:9px;background:white;font-size:12px;font-weight:600}.evi small{display:block;color:var(--muted);font-weight:500;margin-top:3px}.read{border:1px solid var(--line);border-radius:10px;padding:9px;background:white}.read p{margin:6px 0;font-size:13px}.history,.timeline{border-left:2px solid var(--line);padding-left:12px;margin-left:6px}.hist,.tl{position:relative;margin-bottom:12px}.hist small,.tl small{color:var(--muted)}.hist b,.tl b{display:block;font-size:13px;margin:2px 0}.hist:before,.tl:before{content:"";position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:99px;background:var(--primary)}.event-meta{font-size:11px;color:var(--muted);margin-top:2px}.event-badge{display:inline-flex;border-radius:999px;padding:2px 6px;font-size:10.5px;font-weight:700;background:var(--gray-bg);color:var(--gray);margin-left:4px}.event-badge.manual{background:var(--purple-bg);color:var(--purple)}.event-badge.client{background:var(--blue-bg);color:var(--blue)}.manual-form{border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px;margin-bottom:12px}.manual-actions{display:flex;gap:6px;margin-top:5px}.mini{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 7px;font-size:11px;cursor:pointer;color:var(--primary)}.save-note{position:fixed;right:24px;bottom:18px;background:#101828;color:white;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;box-shadow:0 8px 24px rgba(16,24,40,.22);z-index:20}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:var(--muted-surface);border:1px solid var(--line);border-radius:10px;padding:4px;margin:8px 0 10px}.tabs button{border:1px solid transparent;background:transparent;border-radius:7px;padding:8px 5px;font-size:12px;font-weight:650;color:var(--muted);cursor:pointer}.tabs button.active{color:var(--primary);background:#fff;border-color:#d8cffd;box-shadow:0 1px 2px rgba(16,24,40,.08)}.panel{overflow:auto;padding:10px 12px 12px;flex:1}.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.field2 label{display:block;font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px}.field2 input,.field2 select,.field2 textarea{width:100%;border:1px solid var(--line);border-radius:7px;background:var(--surface);min-height:30px;padding:5px 8px;font-size:12px;outline:0}.field2 textarea{min-height:54px;resize:vertical}.wide{grid-column:1/-1}.context{background:var(--orange-bg);border:1px solid #fde2a8;border-radius:10px;padding:8px;margin-bottom:8px}.block-title{display:block;font-size:12.5px;margin-bottom:6px}.info-section{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}.info-section:first-child{border-top:0;padding-top:0;margin-top:0}.section-title{font-size:12.5px;font-weight:700;margin:0 0 6px;color:var(--ink)}.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}.primary,.ghost{border-radius:8px;padding:8px 11px;font-size:12.5px;font-weight:600;cursor:pointer}.primary{border:0;background:var(--primary);color:white}.ghost{border:1px dashed var(--line);background:white;color:var(--primary)}
+.evidence{display:grid;grid-template-columns:1fr 1fr;gap:8px}.evi{border:1px solid var(--line);border-radius:8px;padding:8px;background:white;font-size:12px;font-weight:600}.evi small,.evi p{display:block;color:var(--muted);font-weight:500;margin:3px 0 0;font-size:11px;line-height:1.35}.evi a{color:var(--primary);text-decoration:none}.read{border:1px solid var(--line);border-radius:10px;padding:8px;background:white}.read p{margin:5px 0;font-size:12px}.history,.timeline{border-left:2px solid var(--line);padding-left:12px;margin-left:6px}.hist,.tl{position:relative;margin-bottom:12px}.hist small,.tl small{color:var(--muted)}.hist b,.tl b{display:block;font-size:13px;margin:2px 0}.hist:before,.tl:before{content:"";position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:99px;background:var(--primary)}.event-meta{font-size:11px;color:var(--muted);margin-top:2px}.event-badge{display:inline-flex;border-radius:999px;padding:2px 6px;font-size:10.5px;font-weight:700;background:var(--gray-bg);color:var(--gray);margin-left:4px}.event-badge.manual{background:var(--purple-bg);color:var(--purple)}.event-badge.client{background:var(--blue-bg);color:var(--blue)}.manual-form{border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px;margin-bottom:12px}.manual-actions{display:flex;gap:6px;margin-top:5px}.mini{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 7px;font-size:11px;cursor:pointer;color:var(--primary)}.save-note{position:fixed;right:24px;bottom:18px;background:#101828;color:white;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;box-shadow:0 8px 24px rgba(16,24,40,.22);z-index:20}
 @media(max-width:1200px){.layout.open{grid-template-columns:minmax(0,1fr) 420px}.summary{grid-template-columns:1fr 1fr}.grid,.meta{grid-template-columns:1fr}.tabs button{font-size:11px;padding:7px 3px}}
 @media(max-width:760px){.app{min-width:0}.layout.open{grid-template-columns:1fr}.drawer{position:relative;height:auto;max-height:none}.summary{grid-template-columns:1fr}.tabs{grid-template-columns:1fr 1fr}.panel{max-height:none}}
 </style>
@@ -569,27 +654,27 @@ tbody td{border-bottom:1px solid var(--line);padding:9px 10px;vertical-align:mid
         <div class="filters">
           <div class="field"><span>&#8981;</span><input id="q" placeholder="Buscar empresa, contacto, cargo, correo..." oninput="setFilter('q',this.value)"></div>
           <div class="field"><label>Mes</label><select id="fMonth" onchange="setFilter('month',this.value)"></select></div>
-          <div class="field"><label>Ano</label><select id="fYear" onchange="setFilter('year',this.value)"></select></div>
+          <div class="field"><label>Año</label><select id="fYear" onchange="setFilter('year',this.value)"></select></div>
           <div class="field date-range"><label>Rango de fechas</label><input id="fDateFrom" type="date" onchange="setFilter('dateFrom',this.value)"><input id="fDateTo" type="date" onchange="setFilter('dateTo',this.value)"><button class="clear-date" onclick="resetDateRange()" title="Restablecer rango">x</button></div>
           <div class="field"><label>Cliente</label><select id="fClient" onchange="setFilter('client',this.value)"></select></div>
           <div class="field"><label>SDR</label><select id="fSdr" onchange="setFilter('sdr',this.value)"></select></div>
-          <div class="field"><button id="moreBtn" onclick="toggleMore()">Mas filtros</button></div>
+          <div class="field"><button id="moreBtn" onclick="toggleMore()">Más filtros</button></div>
         </div>
         <div class="extra" id="extraFilters">
           <div class="field"><label>Etapa Agenda</label><select id="fStatus" onchange="setFilter('status',this.value)"></select></div>
-          <div class="field"><label>Evaluacion CP</label><select id="fCp" onchange="setFilter('cp',this.value)"></select></div>
-          <div class="field"><label>Evaluacion Cliente</label><select id="fClientVal" onchange="setFilter('clientVal',this.value)"></select></div>
+          <div class="field"><label>Evaluación CP</label><select id="fCp" onchange="setFilter('cp',this.value)"></select></div>
+          <div class="field"><label>Evaluación Cliente</label><select id="fClientVal" onchange="setFilter('clientVal',this.value)"></select></div>
           <div class="field"><label>Estado Final</label><select id="fFinal" onchange="setFilter('final',this.value)"></select></div>
-          <div class="field"><label>Pais</label><select id="fCountry" onchange="setFilter('country',this.value)"></select></div>
+          <div class="field"><label>País</label><select id="fCountry" onchange="setFilter('country',this.value)"></select></div>
           <div class="field"><label>Estado del Caso</label><select id="fCaseStatus" onchange="setFilter('caseStatus',this.value)"></select></div>
         </div>
         <div class="active-filters" id="activeFilters"></div>
       </section>
-      <section class="card kpis" id="kpis"></section>
       <section class="card progress">
-        <div class="section-head"><b>Avance por cliente <span class="sub" style="display:inline">reuniones validas CP / meta contractual</span></b><small onclick="filters.client='Todos';render()" style="cursor:pointer">Ver todos los clientes</small></div>
+        <div class="section-head"><b>Avance por cliente <span class="sub" style="display:inline">reuniones válidas CP / meta contractual</span></b><small onclick="filters.client='Todos';render()" style="cursor:pointer">Ver todos los clientes</small></div>
         <div class="client-row" id="clientProgress"></div>
       </section>
+      <section class="card kpis" id="kpis"></section>
       <section class="card table-card">
         <div class="table-head"><div><h2>Tabla principal</h2><p>Filtros, KPIs, avance y tabla usan el mismo estado central.</p></div></div>
         <div class="table-wrap"><table><thead id="thead"></thead><tbody id="rows"></tbody></table></div>
@@ -597,7 +682,7 @@ tbody td{border-bottom:1px solid var(--line);padding:9px 10px;vertical-align:mid
     </main>
     <aside class="card drawer hidden" id="drawer">
       <div class="drawer-fixed">
-        <div class="drawer-top"><div><h2 id="detailTitle">Detalle de reunion</h2><div class="drawer-title-sub" id="detailSubtitle"></div></div><button class="close" onclick="closeDetail()" aria-label="Cerrar">&times;</button></div>
+        <div class="drawer-top"><div><h2 id="detailTitle">Detalle de reunión</h2><div class="drawer-title-sub" id="detailSubtitle"></div></div><button class="close" onclick="closeDetail()" aria-label="Cerrar">&times;</button></div>
         <div class="summary" id="summary"></div>
         <div class="meta" id="meta"></div>
         <div class="tabs" id="tabs"></div>
@@ -607,14 +692,14 @@ tbody td{border-bottom:1px solid var(--line);padding:9px 10px;vertical-align:mid
   </div>
 </div>
 <script>
-const statuses=["Reunion futura","Reunion realizada","Reunion cancelada","Reagendar reunion"];
-const cps=["","Pendiente","Valida","No valida"];
-const clientVals=["","Pendiente","Confirmar","No valida","Solicitar revision"];
-const finalOptions=["Pendiente","Reunion valida","Reunion no valida","Reunion cancelada","Reagendar reunion"];
-const caseStatusOptions=["Abierto","En evaluacion CP","Esperando cliente","En revision","Cerrado"];
-const cancellationActors=["Cliente","Prospecto","SDR","Conprospeccion"];
-const rescheduleReasons=["Conflicto de agenda","Vacaciones","Enfermedad","Problema tecnico","Esperando informacion","Cambio interno","Otro"];
-const clientRevisionReasons=["No corresponde al ICP","Cargo incorrecto","Empresa incorrecta","Competencia","Sin interes comercial","BANT insuficiente","Informacion incorrecta","Informacion incompleta","Otro"];
+const statuses=["Reunión futura","Reunión realizada","Reunión cancelada","Reagendar reunión"];
+const cps=["","Pendiente","Válida","No válida"];
+const clientVals=["","Pendiente","Válida","No válida","Solicita revisión"];
+const finalOptions=["Pendiente","Reunión válida","Reunión no válida","Reunión cancelada","Reagendar reunión"];
+const caseStatusOptions=["Abierto","En evaluación CP","Esperando cliente","En revisión","Cerrado"];
+const cancellationActors=["Cliente","Prospecto","SDR","Conprospección"];
+const rescheduleReasons=["Conflicto de agenda","Vacaciones","Enfermedad","Problema técnico","Esperando información","Cambio interno","Otro"];
+const clientRevisionReasons=["No corresponde al ICP","Cargo incorrecto","Empresa incorrecta","Competencia","Sin interés comercial","BANT insuficiente","Información incorrecta","Información incompleta","Otro"];
 const clientGoals={GBS:45,Clickie:6,BambuTech:100};
 let meetings=[
  {id:1,date:"23/06/2026",time:"11:00 AM",client:"GBS",company:"TechNova S.A.",contact:"Juan Perez",role:"CTO",sdr:"Mariana R.",status:"Reunion realizada",cp:"Valida",clientVal:"Confirmar",final:"Reunion valida",caseStatus:"Cerrado",email:"juan.perez@technova.cl",phone:"+56 9 1111 2222",country:"Chile",industry:"Tecnologia",website:"technova.cl",linkedin:"",ghlContact:"https://app.gohighlevel.com/contact/101",ghlOpp:"https://app.gohighlevel.com/opportunity/101",meet:"https://meet.google.com/demo-gbs",info:"Prospecto con necesidad activa de automatizar seguimiento comercial.",icp:"Cumple",bant:{Budget:true,Authority:true,Need:true,Timeline:false},just:"La reunion cumplio con el objetivo de validacion de necesidad y autoridad.",next:"Enviar propuesta inicial.",notes:"Validar presupuesto con finanzas.",finalReason:"Cumple ICP y BANT suficiente.",finalClientText:"Reunion marcada como valida por Conprospeccion.",finalInternalNote:"Cierre aprobado.",evidence:[{type:"Grabacion",name:"Grabacion disponible",valid:true},{type:"Resumen IA",name:"Resumen ejecutivo",valid:true}],clientReason:"Confirmada por cliente.",clientComment:"La reunion corresponde a una oportunidad valida.",clientDate:"24/06/2026 15:10",clientActor:"Juan Perez",clientEvidence:"",cpResponse:"",history:[{when:"24/06/2026 15:10",user:"Cliente GBS",field:"Evaluacion Cliente",from:"Pendiente",to:"Confirmar"}]},
@@ -629,7 +714,7 @@ const storageKey="cp_meetings_v5_poc_detail_v2";
 let savedMeetings=null;try{savedMeetings=JSON.parse(localStorage.getItem(storageKey)||"null")}catch(e){savedMeetings=null}
 if(Array.isArray(savedMeetings)){meetings=savedMeetings}
 meetings=meetings.map(m=>({...m,caseStatus:m.caseStatus||"Abierto",clientActor:m.clientActor||m.contact||"",clientTimeline:m.clientTimeline||buildClientTimeline(m)}));
-let selected=null, tab="Evaluacion CP", panelOpen=false, more=false, notifOpen=false;
+let selected=null, tab="Información", panelOpen=false, more=false, notifOpen=false;
 let filters=defaultFilters();
 let sortState={key:"dateTime",dir:"desc"};
 function defaultRange(){const now=new Date();return rangeForMonth(now.getFullYear(),now.getMonth()+1)}
@@ -648,19 +733,19 @@ function finalDisplay(m){return finalStatus(m)==="Pendiente"?"Pendiente de cierr
 const saveEndpoint="/Seguimiento_Reuniones";
 function persist(){localStorage.setItem(storageKey,JSON.stringify(meetings))}
 function notify(msg){let n=document.getElementById("saveNote");if(!n){n=document.createElement("div");n.id="saveNote";n.className="save-note";document.body.appendChild(n)}n.textContent=msg;clearTimeout(window.__saveNoteTimer);window.__saveNoteTimer=setTimeout(()=>n.remove(),1800)}
-function compactMeeting(m){return {id:m.id,clientSlug:m.clientSlug,client:m.client,date:m.date,time:m.time,company:m.company,contact:m.contact,role:m.role,email:m.email,phone:m.phone,country:m.country,industry:m.industry,sdr:m.sdr,status:m.status,cp:m.cp,clientVal:m.clientVal,final:m.final,caseStatus:m.caseStatus,info:m.info,icp:m.icp,bant:m.bant,just:m.just,notes:m.notes,next:m.next,clientReason:m.clientReason,clientComment:m.clientComment,clientActor:m.clientActor,cpResponse:m.cpResponse,finalReason:m.finalReason,finalInternalNote:m.finalInternalNote}}
+function compactMeeting(m){return {id:m.id,clientSlug:m.clientSlug,client:m.client,date:m.date,time:m.time,scheduledDate:m.scheduledDate,company:m.company,contact:m.contact,role:m.role,email:m.email,phone:m.phone,country:m.country,industry:m.industry,sdr:m.sdr,status:m.status,cp:m.cp,clientVal:m.clientVal,final:m.final,caseStatus:m.caseStatus,info:m.info,icp:m.icp,bant:m.bant,just:m.just,notes:m.notes,next:m.next,clientReason:m.clientReason,clientComment:m.clientComment,clientActor:m.clientActor,cpResponse:m.cpResponse,finalReason:m.finalReason,finalInternalNote:m.finalInternalNote}}
 function encodePayload(payload){return btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
-async function saveMeeting(m,section,silent=false){if(!m||!m.id||!m.clientSlug){if(!silent)notify("No se pudo guardar: falta cliente o reunion");return false}try{if(!silent)notify("Guardando...");const qs=encodePayload({section,meeting:compactMeeting(m)});const res=await fetch(`${saveEndpoint}?cp_save=${qs}`,{method:"GET",credentials:"include",cache:"no-store"});const data=await res.json().catch(()=>({ok:false}));if(!res.ok||!data.ok)throw new Error(data.error||data.tracking_error||"No fue posible guardar");if(!silent)notify(`${section} guardado`);return true}catch(err){console.error(err);notify(`Error al guardar: ${err.message||err}`);return false}}
+async function saveMeeting(m,section,silent=false,extra={}){if(!m||!m.id||!m.clientSlug){if(!silent)notify("No se pudo guardar: falta cliente o reunión");return false}try{if(!silent)notify("Guardando...");const qs=encodePayload({section,meeting:compactMeeting(m),...extra});const res=await fetch(`${saveEndpoint}?cp_save=${qs}`,{method:"GET",credentials:"include",cache:"no-store"});const data=await res.json().catch(()=>({ok:false}));if(!res.ok||!data.ok)throw new Error(data.error||data.tracking_error||"No fue posible guardar");if(!silent)notify(`${section} guardado`);return true}catch(err){console.error(err);notify(`Error al guardar: ${err.message||err}`);return false}}
 function saveSection(section){const m=current();addHistory(m,`Guardar ${section}`,"Pendiente","Guardado");persist();saveMeeting(m,section);render()}
-function buildClientTimeline(m){const items=[{when:"Pendiente inicial",actor:"Portal cliente",status:"Pendiente",reason:"",comment:"Esperando accion del cliente"}];if(m.clientVal&&m.clientVal!=="Pendiente"){items.push({when:m.clientDate||"Sin fecha registrada",actor:m.clientActor||m.contact||"Cliente",status:m.clientVal,reason:m.clientReason||"",comment:m.clientComment||""})}if(m.cpResponse){items.push({when:"Respuesta interna",actor:"Conprospeccion",status:"Respuesta enviada",reason:"",comment:m.cpResponse})}return items}
-function finalAlert(m){if(finalStatus(m)==="Pendiente")return"Estado final pendiente de cierre administrativo por Conprospeccion";return""}
-function operationalAlert(m){if(m.clientVal==="Solicitar revision")return"Cliente solicito revision: requiere respuesta interna";if(m.status==="Reunion cancelada")return"Registrar motivo de cancelacion y evaluar CP si corresponde";if(m.status==="Reagendar reunion")return"Registrar nueva fecha y evaluar CP si corresponde";if(m.cp!=="Pendiente"&&finalStatus(m)==="Pendiente")return"Evaluacion lista, caso aun sin cierre administrativo";return"Sin alertas operativas"}
-function tone(v){if(["Valida","Confirmar","Reunion realizada","Cumple","Reunion valida"].includes(v))return"green";if(["Pendiente","Pendiente de cierre","Reagendar reunion"].includes(v))return"orange";if(["Reunion futura"].includes(v))return"blue";if(["Solicitar revision","En revision"].includes(v))return"purple";if(["No valida","Reunion cancelada","Reunion no valida"].includes(v))return"red";return"gray"}
+function buildClientTimeline(m){const items=[{when:"Pendiente inicial",actor:"Portal cliente",status:"Pendiente",reason:"",comment:"Esperando acción del cliente"}];if(m.clientVal&&m.clientVal!=="Pendiente"){items.push({when:m.clientDate||"Sin fecha registrada",actor:m.clientActor||m.contact||"Cliente",status:m.clientVal,reason:m.clientReason||"",comment:m.clientComment||""})}if(m.cpResponse){items.push({when:"Respuesta interna",actor:"Conprospección",status:"Respuesta enviada",reason:"",comment:m.cpResponse})}return items}
+function finalAlert(m){if(finalStatus(m)==="Pendiente")return"Estado final pendiente de cierre administrativo por Conprospección";return""}
+function operationalAlert(m){if(m.clientVal==="Solicita revisión")return"Cliente solicitó revisión: requiere respuesta interna";if(m.status==="Reunión cancelada")return"Registrar motivo de cancelación y evaluar CP si corresponde";if(m.status==="Reagendar reunión")return"Registrar nueva fecha y evaluar CP si corresponde";if(m.cp!=="Pendiente"&&finalStatus(m)==="Pendiente")return"Evaluación lista, caso aún sin cierre administrativo";return"Sin alertas operativas"}
+function tone(v){if(["Válida","Confirmada","Reunión realizada","Cumple","Reunión válida"].includes(v))return"green";if(["Pendiente","Pendiente de cierre","Reagendar reunión"].includes(v))return"orange";if(["Reunión futura"].includes(v))return"blue";if(["Solicita revisión","En revisión"].includes(v))return"purple";if(["No válida","Reunión cancelada","Reunión no válida"].includes(v))return"red";return"gray"}
 function current(){return meetings.find(m=>m.id===selected)||meetings[0]}
 function addHistory(m,field,from,to){if(JSON.stringify(from)===JSON.stringify(to))return;m.history=m.history||[];m.history.unshift({when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field,from,to})}
-function labelField(f){return {status:"Etapa Agenda",cp:"Evaluacion CP",clientVal:"Evaluacion Cliente",final:"Estado Final",caseStatus:"Estado del Caso",sdr:"SDR asignada",icp:"ICP",info:"Informacion reunion",just:"Justificacion CP",notes:"Notas internas",cpResponse:"Respuesta CP"}[f]||f}
-function recordClientEvent(m,field,from,to){if(JSON.stringify(from)===JSON.stringify(to))return;const status=field==="clientVal"?to:m.clientVal;const reason=field==="clientReason"?to:m.clientReason;const comment=field==="clientComment"?to:(field==="cpResponse"?`Respuesta CP: ${to}`:m.clientComment);m.clientTimeline=m.clientTimeline||[];m.clientTimeline.unshift({when:new Date().toLocaleString("es-CL"),actor:field==="cpResponse"?"Conprospeccion":(m.clientActor||m.contact||"Cliente"),status,reason:reason||"",comment:comment||""})}
-function setField(id,field,value){const m=meetings.find(x=>x.id===id);const old=m[field];m[field]=value;if(field==="status"&&value==="Reunion cancelada"){const oldCp=m.cp,oldClient=m.clientVal;m.cp="";m.clientVal="";addHistory(m,"Evaluacion CP",oldCp,"");addHistory(m,"Evaluacion Cliente",oldClient,"")}addHistory(m,labelField(field),old,value);if(["clientVal","clientReason","clientComment","clientEvidence","cpResponse"].includes(field)){recordClientEvent(m,field,old,value)}selected=id;panelOpen=true;if(field==="cp"&&value&&value!=="Pendiente")tab="Evaluacion CP";if(field==="status"&&["Reunion cancelada","Reagendar reunion"].includes(value))tab="Informacion";if(field==="final")tab="Estado Final";if(field==="clientVal")tab="Evaluacion Cliente";persist();saveMeeting(m,labelField(field),true);render()}
+function labelField(f){return {status:"Etapa Agenda",cp:"Evaluación CP",clientVal:"Evaluación Cliente",final:"Estado Final",caseStatus:"Estado del Caso",sdr:"SDR asignada",icp:"ICP",info:"Información reunión",just:"Justificación CP",notes:"Notas internas",cpResponse:"Respuesta CP"}[f]||f}
+function recordClientEvent(m,field,from,to){if(JSON.stringify(from)===JSON.stringify(to))return;const status=field==="clientVal"?to:m.clientVal;const reason=field==="clientReason"?to:m.clientReason;const comment=field==="clientComment"?to:(field==="cpResponse"?`Respuesta CP: ${to}`:m.clientComment);m.clientTimeline=m.clientTimeline||[];m.clientTimeline.unshift({when:new Date().toLocaleString("es-CL"),actor:field==="cpResponse"?"Conprospección":(m.clientActor||m.contact||"Cliente"),status,reason:reason||"",comment:comment||""})}
+function setField(id,field,value){const m=meetings.find(x=>x.id===id);const old=m[field];m[field]=value;if(field==="status"&&value==="Reunión cancelada"){const oldCp=m.cp,oldClient=m.clientVal;m.cp="";m.clientVal="";addHistory(m,"Evaluación CP",oldCp,"");addHistory(m,"Evaluación Cliente",oldClient,"")}addHistory(m,labelField(field),old,value);if(["clientVal","clientReason","clientComment","clientEvidence","cpResponse"].includes(field)){recordClientEvent(m,field,old,value)}selected=id;panelOpen=true;if(field==="cp"&&value&&value!=="Pendiente")tab="Evaluación CP";if(field==="status"&&["Reunión cancelada","Reagendar reunión"].includes(value))tab="Información";if(field==="final")tab="Estado Final";if(field==="clientVal")tab="Evaluación Cliente";persist();saveMeeting(m,labelField(field),true);render()}
 function setFilter(k,v){filters[k]=v;if(k==="month"||k==="year"){Object.assign(filters,rangeForMonth(filters.year,filters.month))}syncDependent(k);render()}
 function syncDependent(k){if(k==="client"){const opts=optionSets(applyFilters({ignore:["sdr","country","status","cp","clientVal","final","caseStatus"]}));["sdr","country","status","cp","clientVal","final","caseStatus"].forEach(f=>{if(filters[f]!=="Todos"&&!opts[f].includes(filters[f]))filters[f]="Todos"})}}
 function toggleMore(){more=!more;render()}
@@ -674,32 +759,34 @@ function setSort(k){if(sortState.key===k)sortState.dir=sortState.dir==="asc"?"de
 function optionSets(baseRows=meetings){const uniq=k=>[...new Set(baseRows.map(m=>k==="final"?finalStatus(m):m[k]).filter(Boolean))];return {client:[...new Set(baseRows.map(m=>m.client))],sdr:uniq("sdr"),country:uniq("country"),status:uniq("status"),cp:uniq("cp"),clientVal:uniq("clientVal"),final:uniq("final"),caseStatus:uniq("caseStatus")}}
 function activeFilterCount(){let c=0;["status","cp","clientVal","final","country","caseStatus"].forEach(k=>{if(filters[k]!=="Todos")c++});return c}
 function filterActive(){const d=defaultRange();return filters.q||filters.client!=="Todos"||filters.sdr!=="Todos"||filters.dateFrom!==d.dateFrom||filters.dateTo!==d.dateTo||["status","cp","clientVal","final","country","caseStatus"].some(k=>filters[k]!=="Todos")}
-function renderFilters(rows){const opts=optionSets(applyFilters({ignore:["sdr","country","status","cp","clientVal","final","caseStatus"]}));document.getElementById("q").value=filters.q;document.getElementById("fMonth").innerHTML=optPairs(monthOptions(),filters.month);document.getElementById("fYear").innerHTML=opt(yearOptions(),filters.year);document.getElementById("fClient").innerHTML=opt(["Todos",...optionSets(meetings).client],filters.client);document.getElementById("fDateFrom").value=filters.dateFrom;document.getElementById("fDateTo").value=filters.dateTo;document.getElementById("fSdr").innerHTML=opt(["Todos",...opts.sdr],filters.sdr);document.getElementById("fStatus").innerHTML=opt(["Todos",...opts.status],filters.status);document.getElementById("fCp").innerHTML=opt(["Todos",...opts.cp],filters.cp);document.getElementById("fClientVal").innerHTML=opt(["Todos",...opts.clientVal],filters.clientVal);document.getElementById("fFinal").innerHTML=opt(["Todos",...opts.final],filters.final);document.getElementById("fCountry").innerHTML=opt(["Todos",...opts.country],filters.country);document.getElementById("fCaseStatus").innerHTML=opt(["Todos",...opts.caseStatus],filters.caseStatus);document.getElementById("extraFilters").classList.toggle("open",more);document.getElementById("moreBtn").textContent=`Mas filtros${activeFilterCount()?` (${activeFilterCount()})`:""}`;renderActiveFilters()}
-function renderActiveFilters(){const d=defaultRange();const labels={q:"Buscar",client:"Cliente",sdr:"SDR",status:"Etapa",cp:"CP",clientVal:"Cliente",final:"Final",country:"Pais",caseStatus:"Caso"};const chips=[];Object.keys(labels).forEach(k=>{if((k==="q"&&filters.q)||(k!=="q"&&filters[k]&&filters[k]!=="Todos"))chips.push(`<span class="filter-chip">${labels[k]}: ${esc(filters[k])}<button onclick="clearFilter('${k}')">x</button></span>`)});if(filters.dateFrom!==d.dateFrom||filters.dateTo!==d.dateTo)chips.push(`<span class="filter-chip">Fecha: ${filters.dateFrom} / ${filters.dateTo}<button onclick="clearFilter('date')">x</button></span>`);if(chips.length)chips.push(`<button class="clear-all" onclick="clearAll()">Limpiar filtros</button>`);document.getElementById("activeFilters").innerHTML=chips.join("")}
-function renderKpis(rows){const total=rows.length||1;const cards=[["Total reuniones",rows.length,"Todas las reuniones","blue","T",()=>{filters.status="Todos";filters.cp="Todos";filters.clientVal="Todos";filters.final="Todos"}],["Pendiente CP",rows.filter(x=>x.cp==="Pendiente").length,pct(rows.filter(x=>x.cp==="Pendiente").length,total),"orange","P",()=>toggleFilter("cp","Pendiente")],["CP valida",rows.filter(x=>x.cp==="Valida").length,pct(rows.filter(x=>x.cp==="Valida").length,total),"green","V",()=>toggleFilter("cp","Valida")],["Solicita revision",rows.filter(x=>x.clientVal==="Solicitar revision").length,pct(rows.filter(x=>x.clientVal==="Solicitar revision").length,total),"purple","R",()=>toggleFilter("clientVal","Solicitar revision")],["Final valida",rows.filter(x=>finalStatus(x)==="Reunion valida").length,pct(rows.filter(x=>finalStatus(x)==="Reunion valida").length,total),"green","F",()=>toggleFilter("final","Reunion valida")],["Reagendar",rows.filter(x=>x.status==="Reagendar reunion").length,pct(rows.filter(x=>x.status==="Reagendar reunion").length,total),"orange","A",()=>toggleFilter("status","Reagendar reunion")],["No validas final",rows.filter(x=>finalStatus(x)==="Reunion no valida").length,pct(rows.filter(x=>finalStatus(x)==="Reunion no valida").length,total),"red","X",()=>toggleFilter("final","Reunion no valida")]];window.__kpiActions=cards.map(c=>c[5]);document.getElementById("kpis").innerHTML=cards.map((i,idx)=>`<div class="kpi ${kpiActive(i[0])?"active":""}" onclick="__kpiActions[${idx}]();render()"><div class="ico ${i[3]}">${i[4]}</div><div><span>${i[0]}</span><b>${i[1]}</b><small>${i[2]}</small></div></div>`).join("")}
-function kpiActive(label){return label==="Pendiente CP"&&filters.cp==="Pendiente"||label==="CP valida"&&filters.cp==="Valida"||label==="Solicita revision"&&filters.clientVal==="Solicitar revision"||label==="Final valida"&&filters.final==="Reunion valida"||label==="Reagendar"&&filters.status==="Reagendar reunion"||label==="No validas final"&&filters.final==="Reunion no valida"}
+function renderFilters(rows){const opts=optionSets(applyFilters({ignore:["sdr","country","status","cp","clientVal","final","caseStatus"]}));document.getElementById("q").value=filters.q;document.getElementById("fMonth").innerHTML=optPairs(monthOptions(),filters.month);document.getElementById("fYear").innerHTML=opt(yearOptions(),filters.year);document.getElementById("fClient").innerHTML=opt(["Todos",...optionSets(meetings).client],filters.client);document.getElementById("fDateFrom").value=filters.dateFrom;document.getElementById("fDateTo").value=filters.dateTo;document.getElementById("fSdr").innerHTML=opt(["Todos",...opts.sdr],filters.sdr);document.getElementById("fStatus").innerHTML=opt(["Todos",...opts.status],filters.status);document.getElementById("fCp").innerHTML=opt(["Todos",...opts.cp],filters.cp);document.getElementById("fClientVal").innerHTML=opt(["Todos",...opts.clientVal],filters.clientVal);document.getElementById("fFinal").innerHTML=opt(["Todos",...opts.final],filters.final);document.getElementById("fCountry").innerHTML=opt(["Todos",...opts.country],filters.country);document.getElementById("fCaseStatus").innerHTML=opt(["Todos",...opts.caseStatus],filters.caseStatus);document.getElementById("extraFilters").classList.toggle("open",more);document.getElementById("moreBtn").textContent=`Más filtros${activeFilterCount()?` (${activeFilterCount()})`:""}`;renderActiveFilters()}
+function renderActiveFilters(){const d=defaultRange();const labels={q:"Buscar",client:"Cliente",sdr:"SDR",status:"Etapa",cp:"CP",clientVal:"Cliente",final:"Final",country:"País",caseStatus:"Caso"};const chips=[];Object.keys(labels).forEach(k=>{if((k==="q"&&filters.q)||(k!=="q"&&filters[k]&&filters[k]!=="Todos"))chips.push(`<span class="filter-chip">${labels[k]}: ${esc(filters[k])}<button onclick="clearFilter('${k}')">x</button></span>`)});if(filters.dateFrom!==d.dateFrom||filters.dateTo!==d.dateTo)chips.push(`<span class="filter-chip">Fecha: ${filters.dateFrom} / ${filters.dateTo}<button onclick="clearFilter('date')">x</button></span>`);if(chips.length)chips.push(`<button class="clear-all" onclick="clearAll()">Limpiar filtros</button>`);document.getElementById("activeFilters").innerHTML=chips.join("")}
+function renderKpis(rows){const total=rows.length||1;const cards=[["Total reuniones",rows.length,"Todas las reuniones","blue","T",()=>{filters.status="Todos";filters.cp="Todos";filters.clientVal="Todos";filters.final="Todos"}],["Pendiente CP",rows.filter(x=>x.cp==="Pendiente").length,pct(rows.filter(x=>x.cp==="Pendiente").length,total),"orange","P",()=>toggleFilter("cp","Pendiente")],["CP válida",rows.filter(x=>x.cp==="Válida").length,pct(rows.filter(x=>x.cp==="Válida").length,total),"green","V",()=>toggleFilter("cp","Válida")],["Solicita revisión",rows.filter(x=>x.clientVal==="Solicita revisión").length,pct(rows.filter(x=>x.clientVal==="Solicita revisión").length,total),"purple","R",()=>toggleFilter("clientVal","Solicita revisión")],["Final válida",rows.filter(x=>finalStatus(x)==="Reunión válida").length,pct(rows.filter(x=>finalStatus(x)==="Reunión válida").length,total),"green","F",()=>toggleFilter("final","Reunión válida")],["Reagendar",rows.filter(x=>x.status==="Reagendar reunión").length,pct(rows.filter(x=>x.status==="Reagendar reunión").length,total),"orange","A",()=>toggleFilter("status","Reagendar reunión")],["Canceladas",rows.filter(x=>x.status==="Reunión cancelada").length,pct(rows.filter(x=>x.status==="Reunión cancelada").length,total),"red","C",()=>toggleFilter("status","Reunión cancelada")],["No válidas final",rows.filter(x=>finalStatus(x)==="Reunión no válida").length,pct(rows.filter(x=>finalStatus(x)==="Reunión no válida").length,total),"red","X",()=>toggleFilter("final","Reunión no válida")]];window.__kpiActions=cards.map(c=>c[5]);document.getElementById("kpis").innerHTML=cards.map((i,idx)=>`<div class="kpi ${kpiActive(i[0])?"active":""}" onclick="__kpiActions[${idx}]();render()"><div class="ico ${i[3]}">${i[4]}</div><div><span>${i[0]}</span><b>${i[1]}</b><small>${i[2]}</small></div></div>`).join("")}
+function kpiActive(label){return label==="Pendiente CP"&&filters.cp==="Pendiente"||label==="CP válida"&&filters.cp==="Válida"||label==="Solicita revisión"&&filters.clientVal==="Solicita revisión"||label==="Final válida"&&filters.final==="Reunión válida"||label==="Reagendar"&&filters.status==="Reagendar reunión"||label==="Canceladas"&&filters.status==="Reunión cancelada"||label==="No válidas final"&&filters.final==="Reunión no válida"}
 function toggleFilter(k,v){filters[k]=filters[k]===v?"Todos":v}
 function pct(n,total){return total?`${((n/total)*100).toFixed(1)}% del total`:"0% del total"}
-function renderProgress(rows){let codes=[...new Set(rows.map(m=>m.client))];if(filters.client!=="Todos")codes=[filters.client];document.getElementById("clientProgress").innerHTML=codes.map(code=>{const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);const valid=rows.filter(m=>m.client===code&&m.cp==="Valida").length;const p=goal?Math.round(valid/goal*100):0;return `<div class="card client" onclick="filters.client='${esc(code)}';render()" style="cursor:pointer"><div class="client-top"><span>${code}</span><span>${valid} / ${goal}</span></div><div class="bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div><div style="text-align:right;font-weight:700;font-size:12px">${p}%</div></div>`}).join("")||`<div class="sub">Sin reuniones para los filtros aplicados.</div>`}
-function renderHead(){const cols=[["dateTime","Fecha y Hora"],["client","Cliente"],["company","Empresa"],["sdr","SDR"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluacion CP"],["clientVal","Evaluacion Cliente"],["final","Estado Final"],["actions","Acciones"]];const q=(k,id,opts)=>["client","sdr","status","cp","clientVal","final"].includes(k)?`<select class="quick" onchange="setFilter('${k}',this.value)">${opt(["Todos",...opts],filters[k])}</select>`:"";const allOpts=optionSets(applyFilters({ignore:["client","sdr","status","cp","clientVal","final"]}));document.getElementById("thead").innerHTML=`<tr>${cols.map(c=>`<th>${c[0]==="actions"?c[1]:`<button class="sort" onclick="setSort('${c[0]}')">${c[1]} ${sortState.key===c[0]?(sortState.dir==="asc"?"asc":"desc"):""}</button>`}${q(c[0],c[0],allOpts[c[0]]||[])}</th>`).join("")}</tr>`}
+function renderProgress(rows){let codes=[...new Set(rows.map(m=>m.client))];if(filters.client!=="Todos")codes=[filters.client];document.getElementById("clientProgress").innerHTML=codes.map(code=>{const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);const valid=rows.filter(m=>m.client===code&&m.cp==="Válida").length;const p=goal?Math.round(valid/goal*100):0;return `<div class="card client" onclick="filters.client='${esc(code)}';render()" style="cursor:pointer"><div class="client-top"><span>${code}</span><span>${valid} / ${goal}</span></div><div class="bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div><div style="text-align:right;font-weight:700;font-size:12px">${p}%</div></div>`}).join("")||`<div class="sub">Sin reuniones para los filtros aplicados.</div>`}
+function renderHead(){const cols=[["dateTime","Fecha y hora"],["client","Cliente"],["company","Empresa"],["sdr","SDR"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluación CP"],["clientVal","Evaluación Cliente"],["final","Estado Final"],["actions","Acciones"]];const q=(k,id,opts)=>["client","sdr","status","cp","clientVal","final"].includes(k)?`<select class="quick" onchange="setFilter('${k}',this.value)">${opt(["Todos",...opts],filters[k])}</select>`:"";const allOpts=optionSets(applyFilters({ignore:["client","sdr","status","cp","clientVal","final"]}));document.getElementById("thead").innerHTML=`<tr>${cols.map(c=>`<th>${c[0]==="actions"?c[1]:`<button class="sort" onclick="setSort('${c[0]}')">${c[1]} ${sortState.key===c[0]?(sortState.dir==="asc"?"asc":"desc"):""}</button>`}${q(c[0],c[0],allOpts[c[0]]||[])}</th>`).join("")}</tr>`}
 function renderRows(rows){document.getElementById("rows").innerHTML=sortRows(rows).map(m=>`<tr class="${m.id===selected?"selected":""}" onclick="openDetail(${m.id})"><td><b>${m.date}</b><span class="sub">${m.time}</span></td><td><span class="avatar-sm ${m.client.toLowerCase()}">${m.client[0]}</span><span class="company">${m.client}</span></td><td>${esc(m.company)}</td><td>${esc(m.sdr)||"<span class='sub'>Sin asignar</span>"}</td><td>${esc(m.contact)}<span class="sub">${esc(m.role)}</span></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.status)}" onchange="setField(${m.id},'status',this.value)">${opt(statuses,m.status)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.cp)}" onchange="setField(${m.id},'cp',this.value)">${opt(cps,m.cp)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.clientVal)}" onchange="setField(${m.id},'clientVal',this.value)">${opt(clientVals,m.clientVal)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(finalStatus(m))}" onchange="setField(${m.id},'final',this.value)">${opt(finalOptions,finalStatus(m))}</select></td><td><button class="action" onclick="event.stopPropagation();openDetail(${m.id})">Ver</button></td></tr>`).join("")}
-function openDetail(id){selected=id;panelOpen=true;render()}
+function openDetail(id){selected=id;tab="Información";panelOpen=true;render()}
 function closeDetail(){panelOpen=false;document.body.classList.remove("detail-open");render()}
 function field(k,label,type="input"){const m=current();const val=esc(m[k]);return `<div class="field2 ${type==="textarea"?"wide":""}"><label>${label}</label>${type==="textarea"?`<textarea onchange="setField(${m.id},'${k}',this.value)">${val}</textarea>`:`<input value="${val}" onchange="setField(${m.id},'${k}',this.value)">`}</div>`}
 function selectField(k,label,values){const m=current();return `<div class="field2"><label>${label}</label><select onchange="setField(${m.id},'${k}',this.value)">${opt(values,m[k])}</select></div>`}
-function renderPanel(){if(!panelOpen)return;const m=current();document.getElementById("detailTitle").textContent=m.company||m.contact||"Detalle de reunion";document.getElementById("detailSubtitle").textContent=`${m.contact||"Sin contacto"} - ${m.client||"Sin cliente"}`;const states=[["Estado final",finalDisplay(m),"final-state"],["Agenda",m.status,""],["CP",m.cp,""],["Cliente",m.clientVal,""]];document.getElementById("summary").innerHTML=states.map(i=>`<div class="sum ${i[2]}"><small>${i[0]}</small><span class="chip ${tone(i[1])}" title="${esc(i[1])}">${esc(i[1])}</span></div>`).join("");const alert=operationalAlert(m);const fAlert=finalAlert(m);document.getElementById("meta").innerHTML=`<div><small>Cliente</small><b>${esc(m.client)}</b></div><div><small>Fecha y hora</small><b>${esc(m.date)} ${esc(m.time)}</b></div><div><small>SDR asignada</small><select onchange="setField(${m.id},'sdr',this.value)">${opt([...new Set(meetings.map(x=>x.sdr).filter(Boolean))],m.sdr)}</select></div><div><small>Estado del Caso</small><select onchange="setField(${m.id},'caseStatus',this.value)">${opt(caseStatusOptions,m.caseStatus)}</select></div>${fAlert?`<div class="alertline final"><small>Alerta final</small><b>${esc(fAlert)}</b></div>`:""}${alert&&alert!=="Sin alertas operativas"?`<div class="alertline"><small>Alerta operativa</small><b>${esc(alert)}</b></div>`:""}`;const tabs=["Informacion","Evaluacion CP","Evaluacion Cliente","Estado Final","Historial"];document.getElementById("tabs").innerHTML=tabs.map(t=>`<button class="${tab===t?"active":""}" onclick="tab='${t}';renderPanel()">${t}</button>`).join("");let html="";if(tab==="Informacion")html=infoTab(m);if(tab==="Evaluacion CP")html=cpTab(m);if(tab==="Evaluacion Cliente")html=clientTab(m);if(tab==="Estado Final")html=finalTab(m);if(tab==="Historial")html=historyTab(m);document.getElementById("panel").innerHTML=html}
+function renderPanel(){if(!panelOpen)return;const m=current();document.getElementById("detailTitle").textContent=m.company||m.contact||"Detalle de reunión";document.getElementById("detailSubtitle").textContent=`${m.contact||"Sin contacto"} - ${m.client||"Sin cliente"}`;const states=[["Estado Final",finalDisplay(m),"final-state"],["Etapa Agenda",m.status,""],["Evaluación CP",m.cp,""],["Evaluación Cliente",m.clientVal,""]];document.getElementById("summary").innerHTML=states.map(i=>`<div class="sum ${i[2]}"><small>${i[0]}</small><span class="chip ${tone(i[1])}" title="${esc(i[1])}">${esc(i[1])}</span></div>`).join("");const alert=operationalAlert(m);const fAlert=finalAlert(m);document.getElementById("meta").innerHTML=`<div><small>Cliente</small><b>${esc(m.client)}</b></div><div><small>Fecha y hora</small><b>${esc(m.date)} ${esc(m.time)}</b></div><div><small>SDR asignada</small><select onchange="setField(${m.id},'sdr',this.value)">${opt([...new Set(meetings.map(x=>x.sdr).filter(Boolean))],m.sdr)}</select></div><div><small>Estado del Caso</small><select onchange="setField(${m.id},'caseStatus',this.value)">${opt(caseStatusOptions,m.caseStatus)}</select></div>${fAlert?`<div class="alertline final"><small>Alerta final</small><b>${esc(fAlert)}</b></div>`:""}${alert&&alert!=="Sin alertas operativas"?`<div class="alertline"><small>Alerta operativa</small><b>${esc(alert)}</b></div>`:""}`;const tabs=["Información","Evaluación CP","Evaluación Cliente","Estado Final","Historial"];document.getElementById("tabs").innerHTML=tabs.map(t=>`<button class="${tab===t?"active":""}" onclick="tab='${t}';renderPanel()">${t}</button>`).join("");let html="";if(tab==="Información")html=infoTab(m);if(tab==="Evaluación CP")html=cpTab(m);if(tab==="Evaluación Cliente")html=clientTab(m);if(tab==="Estado Final")html=finalTab(m);if(tab==="Historial")html=historyTab(m);document.getElementById("panel").innerHTML=html}
 function infoSection(title,body){return `<section class="info-section"><h3 class="section-title">${title}</h3><div class="grid">${body}</div></section>`}
-function infoTab(m){let ctx="";if(m.status==="Reunion cancelada")ctx=`<div class="context"><b>Cancelacion</b><div class="grid">${selectField("cancelWho","Quien cancelo",cancellationActors)}${field("cancelReason","Motivo")}${field("cancelComment","Comentario","textarea")}</div><div class="btn-row"><button class="primary" onclick="saveSection('Cancelacion')">Guardar cancelacion</button></div></div>`;if(m.status==="Reagendar reunion")ctx=`<div class="context"><b>Reagendar reunion</b><div class="grid">${selectField("rescheduleWho","Quien solicita",cancellationActors)}${selectField("rescheduleReason","Motivo",rescheduleReasons)}${field("rescheduleOld","Fecha anterior")}${field("rescheduleNew","Nueva fecha")}${field("rescheduleComment","Comentario","textarea")}</div><div class="btn-row"><button class="primary" onclick="saveSection('Reagendamiento')">Guardar reagendamiento</button></div></div>`;return ctx+infoSection("Empresa",`${field("company","Nombre de empresa")}${field("industry","Industria")}${field("country","Pais")}${field("website","Sitio web")}${field("linkedinCompany","LinkedIn empresa")}${field("companyInfo","Informacion adicional empresa","textarea")}`)+infoSection("Contacto",`${field("contact","Nombre del contacto")}${field("role","Cargo")}${field("email","Correo electronico")}${field("phone","Telefono")}${field("linkedin","LinkedIn")}${field("contactInfo","Informacion adicional contacto","textarea")}`)+infoSection("Reunion",`${field("date","Fecha")}${field("time","Hora")}${field("sdr","SDR asignada")}${field("sourceChannel","Canal de origen")}${field("meet","Enlace reunion")}${field("ghlContact","Contacto GHL")}${field("ghlOpp","Oportunidad GHL")}${field("info","Informacion de preparacion","textarea")}${field("operationalNotes","Observaciones operativas","textarea")}`)+`<div class="btn-row"><button class="primary" onclick="saveSection('Informacion')">Guardar informacion</button></div>`}
-function cpTab(m){return `<div class="grid"><div class="field2"><label>Evaluacion CP</label><select onchange="setField(${m.id},'cp',this.value)">${opt(cps,m.cp)}</select></div><div class="field2"><label>ICP</label><select onchange="setField(${m.id},'icp',this.value)">${opt(["No evaluado","Cumple","No cumple"],m.icp)}</select></div><div class="wide"><span class="block-title">BANT</span><div class="evidence">${Object.keys(m.bant).map(k=>`<label class="evi"><input type="checkbox" ${m.bant[k]?"checked":""} onchange="const m=current();const old={...m.bant};m.bant['${k}']=this.checked;addHistory(m,'BANT',old,{...m.bant});persist();render()"> ${k}<small>${m.bant[k]?"Si":"No"}</small></label>`).join("")}</div></div>${field("just","Justificacion visible al cliente","textarea")}${field("notes","Nota interna Conprospeccion","textarea")}</div><span class="block-title" style="margin-top:12px">Evidencias</span><div class="evidence">${m.evidence.map(e=>`<div class="evi">${e.valid?"OK ":""}${esc(e.type)}<small>${esc(e.name)}</small></div>`).join("")||""}<button class="ghost" onclick="addEvidence('Archivo')">Subir archivo</button><button class="ghost" onclick="addEvidence('Enlace')">Pegar enlace</button><button class="ghost" onclick="addEvidence('Comentario')">Agregar comentario</button></div><div class="btn-row"><button class="primary" onclick="saveSection('Evaluacion CP')">Guardar Evaluacion CP</button></div>`}
+function infoTab(m){let ctx="";if(m.status==="Reunión cancelada")ctx=`<div class="context"><b>Cancelación</b><div class="grid">${selectField("cancelWho","Quién canceló",cancellationActors)}${field("cancelReason","Motivo")}${field("cancelComment","Comentario","textarea")}</div><div class="btn-row"><button class="primary" onclick="saveSection('Cancelación')">Guardar cancelación</button></div></div>`;if(m.status==="Reagendar reunión")ctx=`<div class="context"><b>Reagendar reunión</b><div class="grid">${selectField("rescheduleWho","Quién solicita",cancellationActors)}${selectField("rescheduleReason","Motivo",rescheduleReasons)}${field("rescheduleOld","Fecha anterior")}${field("rescheduleNew","Nueva fecha")}${field("rescheduleComment","Comentario","textarea")}</div><div class="btn-row"><button class="primary" onclick="saveSection('Reagendamiento')">Guardar reagendamiento</button></div></div>`;return ctx+infoSection("Empresa",`${field("company","Nombre de empresa")}${field("industry","Industria")}${field("country","País")}${field("website","Sitio web")}${field("linkedinCompany","LinkedIn empresa")}${field("companyInfo","Información adicional empresa","textarea")}`)+infoSection("Contacto",`${field("contact","Nombre del contacto")}${field("role","Cargo")}${field("email","Correo electrónico")}${field("phone","Teléfono")}${field("linkedin","LinkedIn")}${field("contactInfo","Información adicional contacto","textarea")}`)+infoSection("Reunión",`${field("date","Fecha")}${field("time","Hora")}${field("sdr","SDR asignada")}${field("sourceChannel","Canal de origen")}${field("meet","Enlace reunión")}${field("ghlContact","Contacto GHL")}${field("ghlOpp","Oportunidad GHL")}${field("info","Información de preparación","textarea")}${field("operationalNotes","Observaciones operativas","textarea")}`)+`<div class="btn-row"><button class="primary" onclick="saveSection('Información')">Guardar información</button></div>`}
+function evidenceCard(e){const link=e.url?`<small><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.name||"Abrir")}</a></small>`:`<small>${esc(e.name||"Disponible")}</small>`;const text=e.text?`<p>${esc(e.text).slice(0,700)}</p>`:"";return `<div class="evi">${e.valid?"OK ":""}${esc(e.type)}${link}${text}</div>`}
+function cpTab(m){return `<div class="grid"><div class="field2"><label>Evaluación CP</label><select onchange="setField(${m.id},'cp',this.value)">${opt(cps,m.cp)}</select></div><div class="field2"><label>ICP</label><select onchange="setField(${m.id},'icp',this.value)">${opt(["No evaluado","Cumple","No cumple"],m.icp)}</select></div><div class="wide"><span class="block-title">BANT</span><div class="evidence">${Object.keys(m.bant).map(k=>`<label class="evi"><input type="checkbox" ${m.bant[k]?"checked":""} onchange="const m=current();const old={...m.bant};m.bant['${k}']=this.checked;addHistory(m,'BANT',old,{...m.bant});persist();saveMeeting(m,'BANT',true);render()"> ${k}<small>${m.bant[k]?"Sí":"No"}</small></label>`).join("")}</div></div>${field("just","Justificación visible al cliente","textarea")}${field("notes","Nota interna Conprospección","textarea")}</div><span class="block-title" style="margin-top:12px">Evidencias</span><div class="evidence">${m.evidence.map(evidenceCard).join("")||"<span class='sub'>Sin evidencia sincronizada todavía.</span>"}<button class="ghost" onclick="addEvidence('Archivo')">Subir archivo</button><button class="ghost" onclick="addEvidence('Enlace')">Pegar enlace</button><button class="ghost" onclick="addEvidence('Comentario')">Agregar comentario</button></div><div class="btn-row"><button class="primary" onclick="saveSection('Evaluación CP')">Guardar Evaluación CP</button></div>`}
 function clientTimeline(m){const items=(m.clientTimeline&&m.clientTimeline.length?m.clientTimeline:buildClientTimeline(m));return `<span class="block-title" style="margin-top:12px">Seguimiento cliente</span><div class="timeline">${items.map(i=>`<div class="tl"><small>${esc(i.when)} - ${esc(i.actor||"Cliente")}</small><b>${esc(i.status||"Pendiente")}</b>${i.reason?`<div>Motivo: ${esc(i.reason)}</div>`:""}${i.comment?`<div>${esc(i.comment)}</div>`:""}</div>`).join("")}</div>`}
-function clientTab(m){const needsReason=["Solicitar revision","No valida","Confirmar"].includes(m.clientVal);const label=m.clientVal==="Solicitar revision"?"Motivo revision":"Motivo / evidencia interna";return `<div class="read"><p><b>Estado actual:</b> ${esc(m.clientVal)}</p><p><b>Ultima accion:</b> ${esc(m.clientDate)||"Sin fecha registrada"}</p><p><b>Contacto cliente:</b> ${esc(m.clientActor||m.contact)||"Sin contacto registrado"}</p><p><b>Motivo:</b> ${esc(m.clientReason)||"Sin motivo registrado"}</p><p><b>Comentario:</b> ${esc(m.clientComment)||"Sin comentario registrado"}</p></div><div class="grid" style="margin-top:12px"><div class="field2"><label>Evaluacion Cliente</label><select onchange="setField(${m.id},'clientVal',this.value)">${opt(clientVals,m.clientVal)}</select></div><div class="field2"><label>Contacto / responsable de accion</label><input value="${esc(m.clientActor||m.contact||"Conprospeccion")}" onchange="setField(${m.id},'clientActor',this.value)"></div>${needsReason?`<div class="field2"><label>${label}</label><select onchange="setField(${m.id},'clientReason',this.value)">${opt(["","Cliente confirmo en reunion","Cliente no valida en reunion","Se hablo en reunion que es valida","Evidencia en grabacion/transcripcion","Solicita revision","Otro"],m.clientReason)}</select></div>`:""}${field("clientComment","Porque / comentario de respaldo","textarea")}${field("clientEvidence","Evidencia cliente o reunion")}</div>${clientTimeline(m)}<div class="field2 wide" style="margin-top:12px"><label>Respuesta de Conprospeccion</label><textarea onchange="setField(${m.id},'cpResponse',this.value)">${esc(m.cpResponse)}</textarea></div><div class="btn-row"><button class="primary" onclick="saveSection('Evaluacion Cliente')">Guardar Evaluacion Cliente</button></div>`}
+function clientTab(m){const needsReason=["Solicita revisión","No válida","Válida"].includes(m.clientVal);const label=m.clientVal==="Solicita revisión"?"Motivo revisión":"Motivo / evidencia interna";return `<div class="read"><p><b>Estado actual:</b> ${esc(m.clientVal)}</p><p><b>Última acción:</b> ${esc(m.clientDate)||"Sin fecha registrada"}</p><p><b>Contacto cliente:</b> ${esc(m.clientActor||m.contact)||"Sin contacto registrado"}</p><p><b>Motivo:</b> ${esc(m.clientReason)||"Sin motivo registrado"}</p><p><b>Comentario:</b> ${esc(m.clientComment)||"Sin comentario registrado"}</p></div><div class="grid" style="margin-top:12px"><div class="field2"><label>Evaluación Cliente</label><select onchange="setField(${m.id},'clientVal',this.value)">${opt(clientVals,m.clientVal)}</select></div><div class="field2"><label>Contacto / responsable de acción</label><input value="${esc(m.clientActor||m.contact||"Conprospección")}" onchange="setField(${m.id},'clientActor',this.value)"></div>${needsReason?`<div class="field2"><label>${label}</label><select onchange="setField(${m.id},'clientReason',this.value)">${opt(["","Cliente confirmó en reunión","Cliente confirmó no validación","Se habló en reunión que es válida","Evidencia en grabación/transcripción","Solicita revisión","Otro"],m.clientReason)}</select></div>`:""}${field("clientComment","Por qué / comentario de respaldo","textarea")}${field("clientEvidence","Evidencia cliente o reunión")}</div>${clientTimeline(m)}<div class="field2 wide" style="margin-top:12px"><label>Respuesta de Conprospección</label><textarea onchange="setField(${m.id},'cpResponse',this.value)">${esc(m.cpResponse)}</textarea></div><div class="btn-row"><button class="primary" onclick="saveSection('Evaluación Cliente')">Guardar Evaluación Cliente</button></div>`}
 function finalTab(m){const alert=operationalAlert(m);const fAlert=finalAlert(m);return `<div class="grid"><div class="field2"><label>Estado Final</label><select onchange="setField(${m.id},'final',this.value)">${opt(finalOptions,finalStatus(m))}</select><span class="sub">Vista actual: ${esc(finalDisplay(m))}</span></div><div class="field2"><label>Estado del Caso</label><select onchange="setField(${m.id},'caseStatus',this.value)">${opt(caseStatusOptions,m.caseStatus)}</select></div>${fAlert?`<div class="field2 wide"><label>Alerta final</label><input value="${esc(fAlert)}" readonly></div>`:""}${alert&&alert!=="Sin alertas operativas"?`<div class="field2 wide"><label>Alerta operativa</label><input value="${esc(alert)}" readonly></div>`:""}${field("finalReason","Motivo Final","textarea")}${field("finalClientText","Texto visible al cliente","textarea")}${field("finalInternalNote","Nota interna","textarea")}</div><div class="btn-row"><button class="primary" onclick="saveSection('Estado Final')">Guardar Estado Final</button></div>`}
-function historySource(h){if(h.manual)return"Nota manual";if(String(h.user||"").toLowerCase().includes("cliente"))return"Cliente";if(String(h.user||"").toLowerCase().includes("ghl")||String(h.user||"").toLowerCase().includes("sistema"))return"Sistema";return"Conprospeccion"}
+function historySource(h){if(h.manual)return"Nota manual";if(String(h.user||"").toLowerCase().includes("cliente"))return"Cliente";if(String(h.user||"").toLowerCase().includes("ghl")||String(h.user||"").toLowerCase().includes("sistema"))return"Sistema";return"Conprospección"}
 function historyText(h){if(h.description)return esc(h.description);const from=typeof h.from==="undefined"?"":JSON.stringify(h.from);const to=typeof h.to==="undefined"?"":JSON.stringify(h.to);return `${esc(from)} -> ${esc(to)}`}
-function historyTab(m){const items=m.history||[];const form=`<div class="manual-form"><span class="block-title">Agregar actualizacion manual</span><div class="grid"><div class="field2"><label>Tipo de actualizacion</label><select id="manualType">${opt(["Etapa de agenda","Evaluacion CP","Evaluacion cliente","Estado final","Seguimiento","Informacion adicional","Nota para el cliente"],"Seguimiento")}</select></div><div class="field2"><label>Visibilidad</label><select id="manualVisibility">${opt(["Solo uso interno","Visible para el cliente"],"Solo uso interno")}</select></div><div class="field2 wide"><label>Descripcion</label><textarea id="manualText" placeholder="Escribe una actualizacion breve"></textarea></div></div><div class="btn-row"><button class="primary" onclick="addManualHistory()">Agregar actualizacion</button></div><small class="sub">Esta nota no modifica Etapa Agenda, Evaluacion CP, Evaluacion Cliente ni Estado Final.</small></div>`;return form+`<div class="history">${items.length?items.map((h,idx)=>{const source=historySource(h);const cls=h.manual?"manual":source==="Cliente"?"client":"";return `<div class="hist"><small>${esc(h.when)} - ${esc(h.user||"Sistema")} <span class="event-badge ${cls}">${source}</span><span class="event-badge">${esc(h.visibility||"Solo uso interno")}</span></small><b>${esc(h.field||"Actualizacion")}</b><div>${historyText(h)}</div><div class="event-meta">${esc(h.status||h.stage||"")}</div>${h.manual?`<div class="manual-actions"><button class="mini" onclick="editManualHistory(${idx})">Editar</button><button class="mini" onclick="deleteManualHistory(${idx})">Eliminar</button></div>`:""}</div>`}).join(""):"<span class='sub'>Sin cambios durante esta sesion.</span>"}</div>`}
-function addManualHistory(){const m=current();const text=(document.getElementById("manualText").value||"").trim();if(!text)return;const type=document.getElementById("manualType").value;const visibility=document.getElementById("manualVisibility").value;m.history=m.history||[];m.history.unshift({when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:type,description:text,manual:true,visibility,client:m.client,meetingId:m.id});persist();renderPanel();notify("Actualizacion agregada al historial")}
-function editManualHistory(idx){const m=current();const h=(m.history||[])[idx];if(!h||!h.manual)return;const next=prompt("Corregir actualizacion manual",h.description||"");if(next===null)return;const old=h.description||"";h.description=next;m.history.unshift({when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:"Auditoria nota manual",description:`Nota manual editada: ${old} -> ${next}`,manual:false,visibility:"Solo uso interno",client:m.client,meetingId:m.id});persist();renderPanel()}
-function deleteManualHistory(idx){const m=current();const h=(m.history||[])[idx];if(!h||!h.manual)return;if(!confirm("Eliminar esta actualizacion manual?"))return;const old=h.description||"";m.history.splice(idx,1);m.history.unshift({when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:"Auditoria nota manual",description:`Nota manual eliminada: ${old}`,manual:false,visibility:"Solo uso interno",client:m.client,meetingId:m.id});persist();renderPanel()}
+function visibleHistory(m){const allowed=["Fecha Agenda","Fecha Reunión realizada","Etapa Agenda","Evaluación CP","Evaluación Cliente"];const base=[];if(m.scheduledDate)base.push({when:m.scheduledDate,user:"GHL",field:"Fecha Agenda",description:m.scheduledDate,manual:false,visibility:"Solo uso interno"});base.push({when:m.date||"Sin fecha",user:"GHL",field:"Fecha Reunión realizada",description:`${m.date||""} ${m.time||""}`,manual:false,visibility:"Solo uso interno"});const filtered=(m.history||[]).map((h,idx)=>({...h,_idx:idx})).filter(h=>h.manual||allowed.includes(h.field));return base.concat(filtered)}
+function historyTab(m){const items=visibleHistory(m);const form=`<div class="manual-form"><span class="block-title">Agregar actualización manual</span><div class="grid"><div class="field2"><label>Tipo de actualización</label><select id="manualType">${opt(["Fecha Agenda","Fecha Reunión realizada","Etapa Agenda","Evaluación CP","Evaluación Cliente"],"Etapa Agenda")}</select></div><div class="field2"><label>Visibilidad</label><select id="manualVisibility">${opt(["Solo uso interno","Visible para el cliente"],"Solo uso interno")}</select></div><div class="field2 wide"><label>Descripción</label><textarea id="manualText" placeholder="Escribe una actualización breve"></textarea></div></div><div class="btn-row"><button class="primary" onclick="addManualHistory()">Agregar actualización</button></div><small class="sub">Esta nota no modifica automáticamente los estados operativos.</small></div>`;return form+`<div class="history">${items.length?items.map((h)=>{const source=historySource(h);const cls=h.manual?"manual":source==="Cliente"?"client":"";return `<div class="hist"><small>${esc(h.when)} - ${esc(h.user||"Sistema")} <span class="event-badge ${cls}">${source}</span></small><b>${esc(h.field||"Actualización")}</b><div>${historyText(h)}</div>${h.manual?`<div class="manual-actions"><button class="mini" onclick="editManualHistory(${h._idx})">Editar</button><button class="mini" onclick="deleteManualHistory(${h._idx})">Eliminar</button></div>`:""}</div>`}).join(""):"<span class='sub'>Sin cambios relevantes.</span>"}</div>`}
+function addManualHistory(){const m=current();const text=(document.getElementById("manualText").value||"").trim();if(!text)return;const type=document.getElementById("manualType").value;const visibility=document.getElementById("manualVisibility").value;const h={when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:type,description:text,manual:true,visibility,client:m.client,meetingId:m.id};m.history=m.history||[];m.history.unshift(h);persist();saveMeeting(m,type,false,{manualHistory:h});renderPanel();notify("Actualización agregada al historial")}
+function editManualHistory(idx){const m=current();const h=(m.history||[])[idx];if(!h||!h.manual)return;const next=prompt("Corregir actualización manual",h.description||"");if(next===null)return;const old=h.description||"";h.description=next;const audit={when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:"Auditoría nota manual",description:`Nota manual editada: ${old} -> ${next}`,manual:false,visibility:"Solo uso interno",client:m.client,meetingId:m.id};m.history.unshift(audit);persist();saveMeeting(m,"Auditoría nota manual",true,{manualHistory:audit});renderPanel()}
+function deleteManualHistory(idx){const m=current();const h=(m.history||[])[idx];if(!h||!h.manual)return;if(!confirm("Eliminar esta actualización manual?"))return;const old=h.description||"";m.history.splice(idx,1);const audit={when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:"Auditoría nota manual",description:`Nota manual eliminada: ${old}`,manual:false,visibility:"Solo uso interno",client:m.client,meetingId:m.id};m.history.unshift(audit);persist();saveMeeting(m,"Auditoría nota manual",true,{manualHistory:audit});renderPanel()}
 function addEvidence(type="Manual"){const m=current();const name=prompt(type==="Enlace"?"Pega el enlace":"Nombre, archivo o comentario de evidencia");if(!name)return;m.evidence.push({type,name,valid:true});addHistory(m,`Carga ${type}`,"",name);persist();render()}
 function buildNotifications(){return meetings.flatMap(m=>(m.history||[]).slice(0,3).map(h=>({client:m.client,company:m.company,contact:m.contact,type:h.field,when:h.when,state:h.to}))).filter(n=>n.type!=="Guardar Historial").slice(0,9)}
 function toggleNotifications(){notifOpen=!notifOpen;renderNotifications()}

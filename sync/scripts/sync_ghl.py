@@ -79,9 +79,10 @@ def custom_field_value(
     # IDs collected from raw_data across all active client locations.
     CARGO_IDS     = {"efNF4mWu0msxLAzV2iwz", "IQZMMTl5gO2zlEqmZEdQ",
                      "P7PAEC4d5TLiMe6VPN6M", "p4SAWjQigYDdkDYiNbRE",
-                     "f43LHxcbFBDAKCm9gdQh"}  # Bambutech
+                     "f43LHxcbFBDAKCm9gdQh", "c60cJqsxNT5Srdiv7wV3"}  # Bambutech + GBS
     INDUSTRIA_IDS = {"Wqc8iUl5U1GVF59WTqrt", "luvGYtBxYc2ngUDvuZeT",
-                     "E9lTjhX14s5EDsTmnsSF", "f2WEpcm03VvepzdUvxl8"}
+                     "E9lTjhX14s5EDsTmnsSF", "f2WEpcm03VvepzdUvxl8",
+                     "p2CZgSN3D0kvNPo9wBeq"}
     INFO_REUNION_IDS = {"mwCPOKdikR3VfS7Xf9bm", "G7iqx0zfyyIY211r2td2"}
     BANT_SDR_IDS = {"sPpRmRxaHRehCVr0UX29", "slMz9VP1KRyAeJZiWss1"}
 
