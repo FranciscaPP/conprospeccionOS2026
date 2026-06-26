@@ -26,6 +26,18 @@ def parse_dt(value: str | None) -> str | None:
     return value
 
 
+def normalize_country(value: str | None) -> str | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    countries = {
+        "cl": "Chile",
+        "chl": "Chile",
+        "chile": "Chile",
+    }
+    return countries.get(text.lower(), text)
+
+
 def chunked(rows: list[dict[str, Any]], size: int = 100) -> list[list[dict[str, Any]]]:
     return [rows[index : index + size] for index in range(0, len(rows), size)]
 
@@ -156,7 +168,7 @@ def normalize_contact(
         "telefono": contact.get("phone"),
         "tipo": contact.get("type"),
         "fuente": contact.get("source"),
-        "pais": contact.get("country"),
+        "pais": normalize_country(contact.get("country")),
         "ciudad": contact.get("city"),
         "estado_region": contact.get("state"),
         "industria": custom_field_value(contact, "industria", "industry", definitions=definitions),

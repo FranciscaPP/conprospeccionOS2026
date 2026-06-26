@@ -58,6 +58,18 @@ def contact_name_from_email(email: str | None) -> str | None:
     return " ".join(part.capitalize() for part in local.split() if part) or None
 
 
+def normalize_country(value: str | None) -> str | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    countries = {
+        "cl": "Chile",
+        "chl": "Chile",
+        "chile": "Chile",
+    }
+    return countries.get(text.lower(), text)
+
+
 def normalize_ghl_contact(payload: dict[str, Any]) -> dict[str, Any]:
     contact = payload.get("contact") if isinstance(payload.get("contact"), dict) else payload
     first_name = contact.get("firstName") or contact.get("first_name") or ""
@@ -70,7 +82,7 @@ def normalize_ghl_contact(payload: dict[str, Any]) -> dict[str, Any]:
         "email": contact.get("email"),
         "telefono": contact.get("phone"),
         "cargo": contact.get("jobTitle") or contact.get("job_title"),
-        "pais": contact.get("country"),
+        "pais": normalize_country(contact.get("country")),
         "ghl_owner_user_id": contact.get("assignedTo") or contact.get("assigned_to"),
         "custom_fields": contact.get("customFields") or [],
         "raw_data": contact,
@@ -202,7 +214,7 @@ def normalize_event(
         "email": pick(event, "email") or contact.get("email"),
         "cargo": contact.get("cargo"),
         "industria": contact.get("industria"),
-        "pais": contact.get("pais"),
+        "pais": normalize_country(contact.get("pais")),
         "informacion_reunion": contact.get("informacion_reunion"),
         "bant_sdr": contact.get("bant_sdr"),
         "fecha_agendada": created_dt.date().isoformat() if created_dt else None,

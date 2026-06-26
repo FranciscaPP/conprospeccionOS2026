@@ -40,6 +40,17 @@ def _txt(value, default=""):
     return default if text.lower() in {"", "none", "nan", "nat", "<na>"} else text
 
 
+def _country_label(value):
+    raw = _txt(value)
+    normalized = raw.lower()
+    country_map = {
+        "cl": "Chile",
+        "chl": "Chile",
+        "chile": "Chile",
+    }
+    return country_map.get(normalized, raw)
+
+
 def _client_label(slug, raw):
     labels = {"clickie": "Clickie", "gbs": "GBS", "bambutech": "BambuTech"}
     return labels.get(_txt(slug).lower(), _txt(raw, "Cliente"))
@@ -558,7 +569,7 @@ def cargar_reuniones_reales_poc():
                 "caseStatus": _case_status(cp, client_val, final),
                 "email": _txt(row.get("email")),
                 "phone": _txt(row.get("telefono")),
-                "country": _txt(row.get("pais")),
+                "country": _country_label(row.get("pais")),
                 "industry": _txt(row.get("industria")),
                 "website": extra.get("website", ""),
                 "linkedin": extra.get("linkedin", ""),
