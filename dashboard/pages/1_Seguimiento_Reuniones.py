@@ -183,8 +183,12 @@ def _evidence(row, seg):
     return ev
 
 
-def _apply_evidence_visibility(evidence, history):
-    visibility = {}
+def _json_obj(value, default):
+    return value if isinstance(value, type(default)) else default
+
+
+def _apply_evidence_visibility(evidence, saved_visibility, history):
+    visibility = _json_obj(saved_visibility, {}).copy()
     for event in reversed(history or []):
         if _txt(event.get("field")) != "Visibilidad evidencia":
             continue
@@ -196,6 +200,32 @@ def _apply_evidence_visibility(evidence, history):
     for item in evidence:
         item["clientVisible"] = bool(visibility.get(item.get("type"), item.get("clientVisible", False)))
     return evidence
+
+
+def _evidence_visibility_payload(evidence):
+    return {str(item.get("type")): bool(item.get("clientVisible")) for item in evidence or [] if item.get("type")}
+
+
+def _manual_evidence_payload(evidence):
+    manual = []
+    for item in evidence or []:
+        if item.get("source") == "manual" or item.get("manual"):
+            manual.append(item)
+    return manual
+
+
+def _agenda_metadata_payload(meeting):
+    keys = [
+        "cancelWho",
+        "cancelReason",
+        "cancelComment",
+        "rescheduleWho",
+        "rescheduleReason",
+        "rescheduleOld",
+        "rescheduleNew",
+        "rescheduleComment",
+    ]
+    return {key: _txt(meeting.get(key)) for key in keys if _txt(meeting.get(key))}
 
 
 def _custom_field(custom_fields, *ids):
@@ -418,6 +448,13 @@ def _handle_save_request():
         "validated_final_by": "Conprospección" if final_db else None,
         "validated_final_at": now if final_db else None,
         "flag_meta_countable": _flag_meta_countable(meeting.get("final")),
+        "estado_caso": _txt(meeting.get("caseStatus")) or None,
+        "evidencia_visibilidad": _evidence_visibility_payload(meeting.get("evidence")),
+        "evidencia_manual": _manual_evidence_payload(meeting.get("evidence")),
+        "etapa_agenda_metadata": _agenda_metadata_payload(meeting),
+        "comentario_final_cliente": _txt(meeting.get("finalClientText")) or None,
+        "respuesta_cp_cliente": _txt(meeting.get("cpResponse")) or None,
+        "evidencia_cliente": _txt(meeting.get("clientEvidence")) or None,
         "updated_at": now,
     }
     base_payload = {
@@ -553,7 +590,10 @@ def cargar_reuniones_reales_poc():
         cp = _cp_label(row, seg)
         client_val = _client_val_label(seg)
         row_history = histories.get(int(rid), [])
-        evidence = _apply_evidence_visibility(_evidence({**row, **base_row}, seg), row_history)
+        manual_evidence = _json_obj(seg.get("evidencia_manual"), [])
+        evidence = _evidence({**row, **base_row}, seg) + manual_evidence
+        evidence = _apply_evidence_visibility(evidence, seg.get("evidencia_visibilidad"), row_history)
+        agenda_meta = _json_obj(seg.get("etapa_agenda_metadata"), {})
         if status == "Reunión cancelada":
             if cp == "Pendiente":
                 cp = ""
@@ -583,7 +623,7 @@ def cargar_reuniones_reales_poc():
                 "cp": cp,
                 "clientVal": client_val,
                 "final": final,
-                "caseStatus": _case_status(cp, client_val, final),
+                "caseStatus": _txt(seg.get("estado_caso")) or _case_status(cp, client_val, final),
                 "email": _txt(row.get("email")),
                 "phone": _txt(row.get("telefono")),
                 "country": _country_label(row.get("pais")),
@@ -605,15 +645,23 @@ def cargar_reuniones_reales_poc():
                 "next": _txt(seg.get("proximo_paso")),
                 "notes": _txt(seg.get("notas_internas")),
                 "finalReason": _txt(seg.get("comentario_final")),
-                "finalClientText": _txt(seg.get("comentario_cp")),
+                "finalClientText": _txt(seg.get("comentario_final_cliente")),
                 "finalInternalNote": _txt(seg.get("notas_internas")),
                 "evidence": evidence,
                 "clientReason": _txt(seg.get("motivo_no_validez")),
                 "clientComment": _txt(seg.get("comentario_cli")),
                 "clientDate": _txt(seg.get("validated_cli_at"))[:16].replace("T", " "),
                 "clientActor": _txt(seg.get("validated_by_cli"), _txt(row.get("contacto"), "Cliente")),
-                "clientEvidence": "",
-                "cpResponse": "",
+                "clientEvidence": _txt(seg.get("evidencia_cliente")),
+                "cpResponse": _txt(seg.get("respuesta_cp_cliente")),
+                "cancelWho": _txt(agenda_meta.get("cancelWho")),
+                "cancelReason": _txt(agenda_meta.get("cancelReason")),
+                "cancelComment": _txt(agenda_meta.get("cancelComment")),
+                "rescheduleWho": _txt(agenda_meta.get("rescheduleWho")),
+                "rescheduleReason": _txt(agenda_meta.get("rescheduleReason")),
+                "rescheduleOld": _txt(agenda_meta.get("rescheduleOld")),
+                "rescheduleNew": _txt(agenda_meta.get("rescheduleNew")),
+                "rescheduleComment": _txt(agenda_meta.get("rescheduleComment")),
                 "history": row_history,
                 "goal": int(meta["validas"]) if meta else 0,
             }
@@ -761,7 +809,7 @@ function finalDisplay(m){return finalStatus(m)==="Pendiente"?"Pendiente de cierr
 const saveEndpoint="/Seguimiento_Reuniones";
 function persist(){localStorage.setItem(storageKey,JSON.stringify(meetings))}
 function notify(msg){let n=document.getElementById("saveNote");if(!n){n=document.createElement("div");n.id="saveNote";n.className="save-note";document.body.appendChild(n)}n.textContent=msg;clearTimeout(window.__saveNoteTimer);window.__saveNoteTimer=setTimeout(()=>n.remove(),1800)}
-function compactMeeting(m){return {id:m.id,clientSlug:m.clientSlug,client:m.client,date:m.date,time:m.time,scheduledDate:m.scheduledDate,company:m.company,contact:m.contact,role:m.role,email:m.email,phone:m.phone,country:m.country,industry:m.industry,sdr:m.sdr,status:m.status,cp:m.cp,clientVal:m.clientVal,final:m.final,caseStatus:m.caseStatus,info:m.info,icp:m.icp,bant:m.bant,just:m.just,notes:m.notes,next:m.next,clientReason:m.clientReason,clientComment:m.clientComment,clientActor:m.clientActor,cpResponse:m.cpResponse,finalReason:m.finalReason,finalClientText:m.finalClientText,finalInternalNote:m.finalInternalNote,evidence:m.evidence}}
+function compactMeeting(m){return {id:m.id,clientSlug:m.clientSlug,client:m.client,date:m.date,time:m.time,scheduledDate:m.scheduledDate,company:m.company,contact:m.contact,role:m.role,email:m.email,phone:m.phone,country:m.country,industry:m.industry,sdr:m.sdr,status:m.status,cp:m.cp,clientVal:m.clientVal,final:m.final,caseStatus:m.caseStatus,info:m.info,icp:m.icp,bant:m.bant,just:m.just,notes:m.notes,next:m.next,clientReason:m.clientReason,clientComment:m.clientComment,clientActor:m.clientActor,clientEvidence:m.clientEvidence,cpResponse:m.cpResponse,finalReason:m.finalReason,finalClientText:m.finalClientText,finalInternalNote:m.finalInternalNote,evidence:m.evidence,cancelWho:m.cancelWho,cancelReason:m.cancelReason,cancelComment:m.cancelComment,rescheduleWho:m.rescheduleWho,rescheduleReason:m.rescheduleReason,rescheduleOld:m.rescheduleOld,rescheduleNew:m.rescheduleNew,rescheduleComment:m.rescheduleComment}}
 function encodePayload(payload){return btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
 async function saveMeeting(m,section,silent=false,extra={}){if(!m||!m.id||!m.clientSlug){if(!silent)notify("No se pudo guardar: falta cliente o reunión");return false}try{if(!silent)notify("Guardando...");const qs=encodePayload({section,meeting:compactMeeting(m),...extra});const res=await fetch(`${saveEndpoint}?cp_save=${qs}`,{method:"GET",credentials:"include",cache:"no-store"});const data=await res.json().catch(()=>({ok:false}));if(!res.ok||!data.ok)throw new Error(data.error||data.tracking_error||"No fue posible guardar");if(!silent)notify(`${section} guardado`);return true}catch(err){console.error(err);notify(`Error al guardar: ${err.message||err}`);return false}}
 function saveSection(section){const m=current();addHistory(m,`Guardar ${section}`,"Pendiente","Guardado");persist();saveMeeting(m,section);render()}
@@ -817,7 +865,7 @@ function historyTab(m){const items=visibleHistory(m);const form=`<div class="man
 function addManualHistory(){const m=current();const text=(document.getElementById("manualText").value||"").trim();if(!text)return;const type=document.getElementById("manualType").value;const visibility=document.getElementById("manualVisibility").value;const h={when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:type,description:text,manual:true,visibility,client:m.client,meetingId:m.id};m.history=m.history||[];m.history.unshift(h);persist();saveMeeting(m,type,false,{manualHistory:h});renderPanel();notify("Actualización agregada al historial")}
 function editManualHistory(idx){const m=current();const h=(m.history||[])[idx];if(!h||!h.manual)return;const next=prompt("Corregir actualización manual",h.description||"");if(next===null)return;const old=h.description||"";h.description=next;const audit={when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:"Auditoría nota manual",description:`Nota manual editada: ${old} -> ${next}`,manual:false,visibility:"Solo uso interno",client:m.client,meetingId:m.id};m.history.unshift(audit);persist();saveMeeting(m,"Auditoría nota manual",true,{manualHistory:audit});renderPanel()}
 function deleteManualHistory(idx){const m=current();const h=(m.history||[])[idx];if(!h||!h.manual)return;if(!confirm("Eliminar esta actualización manual?"))return;const old=h.description||"";m.history.splice(idx,1);const audit={when:new Date().toLocaleString("es-CL"),user:"Francisca / Yanina",field:"Auditoría nota manual",description:`Nota manual eliminada: ${old}`,manual:false,visibility:"Solo uso interno",client:m.client,meetingId:m.id};m.history.unshift(audit);persist();saveMeeting(m,"Auditoría nota manual",true,{manualHistory:audit});renderPanel()}
-function addEvidence(type="Manual"){const m=current();const name=prompt(type==="Enlace"?"Pega el enlace":"Nombre, archivo o comentario de evidencia");if(!name)return;m.evidence.push({type,name,valid:true});addHistory(m,`Carga ${type}`,"",name);persist();render()}
+function addEvidence(type="Manual"){const m=current();const name=prompt(type==="Enlace"?"Pega el enlace":"Nombre, archivo o comentario de evidencia");if(!name)return;m.evidence=m.evidence||[];m.evidence.push({type,name,valid:true,source:"manual",clientVisible:false});addHistory(m,`Carga ${type}`,"",name);persist();saveMeeting(m,"Evidencia",false);render()}
 function buildNotifications(){return meetings.flatMap(m=>(m.history||[]).slice(0,3).map(h=>({client:m.client,company:m.company,contact:m.contact,type:h.field,when:h.when,state:h.to}))).filter(n=>n.type!=="Guardar Historial").slice(0,9)}
 function toggleNotifications(){notifOpen=!notifOpen;renderNotifications()}
 function renderNotifications(){const box=document.getElementById("notifications");const events=buildNotifications();document.getElementById("bell").toggleAttribute("data-count",events.length>0);if(events.length>0)document.getElementById("bell").setAttribute("data-count",events.length);box.hidden=!notifOpen;box.innerHTML=`<h3>Notificaciones operativas</h3>${events.length?events.map(e=>`<div class="notif-item"><b>${esc(e.type)}</b><span>${esc(e.client)} - ${esc(e.company)} - ${esc(e.contact)}</span><br><small>${esc(e.when)} - ${esc(e.state)}</small></div>`).join(""):`<div class="notif-item">Sin novedades pendientes.</div>`}`}
