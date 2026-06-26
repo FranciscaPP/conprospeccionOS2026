@@ -437,9 +437,10 @@ render();
 
 
 real_meetings = cargar_reuniones_reales_poc()
+real_meetings_json = json.dumps(real_meetings, ensure_ascii=True).replace("</", "<\\/")
 POC_HTML = re.sub(
     r"let meetings=\[[\s\S]*?\];\nconst storageKey=",
-    "let meetings=" + json.dumps(real_meetings, ensure_ascii=False) + ";\nconst storageKey=",
+    lambda _match: "let meetings=" + real_meetings_json + ";\nconst storageKey=",
     POC_HTML,
     count=1,
 )
