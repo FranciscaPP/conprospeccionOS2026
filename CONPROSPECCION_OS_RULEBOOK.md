@@ -4,6 +4,13 @@ Fecha de vigencia: 2026-06-18
 Producto oficial: Streamlit  
 Estado: fuente oficial de verdad
 
+Nota de actualizacion 2026-06-27:
+
+- El panel maestro interno de seguimiento de reuniones se rige por `docs/SEGUIMIENTO_REUNIONES_RUNBOOK.md`.
+- Este Rulebook mantiene las reglas generales de autoridad de Conprospeccion, portal cliente y criterios contractuales.
+- Si una regla antigua de UX del portal contradice el runbook del panel maestro, prevalece el runbook para el panel interno.
+- La rama de trabajo oficial es `main`; `master` solo puede usarse como espejo tecnico de deploy Streamlit cuando sea necesario.
+
 ## 1. Autoridad de este documento
 
 Este Rulebook define las reglas funcionales y de UX vigentes de Conprospección OS.

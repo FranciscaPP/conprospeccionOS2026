@@ -1,44 +1,84 @@
-# Modelo de accesos OS2026
+# Modelo de accesos vigente
 
-Clientes activos desde junio 2026:
+Fecha de referencia: 2026-06-27
 
-- Clickie: meta mensual 6 reuniones validas.
-- GBS Logistics: meta mensual 10 reuniones validas.
-- BambuTech: meta mensual 12 reuniones validas.
+## Principio
 
-## Roles
+No existe un sistema de multiples roles internos.
 
-- `agency_admin`: ve todos los clientes, reuniones, SDRs, configuracion y sincronizaciones.
-- `sdr_leader`: ve todos los clientes activos y seguimiento operativo por SDR.
-- `client_admin`: ve y valida solo las reuniones del cliente asignado.
-- `client_viewer`: ve solo las reuniones del cliente asignado, sin permisos de edicion.
+El panel maestro interno lo usan Francisca y Yanina. Ambas tienen exactamente las mismas capacidades operativas.
 
-## Rutas actuales
+## Panel interno
 
-- Interno: `/internal/meeting-followup`
-- Portal Clickie: `/client/meeting-validation?client=clickie`
-- Portal GBS: `/client/meeting-validation?client=gbs`
-- Portal BambuTech: `/client/meeting-validation?client=bambutech`
+Ruta:
 
-## Implementacion actual
+```text
+https://conprospeccion-os.streamlit.app/Seguimiento_Reuniones
+```
 
-La fuente de clientes activos vive en `lib/access-control.ts`.
+Implementacion:
 
-El dashboard interno sigue leyendo reuniones reales desde Supabase por `/api/internal/meetings`, filtrando:
+```text
+dashboard/master_auth.py
+dashboard/pages/1_Seguimiento_Reuniones.py
+```
 
-- Solo clientes activos: Clickie, GBS y BambuTech.
-- Filas con `TEST` en campos principales o `raw_data`.
-- Filas incompletas sin empresa, contacto o fecha agendada.
-- Duplicados por empresa o correo, conservando la reunion con fecha agendada mas reciente.
+Capacidades internas:
 
-## Siguiente paso de seguridad
+- ver todas las reuniones;
+- editar Etapa Agenda;
+- editar Evaluacion CP;
+- completar ICP y BANT;
+- escribir informacion para reunion;
+- agregar justificacion y evidencia;
+- cambiar SDR asignada;
+- responder solicitudes de revision;
+- consultar historial;
+- definir Estado Final manualmente.
 
-Para entregar accesos reales a clientes y SDR lider se debe conectar Supabase Auth o el proveedor definido por agencia y guardar el perfil de acceso en `app_metadata`, no en `user_metadata`.
+No crear:
 
-Las politicas RLS deben restringir reuniones por `cliente_slug`:
+- roles internos;
+- permisos diferenciados entre Francisca y Yanina;
+- perfiles de administrador, supervisor o SDR;
+- logica RBAC interna.
 
-- Agencia y SDR lider: `clickie`, `gbs`, `bambutech`.
-- Cliente Clickie: `clickie`.
-- Cliente GBS: `gbs`.
-- Cliente BambuTech: `bambutech`.
+## Portales cliente
 
+Los portales cliente son paneles separados por cliente. No son vistas por rol interno.
+
+Rutas activas:
+
+```text
+dashboard/pages/12_GBS_Validacion_Reuniones.py
+dashboard/pages/7_Clickie_Validacion_Reuniones.py
+dashboard/pages/18_BambuTech_Validacion_Reuniones.py
+```
+
+Implementacion de acceso:
+
+```text
+dashboard/portal_auth.py
+```
+
+Regla:
+
+- GBS solo ve reuniones `cliente_slug = 'gbs'`.
+- Clickie solo ve reuniones `cliente_slug = 'clickie'`.
+- BambuTech solo ve reuniones `cliente_slug = 'bambutech'`.
+
+El cliente puede confirmar o solicitar revision desde su portal. No puede decidir Estado Final ni modificar Evaluacion CP, BANT, ICP, evidencia interna o notas internas.
+
+## Seguridad pendiente
+
+La separacion por cliente ya existe en la aplicacion. Como mejora de seguridad, Supabase debe reforzarla con RLS.
+
+Politicas futuras:
+
+- Francisca/Yanina: leer y escribir todo.
+- Cada cliente: leer solo su `cliente_slug`.
+- Cada cliente: escribir solo campos permitidos de Evaluacion Cliente, cuando corresponda.
+- Servicio de sincronizacion: escribir datos tecnicos sincronizados.
+- Historial cliente: mostrar solo eventos marcados como visibles.
+
+Estas politicas no cambian la logica funcional actual; solo evitan que un error de aplicacion exponga datos cruzados.

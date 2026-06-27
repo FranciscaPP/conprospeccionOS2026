@@ -1,64 +1,79 @@
-# Conprospección OS2026
+# Conprospeccion OS2026
 
-Aplicación operativa oficial de Con Prospección, desarrollada en **Streamlit**.
+Aplicacion operativa oficial de Conprospeccion, desarrollada en Streamlit.
 
-## Inicio rápido
+## Producto activo
 
-Desde la raíz del repositorio:
+- Entrada principal: `dashboard/app.py`
+- Panel maestro interno: `dashboard/pages/1_Seguimiento_Reuniones.py`
+- URL publica: `https://conprospeccion-os.streamlit.app/Seguimiento_Reuniones`
+- URL local: `http://localhost:8502/Seguimiento_Reuniones`
+
+Streamlit es la implementacion actual. Next.js, React, Vercel, Netlify, HTML mockups y prototipos antiguos no son producto activo.
+
+## Inicio rapido
+
+Desde la raiz del repositorio:
 
 ```powershell
-python -m pip install -r dashboard/requirements.txt
+python -m pip install -r requirements.txt
 python -m streamlit run dashboard/app.py --server.port 8502
 ```
 
-También se puede ejecutar:
+Tambien se puede ejecutar:
 
 ```text
 iniciar_dashboard.bat
 ```
 
-La aplicación queda disponible en:
-
-```text
-http://localhost:8502
-```
-
-## Despliegue Streamlit Cloud
-
-- Repo deploy: `FranciscaPP/conprospeccion-os`, rama `main`
-- URL: `https://conprospeccion-os.streamlit.app`
-- Publicar: `git push origin main` y luego `git push streamlit main`
-- No usar la rama `master` ni el repo viejo `FranciscaPP/conprospeccionOS`
-
 ## Estructura activa
 
 ```text
-dashboard/    Aplicación Streamlit, páginas, autenticación y assets
-shared/       Lógica Python compartida
-sync/         Procesos de sincronización y reporting
+dashboard/    Aplicacion Streamlit, paginas, autenticacion y assets
+shared/       Logica Python compartida
+sync/         Procesos de sincronizacion y reporting
 supabase/     Migraciones y funciones de infraestructura
 tests/        Pruebas del producto activo
+docs/         Documentacion funcional y operativa
 ```
 
-El punto de entrada oficial es `dashboard/app.py`.
+No analizar ni modificar `archive/` salvo peticion explicita.
 
-## Contexto para desarrollo
+## Documentacion obligatoria
 
 Leer antes de trabajar:
 
 - `PROJECT_MASTER_CONTEXT.md`
 - `ACTIVE_WORKSPACE.md`
+- `docs/SEGUIMIENTO_REUNIONES_RUNBOOK.md`
+- `CONPROSPECCION_OS_RULEBOOK.md`
 - `AGENTS.md`
 
-`archive/` es referencia histórica y no debe analizarse salvo petición explícita.
+## Despliegue Streamlit
 
-## Configuración
+Rama de trabajo oficial:
 
-Usar `.env.example` como referencia y mantener las credenciales reales fuera de Git.
+```text
+main
+```
 
-La aplicación consume datos desde Supabase. Los procesos que alimentan esos datos viven en `sync/` y `supabase/`.
+Remotos:
+
+- `origin`: `https://github.com/FranciscaPP/conprospeccionOS2026.git`
+- `streamlit`: `https://github.com/FranciscaPP/conprospeccion-os.git`
+
+Publicar:
+
+```powershell
+git push origin main
+git push streamlit main
+git push streamlit main:master
+```
+
+`master` no es rama de desarrollo. El push `main:master` solo mantiene compatibilidad con el deploy historico de Streamlit si la app esta apuntando a `master`.
 
 ## Regla de arquitectura
 
-Streamlit es la única implementación actual. Next.js, React y Vercel no forman parte del producto activo.
+GoHighLevel es la fuente primaria de datos. Supabase es la base operacional de la aplicacion.
 
+El panel interno de reuniones trabaja sobre registros canonicos compartidos con los portales cliente. No deben existir copias independientes por portal ni rutas POC activas dentro de `dashboard/pages`.
