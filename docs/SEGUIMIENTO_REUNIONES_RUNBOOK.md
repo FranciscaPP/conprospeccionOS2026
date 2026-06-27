@@ -286,15 +286,29 @@ Esto no cambia el comportamiento actual de portales; solo lo endurece a nivel ba
 
 Desarrollar en `main`.
 
-Publicar:
+Publicar codigo fuente:
 
 ```powershell
 git push origin main
-git push streamlit main
+```
+
+Estado verificado de Streamlit Cloud al 2026-06-27:
+
+```text
+Repository: conprospeccion-os
+Branch: master
+Main file path: dashboard/app.py
+```
+
+Mientras no se migre Streamlit Cloud al repo oficial, publicar app requiere:
+
+```powershell
 git push streamlit main:master
 ```
 
-El espejo a `master` existe por compatibilidad de deploy. No desarrollar en `master`.
+Objetivo pendiente: reconfigurar Streamlit Cloud para desplegar desde `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`, y luego archivar o eliminar el repo historico `FranciscaPP/conprospeccion-os`.
+
+No desarrollar en `master`.
 
 ## Archivos obsoletos
 

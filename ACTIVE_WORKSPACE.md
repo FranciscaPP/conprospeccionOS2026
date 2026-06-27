@@ -75,15 +75,27 @@ http://localhost:8502/Seguimiento_Reuniones
 
 ## Deploy vigente
 
-Publicar siempre desde `main`:
+Publicar siempre el codigo fuente en `main`:
 
 ```powershell
 git push origin main
-git push streamlit main
+```
+
+Estado verificado de Streamlit Cloud al 2026-06-27:
+
+```text
+Repository: conprospeccion-os
+Branch: master
+Main file path: dashboard/app.py
+```
+
+Mientras la app publica siga apuntando al repo historico, tambien se debe espejar el deploy:
+
+```powershell
 git push streamlit main:master
 ```
 
-`streamlit main:master` existe solo como compatibilidad con el deploy historico. No significa que `master` sea rama de desarrollo.
+Objetivo pendiente: reconfigurar Streamlit Cloud para que apunte a `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`. Despues de eso, eliminar el remoto `streamlit` y dejar de usar el repo historico `FranciscaPP/conprospeccion-os`.
 
 ## Regla de orden
 

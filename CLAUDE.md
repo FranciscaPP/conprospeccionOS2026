@@ -40,11 +40,20 @@ Publicar:
 
 ```powershell
 git push origin main
-git push streamlit main
 git push streamlit main:master
 ```
 
-`master` solo es espejo de deploy historico si Streamlit lo necesita. No desarrollar directamente en `master`.
+Estado verificado de Streamlit Cloud al 2026-06-27:
+
+```text
+Repository: conprospeccion-os
+Branch: master
+Main file path: dashboard/app.py
+```
+
+Ese repo historico se usa solo como deploy temporal. El objetivo pendiente es reconfigurar Streamlit Cloud para apuntar al repo oficial `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`.
+
+No desarrollar en `master`.
 
 ## Graphify
 

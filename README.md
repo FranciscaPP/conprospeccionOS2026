@@ -57,20 +57,33 @@ Rama de trabajo oficial:
 main
 ```
 
-Remotos:
+Repositorio oficial:
 
-- `origin`: `https://github.com/FranciscaPP/conprospeccionOS2026.git`
-- `streamlit`: `https://github.com/FranciscaPP/conprospeccion-os.git`
+- `https://github.com/FranciscaPP/conprospeccionOS2026`
 
-Publicar:
+Publicar codigo fuente:
 
 ```powershell
 git push origin main
-git push streamlit main
+```
+
+Estado verificado de Streamlit Cloud al 2026-06-27:
+
+```text
+Repository: conprospeccion-os
+Branch: master
+Main file path: dashboard/app.py
+```
+
+Mientras Streamlit siga apuntando al repo historico, el deploy requiere este espejo:
+
+```powershell
 git push streamlit main:master
 ```
 
-`master` no es rama de desarrollo. El push `main:master` solo mantiene compatibilidad con el deploy historico de Streamlit si la app esta apuntando a `master`.
+Objetivo pendiente: reconfigurar Streamlit Cloud para que apunte a `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`. Despues de validar la app, archivar o eliminar `FranciscaPP/conprospeccion-os`.
+
+No desarrollar en `master`.
 
 ## Regla de arquitectura
 

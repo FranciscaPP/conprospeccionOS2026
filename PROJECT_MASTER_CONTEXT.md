@@ -63,19 +63,34 @@ Los portales de clientes son paneles separados por cliente. No son vistas por ro
 
 La rama de trabajo oficial es `main`.
 
-Remotos vigentes:
+Repositorio oficial unico:
 
-- `origin`: repositorio fuente `FranciscaPP/conprospeccionOS2026`.
-- `streamlit`: repositorio usado por Streamlit Cloud `FranciscaPP/conprospeccion-os`.
+- `FranciscaPP/conprospeccionOS2026`
+- Rama: `main`
 
-Regla practica actual:
+Estado verificado en Streamlit Cloud al 2026-06-27:
+
+- App publica: `https://conprospeccion-os.streamlit.app`
+- Repository configurado: `conprospeccion-os`
+- Branch configurada: `master`
+- Main file path: `dashboard/app.py`
+
+Por lo tanto, el deploy publico todavia depende del repo historico `FranciscaPP/conprospeccion-os`.
+
+Regla practica mientras no se migre Streamlit Cloud:
 
 1. Desarrollar y commitear en `main`.
 2. Publicar a `origin main`.
-3. Espejar a `streamlit main`.
-4. Espejar a `streamlit master` solo porque el deploy historico de Streamlit puede estar apuntando a `master`.
+3. Espejar a `streamlit master` solo para no romper la app publica existente.
 
-No desarrollar directamente en `master`. Si Streamlit se reconfigura para apuntar a `main`, eliminar el espejo a `master` del flujo operativo.
+No desarrollar directamente en `master`.
+
+Objetivo de orden:
+
+1. Cambiar o recrear la app de Streamlit Cloud para que despliegue desde `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`.
+2. Probar que la app publica carga correctamente.
+3. Eliminar el remoto local `streamlit`.
+4. Archivar o eliminar el repo historico `FranciscaPP/conprospeccion-os`.
 
 ## Documentacion relacionada
 
