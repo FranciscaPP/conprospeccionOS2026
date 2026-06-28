@@ -39,15 +39,23 @@ Etapa Agenda solo describe que ocurrio operacionalmente:
 - reagendada;
 - u otra etapa operativa definida por Conprospeccion.
 
-Evaluacion CP es independiente de Etapa Agenda. Una reunion cancelada o reagendada puede evaluarse como valida o no valida si existe informacion contractual suficiente.
+Evaluacion CP es independiente de Etapa Agenda, excepto cuando Conprospeccion cambia la Etapa Agenda a `Reunion cancelada`. En ese caso operativo, Evaluacion CP pasa a `No necesaria`.
 
 Evaluacion Cliente solo informa lo que hizo el cliente en su portal:
 
 - pendiente;
 - confirmada;
-- solicita revision.
+- solicita revision;
+- no necesaria, cuando la Etapa Agenda queda en `Reunion cancelada`.
 
-Estado Final representa el cierre administrativo y contractual de Conprospeccion. Siempre se define manualmente desde el panel interno. No debe cerrarse automaticamente porque CP evaluo, porque el cliente confirmo o porque existe evidencia.
+Estado Final representa el cierre administrativo y contractual de Conprospeccion. Siempre se define manualmente desde el panel interno, excepto la regla operativa de cancelacion: si Conprospeccion mueve Etapa Agenda a `Reunion cancelada`, el Estado Final queda automaticamente en `Reunion cancelada`.
+
+Regla de cancelacion:
+
+- Etapa Agenda: `Reunion cancelada`.
+- Evaluacion CP: `No necesaria`.
+- Evaluacion Cliente: `No necesaria`.
+- Estado Final: `Reunion cancelada`.
 
 ## Estado del caso
 
