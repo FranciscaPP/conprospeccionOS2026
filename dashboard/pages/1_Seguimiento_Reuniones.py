@@ -2,6 +2,7 @@ import datetime
 import base64
 import json
 import re
+from pathlib import Path
 
 import requests
 import streamlit as st
@@ -31,6 +32,15 @@ SUPABASE_URL = supabase_url()
 SUPABASE_KEY = supabase_key()
 SUPABASE_HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
 SUPABASE_WRITE_HEADERS = {**SUPABASE_HEADERS, "Content-Type": "application/json"}
+
+
+def _asset_data_uri(relative_path, mime="image/png"):
+    path = Path(__file__).resolve().parents[1] / relative_path
+    try:
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    except Exception:
+        return ""
+    return f"data:{mime};base64,{encoded}"
 
 
 def _txt(value, default=""):
@@ -671,6 +681,8 @@ def cargar_reuniones_reales_poc():
     return rows
 
 
+CP_MARK_DATA_URI = _asset_data_uri("assets/cp_mark_dark.png")
+
 POC_HTML = r"""
 <!doctype html>
 <html>
@@ -689,23 +701,23 @@ POC_HTML = r"""
 }
 *{box-sizing:border-box}
 html{font-size:16px;-webkit-font-smoothing:antialiased}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:14px}body.detail-open{overflow:visible}
+body{margin:0;background:#ECECEA;color:var(--ink);font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:14px}body.detail-open{overflow:visible}
 button,input,select,textarea{font:inherit}
-.app{min-width:1320px;min-height:auto;padding:16px 20px 24px;background:var(--bg)}
-.top{height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:0;margin-bottom:14px;background:var(--carbon);color:#FFFFFF;border-radius:0 0 9px 9px;padding:0 14px}
-.brand{display:flex;align-items:center;gap:14px}.hamb{font-size:20px;color:var(--muted)}.mark{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--carbon) 0 52%,var(--gold) 52% 100%);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px var(--line-strong)}
+.app{min-width:1320px;min-height:auto;padding:0 12px 24px;background:#ECECEA}
+.top{height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:0;margin-bottom:14px;background:var(--carbon);color:#FFFFFF;border-radius:0 0 10px 10px;padding:0 18px;box-shadow:0 10px 24px rgba(26,26,26,.14)}
+.brand{display:flex;align-items:center;gap:14px}.hamb{font-size:22px;color:#9A9A98}.brand-logo{width:32px;height:32px;object-fit:contain;border-radius:7px;box-shadow:0 0 0 1px #5C5C58}.mark{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--carbon) 0 52%,var(--gold) 52% 100%);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px var(--line-strong)}
 .title h1{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:18px;line-height:1.2;margin:0;font-weight:700;text-transform:none;color:#FFFFFF}.title p{font-size:12px;margin:2px 0 0;color:#C9C9C6}
 .user{display:flex;align-items:center;gap:14px}.bell{position:relative;width:32px;height:32px;border:0;background:transparent;border-radius:8px;display:grid;place-items:center;cursor:pointer}.bell:before{content:"";width:13px;height:15px;border:1.8px solid #FFFFFF;border-radius:8px 8px 4px 4px;display:block}.bell[data-count]:after{content:attr(data-count);position:absolute;top:-4px;right:-2px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#C0392B;color:white;font-size:10px;display:grid;place-items:center;font-weight:700}.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#A66A00)}.usertext{font-size:12px;line-height:1.15;color:#ECECEA}.usertext b{display:block;color:#FFFFFF}
 .notif{position:absolute;right:18px;top:62px;width:360px;max-height:420px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:9px;box-shadow:0 12px 32px rgba(26,26,26,.13);z-index:50;padding:10px}.notif[hidden]{display:none}.notif h3{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:13px;margin:2px 4px 8px}.notif-item{border-top:1px solid var(--line);padding:9px 4px;font-size:12px}.notif-item b{display:block}
 .layout{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}.layout.open{grid-template-columns:minmax(0,70fr) minmax(430px,30fr)}
-.main{display:flex;flex-direction:column;gap:12px;min-width:0}.card{background:var(--surface);border:1px solid var(--line);border-radius:9px;box-shadow:none}
-.filters{padding:11px;display:grid;grid-template-columns:2fr .9fr .9fr 1.35fr .95fr .7fr;gap:10px}.extra{display:none;grid-template-columns:repeat(6,1fr);gap:10px;padding:0 11px 11px}.extra.open{display:grid}
-.field{height:36px;border:1px solid var(--line);border-radius:9px;background:var(--surface);display:flex;align-items:center;gap:8px;padding:0 11px;min-width:0;position:relative}.field label{position:absolute;top:-8px;left:9px;background:var(--surface);font-size:10px;color:var(--muted);font-weight:700;padding:0 4px;text-transform:uppercase;letter-spacing:.02em}.field input,.field select{border:0;outline:0;background:transparent;width:100%;height:100%;color:var(--ink);font-size:12px}.field button{border:0;background:transparent;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:700;font-size:12px;color:var(--ink);cursor:pointer}.date-range{display:grid;grid-template-columns:1fr 1fr auto;gap:4px;align-items:center}.date-range input{font-family:"IBM Plex Mono",monospace;font-size:11px}.clear-date{border:0;background:transparent;color:var(--muted);cursor:pointer}
+.main{display:flex;flex-direction:column;gap:12px;min-width:0}.card{background:var(--surface);border:1px solid #D8D8D5;border-radius:10px;box-shadow:0 8px 20px rgba(26,26,26,.05)}
+.filters{padding:14px;display:grid;grid-template-columns:2fr .9fr .9fr 1.35fr .95fr .7fr;gap:10px;background:#FAFAF8;border-radius:10px}.extra{display:none;grid-template-columns:repeat(6,1fr);gap:10px;padding:0 14px 14px;background:#FAFAF8}.extra.open{display:grid}
+.field{height:38px;border:1px solid #D8D8D5;border-radius:9px;background:#FFFFFF;display:flex;align-items:center;gap:8px;padding:0 11px;min-width:0;position:relative}.field label{position:absolute;top:-8px;left:9px;background:#FFFFFF;font-size:10px;color:#6B6B6B;font-weight:700;padding:0 4px;text-transform:uppercase;letter-spacing:.04em}.field input,.field select{border:0;outline:0;background:transparent;width:100%;height:100%;color:var(--ink);font-size:12px}.field button{border:0;background:transparent;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:700;font-size:12px;color:var(--ink);cursor:pointer}.date-range{display:grid;grid-template-columns:1fr 1fr auto;gap:4px;align-items:center}.date-range input{font-family:"IBM Plex Mono",monospace;font-size:11px}.clear-date{border:0;background:transparent;color:var(--muted);cursor:pointer}
 .active-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 12px 12px}.filter-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--muted-surface);border-radius:999px;padding:5px 8px;font-size:11px}.filter-chip button{border:0;background:transparent;cursor:pointer;color:var(--muted)}.clear-all{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer;color:var(--primary)}
 .kpis{display:grid;grid-template-columns:repeat(8,1fr);overflow:hidden}.kpi{min-height:74px;padding:10px 12px;border-right:1px solid var(--line);display:flex;gap:10px;align-items:center;cursor:pointer}.kpi:last-child{border-right:0}.kpi.active{box-shadow:inset 0 -3px 0 var(--gold);background:#fffdf0}
 .ico{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700}.ico.blue{background:var(--blue-bg);color:var(--blue)}.ico.green{background:var(--green-bg);color:var(--green)}.ico.orange{background:var(--orange-bg);color:var(--orange)}.ico.purple{background:var(--purple-bg);color:var(--purple)}.ico.red{background:var(--red-bg);color:var(--red)}
 .kpi span{display:block;font-size:11px;font-weight:700}.kpi b{display:block;font-family:"IBM Plex Mono",monospace;font-size:24px;line-height:1.1;margin-top:2px}.kpi small{display:block;font-size:10.5px;color:var(--muted);margin-top:4px}
-.progress{padding:12px}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.section-head b{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:14px}.section-head small{color:var(--carbon);font-weight:700}.client-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.client{padding:11px 13px}.client-top{display:flex;justify-content:space-between;align-items:center;font-weight:700}.bar{height:6px;background:var(--muted-surface);border-radius:99px;margin:9px 0 7px;overflow:hidden}.fill{height:100%;background:var(--green);border-radius:99px}
+.progress{padding:16px 18px;background:#FAFAF8}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.section-head b{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:15px}.section-head small{color:var(--carbon);font-weight:700}.client-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.client{padding:14px 14px 10px;border-left:4px solid var(--client-color,#9A9A98);box-shadow:none}.client-top{display:flex;justify-content:space-between;align-items:center;font-weight:700}.client-name{display:flex;align-items:center;gap:10px}.client-badge{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--client-color,#9A9A98);color:#111;font-weight:800;font-size:12px}.client-count{font-family:"IBM Plex Mono",monospace;font-size:20px;font-weight:700}.bar{height:6px;background:#ECECEA;border-radius:99px;margin:10px 0 9px;overflow:hidden}.fill{height:100%;background:var(--client-color,#15803D);border-radius:99px}.client-foot{display:flex;align-items:center;justify-content:space-between}.client-ratio{font-family:"IBM Plex Mono",monospace;color:#333;font-size:13px}.goal-pill{border-radius:6px;padding:4px 8px;font-size:11px;font-weight:800;letter-spacing:.04em}.goal-ok{background:#EAF6EF;color:#15803D}.goal-mid{background:#FFF3D8;color:#92610A}.goal-bad{background:#FDECEA;color:#C0392B}
 .table-card{overflow:hidden}.table-head{display:flex;justify-content:space-between;align-items:end;padding:11px 14px 7px}.table-head h2{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:14px;margin:0}.table-head p{font-size:11px;color:var(--muted);margin:3px 0 0}
 .table-wrap{max-height:58vh;overflow:auto;border-top:1px solid var(--line)}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}thead th{position:sticky;top:0;z-index:3;background:var(--muted-surface);border-bottom:1px solid var(--line);text-align:left;color:#9A9A98;font-size:11px;font-weight:700;padding:6px 10px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}.sort{border:0;background:transparent;color:inherit;font-weight:700;cursor:pointer;padding:0}.quick{margin-top:4px;width:100%;height:23px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:11px;color:var(--ink)}
 tbody td{border-bottom:1px solid var(--line);padding:6px 10px;vertical-align:middle;white-space:nowrap;height:38px}tbody tr{cursor:pointer}tbody tr:hover{background:#FAFAF8}tbody tr.selected{background:#FFF9D6}.sub{display:block;color:var(--muted);font-size:10.5px;margin-top:2px;line-height:1.2}.company{font-weight:600}.avatar-sm{width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;margin-right:8px;background:var(--gray-bg);color:var(--gray);font-size:10px;font-weight:700}.avatar-sm.gbs{background:var(--purple-bg);color:var(--purple)}.avatar-sm.clickie{background:#FFF1B8;color:#A66A00}.avatar-sm.bambutech{background:var(--green-bg);color:var(--green)}
@@ -721,7 +733,7 @@ tbody td{border-bottom:1px solid var(--line);padding:6px 10px;vertical-align:mid
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand"><div class="hamb">&#9776;</div><span class="mark"></span><div class="title"><h1>Seguimiento de reuniones</h1><p>Panel operativo</p></div></div>
+    <div class="brand"><div class="hamb">&#9776;</div><img class="brand-logo" src="__CP_MARK__" alt="Conprospeccion"><div class="title"><h1>Seguimiento de reuniones</h1><p>Panel operativo</p></div></div>
     <div class="user"><button class="bell" id="bell" onclick="toggleNotifications()" aria-label="Notificaciones"></button><div class="avatar"></div><div class="usertext"><b>Francisca / Yanina</b>Panel interno</div></div>
   </header>
   <div class="notif" id="notifications" hidden></div>
@@ -843,7 +855,9 @@ function renderKpis(rows){const total=rows.length||1;const cards=[["Total reunio
 function kpiActive(label){return label==="Pendiente CP"&&filters.cp==="Pendiente"||label==="CP válida"&&filters.cp==="Válida"||label==="Solicita revisión"&&filters.clientVal==="Solicita revisión"||label==="Final válida"&&filters.final==="Reunión válida"||label==="Reagendar"&&filters.status==="Reagendar reunión"||label==="Canceladas"&&filters.status==="Reunión cancelada"||label==="No válidas final"&&filters.final==="Reunión no válida"}
 function toggleFilter(k,v){filters[k]=filters[k]===v?"Todos":v}
 function pct(n,total){return total?`${((n/total)*100).toFixed(1)}% del total`:"0% del total"}
-function renderProgress(rows){let codes=[...new Set(rows.map(m=>m.client))];if(filters.client!=="Todos")codes=[filters.client];document.getElementById("clientProgress").innerHTML=codes.map(code=>{const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);const valid=rows.filter(m=>m.client===code&&m.cp==="Válida").length;const p=goal?Math.round(valid/goal*100):0;return `<div class="card client" onclick="filters.client='${esc(code)}';render()" style="cursor:pointer"><div class="client-top"><span>${code}</span><span>${valid} / ${goal}</span></div><div class="bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div><div style="text-align:right;font-weight:700;font-size:12px">${p}%</div></div>`}).join("")||`<div class="sub">Sin reuniones para los filtros aplicados.</div>`}
+function clientColor(code){return {Clickie:"#F59E0B",GBS:"#7C3AED",BambuTech:"#15803D"}[code]||"#9A9A98"}
+function goalState(p){if(p>=75)return["EN META","goal-ok"];if(p>=20)return["A MEDIAS","goal-mid"];return["ATRASADO","goal-bad"]}
+function renderProgress(rows){let codes=[...new Set(rows.map(m=>m.client))];if(filters.client!=="Todos")codes=[filters.client];document.getElementById("clientProgress").innerHTML=codes.map(code=>{const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);const valid=rows.filter(m=>m.client===code&&m.cp==="Válida").length;const p=goal?Math.round(valid/goal*100):0;const state=goalState(p);const color=clientColor(code);return `<div class="card client" onclick="filters.client='${esc(code)}';render()" style="cursor:pointer;--client-color:${color}"><div class="client-top"><div class="client-name"><span class="client-badge">${esc(code[0]||"?")}</span><span>${esc(code)}</span></div><span class="client-count">${p}%</span></div><div class="bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div><div class="client-foot"><span class="client-ratio">${valid} / ${goal}</span><span class="goal-pill ${state[1]}">${state[0]}</span></div></div>`}).join("")||`<div class="sub">Sin reuniones para los filtros aplicados.</div>`}
 function renderHead(){const cols=[["dateTime","Fecha y hora"],["client","Cliente"],["company","Empresa"],["sdr","SDR"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluación CP"],["clientVal","Evaluación Cliente"],["final","Estado Final"],["actions","Acciones"]];const q=(k,id,opts)=>["client","sdr","status","cp","clientVal","final"].includes(k)?`<select class="quick" onchange="setFilter('${k}',this.value)">${opt(["Todos",...opts],filters[k])}</select>`:"";const allOpts=optionSets(applyFilters({ignore:["client","sdr","status","cp","clientVal","final"]}));document.getElementById("thead").innerHTML=`<tr>${cols.map(c=>`<th>${c[0]==="actions"?c[1]:`<button class="sort" onclick="setSort('${c[0]}')">${c[1]} ${sortState.key===c[0]?(sortState.dir==="asc"?"asc":"desc"):""}</button>`}${q(c[0],c[0],allOpts[c[0]]||[])}</th>`).join("")}</tr>`}
 function renderRows(rows){document.getElementById("rows").innerHTML=sortRows(rows).map(m=>`<tr class="${m.id===selected?"selected":""}" onclick="openDetail(${m.id})"><td><b>${m.date}</b><span class="sub">${m.time}</span></td><td><span class="avatar-sm ${m.client.toLowerCase()}">${m.client[0]}</span><span class="company">${m.client}</span></td><td>${esc(m.company)}</td><td>${esc(m.sdr)||"<span class='sub'>Sin asignar</span>"}</td><td>${esc(m.contact)}<span class="sub">${esc(m.role)}</span></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.status)}" onchange="setField(${m.id},'status',this.value)">${opt(statuses,m.status)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.cp)}" onchange="setField(${m.id},'cp',this.value)">${opt(cps,m.cp)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.clientVal)}" onchange="setField(${m.id},'clientVal',this.value)">${opt(clientVals,m.clientVal)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(finalStatus(m))}" onchange="setField(${m.id},'final',this.value)">${opt(finalOptions,finalStatus(m))}</select></td><td><button class="action" onclick="event.stopPropagation();openDetail(${m.id})">Ver</button></td></tr>`).join("")}
 function openDetail(id){selected=id;tab="Información";panelOpen=true;render()}
@@ -876,6 +890,8 @@ render();
 </body>
 </html>
 """
+
+POC_HTML = POC_HTML.replace("__CP_MARK__", CP_MARK_DATA_URI)
 
 
 real_meetings = cargar_reuniones_reales_poc()
