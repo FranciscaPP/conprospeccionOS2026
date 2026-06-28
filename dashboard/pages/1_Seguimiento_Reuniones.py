@@ -689,13 +689,13 @@ POC_HTML = r"""
 }
 *{box-sizing:border-box}
 html{font-size:16px;-webkit-font-smoothing:antialiased}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:14px}body.detail-open{overflow:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:14px}body.detail-open{overflow:visible}
 button,input,select,textarea{font:inherit}
 .app{min-width:1320px;min-height:auto;padding:16px 20px 24px;background:var(--bg)}
-.top{height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);margin-bottom:14px;background:var(--surface)}
+.top{height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:0;margin-bottom:14px;background:var(--carbon);color:#FFFFFF;border-radius:0 0 9px 9px;padding:0 14px}
 .brand{display:flex;align-items:center;gap:14px}.hamb{font-size:20px;color:var(--muted)}.mark{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--carbon) 0 52%,var(--gold) 52% 100%);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px var(--line-strong)}
-.title h1{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:18px;line-height:1.2;margin:0;font-weight:700;text-transform:none}.title p{font-size:12px;margin:2px 0 0;color:var(--muted)}
-.user{display:flex;align-items:center;gap:14px}.bell{position:relative;width:32px;height:32px;border:0;background:transparent;border-radius:8px;display:grid;place-items:center;cursor:pointer}.bell:before{content:"";width:13px;height:15px;border:1.8px solid #344054;border-radius:8px 8px 4px 4px;display:block}.bell[data-count]:after{content:attr(data-count);position:absolute;top:-4px;right:-2px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#ef4444;color:white;font-size:10px;display:grid;place-items:center;font-weight:700}.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#101828,#d97706)}.usertext{font-size:12px;line-height:1.15}.usertext b{display:block}
+.title h1{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:18px;line-height:1.2;margin:0;font-weight:700;text-transform:none;color:#FFFFFF}.title p{font-size:12px;margin:2px 0 0;color:#C9C9C6}
+.user{display:flex;align-items:center;gap:14px}.bell{position:relative;width:32px;height:32px;border:0;background:transparent;border-radius:8px;display:grid;place-items:center;cursor:pointer}.bell:before{content:"";width:13px;height:15px;border:1.8px solid #FFFFFF;border-radius:8px 8px 4px 4px;display:block}.bell[data-count]:after{content:attr(data-count);position:absolute;top:-4px;right:-2px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#C0392B;color:white;font-size:10px;display:grid;place-items:center;font-weight:700}.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#A66A00)}.usertext{font-size:12px;line-height:1.15;color:#ECECEA}.usertext b{display:block;color:#FFFFFF}
 .notif{position:absolute;right:18px;top:62px;width:360px;max-height:420px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:9px;box-shadow:0 12px 32px rgba(26,26,26,.13);z-index:50;padding:10px}.notif[hidden]{display:none}.notif h3{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:13px;margin:2px 4px 8px}.notif-item{border-top:1px solid var(--line);padding:9px 4px;font-size:12px}.notif-item b{display:block}
 .layout{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}.layout.open{grid-template-columns:minmax(0,70fr) minmax(430px,30fr)}
 .main{display:flex;flex-direction:column;gap:12px;min-width:0}.card{background:var(--surface);border:1px solid var(--line);border-radius:9px;box-shadow:none}
@@ -899,5 +899,5 @@ POC_HTML = POC_HTML.replace(
     "const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);",
 )
 
-components.html(POC_HTML, height=960, scrolling=True)
+components.html(POC_HTML, height=1180, scrolling=False)
 
