@@ -32,8 +32,39 @@ jobs:
         if: steps.schedule.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
         run: pip install -r sync/requirements.txt
 
-      - name: Sync BambuTech and GBS
+      - name: Check sync secrets
+        id: secrets
         if: steps.schedule.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GHL_AGENCY_TOKEN: ${{ secrets.GHL_AGENCY_TOKEN }}
+          GHL_TOKEN_BAMBUTECH: ${{ secrets.GHL_TOKEN_BAMBUTECH }}
+          GHL_LOCATION_BAMBUTECH: ${{ secrets.GHL_LOCATION_BAMBUTECH }}
+          GHL_TOKEN_GBS_LOGISTICS: ${{ secrets.GHL_TOKEN_GBS_LOGISTICS }}
+          GHL_LOCATION_GBS: ${{ secrets.GHL_LOCATION_GBS }}
+        shell: python
+        run: |
+          import os
+
+          required = [
+              "SUPABASE_URL",
+              "SUPABASE_SECRET_KEY",
+              "GHL_AGENCY_TOKEN",
+              "GHL_TOKEN_BAMBUTECH",
+              "GHL_LOCATION_BAMBUTECH",
+              "GHL_TOKEN_GBS_LOGISTICS",
+              "GHL_LOCATION_GBS",
+          ]
+          missing = [name for name in required if not os.getenv(name)]
+          ready = not missing
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"ready={'true' if ready else 'false'}\n")
+          if missing:
+              print("Sync skipped: missing GitHub secrets: " + ", ".join(missing))
+
+      - name: Sync BambuTech and GBS
+        if: (steps.schedule.outputs.run == 'true' || github.event_name == 'workflow_dispatch') && steps.secrets.outputs.ready == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
