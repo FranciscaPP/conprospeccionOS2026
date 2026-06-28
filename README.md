@@ -11,6 +11,8 @@ Aplicacion operativa oficial de Conprospeccion, desarrollada en Streamlit.
 
 Streamlit es la implementacion actual. Next.js, React, Vercel, Netlify, HTML mockups y prototipos antiguos no son producto activo.
 
+`vercel.json` existe solo para impedir deployments automaticos del proyecto Vercel historico. No significa que Vercel vuelva a ser parte del producto activo.
+
 ## Inicio rapido
 
 Desde la raiz del repositorio:

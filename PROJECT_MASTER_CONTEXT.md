@@ -88,6 +88,12 @@ El repo `FranciscaPP/conprospeccion-os` y la app antigua `https://conprospeccion
 
 Paso pendiente no destructivo: despues de algunos dias de uso estable, archivar o eliminar manualmente el repo historico `FranciscaPP/conprospeccion-os` y la app antigua.
 
+Vercel:
+
+- El proyecto Vercel historico `conprospeccion-os-2026` no forma parte del producto activo.
+- `vercel.json` desactiva deployments automaticos desde `main` y `master` para evitar correos de error.
+- No agregar `package.json`, Next.js ni configuracion React para satisfacer Vercel.
+
 ## Documentacion relacionada
 
 - `ACTIVE_WORKSPACE.md`: estado operativo actual del workspace.
