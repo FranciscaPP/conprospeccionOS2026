@@ -202,6 +202,7 @@ El resumen superior debe mostrar los cuatro estados con nombres consistentes:
 - Estado Final
 
 Los bloques deben ser compactos. Evitar tarjetas grandes para cada dato.
+En escritorio y anchos medios, las cuatro tarjetas de estado deben mantenerse en una sola fila dentro del panel lateral cuando haya espacio disponible.
 
 ### Informacion
 
