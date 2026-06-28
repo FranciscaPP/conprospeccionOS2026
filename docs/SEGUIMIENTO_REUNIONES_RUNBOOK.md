@@ -146,6 +146,12 @@ Filtros basicos:
 
 La tabla debe mantener encabezado fijo y usar los mismos nombres de estados que el panel lateral.
 
+Reglas de tabla:
+
+- La columna Empresa siempre debe estar visible, incluso cuando el panel lateral esta abierto.
+- Los filtros del encabezado deben estar integrados en el propio titulo de columna. Si no hay filtro activo, el selector muestra el nombre de la columna, no `Todos`.
+- El fondo amarillo de una fila corresponde al hover del mouse. La fila seleccionada no debe quedar con fondo amarillo permanente; puede marcarse con un indicador lateral discreto.
+
 Columnas funcionales esperadas:
 
 - Fecha y hora
