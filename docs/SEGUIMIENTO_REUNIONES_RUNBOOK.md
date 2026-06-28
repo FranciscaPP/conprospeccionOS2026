@@ -282,6 +282,30 @@ Las politicas RLS futuras deben reforzar:
 
 Esto no cambia el comportamiento actual de portales; solo lo endurece a nivel base de datos.
 
+## Pendientes funcionales
+
+### Regla de avance por cliente vs meta
+
+Definir una regla de interpretacion para el porcentaje de avance por cliente.
+
+Hoy el panel muestra avance como reuniones validas CP contra meta mensual del cliente, por ejemplo `5 / 6 = 83%`.
+
+Pendiente definir:
+
+- que porcentaje significa que el cliente va en meta;
+- que porcentaje significa que va atrasado;
+- que porcentaje indica alerta o riesgo;
+- si la evaluacion debe compararse contra la meta mensual completa o contra una meta proyectada al dia actual del mes;
+- como mostrar visualmente esos estados sin confundirlos con Etapa Agenda, Evaluacion CP, Evaluacion Cliente ni Estado Final.
+
+La medicion recomendada a evaluar despues es contra meta proyectada:
+
+```text
+avance esperado hoy = meta mensual * dias transcurridos del mes / dias totales del mes
+```
+
+Ejemplo: si la meta mensual es 6 reuniones validas y vamos a mitad de mes, el avance esperado seria 3. En ese caso, 5 reuniones validas podria estar en meta o adelantado aunque no llegue aun al 100% mensual.
+
 ## Deploy
 
 Desarrollar en `main`.
