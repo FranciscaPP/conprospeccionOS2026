@@ -170,6 +170,22 @@ Columnas funcionales esperadas:
 
 El panel lateral debe abrirse en la pestana Informacion al seleccionar una reunion.
 
+El encabezado del panel lateral usa una franja superior de resumen:
+
+- fondo amarillo suave;
+- icono de empresa a la izquierda;
+- titulo con nombre de empresa;
+- subtitulo con contacto y cliente;
+- datos operativos en una linea: Cliente, Fecha y hora, SDR asignada y Estado del Caso;
+- SDR asignada y Estado del Caso son editables desde la franja.
+
+Debajo de la franja se muestran las cuatro tarjetas de estado:
+
+- Etapa Agenda
+- Evaluacion CP
+- Evaluacion Cliente
+- Estado Final
+
 Pestanas:
 
 - Informacion
