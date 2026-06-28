@@ -15,7 +15,7 @@ dashboard/pages/1_Seguimiento_Reuniones.py
 Ruta publica:
 
 ```text
-https://conprospeccion-os.streamlit.app/Seguimiento_Reuniones
+https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones
 ```
 
 No usar rutas POC como fuente de verdad.
@@ -295,18 +295,13 @@ git push origin main
 Estado verificado de Streamlit Cloud al 2026-06-27:
 
 ```text
-Repository: conprospeccion-os
-Branch: master
+App URL: https://conprospeccion-os2026.streamlit.app
+Repository: franciscapp/conprospeccionOS2026
+Branch: main
 Main file path: dashboard/app.py
 ```
 
-Mientras no se migre Streamlit Cloud al repo oficial, publicar app requiere:
-
-```powershell
-git push streamlit main:master
-```
-
-Objetivo pendiente: reconfigurar Streamlit Cloud para desplegar desde `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`, y luego archivar o eliminar el repo historico `FranciscaPP/conprospeccion-os`.
+No usar el repo historico `FranciscaPP/conprospeccion-os` para nuevos cambios.
 
 No desarrollar en `master`.
 

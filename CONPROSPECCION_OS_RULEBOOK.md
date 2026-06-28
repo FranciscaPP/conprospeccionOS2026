@@ -10,8 +10,8 @@ Nota de actualizacion 2026-06-27:
 - Este Rulebook mantiene las reglas generales de autoridad de Conprospeccion, portal cliente y criterios contractuales.
 - Si una regla antigua de UX del portal contradice el runbook del panel maestro, prevalece el runbook para el panel interno.
 - La rama de trabajo oficial es `main`.
-- Estado verificado: Streamlit Cloud todavia despliega desde el repo historico `conprospeccion-os`, branch `master`, archivo `dashboard/app.py`.
-- `master` solo puede usarse como espejo tecnico temporal de deploy mientras se migra Streamlit Cloud al repo oficial `FranciscaPP/conprospeccionOS2026`.
+- Estado verificado: Streamlit Cloud despliega desde el repo oficial `franciscapp/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`.
+- No usar `master` ni el repo historico `FranciscaPP/conprospeccion-os` para nuevos cambios.
 
 ## 1. Autoridad de este documento
 

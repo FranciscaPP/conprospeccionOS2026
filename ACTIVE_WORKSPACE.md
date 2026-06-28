@@ -84,18 +84,19 @@ git push origin main
 Estado verificado de Streamlit Cloud al 2026-06-27:
 
 ```text
-Repository: conprospeccion-os
-Branch: master
+App URL: https://conprospeccion-os2026.streamlit.app
+Repository: franciscapp/conprospeccionOS2026
+Branch: main
 Main file path: dashboard/app.py
 ```
 
-Mientras la app publica siga apuntando al repo historico, tambien se debe espejar el deploy:
+El workspace local solo debe tener el remoto oficial:
 
-```powershell
-git push streamlit main:master
+```text
+origin -> https://github.com/FranciscaPP/conprospeccionOS2026.git
 ```
 
-Objetivo pendiente: reconfigurar Streamlit Cloud para que apunte a `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`. Despues de eso, eliminar el remoto `streamlit` y dejar de usar el repo historico `FranciscaPP/conprospeccion-os`.
+No agregar nuevamente el remoto `streamlit` ni empujar al repo historico `FranciscaPP/conprospeccion-os`.
 
 ## Regla de orden
 

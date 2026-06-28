@@ -6,7 +6,7 @@ Aplicacion operativa oficial de Conprospeccion, desarrollada en Streamlit.
 
 - Entrada principal: `dashboard/app.py`
 - Panel maestro interno: `dashboard/pages/1_Seguimiento_Reuniones.py`
-- URL publica: `https://conprospeccion-os.streamlit.app/Seguimiento_Reuniones`
+- URL publica oficial: `https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones`
 - URL local: `http://localhost:8502/Seguimiento_Reuniones`
 
 Streamlit es la implementacion actual. Next.js, React, Vercel, Netlify, HTML mockups y prototipos antiguos no son producto activo.
@@ -70,18 +70,13 @@ git push origin main
 Estado verificado de Streamlit Cloud al 2026-06-27:
 
 ```text
-Repository: conprospeccion-os
-Branch: master
+App URL: https://conprospeccion-os2026.streamlit.app
+Repository: franciscapp/conprospeccionOS2026
+Branch: main
 Main file path: dashboard/app.py
 ```
 
-Mientras Streamlit siga apuntando al repo historico, el deploy requiere este espejo:
-
-```powershell
-git push streamlit main:master
-```
-
-Objetivo pendiente: reconfigurar Streamlit Cloud para que apunte a `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`. Despues de validar la app, archivar o eliminar `FranciscaPP/conprospeccion-os`.
+El repo historico `FranciscaPP/conprospeccion-os` y la app antigua `https://conprospeccion-os.streamlit.app` no deben usarse para nuevos cambios.
 
 No desarrollar en `master`.
 

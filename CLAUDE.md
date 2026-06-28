@@ -7,7 +7,7 @@ El producto oficial es la aplicacion Streamlit:
 - Entrada: `dashboard/app.py`
 - Panel maestro interno: `dashboard/pages/1_Seguimiento_Reuniones.py`
 - URL local: `http://localhost:8502/Seguimiento_Reuniones`
-- URL publica: `https://conprospeccion-os.streamlit.app/Seguimiento_Reuniones`
+- URL publica oficial: `https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones`
 
 No trabajar en React, Next.js, Vercel, Netlify ni HTML mockups salvo instruccion explicita.
 
@@ -40,18 +40,18 @@ Publicar:
 
 ```powershell
 git push origin main
-git push streamlit main:master
 ```
 
 Estado verificado de Streamlit Cloud al 2026-06-27:
 
 ```text
-Repository: conprospeccion-os
-Branch: master
+App URL: https://conprospeccion-os2026.streamlit.app
+Repository: franciscapp/conprospeccionOS2026
+Branch: main
 Main file path: dashboard/app.py
 ```
 
-Ese repo historico se usa solo como deploy temporal. El objetivo pendiente es reconfigurar Streamlit Cloud para apuntar al repo oficial `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`.
+No usar el repo historico `FranciscaPP/conprospeccion-os` ni agregar remoto `streamlit`.
 
 No desarrollar en `master`.
 

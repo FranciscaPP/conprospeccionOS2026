@@ -13,7 +13,7 @@ El panel maestro interno lo usan Francisca y Yanina. Ambas tienen exactamente la
 Ruta:
 
 ```text
-https://conprospeccion-os.streamlit.app/Seguimiento_Reuniones
+https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones
 ```
 
 Implementacion:

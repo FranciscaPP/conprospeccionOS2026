@@ -10,7 +10,7 @@ La aplicacion oficial actual es Streamlit.
 
 - Entrada principal: `dashboard/app.py`
 - Panel maestro interno: `dashboard/pages/1_Seguimiento_Reuniones.py`
-- URL publica Streamlit: `https://conprospeccion-os.streamlit.app/Seguimiento_Reuniones`
+- URL publica Streamlit oficial: `https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones`
 - URL local esperada: `http://localhost:8502/Seguimiento_Reuniones`
 
 Las carpetas de Next.js, React, Vercel, Netlify y prototipos visuales no son implementaciones activas del producto. Pueden conservar decisiones de negocio o referencias visuales, pero no deben usarse como base tecnica salvo instruccion explicita.
@@ -70,27 +70,23 @@ Repositorio oficial unico:
 
 Estado verificado en Streamlit Cloud al 2026-06-27:
 
-- App publica: `https://conprospeccion-os.streamlit.app`
-- Repository configurado: `conprospeccion-os`
-- Branch configurada: `master`
+- App publica oficial: `https://conprospeccion-os2026.streamlit.app`
+- Repository configurado: `franciscapp/conprospeccionOS2026`
+- Branch configurada: `main`
 - Main file path: `dashboard/app.py`
 
-Por lo tanto, el deploy publico todavia depende del repo historico `FranciscaPP/conprospeccion-os`.
+La app publica oficial ya despliega desde el repo oficial `FranciscaPP/conprospeccionOS2026`.
 
-Regla practica mientras no se migre Streamlit Cloud:
+Regla practica:
 
 1. Desarrollar y commitear en `main`.
 2. Publicar a `origin main`.
-3. Espejar a `streamlit master` solo para no romper la app publica existente.
 
 No desarrollar directamente en `master`.
 
-Objetivo de orden:
+El repo `FranciscaPP/conprospeccion-os` y la app antigua `https://conprospeccion-os.streamlit.app` quedan como respaldo historico temporal. No usarlos para nuevos cambios.
 
-1. Cambiar o recrear la app de Streamlit Cloud para que despliegue desde `FranciscaPP/conprospeccionOS2026`, branch `main`, archivo `dashboard/app.py`.
-2. Probar que la app publica carga correctamente.
-3. Eliminar el remoto local `streamlit`.
-4. Archivar o eliminar el repo historico `FranciscaPP/conprospeccion-os`.
+Paso pendiente no destructivo: despues de algunos dias de uso estable, archivar o eliminar manualmente el repo historico `FranciscaPP/conprospeccion-os` y la app antigua.
 
 ## Documentacion relacionada
 
