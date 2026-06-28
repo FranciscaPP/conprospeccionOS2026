@@ -51,49 +51,52 @@ def _show_login_page() -> None:
     """Muestra la pantalla de login master a pantalla completa."""
     st.markdown("""
     <style>
+    .stApp {
+        background: #333333 !important;
+    }
     [data-testid="stAppViewContainer"] > .main {
-        background: linear-gradient(135deg,#0f172a 0%,#1e1e2e 50%,#2d1f5e 100%) !important;
+        background: #333333 !important;
         min-height: 100vh;
     }
+    [data-testid="stHeader"] { display: none !important; }
     [data-testid="stSidebar"] { display: none !important; }
     [data-testid="collapsedControl"] { display: none !important; }
+    .block-container { padding-top: 0 !important; }
     footer { display: none !important; }
     #MainMenu{ display: none !important; }
+    div[data-testid="stForm"] {
+        background: #FAFAF8 !important;
+        border: 1px solid #D8D8D5 !important;
+        border-radius: 16px !important;
+        padding: 28px 28px 22px !important;
+        box-shadow: 0 18px 50px rgba(0,0,0,.18);
+    }
+    div[data-testid="stTextInput"] label { display: none !important; }
+    div[data-testid="stTextInput"] input {
+        background: #FFFFFF !important;
+        border: 1px solid #EDECEA !important;
+        color: #1A1A1A !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
-        logo = _img_b64("conprospeccion_logo.png", 60)
-        logo_div = '<div style="margin-bottom:12px">' + logo + '</div>' if logo else ""
+        logo = _img_b64("cp_mark_dark.png", 54)
+        logo_div = '<div style="margin-bottom:14px">' + logo + '</div>' if logo else ""
         st.markdown(
-            f'<div style="text-align:center;padding:56px 0 32px">'
+            f'<div style="text-align:center;padding:72px 0 28px">'
             f'{logo_div}'
-            f'<div style="color:#fff;font-size:32px;font-weight:900;letter-spacing:-0.5px;margin-bottom:6px">'
-            f'ConprospecciónOS</div>'
-            f'<div style="color:#a78bfa;font-size:14px;font-weight:500">'
+            f'<div style="color:#FFD700;font-size:14px;font-weight:700">'
             f'Plataforma operativa interna</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
 
         with st.form("master_login_form", clear_on_submit=False):
-            st.markdown(
-                '<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);'
-                'border-radius:18px;padding:32px 32px 24px">',
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                '<div style="color:#e2e8f0;font-size:13px;font-weight:600;margin-bottom:6px">Usuario</div>',
-                unsafe_allow_html=True,
-            )
             user = st.text_input(
                 "Usuario", placeholder="francisca · yanina",
                 label_visibility="collapsed", key="ml_user",
-            )
-            st.markdown(
-                '<div style="color:#e2e8f0;font-size:13px;font-weight:600;margin:12px 0 6px">Contraseña</div>',
-                unsafe_allow_html=True,
             )
             pwd = st.text_input(
                 "Contraseña", type="password", placeholder="••••••••",
@@ -101,7 +104,6 @@ def _show_login_page() -> None:
             )
             st.markdown('<div style="margin-top:8px"></div>', unsafe_allow_html=True)
             submitted = st.form_submit_button("Ingresar ", use_container_width=True, type="primary")
-            st.markdown("</div>", unsafe_allow_html=True)
 
             if submitted:
                 if _check(user, pwd):
