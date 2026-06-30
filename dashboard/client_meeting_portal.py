@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from datetime import timedelta
 from pathlib import Path
 
 import requests
@@ -139,26 +140,15 @@ def _handle_payload(client_slug: str, payload: dict) -> bool:
     )
 
 
-def render_client_meeting_portal(
+def _render_portal_frame(
     *,
     client_slug: str,
     page_key: str,
-    title: str = "Validación de reuniones",
-    brand: str = "",
-    user_label: str = "Portal cliente",
-    user_subtitle: str = "Validación contractual",
+    title: str,
+    brand: str,
+    user_label: str,
+    user_subtitle: str,
 ) -> None:
-    st.markdown(
-        """
-<style>
-[data-testid="stSidebar"],[data-testid="collapsedControl"],header[data-testid="stHeader"]{display:none!important}
-.block-container{max-width:100%!important;padding:0!important}
-iframe{display:block}
-</style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     reload_token = st.session_state.get(f"_portal_reload_{client_slug}", 0)
     meetings = load_meetings([client_slug])
     html = _build_html(
@@ -188,3 +178,37 @@ iframe{display:block}
                 st.toast("Respuesta guardada.")
                 st.rerun()
             st.error("No fue posible guardar la respuesta. Revisa el comentario e intenta nuevamente.")
+
+
+def render_client_meeting_portal(
+    *,
+    client_slug: str,
+    page_key: str,
+    title: str = "Validación de reuniones",
+    brand: str = "",
+    user_label: str = "Portal cliente",
+    user_subtitle: str = "Validación contractual",
+) -> None:
+    st.markdown(
+        """
+<style>
+[data-testid="stSidebar"],[data-testid="collapsedControl"],header[data-testid="stHeader"]{display:none!important}
+.block-container{max-width:100%!important;padding:0!important}
+iframe{display:block}
+</style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    @st.fragment(run_every=timedelta(seconds=12))
+    def _live_portal() -> None:
+        _render_portal_frame(
+            client_slug=client_slug,
+            page_key=page_key,
+            title=title,
+            brand=brand,
+            user_label=user_label,
+            user_subtitle=user_subtitle,
+        )
+
+    _live_portal()

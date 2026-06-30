@@ -128,15 +128,19 @@ def _status_label(row, seg):
 def _cp_label(row, seg):
     value = _txt(seg.get("val_estado_cp")) or _txt(row.get("estado_validacion"))
     value = value.lower()
+    if value in {"no_necesaria", "no necesaria", "cancelacion"}:
+        return "No necesaria"
     if value in {"valida", "reunion_valida"}:
         return "Válida"
-    if value in {"no_valida", "reunion_no_valida", "cancelacion"}:
+    if value in {"no_valida", "reunion_no_valida"}:
         return "No válida"
     return "Pendiente"
 
 
 def _client_val_label(seg):
     value = _txt(seg.get("val_estado_cli")).lower()
+    if value in {"no_necesaria", "no necesaria", "cancelacion"}:
+        return "No necesaria"
     if value in {"valida", "confirmar", "confirmada", "confirmado"}:
         return "Válida"
     if value in {"no_valida", "no valida", "rechazada"}:
@@ -164,6 +168,13 @@ def _final_label(seg):
     if value in {"reagendar", "reagendada"}:
         return "Reagendar reunión"
     return "Pendiente"
+
+
+def _normalize_cancelled_meeting(status: str, cp: str, client_val: str, final: str) -> tuple[str, str, str]:
+    """Cancelada = cancelada. CP y cliente quedan como no necesarios."""
+    if status != "Reunión cancelada":
+        return cp, client_val, final
+    return "No necesaria", "No necesaria", "Reunión cancelada"
 
 
 def _case_status(cp, client_val, final):
@@ -393,7 +404,7 @@ def _dedupe_clickie_latest(rows):
 
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=0)
 def cargar_reuniones_reales_poc():
     slugs = ",".join(ACTIVE_MEETING_CLIENT_SLUGS)
     meetings_response = requests.get(
@@ -470,6 +481,8 @@ def cargar_reuniones_reales_poc():
             )
     rows = []
     for row in meetings_response.json():
+        if row.get("excluida") is True:
+            continue
         rid = row.get("id")
         if not rid:
             continue
@@ -487,12 +500,8 @@ def cargar_reuniones_reales_poc():
         evidence = _evidence({**row, **base_row}, seg) + manual_evidence
         evidence = _apply_evidence_visibility(evidence, seg.get("evidencia_visibilidad"), row_history)
         agenda_meta = _json_obj(seg.get("etapa_agenda_metadata"), {})
-        if status == "Reunión cancelada":
-            if cp == "Pendiente":
-                cp = ""
-            if client_val == "Pendiente":
-                client_val = ""
         final = _final_label(seg)
+        cp, client_val, final = _normalize_cancelled_meeting(status, cp, client_val, final)
         assigned_sdr = (
             _txt(seg.get("sdr_override"))
             or _sdr_display(contact_sdr.get(row.get("ghl_contact_id")), sdr_names)
@@ -502,12 +511,15 @@ def cargar_reuniones_reales_poc():
         meta = meta_de(slug)
         recording_url = _txt(base_row.get("recording_url")) or _txt(seg.get("recording_url"))
         transcript_url = _txt(base_row.get("transcript_url")) or _txt(seg.get("transcript_url"))
+        date_label = _date_es(row.get("fecha"))
+        time_label = _time_12(row.get("hora"))
         rows.append(
             {
                 "id": int(rid),
                 "clientSlug": slug,
-                "date": _date_es(row.get("fecha")),
-                "time": _time_12(row.get("hora")),
+                "date": date_label,
+                "time": time_label,
+                "sortKey": _dt_sort_key({"date": date_label, "time": time_label}),
                 "scheduledDate": _date_es(base_row.get("fecha_agendada")),
                 "client": _client_label(slug, row.get("cliente")),
                 "company": _txt(row.get("empresa"), "-").title(),
@@ -627,7 +639,12 @@ def _build_client_history(meeting: dict) -> list[dict]:
         add(when, "Sistema", "Reunión realizada", when)
 
     cp = _txt(meeting.get("cp"))
-    if cp and cp not in {"Pendiente", ""} and _history_visible(meeting, "fecha_cp", True):
+    if (
+        cp
+        and cp not in {"Pendiente", "", "No necesaria"}
+        and meeting.get("status") != "Reunión cancelada"
+        and _history_visible(meeting, "fecha_cp", True)
+    ):
         when = _latest_history_when(history, "Evaluación CP") or "Sin fecha"
         add(when, "Conprospección", "Evaluación Conprospección", cp)
 
@@ -663,6 +680,16 @@ def _build_client_history(meeting: dict) -> list[dict]:
 def project_meeting_for_client(meeting: dict) -> dict:
     """Proyección cliente: oculta campos internos y evidencia no visible."""
     out = dict(meeting)
+    status = _txt(out.get("status"))
+    cp, client_val, final = _normalize_cancelled_meeting(
+        status,
+        _txt(out.get("cp")),
+        _txt(out.get("clientVal")),
+        _txt(out.get("final")),
+    )
+    out["cp"] = cp
+    out["clientVal"] = client_val
+    out["final"] = final
     visible_types = {
         str(e.get("type"))
         for e in (meeting.get("evidence") or [])

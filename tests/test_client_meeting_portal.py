@@ -4,8 +4,35 @@ from pathlib import Path
 from dashboard.meeting_shared import (
     _apply_evidence_visibility,
     _build_client_history,
+    _normalize_cancelled_meeting,
     project_meeting_for_client,
 )
+
+
+def test_cancelled_meeting_no_muestra_no_valida_cp():
+    cp, client_val, final = _normalize_cancelled_meeting(
+        "Reunión cancelada",
+        "No válida",
+        "Pendiente",
+        "Pendiente",
+    )
+    assert cp == "No necesaria"
+    assert client_val == "No necesaria"
+    assert final == "Reunión cancelada"
+
+    meeting = {
+        "status": "Reunión cancelada",
+        "cp": "No válida",
+        "clientVal": "Pendiente",
+        "final": "Pendiente",
+        "historyVisibility": {},
+        "history": [],
+    }
+    out = project_meeting_for_client(meeting)
+    assert out["cp"] == "No necesaria"
+    assert out["final"] == "Reunión cancelada"
+    history_fields = [item["field"] for item in out["history"]]
+    assert "No válida" not in history_fields
 
 
 def test_project_meeting_for_client_solo_evidencia_visible():

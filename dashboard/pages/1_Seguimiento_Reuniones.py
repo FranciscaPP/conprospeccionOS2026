@@ -342,6 +342,8 @@ def _db_cp(value):
         return "valida"
     if value in {"no valida", "no válida"}:
         return "no_valida"
+    if value in {"no necesaria", "no_necesaria"}:
+        return "no_necesaria"
     return None
 
 
@@ -353,6 +355,8 @@ def _db_cliente(value):
         return "no_valida"
     if value in {"solicitar revision", "solicita revision", "solicita revisión"}:
         return "requiere_revision"
+    if value in {"no necesaria", "no_necesaria"}:
+        return "no_necesaria"
     return None
 
 
@@ -546,18 +550,25 @@ def _save_dashboard_payload(payload):
 
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
     final_db = _db_final(meeting.get("final"))
+    status_label = _txt(meeting.get("status"))
+    cp_db = _db_cp(meeting.get("cp"))
+    client_db = _db_cliente(meeting.get("clientVal"))
+    if status_label == "Reunión cancelada":
+        cp_db = "no_necesaria"
+        client_db = "no_necesaria"
+        final_db = final_db or "cancelacion"
     tracking_payload = {
         "reunion_id": int(reunion_id),
         "cliente_slug": cliente_slug,
-        "status_reunion": _txt(meeting.get("status")) or None,
-        "val_estado_cp": _db_cp(meeting.get("cp")),
+        "status_reunion": status_label or None,
+        "val_estado_cp": cp_db,
         "bant_cp": _bant_str(meeting.get("bant")),
         "icp_cumple": _bool_icp(meeting.get("icp")),
         "comentario_cp": _txt(meeting.get("just")) or None,
         "notas_internas": _txt(meeting.get("notes")) or None,
         "informacion_reunion_manual": _txt(meeting.get("info")) or None,
         "sdr_override": _txt(meeting.get("sdr")) or None,
-        "val_estado_cli": _db_cliente(meeting.get("clientVal")),
+        "val_estado_cli": client_db,
         "comentario_cli": _txt(meeting.get("clientComment")) or None,
         "motivo_no_validez": _txt(meeting.get("clientReason")) or None,
         "validated_by_cli": _txt(meeting.get("clientActor")) or "Conprospección - override interno",

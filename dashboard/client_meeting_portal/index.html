@@ -308,6 +308,7 @@ function parseDate(s) {
   return y&&m&&d ? `${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}` : "";
 }
 function dtValue(m) {
+  if (m.sortKey) return m.sortKey;
   const d = parseDate(m.date);
   return `${d} ${m.time}`;
 }
