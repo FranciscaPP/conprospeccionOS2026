@@ -5,6 +5,13 @@ import re
 import tempfile
 from pathlib import Path
 
+try:
+    from zoneinfo import ZoneInfo
+
+    _CHILE_TZ = ZoneInfo("America/Santiago")
+except Exception:
+    _CHILE_TZ = None
+
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
@@ -79,6 +86,19 @@ def _time_12(value):
         return raw[:5]
 
 
+def _now_chile():
+    """Hora actual en zona horaria de Chile.
+
+    El servidor (Streamlit Cloud) corre en UTC; sin esto, las reuniones de
+    hoy se comparan contra UTC (~4 h adelantado) y se marcan como realizadas
+    antes de que ocurran en horario local.
+    """
+    if _CHILE_TZ is not None:
+        return datetime.datetime.now(_CHILE_TZ)
+    # Fallback si zoneinfo/tzdata no está disponible: Chile = UTC-4 (invierno).
+    return datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-4)))
+
+
 def _status_label(row, seg):
     raw = f"{_txt(seg.get('status_reunion'))} {_txt(row.get('estado_reunion'))}".lower()
     if "reagend" in raw:
@@ -92,7 +112,8 @@ def _status_label(row, seg):
         d = datetime.date.fromisoformat(str(row.get("fecha") or "")[:10])
     except Exception:
         return "Reunión futura"
-    today = datetime.date.today()
+    now_local = _now_chile()
+    today = now_local.date()
     if d > today:
         return "Reunión futura"
     if d == today:
@@ -102,7 +123,7 @@ def _status_label(row, seg):
         try:
             parts = raw_time.split(":")
             meeting_time = datetime.time(int(parts[0]), int(parts[1]) if len(parts) > 1 else 0)
-            if meeting_time > datetime.datetime.now().time():
+            if meeting_time > now_local.time():
                 return "Reunión futura"
         except Exception:
             return "Reunión futura"
