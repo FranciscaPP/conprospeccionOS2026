@@ -449,6 +449,61 @@ def _exclude_dashboard_meeting(payload):
     return {"ok": False, "status": response.status_code, "error": response.text[:200]}
 
 
+def _create_dashboard_meeting(payload):
+    meeting = payload.get("meeting") or {}
+    cliente_slug = _txt(meeting.get("clientSlug")).lower()
+    date_iso = _txt(meeting.get("dateISO"))
+    if not cliente_slug or not date_iso:
+        return {"ok": False, "error": "faltan_cliente_o_fecha"}
+    try:
+        y, mo, d = [int(x) for x in date_iso.split("-")]
+        hh, mm = 0, 0
+        time_txt = _txt(meeting.get("time"))
+        if time_txt:
+            parts = time_txt.split(":")
+            hh = int(parts[0])
+            mm = int(parts[1]) if len(parts) > 1 else 0
+        tz = _CHILE_TZ or datetime.timezone(datetime.timedelta(hours=-4))
+        appointment_at = datetime.datetime(y, mo, d, hh, mm, tzinfo=tz).isoformat()
+    except Exception:
+        return {"ok": False, "error": "fecha_u_hora_invalida"}
+    try:
+        last = requests.get(
+            f"{SUPABASE_URL}/rest/v1/reuniones?select=id&order=id.desc&limit=1",
+            headers=SUPABASE_HEADERS,
+            timeout=15,
+        )
+        rows = last.json() if last.ok else []
+        max_id = int(rows[0]["id"]) if rows else 0
+    except Exception:
+        max_id = 0
+    # reuniones.id no es autogenerado; usamos un rango alto para no chocar
+    # con los ids que la sincronización de GHL toma de la secuencia.
+    new_id = max(max_id, 900000000) + 1
+    body = {
+        "id": new_id,
+        "cliente_slug": cliente_slug,
+        "empresa": _txt(meeting.get("company")) or None,
+        "contacto": _txt(meeting.get("contact")) or None,
+        "email": _txt(meeting.get("email")) or None,
+        "appointment_at": appointment_at,
+        "estado_reunion": _txt(meeting.get("status")) or "Reunión futura",
+        "origen_reunion": "manual",
+        "excluida": False,
+    }
+    body = {key: value for key, value in body.items() if value is not None}
+    response = requests.post(
+        f"{SUPABASE_URL}/rest/v1/reuniones",
+        headers={**SUPABASE_WRITE_HEADERS, "Prefer": "return=minimal"},
+        json=body,
+        timeout=15,
+    )
+    if response.ok:
+        _insert_history(new_id, "Reunión creada", "Reunión creada manualmente desde panel interno")
+        return {"ok": True, "id": new_id}
+    return {"ok": False, "status": response.status_code, "error": response.text[:300]}
+
+
 def _save_dashboard_payload(payload):
     meeting = payload.get("meeting") or {}
     section = _txt(payload.get("section"), "Actualizacion")
@@ -809,6 +864,14 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold)}
 .row-menu button.danger{color:#C0392B}
 .row-menu button.danger:hover{background:var(--red-bg)}
 .layout.open .act-eye,.layout.open .act-kebab{width:24px;height:24px;font-size:12px}
+.newmeet-btn{white-space:nowrap}
+.newmeet-form{padding:14px;border-top:1px solid var(--line);background:#FAFAF8}
+.newmeet-form[hidden]{display:none}
+.nm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.nm-grid .field2 label{display:block;font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em}
+.nm-grid .field2 input,.nm-grid .field2 select{width:100%;border:1px solid var(--line);border-radius:7px;background:#fff;min-height:32px;padding:4px 8px;font-size:12px;outline:0}
+.nm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+@media(max-width:760px){.nm-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -847,7 +910,8 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold)}
       </section>
       <section class="card kpis" id="kpis"></section>
       <section class="card table-card">
-        <div class="table-head"><div><h2>Seguimiento de reuniones</h2><p>Filtros, KPIs, avance y tabla usan el mismo estado central.</p></div></div>
+        <div class="table-head"><div><h2>Seguimiento de reuniones</h2><p>Filtros, KPIs, avance y tabla usan el mismo estado central.</p></div><button class="primary newmeet-btn" id="newMeetBtn" onclick="toggleNewMeeting()">+ Nueva reunión</button></div>
+        <div class="newmeet-form" id="newMeetForm" hidden></div>
         <div class="table-wrap"><table><thead id="thead"></thead><tbody id="rows"></tbody></table></div>
       </section>
     </main>
@@ -893,7 +957,7 @@ const storageKey="cp_meetings_v5_poc_detail_v2";
 let savedMeetings=null;try{savedMeetings=JSON.parse(localStorage.getItem(storageKey)||"null")}catch(e){savedMeetings=null}
 if(Array.isArray(savedMeetings)){meetings=savedMeetings}
 meetings=meetings.map(m=>({...m,caseStatus:m.caseStatus||"Abierto",cp:m.status==="Reunión cancelada"?"No necesaria":m.cp,clientVal:m.status==="Reunión cancelada"?"No necesaria":m.clientVal,final:m.status==="Reunión cancelada"?"Reunión cancelada":m.final,clientActor:m.clientActor||m.contact||"",clientTimeline:m.clientTimeline||buildClientTimeline(m),historyVisibility:m.historyVisibility||{}}));
-let selected=null, tab="Información", panelOpen=false, more=false, notifOpen=false, rowMenuId=null;
+let selected=null, tab="Información", panelOpen=false, more=false, notifOpen=false, rowMenuId=null, newMeetOpen=false;
 let filters=defaultFilters();
 let sortState={key:"dateTime",dir:"desc"};
 function defaultRange(){const now=new Date();return rangeForMonth(now.getFullYear(),now.getMonth()+1)}
@@ -957,6 +1021,9 @@ function closeDetail(){panelOpen=false;document.body.classList.remove("detail-op
 function closeRowMenus(){const el=document.getElementById("rowMenuFloat");if(el)el.remove();rowMenuId=null}
 function toggleRowMenu(e,id){e.stopPropagation();if(rowMenuId===id){closeRowMenus();return}closeRowMenus();rowMenuId=id;const r=e.currentTarget.getBoundingClientRect();const el=document.createElement("div");el.id="rowMenuFloat";el.className="row-menu";el.style.top=(r.bottom+window.scrollY+4)+"px";el.style.left=(r.right+window.scrollX-184)+"px";el.innerHTML=`<button onclick="openDetail(${id});closeRowMenus()">${EYE_SVG} Ver detalle</button><button class="danger" onclick="deleteMeeting(${id})">${TRASH_SVG} Eliminar reunión</button>`;document.body.appendChild(el)}
 function deleteMeeting(id){closeRowMenus();const m=meetings.find(x=>x.id===id);if(!m)return;if(!confirm(`¿Eliminar la reunión de ${m.company||m.contact||"este registro"}? Se quitará del panel (úsalo para reuniones TEST).`))return;meetings=meetings.filter(x=>x.id!==id);if(selected===id){selected=null;panelOpen=false}saveMeeting(m,"Eliminar reunión",true,{action:"exclude"});render();notify("Reunión eliminada del panel")}
+function toggleNewMeeting(){newMeetOpen=!newMeetOpen;renderNewMeeting()}
+function renderNewMeeting(){const el=document.getElementById("newMeetForm");if(!el)return;el.hidden=!newMeetOpen;if(!newMeetOpen){el.innerHTML="";return}const clients=[["gbs","GBS"],["clickie","Clickie"],["bambutech","BambuTech"]];el.innerHTML=`<div class="nm-grid"><div class="field2"><label>Cliente</label><select id="nmClient">${clients.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join("")}</select></div><div class="field2"><label>Etapa agenda</label><select id="nmStatus">${opt(statuses,"Reunión futura")}</select></div><div class="field2"><label>Empresa</label><input id="nmCompany" placeholder="Empresa (TEST para pruebas)"></div><div class="field2"><label>Contacto</label><input id="nmContact" placeholder="Nombre contacto"></div><div class="field2"><label>Correo</label><input id="nmEmail" placeholder="correo@empresa.cl"></div><div class="field2"><label>Fecha</label><input id="nmDate" type="date" value="${iso(new Date())}"></div><div class="field2"><label>Hora</label><input id="nmTime" type="time" value="10:00"></div></div><div class="nm-actions"><button class="ghost" onclick="toggleNewMeeting()">Cancelar</button><button class="primary" onclick="createMeeting()">Crear reunión</button></div>`}
+function createMeeting(){const clientSlug=document.getElementById("nmClient").value;const names={gbs:"GBS",clickie:"Clickie",bambutech:"BambuTech"};const company=(document.getElementById("nmCompany").value||"").trim();const contact=(document.getElementById("nmContact").value||"").trim();const email=(document.getElementById("nmEmail").value||"").trim();const dateISO=document.getElementById("nmDate").value;const time=document.getElementById("nmTime").value;const status=document.getElementById("nmStatus").value;if(!dateISO){notify("Falta la fecha");return}if(!company&&!contact){notify("Indica empresa o contacto");return}setComponentValue({nonce:`${Date.now()}-${Math.random()}`,action:"create",meeting:{clientSlug,client:names[clientSlug]||clientSlug,company,contact,email,dateISO,time,status}});notify("Creando reunión...");newMeetOpen=false;renderNewMeeting()}
 function field(k,label,type="input"){const m=current();const val=esc(m[k]);return `<div class="field2 ${type==="textarea"?"wide":""}"><label>${label}</label>${type==="textarea"?`<textarea onchange="setField(${m.id},'${k}',this.value)">${val}</textarea>`:`<input value="${val}" onchange="setField(${m.id},'${k}',this.value)">`}</div>`}
 function selectField(k,label,values){const m=current();return `<div class="field2"><label>${label}</label><select onchange="setField(${m.id},'${k}',this.value)">${opt(values,m[k])}</select></div>`}
 function linkField(k,label){const m=current();const v=m[k]||"";const open=v?`<a href="${esc(v)}" target="_blank" rel="noopener" class="open-link">Abrir ↗</a>`:`<span class="sub">Sin enlace</span>`;return `<div class="field2"><label>${label}</label><div class="link-field"><input value="${esc(v)}" readonly>${open}</div></div>`}
@@ -1018,12 +1085,24 @@ COMPONENT_DIR = Path(tempfile.gettempdir()) / "cp_seguimiento_reuniones_componen
 COMPONENT_DIR.mkdir(parents=True, exist_ok=True)
 (COMPONENT_DIR / "index.html").write_text(POC_HTML, encoding="utf-8")
 
-component_payload = render_meeting_component(COMPONENT_DIR, key="seguimiento_reuniones_operativo")
+_reload_token = st.session_state.get("_seguimiento_reload", 0)
+component_payload = render_meeting_component(COMPONENT_DIR, key=f"seguimiento_reuniones_operativo_{_reload_token}")
 if isinstance(component_payload, dict):
     nonce = _txt(component_payload.get("nonce")) or json.dumps(component_payload, sort_keys=True, ensure_ascii=True)
     if st.session_state.get("_seguimiento_last_save_nonce") != nonce:
         st.session_state["_seguimiento_last_save_nonce"] = nonce
-        if _txt(component_payload.get("action")) == "exclude":
+        if _txt(component_payload.get("action")) == "create":
+            create_result = _create_dashboard_meeting(component_payload)
+            if create_result.get("ok"):
+                st.session_state["_seguimiento_reload"] = st.session_state.get("_seguimiento_reload", 0) + 1
+                st.cache_data.clear()
+                st.toast("Reunión creada.")
+                st.rerun()
+            st.error(
+                "No fue posible crear la reunión. "
+                f"{create_result.get('status', '')} {create_result.get('error', '')}"
+            )
+        elif _txt(component_payload.get("action")) == "exclude":
             exclude_result = _exclude_dashboard_meeting(component_payload)
             if exclude_result.get("ok"):
                 st.cache_data.clear()
