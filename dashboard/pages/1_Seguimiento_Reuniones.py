@@ -85,22 +85,29 @@ def _status_label(row, seg):
         return "Reagendar reunión"
     if "cancel" in raw or "no_asist" in raw:
         return "Reunión cancelada"
-    if "realiz" in raw or "completed" in raw or "valid" in raw or "valid" in raw:
-        return "Reunión realizada"
+    # Regla de negocio: toda reunión cuya fecha/hora aún no ocurre es
+    # "Reunión futura", por encima de cualquier estado "realizada/válida"
+    # heredado del sync. Solo cancelada/reagendar (arriba) la sobreescriben.
     try:
         d = datetime.date.fromisoformat(str(row.get("fecha") or "")[:10])
-        if d > datetime.date.today():
-            return "Reunión futura"
-        if d < datetime.date.today():
-            return "Reunión realizada"
-        raw_time = _txt(row.get("hora"))
-        if raw_time:
-            parts = raw_time.split(":")
-            meeting_time = datetime.time(int(parts[0]), int(parts[1]) if len(parts) > 1 else 0)
-            return "Reunión realizada" if meeting_time <= datetime.datetime.now().time() else "Reunión futura"
-        return "Reunión futura"
     except Exception:
         return "Reunión futura"
+    today = datetime.date.today()
+    if d > today:
+        return "Reunión futura"
+    if d == today:
+        raw_time = _txt(row.get("hora"))
+        if not raw_time:
+            return "Reunión futura"
+        try:
+            parts = raw_time.split(":")
+            meeting_time = datetime.time(int(parts[0]), int(parts[1]) if len(parts) > 1 else 0)
+            if meeting_time > datetime.datetime.now().time():
+                return "Reunión futura"
+        except Exception:
+            return "Reunión futura"
+    # La reunión ya ocurrió por fecha/hora.
+    return "Reunión realizada"
 
 
 def _cp_label(row, seg):
