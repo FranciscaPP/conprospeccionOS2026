@@ -91,7 +91,8 @@ Paso pendiente no destructivo: despues de algunos dias de uso estable, archivar 
 Vercel:
 
 - El proyecto Vercel historico `conprospeccion-os-2026` no forma parte del producto activo.
-- `vercel.json` desactiva deployments automaticos desde `main` y `master` para evitar correos de error.
+- `vercel.json` desactiva **todos** los deployments automaticos de Git (incluye PRs y ramas feature). El producto activo es solo Streamlit Cloud.
+- Para dejar de recibir correos del bot: en Vercel → proyecto `conprospeccion-os-2026` → Settings → Git → desconectar el repo, o Ignored Build Step = "Don't build anything".
 - No agregar `package.json`, Next.js ni configuracion React para satisfacer Vercel.
 
 ## Documentacion relacionada
