@@ -43,10 +43,8 @@ div[class*="st-key-gbs_logout"] button {
     unsafe_allow_html=True,
 )
 
-_cfg = _CLIENTS["gbs"]
 if st.button("Cerrar sesión", key="gbs_logout"):
-    st.session_state[_cfg["session_key"]] = False
-    _clear_token()
+    logout_client("gbs")
     st.rerun()
 
 render_client_meeting_portal(
