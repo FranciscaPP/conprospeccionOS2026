@@ -175,8 +175,8 @@ El encabezado del panel lateral usa una franja superior de resumen:
 - fondo amarillo suave;
 - titulo con nombre de empresa;
 - subtitulo con contacto y cliente, por ejemplo `Juan Condori Paredes - Clickie`;
-- datos operativos en una linea: Fecha y hora, SDR asignada y Estado del Caso;
-- SDR asignada y Estado del Caso son editables desde la franja.
+- datos operativos en una linea: Fecha y hora y SDR asignada;
+- SDR asignada es editable desde la franja.
 
 Regla visual v6:
 
