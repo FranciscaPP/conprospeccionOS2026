@@ -583,14 +583,35 @@ function infoTab(m) {
     + infoSection("Contacto","Información de la persona","○", readField("Nombre del contacto", m.contact) + readField("Cargo", m.role) + readField("Correo", m.email) + readField("Teléfono", m.phone))
     + infoSection("Reunión","Información de la reunión","▣", readField("Fecha", m.date) + readField("Hora", m.time) + linkField("Enlace reunión", m.meet, "Abrir ↗") + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`);
 }
+function evidenceLinkLabel(e) {
+  const t = String(e.type || "").toLowerCase();
+  if (t.includes("grabaci")) return "Abrir grabación";
+  if (t.includes("transcri")) return "Abrir transcripción";
+  return e.name || "Abrir ↗";
+}
+function evidenceTab(m) {
+  const ev = (m.evidence || []).filter(e => e.url || e.text || e.name);
+  if (!ev.length) return "";
+  return `<div class="evidence">${ev.map(e => {
+    const link = e.url ? `<br><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(evidenceLinkLabel(e))}</a>` : "";
+    const text = e.text ? `<small>${esc(e.text).slice(0, 600)}</small>` : "";
+    const name = !e.url && e.name ? `<small>${esc(e.name)}</small>` : "";
+    return `<div class="evi"><span>${esc(e.type)}</span>${link}${name}${text}</div>`;
+  }).join("")}</div>`;
+}
 function cpTab(m) {
   const marked = Object.entries(m.bant).filter(([, v]) => v);
   const bant = marked.length
     ? `<div class="bant-grid">${marked.map(([k]) => `<div class="bant-item">${k}</div>`).join("")}</div>`
     : `<div class="read"><p>Sin variables BANT marcadas por Conprospección.</p></div>`;
+  const evidenceHtml = evidenceTab(m);
+  const evidenceBlock = evidenceHtml
+    ? `<span class="block-title" style="margin-top:10px">Evidencias y archivos</span>${evidenceHtml}`
+    : "";
   return `<div class="grid">${readField("Evaluación CP", m.cp)}${readField("ICP", m.icp)}</div>
     <span class="block-title">BANT</span>${bant}
     ${m.just ? `<div class="just-box"><b>Justificación</b><p style="margin:0">${esc(m.just)}</p></div>` : ""}
+    ${evidenceBlock}
     <div class="read" style="margin-top:10px"><p>El cliente no edita Evaluación CP, BANT ni ICP.</p></div>`;
 }
 function clientTab(m) {
@@ -607,11 +628,6 @@ function clientTab(m) {
 }
 function finalTab(m) {
   return `<div class="grid">${readField("Estado Final", finalDisplay(m))}<div class="field2 wide"><label>Mensaje al cliente</label><textarea readonly>${esc(m.finalClientText||"Sin mensaje publicado.")}</textarea></div></div><div class="read"><p>El cliente no define el cierre administrativo.</p></div>`;
-}
-function evidenceTab(m) {
-  const ev = (m.evidence||[]).filter(e => e.url || e.text || e.name);
-  if (!ev.length) return `<div class="read"><p>Sin evidencia para esta reunión.</p></div>`;
-  return `<div class="evidence">${ev.map(e => `<div class="evi">${esc(e.type)}${e.url?`<br><a href="${esc(e.url)}" target="_blank" rel="noopener">Abrir ↗</a>`:""}${e.text?`<small>${esc(e.text)}</small>`:""}</div>`).join("")}</div>`;
 }
 function historyTab(m) {
   return `<div class="history">${(m.history||[]).map(h => `<div class="hist"><small>${esc(h.when)} · ${esc(h.user)}</small><b>${esc(h.field)}</b><div>${esc(h.text)}</div></div>`).join("")||"<span class='sub'>Sin cambios registrados.</span>"}</div>`;
