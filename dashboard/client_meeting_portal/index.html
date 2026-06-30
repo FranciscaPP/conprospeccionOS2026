@@ -560,10 +560,26 @@ function linkField(label, url, linkLabel = "Abrir ↗") {
   return `<div class="field2"><label>${label}</label><div class="link-field"><input value="${esc(clean)}" readonly>${open}</div></div>`;
 }
 function infoTab(m) {
+  const empresa = readField("Nombre de empresa", m.company)
+    + readField("País", m.country)
+    + (m.industry ? readField("Industria", m.industry) : "")
+    + (m.website ? linkField("Sitio web", m.website, "Abrir sitio ↗") : "")
+    + (m.linkedinCompany ? linkField("LinkedIn empresa", m.linkedinCompany, "Ver perfil ↗") : "");
+  const contacto = readField("Nombre del contacto", m.contact)
+    + readField("Cargo", m.role)
+    + readField("Correo", m.email)
+    + readField("Teléfono", m.phone)
+    + (m.linkedin ? linkField("LinkedIn contacto", m.linkedin, "Ver perfil ↗") : "");
+  const reunion = readField("Fecha", m.date)
+    + readField("Hora", m.time)
+    + (m.meet ? linkField("Enlace reunión", m.meet, "Abrir ↗") : "")
+    + (m.recordingUrl ? linkField("Grabación", m.recordingUrl, "Abrir grabación") : "")
+    + (m.transcriptUrl ? linkField("Transcripción", m.transcriptUrl, "Abrir transcripción") : "")
+    + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`;
   return `<div class="co-head"><b>Información de la reunión</b><span>Datos visibles para el cliente.</span></div>`
-    + infoSection("Empresa","Información de la empresa","▣", readField("Nombre de empresa", m.company) + readField("País", m.country) + readField("Sitio web", m.website))
-    + infoSection("Contacto","Información de la persona","○", readField("Nombre del contacto", m.contact) + readField("Cargo", m.role) + readField("Correo", m.email) + readField("Teléfono", m.phone))
-    + infoSection("Reunión","Información de la reunión","▣", readField("Fecha", m.date) + readField("Hora", m.time) + linkField("Enlace reunión", m.meet, "Abrir ↗") + linkField("Grabación", m.recordingUrl, "Abrir grabación") + linkField("Transcripción", m.transcriptUrl, "Abrir transcripción") + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`);
+    + infoSection("Empresa","Información de la empresa","▣", empresa)
+    + infoSection("Contacto","Información de la persona","○", contacto)
+    + infoSection("Reunión","Información de la reunión","▣", reunion);
 }
 function evidenceLinkLabel(e) {
   const t = String(e.type || "").toLowerCase();
@@ -616,7 +632,11 @@ function finalTab(m) {
   return `<div class="grid">${readField("Estado Final", finalDisplay(m))}<div class="field2 wide"><label>Mensaje al cliente</label><textarea readonly>${esc(m.finalClientText||"Sin mensaje publicado.")}</textarea></div></div><div class="read"><p>El cliente no define el cierre administrativo.</p></div>`;
 }
 function historyTab(m) {
-  return `<div class="history">${(m.history||[]).map(h => `<div class="hist"><small>${esc(h.when)} · ${esc(h.user)}</small><b>${esc(h.field)}</b><div>${esc(h.text)}</div></div>`).join("")||"<span class='sub'>Sin cambios registrados.</span>"}</div>`;
+  const items = m.history || [];
+  if (!items.length) {
+    return `<div class="read"><p>Sin actualizaciones visibles para el cliente.</p></div>`;
+  }
+  return `<div class="history">${items.map(h => `<div class="hist"><small>${esc(h.when)} · ${esc(h.user)}</small><b>${esc(h.field)}</b><div>${esc(h.text)}</div></div>`).join("")}</div>`;
 }
 function renderPanel() {
   if (!panelOpen) return;

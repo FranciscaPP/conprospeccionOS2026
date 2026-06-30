@@ -20,6 +20,7 @@ from shared.config import supabase_key, supabase_url
 from shared.meeting_scope import ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de
 from meeting_component import render_meeting_component
+from meeting_shared import cargar_reuniones_reales_poc
 from master_auth import require_master_auth
 
 st.set_page_config(page_title="Seguimiento Reuniones", layout="wide")
@@ -261,6 +262,14 @@ def _manual_evidence_payload(evidence):
     manual = []
     for item in evidence or []:
         if item.get("source") == "manual" or item.get("manual"):
+            manual.append(item)
+    return manual
+
+
+def _manual_history_payload(history):
+    manual = []
+    for item in history or []:
+        if item.get("manual"):
             manual.append(item)
     return manual
 
@@ -563,6 +572,8 @@ def _save_dashboard_payload(payload):
         "estado_caso": _txt(meeting.get("caseStatus")) or None,
         "evidencia_visibilidad": _evidence_visibility_payload(meeting.get("evidence")),
         "evidencia_manual": _manual_evidence_payload(meeting.get("evidence")),
+        "historial_visibilidad": _json_obj(meeting.get("historyVisibility"), {}),
+        "historial_manual": _manual_history_payload(meeting.get("history")),
         "etapa_agenda_metadata": _agenda_metadata_payload(meeting),
         "comentario_final_cliente": _txt(meeting.get("finalClientText")) or None,
         "respuesta_cp_cliente": _txt(meeting.get("cpResponse")) or None,
@@ -620,176 +631,6 @@ iframe { display:block; }
     unsafe_allow_html=True,
 )
 
-
-@st.cache_data(ttl=30)
-def cargar_reuniones_reales_poc():
-    slugs = ",".join(ACTIVE_MEETING_CLIENT_SLUGS)
-    meetings_response = requests.get(
-        f"{SUPABASE_URL}/rest/v1/vw_reuniones_semana?select=*&cliente_slug=in.({slugs})",
-        headers=SUPABASE_HEADERS,
-        timeout=15,
-    )
-    if not meetings_response.ok:
-        return []
-    tracking_response = requests.get(
-        f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones?select=*&cliente_slug=in.({slugs})",
-        headers=SUPABASE_HEADERS,
-        timeout=15,
-    )
-    base_response = requests.get(
-        f"{SUPABASE_URL}/rest/v1/reuniones"
-        "?select=id,ghl_contact_id,fecha_agendada,direccion_reunion,recording_url,transcript_url,ai_summary,ai_evidence,sdr_slug",
-        headers=SUPABASE_HEADERS,
-        timeout=15,
-    )
-    contacts_response = requests.get(
-        f"{SUPABASE_URL}/rest/v1/contactos?select=ghl_contact_id,sdr_slug,raw_data,custom_fields&cliente_slug=in.({slugs})",
-        headers=SUPABASE_HEADERS,
-        timeout=15,
-    )
-    sdr_response = requests.get(
-        f"{SUPABASE_URL}/rest/v1/sdrs?select=slug,nombre",
-        headers=SUPABASE_HEADERS,
-        timeout=15,
-    )
-    history_response = requests.get(
-        f"{SUPABASE_URL}/rest/v1/meeting_status_history?select=*&order=changed_at.desc&limit=10000",
-        headers=SUPABASE_HEADERS,
-        timeout=15,
-    )
-    tracking = {}
-    if tracking_response.ok:
-        tracking = {int(x["reunion_id"]): x for x in tracking_response.json() if x.get("reunion_id")}
-    base_meetings = {}
-    if base_response.ok:
-        base_meetings = {int(x["id"]): x for x in base_response.json() if x.get("id")}
-    contact_sdr = {}
-    contact_extra = {}
-    if contacts_response.ok:
-        contact_sdr = {
-            x["ghl_contact_id"]: x.get("sdr_slug")
-            for x in contacts_response.json()
-            if x.get("ghl_contact_id") and x.get("sdr_slug")
-        }
-        contact_extra = {
-            x["ghl_contact_id"]: _contact_enrichment(x)
-            for x in contacts_response.json()
-            if x.get("ghl_contact_id")
-        }
-    sdr_names = {}
-    if sdr_response.ok:
-        sdr_names = {x.get("slug"): x.get("nombre") for x in sdr_response.json() if x.get("slug") and x.get("nombre")}
-    histories = {}
-    if history_response.ok:
-        for event in history_response.json():
-            try:
-                mid = int(event.get("meeting_id"))
-            except Exception:
-                continue
-            histories.setdefault(mid, []).append(
-                {
-                    "when": _txt(event.get("changed_at"))[:16].replace("T", " "),
-                    "user": _txt(event.get("changed_by"), "Conprospección"),
-                    "field": _txt(event.get("field_changed"), "Actualizacion"),
-                    "from": event.get("old_value"),
-                    "to": event.get("new_value"),
-                    "visibility": "Solo uso interno",
-                }
-            )
-    rows = []
-    for row in meetings_response.json():
-        rid = row.get("id")
-        if not rid:
-            continue
-        seg = tracking.get(int(rid), {})
-        base_row = base_meetings.get(int(rid), {})
-        extra = contact_extra.get(row.get("ghl_contact_id"), {})
-        slug = _txt(row.get("cliente_slug")).lower()
-        status = _status_label(row, seg)
-        cp = _cp_label(row, seg)
-        client_val = _client_val_label(seg)
-        row_history = histories.get(int(rid), [])
-        manual_evidence = _json_obj(seg.get("evidencia_manual"), [])
-        evidence = _evidence({**row, **base_row}, seg) + manual_evidence
-        evidence = _apply_evidence_visibility(evidence, seg.get("evidencia_visibilidad"), row_history)
-        agenda_meta = _json_obj(seg.get("etapa_agenda_metadata"), {})
-        if status == "Reunión cancelada":
-            if cp == "Pendiente":
-                cp = ""
-            if client_val == "Pendiente":
-                client_val = ""
-        final = _final_label(seg)
-        assigned_sdr = (
-            _txt(seg.get("sdr_override"))
-            or _sdr_display(contact_sdr.get(row.get("ghl_contact_id")), sdr_names)
-            or _sdr_display(base_row.get("sdr_slug"), sdr_names)
-            or _txt(row.get("sdr"), "Sin asignar")
-        )
-        meta = meta_de(slug)
-        rows.append(
-            {
-                "id": int(rid),
-                "clientSlug": slug,
-                "date": _date_es(row.get("fecha")),
-                "time": _time_12(row.get("hora")),
-                "scheduledDate": _date_es(base_row.get("fecha_agendada")),
-                "client": _client_label(slug, row.get("cliente")),
-                "company": _txt(row.get("empresa"), "-").title(),
-                "contact": _txt(row.get("contacto"), "-").title(),
-                "role": _txt(row.get("cargo"), "-").title(),
-                "sdr": assigned_sdr,
-                "status": status,
-                "cp": cp,
-                "clientVal": client_val,
-                "final": final,
-                "caseStatus": _txt(seg.get("estado_caso")) or _case_status(cp, client_val, final),
-                "email": _txt(row.get("email")),
-                "phone": _txt(row.get("telefono")),
-                "country": _country_label(row.get("pais")),
-                "industry": _txt(row.get("industria")),
-                "website": extra.get("website", ""),
-                "linkedin": extra.get("linkedin", ""),
-                "linkedinCompany": extra.get("linkedinCompany", ""),
-                "companySize": extra.get("companySize", ""),
-                "sourceChannel": extra.get("sourceChannel", ""),
-                "companyInfo": extra.get("companyInfo", ""),
-                "contactInfo": extra.get("contactInfo", ""),
-                "ghlContact": _txt(row.get("ghl_contact_id")),
-                "ghlOpp": _txt(row.get("opportunity_id")),
-                "meet": _txt(base_row.get("direccion_reunion")),
-                "recordingUrl": _txt(base_row.get("recording_url")),
-                "transcriptUrl": _txt(base_row.get("transcript_url")),
-                "info": _txt(seg.get("informacion_reunion_manual")) or _txt(row.get("informacion_reunion")),
-                "icp": "Cumple" if seg.get("icp_cumple") is True else "No cumple" if seg.get("icp_cumple") is False else "No evaluado",
-                "bant": _bant(seg.get("bant_cp") or row.get("bant_sdr")),
-                "just": _txt(seg.get("comentario_cp")),
-                "next": _txt(seg.get("proximo_paso")),
-                "notes": _txt(seg.get("notas_internas")),
-                "finalReason": _txt(seg.get("comentario_final")),
-                "finalClientText": _txt(seg.get("comentario_final_cliente")),
-                "finalInternalNote": _txt(seg.get("notas_internas")),
-                "evidence": evidence,
-                "clientReason": _txt(seg.get("motivo_no_validez")),
-                "clientComment": _txt(seg.get("comentario_cli")),
-                "clientDate": _txt(seg.get("validated_cli_at"))[:16].replace("T", " "),
-                "clientActor": _txt(seg.get("validated_by_cli"), _txt(row.get("contacto"), "Cliente")),
-                "clientEvidence": _txt(seg.get("evidencia_cliente")),
-                "cpResponse": _txt(seg.get("respuesta_cp_cliente")),
-                "cancelWho": _txt(agenda_meta.get("cancelWho")),
-                "cancelReason": _txt(agenda_meta.get("cancelReason")),
-                "cancelComment": _txt(agenda_meta.get("cancelComment")),
-                "rescheduleWho": _txt(agenda_meta.get("rescheduleWho")),
-                "rescheduleReason": _txt(agenda_meta.get("rescheduleReason")),
-                "rescheduleOld": _txt(agenda_meta.get("rescheduleOld")),
-                "rescheduleNew": _txt(agenda_meta.get("rescheduleNew")),
-                "rescheduleComment": _txt(agenda_meta.get("rescheduleComment")),
-                "history": row_history,
-                "goal": int(meta["validas"]) if meta else 0,
-            }
-        )
-    rows = _dedupe_clickie_latest(rows)
-    rows.sort(key=_dt_sort_key, reverse=True)
-    return rows
 
 
 CP_MARK_DATA_URI = _asset_data_uri("assets/cp_mark_dark.png")

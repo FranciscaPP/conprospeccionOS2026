@@ -19,6 +19,7 @@ import requests
 from shared.config import supabase_key, supabase_url
 from shared.meeting_scope import ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de
+from shared.validacion import texto_real, valor_custom_field
 
 SUPABASE_URL = supabase_url()
 SUPABASE_KEY = supabase_key()
@@ -204,6 +205,30 @@ def _evidence(row, seg):
     return ev
 
 
+def _norm_type_key(value) -> str:
+    import unicodedata
+
+    text = unicodedata.normalize("NFD", _txt(value))
+    return "".join(ch for ch in text if unicodedata.category(ch) != "Mn").lower()
+
+
+def _visibility_lookup(visibility: dict, evidence_type: str, default: bool = False) -> bool:
+    if not visibility:
+        return default
+    if evidence_type in visibility:
+        return bool(visibility[evidence_type])
+    target = _norm_type_key(evidence_type)
+    for key, val in visibility.items():
+        if _norm_type_key(key) == target:
+            return bool(val)
+    return default
+
+
+def _type_visible(visible_types: set[str], *candidates: str) -> bool:
+    normalized = {_norm_type_key(t) for t in visible_types}
+    return any(_norm_type_key(candidate) in normalized for candidate in candidates)
+
+
 def _json_obj(value, default):
     if isinstance(value, type(default)):
         return value
@@ -242,7 +267,7 @@ def _apply_evidence_visibility(evidence, saved_visibility, history):
         if evidence_type:
             visibility[evidence_type] = _visibility_from_state(state)
     for item in evidence:
-        item["clientVisible"] = bool(visibility.get(item.get("type"), item.get("clientVisible", False)))
+        item["clientVisible"] = _visibility_lookup(visibility, item.get("type"))
     return evidence
 
 
@@ -280,13 +305,36 @@ def _custom_field(custom_fields, *ids):
     return ""
 
 
+def _manual_history_payload(history):
+    manual = []
+    for item in history or []:
+        if item.get("manual"):
+            manual.append(item)
+    return manual
+
+
 def _contact_enrichment(contact):
     raw = contact.get("raw_data") or {}
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            raw = {}
     fields = contact.get("custom_fields") or raw.get("customFields") or []
+    source = {"customFields": fields, **raw, "raw_data": raw}
+    website = _txt(raw.get("website")) or texto_real(
+        valor_custom_field(source, ("website", "sitio web", "sitio_web"))
+    )
+    linkedin = _custom_field(fields, "iimkT4RjJWRONU2HcwbN") or texto_real(
+        valor_custom_field(source, ("linkedin_personal", "linkedin personal", "linkedin"))
+    )
+    linkedin_company = _custom_field(fields, "SnRP2tiJlYfQOHBM3adE") or texto_real(
+        valor_custom_field(source, ("linkedin_empresa", "linkedin empresa", "linkedin company"))
+    )
     return {
-        "website": _txt(raw.get("website")),
-        "linkedin": _custom_field(fields, "iimkT4RjJWRONU2HcwbN"),
-        "linkedinCompany": _custom_field(fields, "SnRP2tiJlYfQOHBM3adE"),
+        "website": website,
+        "linkedin": linkedin,
+        "linkedinCompany": linkedin_company,
         "companySize": _custom_field(fields, "3uQfRamZN2ruaNg367XL"),
         "sourceChannel": _custom_field(fields, "mipcTmLgax5URM1q3Mut") or _txt(raw.get("source")),
         "companyInfo": _custom_field(fields, "x8bV5PXJ0MgJcmdMk9Bd", "uWCMW4RCrWDGlu02nMkp"),
@@ -432,7 +480,9 @@ def cargar_reuniones_reales_poc():
         status = _status_label(row, seg)
         cp = _cp_label(row, seg)
         client_val = _client_val_label(seg)
-        row_history = histories.get(int(rid), [])
+        manual_history = _json_obj(seg.get("historial_manual"), [])
+        audit_history = histories.get(int(rid), [])
+        row_history = manual_history + audit_history
         manual_evidence = _json_obj(seg.get("evidencia_manual"), [])
         evidence = _evidence({**row, **base_row}, seg) + manual_evidence
         evidence = _apply_evidence_visibility(evidence, seg.get("evidencia_visibilidad"), row_history)
@@ -450,6 +500,8 @@ def cargar_reuniones_reales_poc():
             or _txt(row.get("sdr"), "Sin asignar")
         )
         meta = meta_de(slug)
+        recording_url = _txt(base_row.get("recording_url")) or _txt(seg.get("recording_url"))
+        transcript_url = _txt(base_row.get("transcript_url")) or _txt(seg.get("transcript_url"))
         rows.append(
             {
                 "id": int(rid),
@@ -481,8 +533,8 @@ def cargar_reuniones_reales_poc():
                 "ghlContact": _txt(row.get("ghl_contact_id")),
                 "ghlOpp": _txt(row.get("opportunity_id")),
                 "meet": _txt(base_row.get("direccion_reunion")),
-                "recordingUrl": _txt(base_row.get("recording_url")),
-                "transcriptUrl": _txt(base_row.get("transcript_url")),
+                "recordingUrl": recording_url,
+                "transcriptUrl": transcript_url,
                 "info": _txt(seg.get("informacion_reunion_manual")) or _txt(row.get("informacion_reunion")),
                 "icp": "Cumple" if seg.get("icp_cumple") is True else "No cumple" if seg.get("icp_cumple") is False else "No evaluado",
                 "bant": _bant(seg.get("bant_cp") or row.get("bant_sdr")),
@@ -508,6 +560,8 @@ def cargar_reuniones_reales_poc():
                 "rescheduleNew": _txt(agenda_meta.get("rescheduleNew")),
                 "rescheduleComment": _txt(agenda_meta.get("rescheduleComment")),
                 "history": row_history,
+                "historyVisibility": _json_obj(seg.get("historial_visibilidad"), {}),
+                "historialManual": manual_history,
                 "goal": int(meta["validas"]) if meta else 0,
             }
         )
@@ -523,6 +577,89 @@ def load_meetings(client_slugs: list[str] | None = None):
     return [row for row in all_rows if _txt(row.get("clientSlug")).lower() in allowed]
 
 
+def _history_visible(meeting: dict, key: str, default: bool = False) -> bool:
+    visibility = _json_obj(meeting.get("historyVisibility"), {})
+    if key in visibility:
+        return bool(visibility[key])
+    return default
+
+
+def _latest_history_when(history: list[dict], field: str) -> str:
+    for event in history or []:
+        if _txt(event.get("field")) == field:
+            return _txt(event.get("when"))
+    return ""
+
+
+def _friendly_history_actor(user: str) -> str:
+    raw = _txt(user).lower()
+    if "cliente" in raw:
+        return "Cliente"
+    if "ghl" in raw or "sistema" in raw:
+        return "Sistema"
+    return "Conprospección"
+
+
+def _build_client_history(meeting: dict) -> list[dict]:
+    """Historial visible para el cliente; no expone auditoría interna."""
+    items: list[dict] = []
+    history = meeting.get("history") or []
+
+    def add(when: str, user: str, field: str, text: str) -> None:
+        clean = _txt(text)
+        if not clean:
+            return
+        items.append(
+            {
+                "when": when or "Sin fecha",
+                "user": user,
+                "field": field,
+                "text": clean,
+            }
+        )
+
+    if _history_visible(meeting, "fecha_agenda", False):
+        when = _txt(meeting.get("scheduledDate")) or _txt(meeting.get("date")) or "Sin fecha"
+        add(when, "Sistema", "Fecha de agenda", when)
+
+    if meeting.get("status") == "Reunión realizada" and _history_visible(meeting, "fecha_realizada", False):
+        when = _latest_history_when(history, "Etapa Agenda") or f"{_txt(meeting.get('date'))} {_txt(meeting.get('time'))}".strip()
+        add(when, "Sistema", "Reunión realizada", when)
+
+    cp = _txt(meeting.get("cp"))
+    if cp and cp not in {"Pendiente", ""} and _history_visible(meeting, "fecha_cp", True):
+        when = _latest_history_when(history, "Evaluación CP") or "Sin fecha"
+        add(when, "Conprospección", "Evaluación Conprospección", cp)
+
+    client_val = _txt(meeting.get("clientVal"))
+    if client_val and client_val not in {"Pendiente", ""} and _history_visible(
+        meeting,
+        "fecha_cliente",
+        client_val != "No necesaria",
+    ):
+        actor = "Sistema" if client_val == "No necesaria" else "Cliente"
+        when = _latest_history_when(history, "Evaluación Cliente") or _txt(meeting.get("clientDate")) or "Sin fecha"
+        add(when, actor, "Evaluación del cliente", client_val)
+
+    final = _txt(meeting.get("final"))
+    if final and final not in {"Pendiente", ""} and _history_visible(meeting, "fecha_final", True):
+        when = _latest_history_when(history, "Estado Final") or "Sin fecha"
+        label = "Pendiente de cierre" if final == "Pendiente" else final
+        add(when, "Conprospección", "Estado final", label)
+
+    for note in _json_obj(meeting.get("historialManual"), []):
+        if note.get("visibility") != "Visible para el cliente":
+            continue
+        add(
+            _txt(note.get("when")),
+            _friendly_history_actor(note.get("user")),
+            _txt(note.get("field")) or "Actualización",
+            _txt(note.get("description")) or _txt(note.get("text")),
+        )
+
+    return items
+
+
 def project_meeting_for_client(meeting: dict) -> dict:
     """Proyección cliente: oculta campos internos y evidencia no visible."""
     out = dict(meeting)
@@ -535,14 +672,22 @@ def project_meeting_for_client(meeting: dict) -> dict:
         e for e in (meeting.get("evidence") or [])
         if e.get("clientVisible") and (e.get("url") or e.get("text") or e.get("name"))
     ]
-    if "Grabación" not in visible_types:
+    if not _type_visible(visible_types, "Grabación"):
         out.pop("recordingUrl", None)
-    if "Transcripción" not in visible_types:
+    if not _type_visible(visible_types, "Transcripción"):
         out.pop("transcriptUrl", None)
-    out.pop("sdr", None)
-    out.pop("notes", None)
-    out.pop("finalReason", None)
-    out.pop("finalInternalNote", None)
-    out.pop("next", None)
-    out.pop("caseStatus", None)
+    out["history"] = _build_client_history(meeting)
+    for key in (
+        "sdr",
+        "notes",
+        "finalReason",
+        "finalInternalNote",
+        "next",
+        "caseStatus",
+        "historyVisibility",
+        "historialManual",
+        "ghlContact",
+        "ghlOpp",
+    ):
+        out.pop(key, None)
     return out
