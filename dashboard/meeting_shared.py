@@ -271,6 +271,30 @@ def _contact_enrichment(contact):
     }
 
 
+def _date_db(value):
+    try:
+        day, month, year = str(value).split("/")
+        return f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
+    except Exception:
+        return None
+
+
+def _time_db(value):
+    raw = _txt(value).upper().replace(".", "")
+    if not raw:
+        return None
+    try:
+        hm, suffix = raw.split()
+        hour, minute = [int(x) for x in hm.split(":")[:2]]
+        if suffix == "PM" and hour != 12:
+            hour += 12
+        if suffix == "AM" and hour == 12:
+            hour = 0
+        return f"{hour:02d}:{minute:02d}:00"
+    except Exception:
+        return raw[:8]
+
+
 def _dt_sort_key(row):
     date_part = _date_db(row.get("date")) or ""
     time_part = _time_db(row.get("time")) or ""
