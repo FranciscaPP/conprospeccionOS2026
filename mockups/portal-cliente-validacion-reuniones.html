@@ -112,11 +112,12 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .drawer-fixed{flex:0 0 auto;padding:10px 14px 0;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
 .close{position:absolute;right:8px;top:3px;border:0;background:transparent;font-size:20px;cursor:pointer;z-index:6}
 .detail-band{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;border:1px solid #FFE6A3;background:#FFF7D0;border-radius:8px;padding:10px 28px 10px 12px;margin-bottom:12px}
-.band-main{min-width:190px;flex:1.25 1 190px;border-right:1px solid #F0D28D;padding-right:16px}
-.band-title b{display:block;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:15px;line-height:1.1}
-.band-title span{display:block;margin-top:3px;color:var(--muted);font-size:11px}
-.band-item small{display:block;color:var(--muted);font-size:10px}
-.band-item b{display:block;margin-top:2px;font-size:12px;font-weight:700}
+.band-main{min-width:190px;flex:1.25 1 190px;padding-right:8px}
+.band-title b{display:block;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:15px;line-height:1.15;font-weight:700}
+.band-title span{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.25}
+.band-item{min-width:118px;flex:0 0 auto;margin-left:auto;text-align:right}
+.band-item small{display:block;color:var(--muted);font-size:10px;line-height:1.05;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.band-item b{display:block;margin-top:3px;font-size:13px;font-weight:700;line-height:1.2}
 .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 18px}
 .sum{border:1px solid var(--line);border-radius:8px;padding:11px 12px;background:#fff;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
 .sum:hover{border-color:var(--gold);background:#fffdf0}
@@ -128,39 +129,46 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .tabs button.active{color:var(--ink);background:#fff;border-bottom-color:var(--gold)}
 .panel{padding:0 20px 20px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 6px}
-.field2 label{display:block;font-size:9px;color:var(--muted);font-weight:700;margin-bottom:1px}
-.field2 input,.field2 select,.field2 textarea{width:100%;border:1px solid var(--line);border-radius:7px;background:var(--surface);min-height:27px;padding:3px 7px;font-size:12px;outline:0}
-.field2 textarea{min-height:34px;resize:vertical}
+.field2 label{display:block;font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em}
+.field2 input,.field2 select,.field2 textarea{width:100%;border:1px solid var(--line);border-radius:7px;background:var(--surface);min-height:30px;padding:5px 8px;font-size:13px;outline:0;line-height:1.35}
+.field2 textarea{min-height:56px;resize:vertical}
 .field2 input[readonly],.field2 textarea[readonly]{background:#FAFAF8;color:var(--muted)}
 .wide{grid-column:1/-1}
 .co-head{margin-bottom:16px}
-.co-head b{display:block;font-size:18px}
-.co-head span{display:block;color:var(--muted);font-size:13px}
+.co-head b{display:block;font-size:17px;font-weight:700;line-height:1.2}
+.co-head span{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.4}
 .co-section{border-top:1px solid var(--gold);padding:16px 0 10px}
 .co-section summary{display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none;margin-bottom:12px}
 .co-section summary::-webkit-details-marker{display:none}
 .co-icon{width:36px;height:36px;border-radius:7px;background:var(--primary-soft);display:grid;place-items:center;color:#7A6400;font-weight:800}
-.co-title b{display:block;font-size:15px}
-.co-title span{display:block;color:var(--muted);font-size:12px}
+.co-title b{display:block;font-size:14px;font-weight:700;line-height:1.2}
+.co-title span{display:block;color:var(--muted);font-size:11px;margin-top:2px;line-height:1.35}
 .co-chevron{margin-left:auto;font-weight:800}
-.block-title{display:block;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:12px;font-weight:700;margin-bottom:5px}
+.block-title{display:block;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:12px;font-weight:700;margin:10px 0 6px;color:var(--ink)}
+.link-field{display:flex;align-items:center;gap:8px}
+.link-field input{flex:1;min-width:0}
+.open-link{color:var(--blue);font-weight:700;text-decoration:none;font-size:12px;white-space:nowrap}
+.open-link:hover{text-decoration:underline}
+.just-box{border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:#fff;font-size:13px;line-height:1.45;margin-top:8px}
+.just-box b{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px}
 .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:7px}
 .primary,.ghost{border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}
 .primary{border:0;background:var(--gold);color:var(--ink)}
 .ghost{border:1px dashed var(--line-strong);background:#fff;color:var(--carbon)}
-.read{border:1px solid var(--line);border-radius:9px;padding:7px;background:#fff;font-size:12px}
-.read p{margin:4px 0}
-.visible-client{border:1px solid #BFE6CC;background:#F7FFF9;border-radius:9px;padding:7px}
+.read{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fff;font-size:13px;line-height:1.45}
+.read p{margin:5px 0}
 .bant-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.bant-item{border:1px solid var(--line);border-radius:7px;padding:5px 7px;font-size:11.5px;font-weight:700;text-align:center}
+.bant-item{border:1px solid var(--line);border-radius:7px;padding:7px 8px;font-size:12px;font-weight:700;text-align:center;line-height:1.3}
+.bant-item small{display:block;font-size:10px;color:var(--muted);font-weight:600;margin-top:2px}
 .evidence{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .evi{border:1px solid var(--line);border-radius:8px;padding:7px;background:#fff;font-size:12px;font-weight:600}
 .evi a{color:var(--carbon);text-decoration:underline;text-decoration-color:var(--gold)}
 .history{border-left:2px solid var(--line);padding-left:10px;margin-left:5px}
 .hist{position:relative;margin-bottom:6px}
 .hist:before{content:"";position:absolute;left:-15px;top:3px;width:7px;height:7px;border-radius:99px;background:var(--gold)}
-.hist small{color:var(--muted);font-size:10.5px}
-.hist b{display:block;font-size:12px;margin:1px 0}
+.hist small{color:var(--muted);font-size:11px;line-height:1.3}
+.hist b{display:block;font-size:13px;font-weight:600;margin:2px 0 1px}
+.hist div{font-size:12px;line-height:1.4;color:var(--ink)}
 .save-note{position:fixed;right:24px;bottom:18px;background:var(--carbon);color:#fff;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;z-index:20;box-shadow:0 8px 24px rgba(26,26,26,.22)}
 .layout.open .kpis{grid-template-columns:repeat(4,1fr)}
 .layout.open .kpi{min-height:66px;padding:8px 10px}
@@ -169,6 +177,16 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .layout.open thead th,.layout.open tbody td{padding:5px 5px}
 .layout.open .pill{min-width:0;width:100%;padding:4px 5px;font-size:10.2px}
 .layout.open tbody tr.selected{background:#FFF7D0;box-shadow:inset 4px 0 0 var(--gold),inset 0 0 0 1px #F0D28D}
+.layout.open .band-title b{max-width:170px;font-size:14px}
+.layout.open .band-title span{max-width:170px;font-size:11px}
+.layout.open .band-item b{font-size:12px}
+.layout.open .sum small{font-size:9px}
+.layout.open .sum .chip{font-size:11px;padding:6px 8px}
+.layout.open .tabs button{font-size:11px;padding:10px 3px 9px}
+.layout.open .field2 label{font-size:9px}
+.layout.open .field2 input,.layout.open .field2 textarea,.layout.open .field2 select{font-size:12px}
+.layout.open .co-head b{font-size:16px}
+.layout.open .co-title b{font-size:13px}
 @media(max-width:1100px){.layout.open{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
@@ -504,18 +522,25 @@ function infoSection(title, subtitle, icon, body) {
 function readField(label, val) {
   return `<div class="field2"><label>${label}</label><input value="${esc(val||"—")}" readonly></div>`;
 }
+function linkField(label, url, linkLabel = "Abrir ↗") {
+  const clean = (url || "").trim();
+  const open = clean
+    ? `<a href="${esc(clean)}" target="_blank" rel="noopener" class="open-link">${linkLabel}</a>`
+    : `<span class="sub">Sin enlace</span>`;
+  return `<div class="field2"><label>${label}</label><div class="link-field"><input value="${esc(clean)}" readonly>${open}</div></div>`;
+}
 function infoTab(m) {
   return `<div class="co-head"><b>Información de la reunión</b><span>Datos visibles para el cliente.</span></div>`
     + infoSection("Empresa","Información de la empresa","▣", readField("Nombre de empresa", m.company) + readField("País", m.country) + readField("Sitio web", m.website))
     + infoSection("Contacto","Información de la persona","○", readField("Nombre del contacto", m.contact) + readField("Cargo", m.role) + readField("Correo", m.email) + readField("Teléfono", m.phone))
-    + infoSection("Reunión","Información de la reunión","▣", readField("Fecha", m.date) + readField("Hora", m.time) + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`);
+    + infoSection("Reunión","Información de la reunión","▣", readField("Fecha", m.date) + readField("Hora", m.time) + linkField("Enlace reunión", m.meet, "Abrir ↗") + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`);
 }
 function cpTab(m) {
   const bant = Object.entries(m.bant).map(([k,v]) => `<div class="bant-item">${k}<br><small>${v?"Sí":"No"}</small></div>`).join("");
   return `<div class="grid">${readField("Evaluación CP", m.cp)}${readField("ICP", m.icp)}</div>
-    <span class="block-title">BANT (solo lectura)</span><div class="bant-grid">${bant}</div>
-    ${m.just ? `<div class="visible-client"><b>Justificación visible</b><p>${esc(m.just)}</p></div>` : ""}
-    <div class="read"><p>El cliente no edita Evaluación CP, BANT ni ICP.</p></div>`;
+    <span class="block-title">BANT</span><div class="bant-grid">${bant}</div>
+    ${m.just ? `<div class="just-box"><b>Justificación</b><p style="margin:0">${esc(m.just)}</p></div>` : ""}
+    <div class="read" style="margin-top:10px"><p>El cliente no edita Evaluación CP, BANT ni ICP.</p></div>`;
 }
 function clientTab(m) {
   if (!clientCanEdit(m)) {
@@ -534,19 +559,18 @@ function finalTab(m) {
   return `<div class="grid">${readField("Estado Final", finalDisplay(m))}<div class="field2 wide"><label>Mensaje al cliente</label><textarea readonly>${esc(m.finalClientText||"Sin mensaje publicado.")}</textarea></div></div><div class="read"><p>El cliente no define el cierre administrativo.</p></div>`;
 }
 function evidenceTab(m) {
-  if (!m.evidence.length) return `<div class="read"><p>Sin evidencia visible para esta reunión.</p></div>`;
+  if (!m.evidence.length) return `<div class="read"><p>Sin evidencia para esta reunión.</p></div>`;
   return `<div class="evidence">${m.evidence.map(e => `<div class="evi">${esc(e.type)}${e.url?`<br><a href="#">Abrir ↗</a>`:""}${e.text?`<small>${esc(e.text)}</small>`:""}</div>`).join("")}</div>`;
 }
 function historyTab(m) {
-  return `<div class="history">${(m.history||[]).map(h => `<div class="hist"><small>${esc(h.when)} · ${esc(h.user)}</small><b>${esc(h.field)}</b><div>${esc(h.text)}</div></div>`).join("")||"<span class='sub'>Sin cambios visibles.</span>"}</div>`;
+  return `<div class="history">${(m.history||[]).map(h => `<div class="hist"><small>${esc(h.when)} · ${esc(h.user)}</small><b>${esc(h.field)}</b><div>${esc(h.text)}</div></div>`).join("")||"<span class='sub'>Sin cambios registrados.</span>"}</div>`;
 }
 function renderPanel() {
   if (!panelOpen) return;
   const m = current();
   document.getElementById("detailBand").innerHTML = `
     <div class="band-main"><div class="band-title"><b>${esc(m.company)}</b><span>${esc(m.contact)} · ${esc(m.role)}</span></div></div>
-    <div class="band-item"><small>Fecha y hora</small><b>${esc(m.date)} ${esc(m.time)}</b></div>
-    <div class="band-item"><small>Etapa agenda</small><b>${esc(m.status)}</b></div>`;
+    <div class="band-item"><small>Fecha y hora</small><b>${esc(m.date)} ${esc(m.time)}</b></div>`;
   const states = [["Etapa Agenda",m.status,"","Información"],["Evaluación CP",m.cp,"","Evaluación CP"],["Evaluación Cliente",m.clientVal,"","Evaluación Cliente"],["Estado Final",finalDisplay(m),"final-state","Estado Final"]];
   document.getElementById("summary").innerHTML = states.map(i =>
     `<button class="sum ${i[2]}" onclick="tab='${i[3]}';renderPanel()"><small>${i[0]}</small><span class="chip ${tone(i[1])}">${esc(i[1])}</span></button>`
