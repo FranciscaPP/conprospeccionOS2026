@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mockup — Portal cliente · Validación de reuniones</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design System Conprospección (base interna) + acento cliente ── */
+    :root {
+      --gold: #ffd700;
+      --gold-hover: #ffcc00;
+      --carbon: #333333;
+      --ink: #1a1a1a;
+      --bg: #ececea;
+      --surface: #ffffff;
+      --muted-surface: #f4f4f2;
+      --muted: #6b6b6b;
+      --line: #edecea;
+      --line-strong: #c9c9c4;
+      --green: #15803d;
+      --green-bg: #eaf6ef;
+      --orange: #a66a00;
+      --orange-bg: #fff3d8;
+      --red: #c92b2b;
+      --red-bg: #fdecea;
+      --blue: #2563eb;
+      --blue-bg: #eaf1fe;
+      --purple: #6d28d9;
+      --purple-bg: #f1edff;
+      --gray: #8a8a86;
+      --gray-bg: #f4f4f2;
+
+      /* Parametrizable por cliente (ejemplo: GBS Logistics) */
+      --client-name: "GBS Logistics";
+      --client-accent: #7c3aed;
+      --client-accent-soft: #ede9fe;
+      --client-accent-border: #ddd6fe;
+      --client-header-from: #faf5ff;
+      --client-header-to: #ede9fe;
+      --client-badge-bg: #ede9fe;
+      --client-badge-color: #5b21b6;
+      --meta-validas: 12;
+      --meta-total: 45;
+    }
+
+    * { box-sizing: border-box; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+      font-size: 14px;
+    }
+    button, input, select, textarea { font: inherit; }
+
+    /* Banner de mockup */
+    .mockup-banner {
+      background: #1a1a1a;
+      color: #ffd700;
+      padding: 10px 18px;
+      font-size: 12px;
+      line-height: 1.45;
+      border-bottom: 2px solid #ffd700;
+    }
+    .mockup-banner b { color: #fff; }
+    .mockup-banner code {
+      background: #333;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .sidebar {
+      background: var(--carbon);
+      color: #ececea;
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sidebar .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 6px 16px;
+      border-bottom: 1px solid #4a4a48;
+      margin-bottom: 8px;
+    }
+    .sidebar .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--client-accent) 0%, #db2777 100%);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 13px;
+      color: #fff;
+    }
+    .sidebar .brand small { display: block; color: #9a9a98; font-size: 10px; margin-top: 2px; }
+    .nav-item {
+      border: 0;
+      background: transparent;
+      color: #c9c9c6;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .nav-item:hover { background: #444; color: #fff; }
+    .nav-item.active { background: var(--client-accent-soft); color: var(--client-accent); }
+    .nav-item.locked { opacity: .55; cursor: default; }
+    .nav-item .tag {
+      float: right;
+      font-size: 9px;
+      font-weight: 800;
+      background: #444;
+      color: #aaa;
+      padding: 2px 6px;
+      border-radius: 99px;
+      margin-top: 2px;
+    }
+
+    .app { min-width: 0; padding: 0 14px 28px; }
+    .client-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      background: linear-gradient(135deg, var(--client-header-from), var(--client-header-to));
+      border: 1px solid var(--client-accent-border);
+      border-radius: 12px;
+      padding: 14px 22px;
+      margin: 14px 0;
+    }
+    .client-header h1 {
+      font-family: Saira, "IBM Plex Sans", sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0;
+      color: var(--carbon);
+      line-height: 1.1;
+    }
+    .client-header p { margin: 4px 0 0; font-size: 12px; color: #64748b; }
+    .client-header .meta {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--client-accent);
+      white-space: nowrap;
+    }
+    .client-header .logos { display: flex; align-items: center; gap: 12px; }
+    .client-header .logos .pill {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--client-badge-bg);
+      color: var(--client-badge-color);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 11px;
+    }
+    .client-header .logos .cp {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--carbon);
+      color: var(--gold);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 10px;
+    }
+
+    .layout { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; }
+    .layout.open { grid-template-columns: minmax(0, 1fr) minmax(430px, 34vw); }
+    .main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .card {
+      background: var(--surface);
+      border: 1px solid #d8d8d5;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(26, 26, 26, .05);
+    }
+
+    .meta-bar {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fafaf8;
+    }
+    .meta-bar b { font-size: 13px; color: var(--client-accent); white-space: nowrap; }
+    .meta-bar .bar {
+      flex: 1;
+      height: 6px;
+      background: var(--client-accent-soft);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .meta-bar .fill {
+      height: 100%;
+      background: var(--client-accent);
+      border-radius: 99px;
+      width: calc(var(--meta-validas) / var(--meta-total) * 100%);
+    }
+
+    .kpis { display: grid; grid-template-columns: repeat(6, 1fr); overflow: hidden; }
+    .kpi {
+      min-height: 74px;
+      padding: 10px 12px;
+      border-right: 1px solid var(--line);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      cursor: pointer;
+    }
+    .kpi:last-child { border-right: 0; }
+    .kpi.active { box-shadow: inset 0 -3px 0 var(--gold); background: #fffdf0; }
+    .ico {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .ico.blue { background: var(--blue-bg); color: var(--blue); }
+    .ico.green { background: var(--green-bg); color: var(--green); }
+    .ico.orange { background: var(--orange-bg); color: var(--orange); }
+    .ico.purple { background: var(--purple-bg); color: var(--purple); }
+    .ico.red { background: var(--red-bg); color: var(--red); }
+    .kpi span { display: block; font-size: 11px; font-weight: 700; }
+    .kpi b {
+      display: block;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 24px;
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+    .kpi small { display: block; font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+
+    .filters {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 2fr .8fr .8fr 1.2fr .9fr;
+      gap: 10px;
+      background: #fafaf8;
+      border-radius: 10px 10px 0 0;
+    }
+    .field {
+      height: 38px;
+      border: 1px solid #d8d8d5;
+      border-radius: 9px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 11px;
+      min-width: 0;
+      position: relative;
+    }
+    .field label {
+      position: absolute;
+      top: -8px;
+      left: 9px;
+      background: #fff;
+      font-size: 10px;
+      color: #6b6b6b;
+      font-weight: 700;
+      padding: 0 4px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .field input, .field select {
+      border: 0;
+      outline: 0;
+      background: transparent;
+      width: 100%;
+      height: 100%;
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .quick-dates {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 14px 12px;
+      background: #fafaf8;
+      flex-wrap: wrap;
+      border-radius: 0 0 10px 10px;
+    }
+    .quick-dates .qd-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .quick-dates button {
+      border: 1px solid #d8d8d5;
+      background: #fff;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--carbon);
+      cursor: pointer;
+    }
+    .quick-dates button:hover { border-color: var(--gold); background: #fffdf0; }
+
+    .table-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      padding: 11px 14px 7px;
+    }
+    .table-head h2 {
+      font-family: Saira, "IBM Plex Sans", sans-serif;
+      font-size: 14px;
+      margin: 0;
+    }
+    .table-head p { font-size: 11px; color: var(--muted); margin: 3px 0 0; }
+    .table-wrap { overflow: auto; max-height: 520px; border-top: 1px solid var(--line); }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--muted-surface);
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      color: #9a9a98;
+      font-family: Saira, "IBM Plex Sans", sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    tbody td {
+      border-bottom: 1px solid var(--line);
+      padding: 6px 10px;
+      vertical-align: middle;
+      white-space: nowrap;
+      height: 38px;
+    }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: #fff9d6; }
+    tbody tr.selected { box-shadow: inset 3px 0 0 var(--gold); background: #fff7d0; }
+    .sub {
+      display: block;
+      color: var(--muted);
+      font-size: 10.5px;
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+    .company { font-weight: 600; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: 6px;
+      padding: 5px 9px;
+      min-width: 96px;
+      font-size: .72rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .chip:before { content: ""; width: 6px; height: 6px; border-radius: 99px; background: currentColor; }
+    .green { background: var(--green-bg); color: var(--green); }
+    .orange { background: var(--orange-bg); color: var(--orange); }
+    .red { background: var(--red-bg); color: var(--red); }
+    .purple { background: var(--purple-bg); color: var(--purple); }
+    .blue { background: var(--blue-bg); color: var(--blue); }
+    .gray { background: var(--gray-bg); color: var(--gray); }
+    .act-eye {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 7px;
+      width: 30px;
+      height: 28px;
+      cursor: pointer;
+      color: var(--carbon);
+      display: grid;
+      place-items: center;
+    }
+    .act-eye:hover { border-color: var(--gold); background: #fffdf0; }
+
+    /* Drawer */
+    .drawer { padding: 0; position: sticky; top: 10px; display: flex; flex-direction: column; overflow: visible; }
+    .drawer.hidden { display: none; }
+    .drawer-fixed {
+      flex: 0 0 auto;
+      padding: 10px 14px 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    .close {
+      position: absolute;
+      right: 8px;
+      top: 3px;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 6;
+    }
+    .detail-band {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: center;
+      border: 1px solid #ffe6a3;
+      background: #fff7d0;
+      border-radius: 8px;
+      padding: 10px 28px 10px 12px;
+      margin-bottom: 12px;
+    }
+    .band-main { min-width: 190px; flex: 1.25 1 190px; border-right: 1px solid #f0d28d; padding-right: 16px; }
+    .band-title b {
+      display: block;
+      font-family: Saira, "IBM Plex Sans", sans-serif;
+      font-size: 15px;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+    .band-title span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .band-item small { display: block; color: var(--muted); font-size: 10px; }
+    .band-item b { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; }
+    .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 18px; }
+    .sum {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      min-width: 0;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      color: var(--ink);
+    }
+    .sum:hover { border-color: var(--gold); background: #fffdf0; }
+    .sum small {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      background: #f6f6f4;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0;
+      margin: 0 0 18px;
+      overflow: hidden;
+    }
+    .tabs button {
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      border-radius: 0;
+      padding: 12px 4px 11px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .tabs button.active {
+      color: var(--ink);
+      background: #fff;
+      border-bottom-color: var(--gold);
+    }
+    .panel { overflow: visible; padding: 0 20px 20px; flex: 0 0 auto; }
+    .section-title {
+      font-family: Saira, "IBM Plex Sans", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: var(--client-accent);
+      border-bottom: 1px solid var(--client-accent-border);
+      padding-bottom: 6px;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-bottom: 14px; }
+    .line { display: grid; grid-template-columns: 96px 1fr; gap: 8px; padding: 3px 0; font-size: 12px; }
+    .line span:first-child { color: #64748b; }
+    .line b, .line a { font-weight: 600; color: #0f172a; }
+    .line a { color: var(--client-accent); text-decoration: none; }
+    .line a:hover { text-decoration: underline; }
+    .read-box {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 10px 12px;
+      background: #fff;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .icp-card {
+      border: 1px solid #86efac;
+      background: #f0fdf4;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .icp-card .head { display: flex; gap: 14px; align-items: start; }
+    .icp-card .verdict { font-size: 15px; font-weight: 850; color: #166534; }
+    .icp-card .ref { font-size: 11px; color: #475569; line-height: 1.45; margin-top: 4px; }
+    .bant-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+    .bant-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 8px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .bant-item.yes { background: #ecfdf5; border-color: #86efac; color: #166534; }
+    .bant-item.no { background: #f8fafc; border-color: #e2e8f0; color: #64748b; }
+    .criteria {
+      background: var(--client-accent-soft);
+      border: 1px solid var(--client-accent-border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 11px;
+      color: var(--client-badge-color);
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+    .evidence { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+    .evi {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .evi a { color: var(--client-accent); font-size: 11px; font-weight: 600; }
+    .evi small { display: block; color: var(--muted); font-weight: 500; margin-top: 4px; font-size: 10.5px; }
+    .actions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .btn {
+      border-radius: 9px;
+      padding: 11px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--client-accent); color: #fff; border-color: var(--client-accent); }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .btn-ghost { background: #fff; border-color: var(--line-strong); color: var(--carbon); }
+    .btn-ghost:hover { border-color: var(--gold); background: #fffdf0; }
+    .info-box {
+      background: var(--blue-bg);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #1e40af;
+      margin-bottom: 12px;
+    }
+    .review-form {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 12px;
+      background: #fafaf8;
+      margin-top: 10px;
+    }
+    .review-form label { display: block; font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
+    .review-form select, .review-form textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 7px 9px;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .history { border-left: 2px solid var(--line); padding-left: 10px; margin-left: 5px; }
+    .hist { position: relative; margin-bottom: 10px; }
+    .hist:before {
+      content: "";
+      position: absolute;
+      left: -15px;
+      top: 3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 99px;
+      background: var(--gold);
+    }
+    .hist small { color: var(--muted); font-size: 10.5px; }
+    .hist b { display: block; font-size: 12px; margin: 2px 0; }
+    .hidden-note {
+      margin-top: 18px;
+      padding: 12px 14px;
+      background: #fff8dc;
+      border: 1px dashed #e8c164;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #7a6400;
+      line-height: 1.5;
+    }
+    .hidden-note ul { margin: 6px 0 0; padding-left: 18px; }
+
+    @media (max-width: 1100px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .layout.open { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(3, 1fr); }
+      .filters { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mockup-banner">
+    <b>MOCKUP — Portal cliente</b> · Proyección de <code>Seguimiento_Reuniones</code> filtrada por cliente.
+    Misma UX/UI del panel maestro (Design System Conprospección) + identidad del cliente.
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">GBS</div>
+        <div>
+          <div style="font-weight:800;font-size:14px">GBS Logistics</div>
+          <small>Portal cliente</small>
+        </div>
+      </div>
+      <button class="nav-item">Onboarding comercial</button>
+      <button class="nav-item active">Validación de reuniones</button>
+      <button class="nav-item">Indicadores</button>
+      <button class="nav-item locked">Intelligence Insight <span class="tag">Plan</span></button>
+      <button class="nav-item">Playbook SDR</button>
+    </aside>
+
+    <div class="app">
+      <header class="client-header">
+        <div>
+          <h1>Validación de reuniones</h1>
+          <p>Revisa las reuniones generadas por Conprospección y confirma o solicita revisión de su evaluación.</p>
+        </div>
+        <div class="logos">
+          <span class="meta">Meta · 45 reuniones válidas</span>
+          <span class="pill">GBS</span>
+          <span class="cp">CP</span>
+        </div>
+      </header>
+
+      <div class="layout open" id="layout">
+        <main class="main">
+          <section class="card meta-bar">
+            <b>Avance de meta · 12/45 (27%)</b>
+            <div class="bar"><div class="fill"></div></div>
+          </section>
+
+          <section class="card kpis" id="kpis">
+            <div class="kpi"><div class="ico blue">T</div><div><span>Total reuniones</span><b>38</b><small>Todas las reuniones</small></div></div>
+            <div class="kpi active"><div class="ico green">V</div><div><span>Válidas</span><b>12</b><small>31.6% del total</small></div></div>
+            <div class="kpi"><div class="ico red">X</div><div><span>No válidas</span><b>3</b><small>7.9% del total</small></div></div>
+            <div class="kpi"><div class="ico purple">PC</div><div><span>Pendiente cliente</span><b>8</b><small>21.1% del total</small></div></div>
+            <div class="kpi"><div class="ico orange">R</div><div><span>En revisión</span><b>2</b><small>5.3% del total</small></div></div>
+            <div class="kpi"><div class="ico orange">A</div><div><span>Reagenda</span><b>4</b><small>10.5% del total</small></div></div>
+          </section>
+
+          <section class="card">
+            <div class="filters">
+              <div class="field"><span>🔍</span><input placeholder="Buscar empresa, contacto, cargo..." /></div>
+              <div class="field"><label>Mes</label><select><option>Junio</option></select></div>
+              <div class="field"><label>Año</label><select><option>2026</option></select></div>
+              <div class="field"><label>Rango de fechas</label><input type="date" value="2026-06-01" style="width:48%" /><input type="date" value="2026-06-30" style="width:48%" /></div>
+              <div class="field"><label>Etapa de agenda</label><select><option>Todo</option></select></div>
+            </div>
+            <div class="quick-dates">
+              <span class="qd-label">Rápido:</span>
+              <button>Hoy</button>
+              <button>Esta semana</button>
+              <button>Este mes</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="table-head">
+              <div>
+                <h2>Reuniones del cliente</h2>
+                <p>Solo reuniones con <code>cliente_slug = 'gbs'</code>. Sin columna Cliente ni SDR.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha y hora</th>
+                    <th>Empresa</th>
+                    <th>Contacto</th>
+                    <th>Etapa agenda</th>
+                    <th>Estatus validación</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+
+        <aside class="card drawer" id="drawer">
+          <div class="drawer-fixed">
+            <button class="close" onclick="closeDrawer()" aria-label="Cerrar">&times;</button>
+            <div class="detail-band" id="detailBand"></div>
+            <div class="summary" id="summary"></div>
+            <div class="tabs" id="tabs"></div>
+          </div>
+          <div class="panel" id="panel"></div>
+        </aside>
+      </div>
+
+      <div class="hidden-note">
+        <b>Elementos del panel interno que NO aparecen en el portal cliente:</b>
+        <ul>
+          <li>Columna Cliente, SDR, Evaluación CP editable, Estado Final editable, Estado del caso</li>
+          <li>Filtros SDR / Estado del caso / Evaluación CP / Estado Final</li>
+          <li>Avance multi-cliente, notificaciones internas, botón «Nueva reunión»</li>
+          <li>Enlaces GHL, notas internas, toggles de visibilidad, edición de historial</li>
+          <li>Bloques vacíos de evidencia («sin grabación» no se muestra)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const meetings = [
+      {
+        id: 1,
+        date: "28/06/2026",
+        time: "11:00 AM",
+        company: "TechNova S.A.",
+        contact: "Juan Pérez",
+        role: "Encargado de Importaciones",
+        agenda: "Reunión realizada",
+        status: "Pendiente confirmación cliente",
+        statusTone: "purple",
+        validation: "pendiente_confirmacion_cliente",
+        cp: "Válida",
+        final: "Pendiente de cierre",
+        info: "Prospecto con necesidad activa de optimizar cadena de suministro y reducir tiempos de importación.",
+        icp: "Cumple",
+        icpRef: "Chile, Colombia, Perú · Minería, Retail, Automotriz · 51-200 empleados · Encargado COMEX, Supply Chain",
+        bant: { N: true, A: true, B: false, T: false },
+        just: "La reunión cumplió con necesidad y autoridad. Presupuesto por confirmar con finanzas.",
+        website: "technova.cl",
+        recording: "https://example.com/rec/1",
+        transcript: "https://example.com/tr/1",
+        history: [
+          { when: "28/06/2026 14:20", who: "Conprospección", field: "Evaluación CP", text: "Marcada como válida" },
+          { when: "28/06/2026 11:00", who: "Sistema", field: "Reunión realizada", text: "Reunión completada según agenda" },
+        ],
+        actions: ["confirmar", "revision"],
+      },
+      {
+        id: 2,
+        date: "26/06/2026",
+        time: "09:30 AM",
+        company: "Industrias del Norte",
+        contact: "Carla Méndez",
+        role: "Gerente de Operaciones",
+        agenda: "Reunión futura",
+        status: "Reunión futura",
+        statusTone: "blue",
+        validation: "reunion_futura",
+        cp: "Pendiente",
+        final: "Pendiente de cierre",
+        info: "Preparar preguntas de presupuesto y alcance logístico.",
+        icp: "No evaluado",
+        icpRef: "",
+        bant: { N: false, A: false, B: false, T: false },
+        just: "",
+        website: "",
+        recording: "",
+        transcript: "",
+        history: [{ when: "20/06/2026 16:00", who: "Sistema", field: "Fecha agenda", text: "Reunión agendada" }],
+        actions: [],
+      },
+      {
+        id: 3,
+        date: "24/06/2026",
+        time: "04:00 PM",
+        company: "Grupo Andino",
+        contact: "Diego Torres",
+        role: "Jefe COMEX",
+        agenda: "Reunión realizada",
+        status: "Evaluación cerrada válida",
+        statusTone: "green",
+        validation: "evaluacion_cerrada_valida",
+        cp: "Válida",
+        final: "Reunión válida",
+        info: "Buen fit con ICP. Interés en servicios de última milla.",
+        icp: "Cumple",
+        icpRef: "Perú · Logística · 101-200 empleados",
+        bant: { N: true, A: true, B: true, T: false },
+        just: "Cumple ICP y BANT suficiente para avanzar a propuesta.",
+        website: "grupoandino.pe",
+        recording: "https://example.com/rec/3",
+        transcript: "",
+        history: [
+          { when: "25/06/2026 10:15", who: "Cliente GBS", field: "Evaluación cliente", text: "Confirmada" },
+          { when: "24/06/2026 17:00", who: "Conprospección", field: "Evaluación CP", text: "Marcada como válida" },
+        ],
+        actions: [],
+        locked: true,
+      },
+      {
+        id: 4,
+        date: "22/06/2026",
+        time: "02:30 PM",
+        company: "Logística Sur",
+        contact: "María Lagos",
+        role: "Supply Chain Manager",
+        agenda: "Reagendar",
+        status: "Reagendar",
+        statusTone: "orange",
+        validation: "reagendar",
+        cp: "Pendiente",
+        final: "Pendiente de cierre",
+        info: "",
+        icp: "Cumple",
+        icpRef: "Chile · Retail",
+        bant: { N: true, A: true, B: false, T: false },
+        just: "",
+        website: "",
+        recording: "",
+        transcript: "",
+        history: [{ when: "22/06/2026 14:35", who: "Sistema", field: "Reagendar", text: "Prospecto solicitó nueva fecha" }],
+        actions: [],
+      },
+    ];
+
+    let selected = 1;
+    let tab = "Información";
+    let reviewOpen = false;
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
+    }
+
+    function renderRows() {
+      document.getElementById("rows").innerHTML = meetings.map((m) => `
+        <tr class="${m.id === selected ? "selected" : ""}" onclick="openDrawer(${m.id})">
+          <td><b>${esc(m.date)}</b><span class="sub">${esc(m.time)}</span></td>
+          <td class="company">${esc(m.company)}</td>
+          <td>${esc(m.contact)}<span class="sub">${esc(m.role)}</span></td>
+          <td><span class="chip ${m.statusTone === "blue" ? "blue" : m.statusTone === "orange" ? "orange" : m.statusTone === "green" ? "green" : "gray"}">${esc(m.agenda)}</span></td>
+          <td><span class="chip ${m.statusTone}">${esc(m.status)}</span></td>
+          <td onclick="event.stopPropagation()"><button class="act-eye" title="Ver detalle" onclick="openDrawer(${m.id})">👁</button></td>
+        </tr>
+      `).join("");
+    }
+
+    function openDrawer(id) {
+      selected = id;
+      tab = "Información";
+      reviewOpen = false;
+      render();
+    }
+
+    function closeDrawer() {
+      document.getElementById("layout").classList.remove("open");
+      document.getElementById("drawer").classList.add("hidden");
+      renderRows();
+    }
+
+    function setTab(name) {
+      tab = name;
+      renderPanel();
+      document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+    }
+
+    function current() {
+      return meetings.find((m) => m.id === selected) || meetings[0];
+    }
+
+    function renderBand(m) {
+      document.getElementById("detailBand").innerHTML = `
+        <div class="band-main">
+          <div class="band-title">
+            <b>${esc(m.company)}</b>
+            <span>${esc(m.contact)} · ${esc(m.role)}</span>
+          </div>
+        </div>
+        <div class="band-item"><small>Fecha y hora</small><b>${esc(m.date)} ${esc(m.time)}</b></div>
+        <div class="band-item"><small>Etapa agenda</small><b>${esc(m.agenda)}</b></div>
+      `;
+    }
+
+    function renderSummary(m) {
+      document.getElementById("summary").innerHTML = `
+        <button class="sum" onclick="setTab('Información')"><small>Etapa agenda</small><span class="chip ${m.statusTone === "blue" ? "blue" : m.statusTone === "orange" ? "orange" : m.statusTone === "green" ? "green" : "purple"}">${esc(m.agenda)}</span></button>
+        <button class="sum" onclick="setTab('Evaluación')"><small>Evaluación Conprospección</small><span class="chip green">${esc(m.cp)}</span></button>
+        <button class="sum" onclick="setTab('Acciones')"><small>Tu evaluación</small><span class="chip ${m.locked ? "green" : "purple"}">${m.locked ? "Confirmada" : "Pendiente"}</span></button>
+      `;
+    }
+
+    function renderTabs() {
+      const names = ["Información", "Evaluación", "Evidencia", "Acciones", "Historial"];
+      document.getElementById("tabs").innerHTML = names.map((n) =>
+        `<button data-tab="${n}" class="${tab === n ? "active" : ""}" onclick="setTab('${n}')">${n}</button>`
+      ).join("");
+    }
+
+    function infoTab(m) {
+      return `
+        <div class="section-title">1. Contacto y empresa</div>
+        <div class="grid">
+          <div class="line"><span>Empresa</span><b>${esc(m.company)}</b></div>
+          <div class="line"><span>País</span><b>Chile</b></div>
+          <div class="line"><span>Contacto</span><b>${esc(m.contact)}</b></div>
+          <div class="line"><span>Cargo</span><b>${esc(m.role)}</b></div>
+          <div class="line"><span>Email</span><b>contacto@empresa.cl</b></div>
+          <div class="line"><span>Website</span>${m.website ? `<a href="#">Abrir sitio ↗</a>` : `<b>—</b>`}</div>
+        </div>
+        <div class="section-title">2. Información para reunión</div>
+        <div class="read-box">${m.info ? esc(m.info) : "<i>Sin información de preparación registrada.</i>"}</div>
+        <div class="section-title">3. Estado final <span style="font-weight:500;color:#64748b">(solo lectura)</span></div>
+        <div class="read-box"><b>${esc(m.final)}</b><br><small style="color:#64748b">El cliente no define el cierre administrativo. Solo ve el resultado cuando Conprospección lo publica.</small></div>
+      `;
+    }
+
+    function evalTab(m) {
+      const bant = ["N", "A", "B", "T"].map((k) => {
+        const labels = { N: "Need", A: "Authority", B: "Budget", T: "Timing" };
+        const yes = m.bant[k];
+        return `<div class="bant-item ${yes ? "yes" : "no"}">${k} · ${labels[k]}<br><small>${yes ? "Detectada" : "No informada"}</small></div>`;
+      }).join("");
+      return `
+        <div class="section-title">Evaluación Conprospección</div>
+        <div class="icp-card">
+          <div class="head">
+            <div><div style="font-size:12px;font-weight:850;color:var(--client-accent)">ICP</div><div class="verdict">${esc(m.icp)}</div></div>
+            <div class="ref">${m.icpRef ? esc(m.icpRef) : "Referencia del onboarding confirmado con el cliente."}</div>
+          </div>
+        </div>
+        <a href="#" style="font-size:12px;font-weight:700;color:var(--client-accent)">Ver ICP acordado en Onboarding →</a>
+        <div style="height:10px"></div>
+        <div class="bant-grid">${bant}</div>
+        <div class="criteria"><b>Criterio de referencia:</b> ICP validado y al menos 2 variables BANT. Conprospección conserva la resolución final según los antecedentes de cada reunión.</div>
+        ${m.just ? `<div class="read-box"><b>Justificación visible</b><br>${esc(m.just)}</div>` : ""}
+        <div class="info-box">El cliente <b>no edita</b> Evaluación CP, BANT ni ICP desde este portal.</div>
+      `;
+    }
+
+    function evidenceTab(m) {
+      const cards = [];
+      if (m.recording) cards.push(`<div class="evi">Grabación<a href="#">Abrir grabación ↗</a><small>Resumen IA disponible para reconfirmar la reunión</small></div>`);
+      if (m.transcript) cards.push(`<div class="evi">Transcripción<a href="#">Abrir transcripción ↗</a></div>`);
+      if (m.cp === "Válida" && m.validation === "pendiente_confirmacion_cliente") {
+        cards.push(`<div class="evi">Confirmación Conprospección<small>Evaluación CP marcada como válida. Pendiente tu confirmación.</small></div>`);
+      }
+      if (!cards.length) return `<div class="info-box">Sin evidencia visible para esta reunión. No se muestran bloques vacíos.</div>`;
+      return `<div class="evidence">${cards.join("")}</div>`;
+    }
+
+    function actionsTab(m) {
+      if (m.agenda === "Reunión futura") {
+        return `<div class="info-box">Reunión futura. Aún no admite confirmación ni solicitud de revisión.</div>`;
+      }
+      if (m.locked) {
+        return `<div class="info-box">Tu respuesta ya fue registrada. La reunión queda bloqueada para nuevas acciones.</div>`;
+      }
+      if (!m.actions.length) {
+        return `<div class="info-box">Esta reunión no tiene acciones disponibles para el cliente en este momento.</div>`;
+      }
+      let html = `
+        <div class="section-title">Acción cliente</div>
+        <div class="info-box">Puedes <b>confirmar</b> la evaluación de Conprospección o <b>solicitar revisión</b> con motivo y comentario.</div>
+        <div class="actions-row">
+          <button class="btn btn-primary" onclick="alert('Mockup: confirmar reunión → guarda val_estado_cli = valida')">Confirmar reunión</button>
+          <button class="btn btn-ghost" onclick="reviewOpen=true;renderPanel()">Solicitar revisión</button>
+        </div>
+      `;
+      if (reviewOpen) {
+        html += `
+          <div class="review-form">
+            <label>Motivo de revisión</label>
+            <select>
+              <option>No corresponde al ICP</option>
+              <option>Cargo incorrecto</option>
+              <option>Empresa incorrecta</option>
+              <option>Información incompleta</option>
+              <option>Otro</option>
+            </select>
+            <label>Comentario</label>
+            <textarea rows="3" placeholder="Describe qué debe revisar Conprospección"></textarea>
+            <button class="btn btn-primary" onclick="alert('Mockup: solicitar revisión → val_estado_cli = requiere_revision')">Enviar solicitud</button>
+          </div>
+        `;
+      }
+      return html;
+    }
+
+    function historyTab(m) {
+      return `
+        <div class="section-title">Historial visible</div>
+        <div class="history">
+          ${m.history.map((h) => `
+            <div class="hist">
+              <small>${esc(h.when)} · ${esc(h.who)}</small>
+              <b>${esc(h.field)}</b>
+              <div>${esc(h.text)}</div>
+            </div>
+          `).join("")}
+        </div>
+        <div class="info-box">Solo eventos marcados como visibles para el cliente. Sin edición ni notas internas.</div>
+      `;
+    }
+
+    function renderPanel() {
+      const m = current();
+      renderBand(m);
+      renderSummary(m);
+      renderTabs();
+      let html = "";
+      if (tab === "Información") html = infoTab(m);
+      if (tab === "Evaluación") html = evalTab(m);
+      if (tab === "Evidencia") html = evidenceTab(m);
+      if (tab === "Acciones") html = actionsTab(m);
+      if (tab === "Historial") html = historyTab(m);
+      document.getElementById("panel").innerHTML = html;
+    }
+
+    function render() {
+      renderRows();
+      document.getElementById("layout").classList.add("open");
+      document.getElementById("drawer").classList.remove("hidden");
+      renderPanel();
+    }
+
+    render();
+  </script>
+</body>
+</html>
