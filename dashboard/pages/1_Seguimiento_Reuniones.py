@@ -741,7 +741,7 @@ tbody td{border-bottom:1px solid var(--line);padding:6px 10px;vertical-align:mid
 @media(max-width:1200px){.layout.open{grid-template-columns:minmax(0,1fr) 420px}.detail-band{grid-template-columns:minmax(150px,1fr) 1fr 1fr;padding-right:24px}.band-main{grid-row:span 2}.summary{grid-template-columns:repeat(4,minmax(0,1fr))}.grid{grid-template-columns:1fr}.tabs button{font-size:10px;padding:4px 2px}}
 @media(max-width:760px){.app{min-width:0}.layout.open{grid-template-columns:1fr}.drawer{position:relative;height:auto;max-height:none}.detail-band{grid-template-columns:1fr}.band-main{grid-column:auto}.summary{display:flex;overflow-x:auto}.sum{min-width:160px}.tabs{display:flex;overflow-x:auto}.tabs button{min-width:130px}.panel{max-height:none}}
 /* === Mejoras panel: headers minuscula, seleccion, rango fechas, filtros rapidos, SDR editable, enlaces === */
-thead th,.quick,.quick.active,.sort{text-transform:lowercase}
+thead th,.quick,.quick.active,.sort{text-transform:none}
 .kpis{grid-template-columns:repeat(9,1fr)}
 tbody tr.selected{background:#FFF7D0;box-shadow:inset 4px 0 0 var(--gold),inset 0 0 0 1px #F0D28D}
 tbody tr.selected:hover{background:#FFF1B8}
