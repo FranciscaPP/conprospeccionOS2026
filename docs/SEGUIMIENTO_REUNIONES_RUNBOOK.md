@@ -175,7 +175,7 @@ El encabezado del panel lateral usa una franja superior de resumen:
 - fondo amarillo suave;
 - icono de empresa a la izquierda;
 - titulo con nombre de empresa;
-- subtitulo con contacto y cliente;
+- subtitulo solo con contacto; el cliente se muestra una unica vez en el dato operativo `Cliente`;
 - datos operativos en una linea: Cliente, Fecha y hora, SDR asignada y Estado del Caso;
 - SDR asignada y Estado del Caso son editables desde la franja.
 
