@@ -21,13 +21,20 @@ button,input,select,textarea{font:inherit}
 .mockup-banner{background:#1a1a1a;color:#ffd700;padding:9px 16px;font-size:12px;border-bottom:2px solid #ffd700}
 .mockup-banner b{color:#fff}
 .app{min-width:0;padding:0 12px 24px;background:#ECECEA}
-.top{height:64px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--carbon);color:#FFF;border-radius:0 0 10px 10px;padding:0 18px;box-shadow:0 10px 24px rgba(26,26,26,.14)}
+.top{height:64px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;margin-bottom:14px;background:var(--carbon);color:#FFF;border-radius:0 0 10px 10px;padding:0 18px;box-shadow:0 10px 24px rgba(26,26,26,.14);border-top:3px solid var(--gold)}
 .brand{display:flex;align-items:center;gap:14px}
 .mark{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--carbon) 0 52%,var(--gold) 52% 100%);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px var(--line-strong)}
 .title h1{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:18px;margin:0;font-weight:700;color:#FFF}
 .title p{font-size:12px;margin:2px 0 0;color:#C9C9C6}
-.user{font-size:12px;text-align:right;color:#ECECEA}
+.user{font-size:12px;text-align:right;color:#ECECEA;white-space:nowrap}
 .user b{display:block;color:#FFF}
+.top-meta{min-width:0;max-width:520px;justify-self:center;width:100%;padding:0 10px}
+.top-meta-label{font-size:10px;color:#C9C9C6;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:5px;line-height:1.2}
+.top-meta-row{display:flex;align-items:center;gap:12px}
+.top-meta-ratio{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap}
+.top-meta-bar{flex:1;height:6px;background:#4a4a48;border-radius:99px;overflow:hidden;min-width:100px}
+.top-meta-bar .fill{height:100%;background:var(--gold);border-radius:99px}
+.top-meta .goal-pill{font-size:10px;font-weight:800;background:rgba(255,215,0,.14);color:var(--gold);border-radius:6px;padding:3px 8px;white-space:nowrap}
 .layout{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
 .layout.open{grid-template-columns:minmax(0,1fr) minmax(430px,34vw)}
 .layout.open .main{min-width:0;overflow:hidden}
@@ -58,15 +65,8 @@ button,input,select,textarea{font:inherit}
 .filter-chip button{border:0;background:transparent;cursor:pointer;color:var(--muted)}
 .progress{padding:16px 18px;background:#FAFAF8}
 .section-head b{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:15px}
-.client{padding:14px;border-left:4px solid var(--gold);box-shadow:none}
-.client-top{display:flex;justify-content:space-between;align-items:center;font-weight:700}
-.client-count{font-family:"IBM Plex Mono",monospace;font-size:20px}
-.bar{height:6px;background:#ECECEA;border-radius:99px;margin:10px 0 9px;overflow:hidden}
-.fill{height:100%;background:var(--gold);border-radius:99px}
-.client-foot{display:flex;justify-content:space-between;align-items:center}
-.client-ratio{font-family:"IBM Plex Mono",monospace;font-size:13px}
-.goal-pill{border-radius:6px;padding:4px 8px;font-size:11px;font-weight:800}
-.goal-ok{background:#EAF6EF;color:#15803D}
+.save-bar{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.draft-hint{font-size:11px;color:var(--orange);font-weight:700;margin-top:6px}
 .kpis{display:grid;grid-template-columns:repeat(9,1fr);overflow:hidden}
 .kpi{min-height:74px;padding:10px 12px;border-right:1px solid var(--line);display:flex;gap:10px;align-items:center;cursor:pointer}
 .kpi:last-child{border-right:0}
@@ -157,9 +157,8 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .ghost{border:1px dashed var(--line-strong);background:#fff;color:var(--carbon)}
 .read{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fff;font-size:13px;line-height:1.45}
 .read p{margin:5px 0}
-.bant-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.bant-item{border:1px solid var(--line);border-radius:7px;padding:7px 8px;font-size:12px;font-weight:700;text-align:center;line-height:1.3}
-.bant-item small{display:block;font-size:10px;color:var(--muted);font-weight:600;margin-top:2px}
+.bant-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px}
+.bant-item{border:1px solid #86efac;border-radius:7px;padding:7px 8px;font-size:12px;font-weight:700;text-align:center;line-height:1.3;background:var(--green-bg);color:var(--green)}
 .evidence{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .evi{border:1px solid var(--line);border-radius:8px;padding:7px;background:#fff;font-size:12px;font-weight:600}
 .evi a{color:var(--carbon);text-decoration:underline;text-decoration-color:var(--gold)}
@@ -198,7 +197,8 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
       <div class="mark"></div>
       <div class="title"><h1>Validación de reuniones</h1><p>GBS Logistics · Portal cliente</p></div>
     </div>
-    <div class="user"><b>Usuario GBS</b>Meta · 45 reuniones válidas</div>
+    <div class="top-meta" id="topMeta"></div>
+    <div class="user"><b>Usuario GBS</b></div>
   </header>
   <div class="layout" id="layout">
     <main class="main">
@@ -225,10 +225,6 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
           <div class="field"><label>Estado Final</label><select id="fFinal" onchange="setFilter('final',this.value)"></select></div>
         </div>
         <div class="active-filters" id="activeFilters"></div>
-      </section>
-      <section class="card progress">
-        <div class="section-head"><b>Avance de meta <span style="font-size:12px;font-weight:500;color:var(--muted)">reuniones con estado final válida / meta contractual</span></b></div>
-        <div class="card client" id="clientProgress"></div>
       </section>
       <section class="card kpis" id="kpis"></section>
       <section class="card">
@@ -268,6 +264,7 @@ let meetings = [
 ];
 
 let selected = 1, tab = "Información", panelOpen = true, more = false;
+let clientDrafts = {};
 let filters = defaultFilters();
 let sortState = { key: "dateTime", dir: "desc" };
 
@@ -329,44 +326,68 @@ function tone(v) {
 function clientCanEdit(m) {
   if (["Reunión futura","Reunión cancelada","Reagendar reunión"].includes(m.status)) return false;
   if (m.cp === "No válida" || m.cp === "No necesaria") return false;
-  if (["Válida","Solicita revisión","No válida","No necesaria"].includes(m.clientVal)) return false;
+  if (m.clientVal === "No necesaria") return false;
   return true;
 }
-function clientValOptions(m) {
-  return clientCanEdit(m) ? clientValsEditable : [m.clientVal || "Pendiente"];
+function ensureDraft(m) {
+  if (!clientDrafts[m.id]) {
+    clientDrafts[m.id] = {
+      clientVal: m.clientVal || "Pendiente",
+      clientReason: m.clientReason || "",
+      clientComment: m.clientComment || "",
+    };
+  }
+  return clientDrafts[m.id];
 }
+function getDraftClientVal(m) { return ensureDraft(m).clientVal; }
+function hasUnsavedClientDraft(m) {
+  const d = clientDrafts[m.id];
+  if (!d) return false;
+  return d.clientVal !== (m.clientVal || "Pendiente")
+    || d.clientReason !== (m.clientReason || "")
+    || d.clientComment !== (m.clientComment || "");
+}
+function setClientDraft(id, field, value) {
+  const m = meetings.find(x => x.id === id);
+  if (!m || !clientCanEdit(m)) return;
+  ensureDraft(m)[field] = value;
+  selected = id;
+  panelOpen = true;
+  tab = "Evaluación Cliente";
+  render();
+}
+function saveClientEvaluation(id) {
+  const m = meetings.find(x => x.id === id);
+  if (!m || !clientCanEdit(m)) return;
+  const d = ensureDraft(m);
+  if (d.clientVal === "Solicita revisión" && !d.clientReason) {
+    notify("Selecciona un motivo antes de guardar");
+    return;
+  }
+  const old = m.clientVal;
+  m.clientVal = d.clientVal;
+  m.clientReason = d.clientReason || "";
+  m.clientComment = d.clientComment || "";
+  m.clientDate = new Date().toLocaleString("es-CL");
+  if (d.clientVal === "Válida") {
+    if (!m.clientComment) m.clientComment = "Reunión confirmada por el cliente.";
+    m.history.unshift({ when: m.clientDate, user: "Cliente GBS", field: "Evaluación Cliente", text: "Confirmada" });
+  } else if (d.clientVal === "Solicita revisión") {
+    m.history.unshift({ when: m.clientDate, user: "Cliente GBS", field: "Evaluación Cliente", text: `Solicita revisión — ${m.clientReason}` });
+  } else if (d.clientVal !== old) {
+    m.history.unshift({ when: m.clientDate, user: "Cliente GBS", field: "Evaluación Cliente", text: d.clientVal });
+  }
+  clientDrafts[id] = { clientVal: m.clientVal, clientReason: m.clientReason, clientComment: m.clientComment };
+  notify("Evaluación Cliente guardada");
+  render();
+}
+function clientValOptions() { return clientValsEditable; }
 function notify(msg) {
   let n = document.getElementById("saveNote");
   if (!n) { n = document.createElement("div"); n.id = "saveNote"; n.className = "save-note"; document.body.appendChild(n); }
   n.textContent = msg;
   clearTimeout(window.__t);
   window.__t = setTimeout(() => n.remove(), 1800);
-}
-function setField(id, field, value) {
-  const m = meetings.find(x => x.id === id);
-  if (!m) return;
-  const old = m[field];
-  if (field === "clientVal" && value === "Solicita revisión") {
-    const reason = prompt("Motivo de revisión:", m.clientReason || clientRevisionReasons[0]);
-    if (reason === null) { render(); return; }
-    const comment = prompt("Comentario para Conprospección:", m.clientComment || "");
-    if (comment === null) { render(); return; }
-    m.clientReason = reason;
-    m.clientComment = comment || "";
-    m.clientDate = new Date().toLocaleString("es-CL");
-    m.history.unshift({ when: m.clientDate, user: "Cliente GBS", field: "Evaluación Cliente", text: `Solicita revisión — ${reason}` });
-  }
-  if (field === "clientVal" && value === "Válida") {
-    m.clientComment = m.clientComment || "Reunión confirmada por el cliente.";
-    m.clientDate = new Date().toLocaleString("es-CL");
-    m.history.unshift({ when: m.clientDate, user: "Cliente GBS", field: "Evaluación Cliente", text: "Confirmada" });
-  }
-  m[field] = value;
-  selected = id;
-  panelOpen = true;
-  tab = field === "clientVal" ? "Evaluación Cliente" : tab;
-  notify(`Evaluación Cliente: ${value}`);
-  render();
 }
 function setFilter(k, v) {
   filters[k] = v;
@@ -471,13 +492,17 @@ function renderKpis(rows) {
     `<div class="kpi ${kpiActive(i[0])?"active":""}" onclick="__kpiActions[${idx}]();render()"><div class="ico ${i[3]}">${i[4]}</div><div><span>${i[0]}</span><b>${i[1]}</b><small>${i[2]}</small></div></div>`
   ).join("");
 }
-function renderProgress(rows) {
+function renderTopMeta(rows) {
   const valid = rows.filter(m => finalStatus(m) === "Reunión válida").length;
   const p = CLIENT_GOAL ? Math.round(valid / CLIENT_GOAL * 100) : 0;
-  document.getElementById("clientProgress").innerHTML = `
-    <div class="client-top"><span>GBS Logistics</span><span class="client-count">${p}%</span></div>
-    <div class="bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div>
-    <div class="client-foot"><span class="client-ratio">${valid} / ${CLIENT_GOAL}</span><span class="goal-pill goal-ok">EN META</span></div>`;
+  const state = p >= 75 ? "EN META" : p >= 20 ? "A MEDIAS" : "ATRASADO";
+  document.getElementById("topMeta").innerHTML = `
+    <div class="top-meta-label">Avance de meta · reuniones válidas / meta contractual</div>
+    <div class="top-meta-row">
+      <span class="top-meta-ratio">${valid} / ${CLIENT_GOAL} · ${p}%</span>
+      <div class="top-meta-bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div>
+      <span class="goal-pill">${state}</span>
+    </div>`;
 }
 function renderHead() {
   const cols = [["dateTime","Fecha y hora"],["company","Empresa"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluación CP"],["clientVal","Evaluación Cliente"],["final","Estado Final"],["actions","Acciones"]];
@@ -506,13 +531,26 @@ function renderRows(rows) {
       <td>${pillReadonly(m.status)}</td>
       <td>${pillReadonly(m.cp)}</td>
       <td onclick="event.stopPropagation()">${clientCanEdit(m)
-        ? `<select class="pill ${tone(m.clientVal)}" onchange="setField(${m.id},'clientVal',this.value)">${opt(clientValOptions(m), m.clientVal)}</select>`
+        ? `<select class="pill ${tone(hasUnsavedClientDraft(m) ? getDraftClientVal(m) : m.clientVal)}" onchange="setClientDraft(${m.id},'clientVal',this.value)">${opt(clientValOptions(), hasUnsavedClientDraft(m) ? getDraftClientVal(m) : m.clientVal)}</select>${hasUnsavedClientDraft(m) ? '<span class="sub draft-hint">sin guardar</span>' : ''}`
         : pillReadonly(m.clientVal)}</td>
       <td>${pillReadonly(finalDisplay(m))}</td>
       <td onclick="event.stopPropagation()"><button class="act-eye" onclick="openDetail(${m.id})">${EYE_SVG}</button></td>
     </tr>`).join("");
 }
-function openDetail(id) { selected = id; tab = "Información"; panelOpen = true; render(); }
+function openDetail(id) {
+  selected = id;
+  tab = "Información";
+  panelOpen = true;
+  const m = meetings.find(x => x.id === id);
+  if (m) {
+    clientDrafts[id] = {
+      clientVal: m.clientVal || "Pendiente",
+      clientReason: m.clientReason || "",
+      clientComment: m.clientComment || "",
+    };
+  }
+  render();
+}
 function closeDetail() { panelOpen = false; render(); }
 function current() { return meetings.find(m => m.id === selected) || meetings[0]; }
 
@@ -536,9 +574,12 @@ function infoTab(m) {
     + infoSection("Reunión","Información de la reunión","▣", readField("Fecha", m.date) + readField("Hora", m.time) + linkField("Enlace reunión", m.meet, "Abrir ↗") + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`);
 }
 function cpTab(m) {
-  const bant = Object.entries(m.bant).map(([k,v]) => `<div class="bant-item">${k}<br><small>${v?"Sí":"No"}</small></div>`).join("");
+  const marked = Object.entries(m.bant).filter(([, v]) => v);
+  const bant = marked.length
+    ? `<div class="bant-grid">${marked.map(([k]) => `<div class="bant-item">${k}</div>`).join("")}</div>`
+    : `<div class="read"><p>Sin variables BANT marcadas por Conprospección.</p></div>`;
   return `<div class="grid">${readField("Evaluación CP", m.cp)}${readField("ICP", m.icp)}</div>
-    <span class="block-title">BANT</span><div class="bant-grid">${bant}</div>
+    <span class="block-title">BANT</span>${bant}
     ${m.just ? `<div class="just-box"><b>Justificación</b><p style="margin:0">${esc(m.just)}</p></div>` : ""}
     <div class="read" style="margin-top:10px"><p>El cliente no edita Evaluación CP, BANT ni ICP.</p></div>`;
 }
@@ -546,14 +587,21 @@ function clientTab(m) {
   if (!clientCanEdit(m)) {
     return `<div class="read"><p><b>Estado actual:</b> ${esc(m.clientVal)}</p><p><b>Última acción:</b> ${esc(m.clientDate||"Sin fecha")}</p><p><b>Motivo:</b> ${esc(m.clientReason||"—")}</p><p><b>Comentario:</b> ${esc(m.clientComment||"—")}</p></div>`;
   }
-  return `<div class="read"><p>Confirma la evaluación de Conprospección o solicita revisión.</p></div>
-    <div class="btn-row" style="justify-content:flex-start;margin:12px 0">
-      <button class="primary" onclick="setField(${m.id},'clientVal','Válida')">Confirmar reunión</button>
-      <button class="ghost" onclick="setField(${m.id},'clientVal','Solicita revisión')">Solicitar revisión</button>
+  const d = ensureDraft(m);
+  const showRevision = d.clientVal === "Solicita revisión";
+  return `${m.clientDate ? `<div class="read"><p><b>Última acción guardada:</b> ${esc(m.clientDate)} · ${esc(m.clientVal)}</p></div>` : ""}
+    <div class="read"><p>Selecciona tu evaluación y pulsa <b>Guardar</b>. Puedes volver a cambiarla cuando quieras.</p></div>
+    <div class="btn-row" style="justify-content:flex-start;margin:12px 0 8px">
+      <button class="ghost" onclick="setClientDraft(${m.id},'clientVal','Válida')">Confirmar reunión</button>
+      <button class="ghost" onclick="setClientDraft(${m.id},'clientVal','Solicita revisión')">Solicitar revisión</button>
     </div>
     <div class="grid">
-      <div class="field2"><label>Evaluación Cliente</label><select onchange="setField(${m.id},'clientVal',this.value)">${opt(clientValOptions(m), m.clientVal)}</select></div>
-    </div>`;
+      <div class="field2"><label>Evaluación Cliente</label><select onchange="setClientDraft(${m.id},'clientVal',this.value)">${opt(clientValOptions(), d.clientVal)}</select></div>
+      ${showRevision ? `<div class="field2"><label>Motivo</label><select onchange="setClientDraft(${m.id},'clientReason',this.value)">${clientRevisionReasons.map(r => `<option value="${esc(r)}" ${d.clientReason===r?"selected":""}>${esc(r)}</option>`).join("")}</select></div>` : ""}
+      <div class="field2 wide"><label>Comentario</label><textarea oninput="setClientDraft(${m.id},'clientComment',this.value)">${esc(d.clientComment)}</textarea></div>
+    </div>
+    <div class="btn-row save-bar"><button class="primary" onclick="saveClientEvaluation(${m.id})">Guardar Evaluación Cliente</button></div>
+    ${hasUnsavedClientDraft(m) ? '<div class="draft-hint">Cambios sin guardar</div>' : ""}`;
 }
 function finalTab(m) {
   return `<div class="grid">${readField("Estado Final", finalDisplay(m))}<div class="field2 wide"><label>Mensaje al cliente</label><textarea readonly>${esc(m.finalClientText||"Sin mensaje publicado.")}</textarea></div></div><div class="read"><p>El cliente no define el cierre administrativo.</p></div>`;
@@ -571,7 +619,7 @@ function renderPanel() {
   document.getElementById("detailBand").innerHTML = `
     <div class="band-main"><div class="band-title"><b>${esc(m.company)}</b><span>${esc(m.contact)} · ${esc(m.role)}</span></div></div>
     <div class="band-item"><small>Fecha y hora</small><b>${esc(m.date)} ${esc(m.time)}</b></div>`;
-  const states = [["Etapa Agenda",m.status,"","Información"],["Evaluación CP",m.cp,"","Evaluación CP"],["Evaluación Cliente",m.clientVal,"","Evaluación Cliente"],["Estado Final",finalDisplay(m),"final-state","Estado Final"]];
+  const states = [["Etapa Agenda",m.status,"","Información"],["Evaluación CP",m.cp,"","Evaluación CP"],["Evaluación Cliente",hasUnsavedClientDraft(m)?getDraftClientVal(m):m.clientVal,"","Evaluación Cliente"],["Estado Final",finalDisplay(m),"final-state","Estado Final"]];
   document.getElementById("summary").innerHTML = states.map(i =>
     `<button class="sum ${i[2]}" onclick="tab='${i[3]}';renderPanel()"><small>${i[0]}</small><span class="chip ${tone(i[1])}">${esc(i[1])}</span></button>`
   ).join("");
@@ -594,7 +642,7 @@ function render() {
   renderFilters(rows);
   renderQuickStatus();
   renderKpis(rows);
-  renderProgress(rows);
+  renderTopMeta(rows);
   renderHead();
   renderRows(rows);
   if (panelOpen) renderPanel();
