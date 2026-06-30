@@ -173,7 +173,6 @@ El panel lateral debe abrirse en la pestana Informacion al seleccionar una reuni
 El encabezado del panel lateral usa una franja superior de resumen:
 
 - fondo amarillo suave;
-- icono de empresa a la izquierda;
 - titulo con nombre de empresa;
 - subtitulo con contacto y cliente, por ejemplo `Juan Condori Paredes - Clickie`;
 - datos operativos en una linea: Fecha y hora, SDR asignada y Estado del Caso;
@@ -182,9 +181,10 @@ El encabezado del panel lateral usa una franja superior de resumen:
 Regla visual v6:
 
 - la franja usa padding lateral de 20px en el panel;
+- la franja no usa iconos;
 - el bloque empresa lleva separador vertical antes de los datos operativos;
 - no mostrar `Cliente` como bloque operativo separado si ya aparece junto al contacto;
-- los datos operativos deben tener icono, etiqueta y valor;
+- los datos operativos deben tener etiqueta y valor;
 - las pestanas se muestran como barra horizontal con subrayado amarillo en la activa, no como botones grandes.
 
 Debajo de la franja se muestran las cuatro tarjetas de estado:
