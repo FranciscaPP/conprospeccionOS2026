@@ -102,6 +102,14 @@ Regla:
 - El historial registra lo ocurrido, pero no reemplaza los campos operativos principales.
 - Una nota manual en historial no debe modificar automaticamente Etapa Agenda, Evaluacion CP, Evaluacion Cliente ni Estado Final.
 
+Implementacion vigente del guardado:
+
+- `dashboard/pages/1_Seguimiento_Reuniones.py` renderiza el HTML como componente Streamlit declarado, no como `components.html`.
+- El HTML envia los cambios a Python mediante `streamlit:setComponentValue`.
+- Python recibe el payload, escribe en `seguimiento_reuniones`, actualiza campos base permitidos en `reuniones` y registra auditoria en `meeting_status_history`.
+- No usar `fetch("/Seguimiento_Reuniones?...")` para guardar. Streamlit devuelve el shell HTML y no ejecuta la pagina como endpoint HTTP tradicional.
+- No exponer `SUPABASE_KEY` ni `service_role` en JavaScript del navegador.
+
 ## SDR asignada
 
 La interfaz usa un solo campo operativo: `SDR asignada`.

@@ -2,6 +2,7 @@ import datetime
 import base64
 import json
 import re
+import tempfile
 from pathlib import Path
 
 import requests
@@ -11,21 +12,10 @@ import streamlit.components.v1 as components
 from shared.config import supabase_key, supabase_url
 from shared.meeting_scope import ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de
+from meeting_component import render_meeting_component
 from master_auth import require_master_auth
 
 st.set_page_config(page_title="Seguimiento Reuniones", layout="wide")
-if not require_master_auth():
-    st.stop()
-st.markdown(
-    """
-<style>
-[data-testid="stSidebar"], header, [data-testid="stToolbar"] { display:none !important; }
-.block-container { max-width:100% !important; padding:0 !important; }
-iframe { display:block; }
-</style>
-    """,
-    unsafe_allow_html=True,
-)
 
 
 SUPABASE_URL = supabase_url()
@@ -286,14 +276,6 @@ def _dedupe_clickie_latest(rows):
     return output
 
 
-def _decode_save_payload(raw):
-    try:
-        padded = raw + "=" * (-len(raw) % 4)
-        return json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
-    except Exception:
-        return None
-
-
 def _db_cp(value):
     value = _txt(value).lower()
     if value in {"valida", "válida"}:
@@ -379,6 +361,7 @@ def _flag_meta_countable(final_value):
 def _post_tracking(payload):
     response = requests.post(
         f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones",
+        params={"on_conflict": "reunion_id"},
         headers={**SUPABASE_WRITE_HEADERS, "Prefer": "resolution=merge-duplicates,return=representation"},
         json=payload,
         timeout=15,
@@ -416,22 +399,13 @@ def _insert_history(reunion_id, section, text):
     )
 
 
-def _handle_save_request():
-    raw = st.query_params.get("cp_save")
-    if not raw:
-        return
-    payload = _decode_save_payload(raw)
-    if not payload:
-        st.json({"ok": False, "error": "payload_invalido"})
-        st.stop()
-
+def _save_dashboard_payload(payload):
     meeting = payload.get("meeting") or {}
     section = _txt(payload.get("section"), "Actualizacion")
     reunion_id = meeting.get("id")
     cliente_slug = _txt(meeting.get("clientSlug")).lower()
     if not reunion_id or not cliente_slug:
-        st.json({"ok": False, "error": "faltan_reunion_o_cliente"})
-        st.stop()
+        return {"ok": False, "error": "faltan_reunion_o_cliente"}
 
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
     final_db = _db_final(meeting.get("final"))
@@ -495,21 +469,28 @@ def _handle_save_request():
         else:
             _insert_history(reunion_id, section, f"{section} guardado desde panel interno")
         st.cache_data.clear()
-        st.json({"ok": True})
-    else:
-        st.json(
-            {
-                "ok": False,
-                "tracking_status": track_response.status_code,
-                "tracking_error": track_response.text[:300],
-                "meeting_status": getattr(base_response, "status_code", None),
-                "meeting_error": getattr(base_response, "text", "")[:300],
-            }
-        )
+        return {"ok": True}
+    return {
+        "ok": False,
+        "tracking_status": track_response.status_code,
+        "tracking_error": track_response.text[:300],
+        "meeting_status": getattr(base_response, "status_code", None),
+        "meeting_error": getattr(base_response, "text", "")[:300],
+    }
+
+
+if not require_master_auth():
     st.stop()
-
-
-_handle_save_request()
+st.markdown(
+    """
+<style>
+[data-testid="stSidebar"], header, [data-testid="stToolbar"] { display:none !important; }
+.block-container { max-width:100% !important; padding:0 !important; }
+iframe { display:block; }
+</style>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 @st.cache_data(ttl=30)
@@ -783,6 +764,11 @@ tbody td{border-bottom:1px solid var(--line);padding:6px 10px;vertical-align:mid
   </div>
 </div>
 <script>
+function streamlitSend(type,data={}){window.parent.postMessage({isStreamlitMessage:true,type,...data},"*")}
+function componentReady(){streamlitSend("streamlit:componentReady",{apiVersion:1})}
+function setComponentValue(value){streamlitSend("streamlit:setComponentValue",{value,dataType:"json"})}
+function setComponentHeight(){streamlitSend("streamlit:setFrameHeight",{height:Math.max(900,document.documentElement.scrollHeight)})}
+componentReady();window.addEventListener("load",()=>setTimeout(setComponentHeight,100));window.addEventListener("resize",setComponentHeight);
 const statuses=["Reunión futura","Reunión realizada","Reunión cancelada","Reagendar reunión"];
 const cps=["","Pendiente","Válida","No válida","No necesaria"];
 const clientVals=["","Pendiente","Válida","No válida","Solicita revisión","No necesaria"];
@@ -821,12 +807,10 @@ function parseDate(s){const [d,m,y]=String(s).split("/");return y&&m&&d?`${y}-${
 function dtValue(m){const d=parseDate(m.date);const hour=m.time.includes("PM")&&m.time.slice(0,2)!=="12"?Number(m.time.slice(0,2))+12:Number(m.time.slice(0,2));return `${d} ${String(hour).padStart(2,"0")}${m.time.slice(2,5)}`}
 function finalStatus(m){return m.final||"Pendiente"}
 function finalDisplay(m){return finalStatus(m)==="Pendiente"?"Pendiente de cierre":finalStatus(m)}
-const saveEndpoint="/Seguimiento_Reuniones";
 function persist(){localStorage.setItem(storageKey,JSON.stringify(meetings))}
 function notify(msg){let n=document.getElementById("saveNote");if(!n){n=document.createElement("div");n.id="saveNote";n.className="save-note";document.body.appendChild(n)}n.textContent=msg;clearTimeout(window.__saveNoteTimer);window.__saveNoteTimer=setTimeout(()=>n.remove(),1800)}
 function compactMeeting(m){return {id:m.id,clientSlug:m.clientSlug,client:m.client,date:m.date,time:m.time,scheduledDate:m.scheduledDate,company:m.company,contact:m.contact,role:m.role,email:m.email,phone:m.phone,country:m.country,industry:m.industry,sdr:m.sdr,status:m.status,cp:m.cp,clientVal:m.clientVal,final:m.final,caseStatus:m.caseStatus,info:m.info,icp:m.icp,bant:m.bant,just:m.just,notes:m.notes,next:m.next,clientReason:m.clientReason,clientComment:m.clientComment,clientActor:m.clientActor,clientEvidence:m.clientEvidence,cpResponse:m.cpResponse,finalReason:m.finalReason,finalClientText:m.finalClientText,finalInternalNote:m.finalInternalNote,evidence:m.evidence,historyVisibility:m.historyVisibility,cancelWho:m.cancelWho,cancelReason:m.cancelReason,cancelComment:m.cancelComment,rescheduleWho:m.rescheduleWho,rescheduleReason:m.rescheduleReason,rescheduleOld:m.rescheduleOld,rescheduleNew:m.rescheduleNew,rescheduleComment:m.rescheduleComment}}
-function encodePayload(payload){return btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
-async function saveMeeting(m,section,silent=false,extra={}){if(!m||!m.id||!m.clientSlug){if(!silent)notify("No se pudo guardar: falta cliente o reunión");return false}try{if(!silent)notify("Guardando...");const qs=encodePayload({section,meeting:compactMeeting(m),...extra});const res=await fetch(`${saveEndpoint}?cp_save=${qs}`,{method:"GET",credentials:"include",cache:"no-store"});const data=await res.json().catch(()=>({ok:false}));if(!res.ok||!data.ok)throw new Error(data.error||data.tracking_error||"No fue posible guardar");if(!silent)notify(`${section} guardado`);return true}catch(err){console.error(err);notify(`Error al guardar: ${err.message||err}`);return false}}
+async function saveMeeting(m,section,silent=false,extra={}){if(!m||!m.id||!m.clientSlug){if(!silent)notify("No se pudo guardar: falta cliente o reunión");return false}try{if(!silent)notify("Guardando...");setComponentValue({nonce:`${Date.now()}-${Math.random()}`,section,meeting:compactMeeting(m),...extra});if(!silent)notify(`${section} guardado`);return true}catch(err){console.error(err);notify(`Error al guardar: ${err.message||err}`);return false}}
 function saveSection(section){const m=current();addHistory(m,`Guardar ${section}`,"Pendiente","Guardado");persist();saveMeeting(m,section);render()}
 function saveBar(section,label){return `<div class="btn-row save-bar"><button class="primary" onclick="saveSection('${section}')">${label}</button></div>`}
 function buildClientTimeline(m){if(m.status==="Reunión cancelada"||m.clientVal==="No necesaria")return[{when:"No aplica",actor:"Sistema",status:"No necesaria",reason:"Etapa agenda cancelada",comment:"No se requiere acción del cliente en el portal."}];const items=[{when:"Pendiente inicial",actor:"Portal cliente",status:"Pendiente",reason:"",comment:"Esperando acción del cliente"}];if(m.clientVal&&m.clientVal!=="Pendiente"){items.push({when:m.clientDate||"Sin fecha registrada",actor:m.clientActor||m.contact||"Cliente",status:m.clientVal,reason:m.clientReason||"",comment:m.clientComment||""})}if(m.cpResponse){items.push({when:"Respuesta interna",actor:"Conprospección",status:"Respuesta enviada",reason:"",comment:m.cpResponse})}return items}
@@ -898,8 +882,6 @@ render();
 """
 
 POC_HTML = POC_HTML.replace("__CP_MARK__", CP_MARK_DATA_URI)
-
-
 real_meetings = cargar_reuniones_reales_poc()
 real_meetings_json = json.dumps(real_meetings, ensure_ascii=True).replace("</", "<\\/")
 POC_HTML = re.sub(
@@ -921,5 +903,23 @@ POC_HTML = POC_HTML.replace(
     "const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);",
 )
 
-components.html(POC_HTML, height=1700, scrolling=False)
+COMPONENT_DIR = Path(tempfile.gettempdir()) / "cp_seguimiento_reuniones_component"
+COMPONENT_DIR.mkdir(parents=True, exist_ok=True)
+(COMPONENT_DIR / "index.html").write_text(POC_HTML, encoding="utf-8")
+
+component_payload = render_meeting_component(COMPONENT_DIR, key="seguimiento_reuniones_operativo")
+if isinstance(component_payload, dict):
+    nonce = _txt(component_payload.get("nonce")) or json.dumps(component_payload, sort_keys=True, ensure_ascii=True)
+    if st.session_state.get("_seguimiento_last_save_nonce") != nonce:
+        st.session_state["_seguimiento_last_save_nonce"] = nonce
+        save_result = _save_dashboard_payload(component_payload)
+        if save_result.get("ok"):
+            st.cache_data.clear()
+            st.toast("Cambio guardado en Supabase.")
+            st.rerun()
+        st.error(
+            "No fue posible guardar el cambio. "
+            f"Seguimiento: {save_result.get('tracking_status')} {save_result.get('tracking_error', save_result.get('error', ''))} "
+            f"Reunion: {save_result.get('meeting_status')} {save_result.get('meeting_error', '')}"
+        )
 
