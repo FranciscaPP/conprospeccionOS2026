@@ -160,7 +160,7 @@ def render_client_meeting_portal(
     st.markdown(
         """
 <style>
-[data-testid="stSidebarNav"]{display:none!important}
+[data-testid="stSidebar"],[data-testid="collapsedControl"],header[data-testid="stHeader"]{display:none!important}
 .block-container{max-width:100%!important;padding:0!important}
 iframe{display:block}
 </style>

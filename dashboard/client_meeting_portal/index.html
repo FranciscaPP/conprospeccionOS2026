@@ -21,7 +21,7 @@ button,input,select,textarea{font:inherit}
 .mockup-banner{background:#1a1a1a;color:#ffd700;padding:9px 16px;font-size:12px;border-bottom:2px solid #ffd700}
 .mockup-banner b{color:#fff}
 .app{min-width:0;padding:0 12px 24px;background:#ECECEA}
-.top{height:64px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;margin-bottom:14px;background:var(--carbon);color:#FFF;border-radius:0 0 10px 10px;padding:0 18px;box-shadow:0 10px 24px rgba(26,26,26,.14);border-top:3px solid var(--gold)}
+.top{height:64px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin-bottom:14px;background:var(--carbon);color:#FFF;border-radius:0 0 10px 10px;padding:0 18px;box-shadow:0 10px 24px rgba(26,26,26,.14);border-top:3px solid var(--gold)}
 .brand{display:flex;align-items:center;gap:14px}
 .mark{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--carbon) 0 52%,var(--gold) 52% 100%);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px var(--line-strong)}
 .title h1{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:18px;margin:0;font-weight:700;color:#FFF}
@@ -199,7 +199,6 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
       <div class="mark"></div>
       <div class="title"><h1>__PORTAL_TITLE__</h1><p>__PORTAL_BRAND__</p></div>
     </div>
-    <div class="top-meta" id="topMeta"></div>
     <div class="user"><b>__PORTAL_USER__</b><span>__PORTAL_SUBTITLE__</span></div>
   </header>
   <div class="layout" id="layout">
@@ -516,18 +515,6 @@ function renderKpis(rows) {
     `<div class="kpi ${kpiActive(i[0])?"active":""}" onclick="__kpiActions[${idx}]();render()"><div class="ico ${i[3]}">${i[4]}</div><div><span>${i[0]}</span><b>${i[1]}</b><small>${i[2]}</small></div></div>`
   ).join("");
 }
-function renderTopMeta(rows) {
-  const valid = rows.filter(m => finalStatus(m) === "Reunión válida").length;
-  const p = CLIENT_GOAL ? Math.round(valid / CLIENT_GOAL * 100) : 0;
-  const state = p >= 75 ? "EN META" : p >= 20 ? "A MEDIAS" : "ATRASADO";
-  document.getElementById("topMeta").innerHTML = `
-    <div class="top-meta-label">Avance de meta · reuniones válidas / meta contractual</div>
-    <div class="top-meta-row">
-      <span class="top-meta-ratio">${valid} / ${CLIENT_GOAL} · ${p}%</span>
-      <div class="top-meta-bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div>
-      <span class="goal-pill">${state}</span>
-    </div>`;
-}
 function renderHead() {
   const cols = [["dateTime","Fecha y hora"],["company","Empresa"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluación CP"],["clientVal","Evaluación Cliente"],["final","Estado Final"],["actions","Acciones"]];
   const filterable = ["status","cp","clientVal","final"];
@@ -658,7 +645,6 @@ function render() {
   renderFilters(rows);
   renderQuickStatus();
   renderKpis(rows);
-  renderTopMeta(rows);
   renderHead();
   renderRows(rows);
   if (panelOpen) renderPanel();

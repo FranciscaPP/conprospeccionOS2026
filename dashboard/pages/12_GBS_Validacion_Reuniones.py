@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 
 from client_meeting_portal import render_client_meeting_portal
-from portal_auth import render_client_nav, require_auth_gbs
+from portal_auth import logout_client, require_auth_gbs
 
 st.set_page_config(
     page_title="GBS Logistics - Validación Reuniones",
@@ -22,7 +22,33 @@ st.set_page_config(
 if not require_auth_gbs():
     st.stop()
 
-render_client_nav("12_GBS_Validacion", "gbs")
+st.markdown(
+    """
+<style>
+[data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
+header[data-testid="stHeader"] { display: none !important; }
+div[class*="st-key-gbs_logout"] {
+  position: fixed; top: 16px; right: 18px; z-index: 1001; width: auto;
+}
+div[class*="st-key-gbs_logout"] button {
+  background: rgba(255,255,255,.08) !important;
+  color: #ececea !important;
+  border: 1px solid rgba(255,255,255,.2) !important;
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  min-height: 0 !important;
+}
+</style>
+    """,
+    unsafe_allow_html=True,
+)
+
+_cfg = _CLIENTS["gbs"]
+if st.button("Cerrar sesión", key="gbs_logout"):
+    st.session_state[_cfg["session_key"]] = False
+    _clear_token()
+    st.rerun()
+
 render_client_meeting_portal(
     client_slug="gbs",
     page_key="12_GBS_Validacion",

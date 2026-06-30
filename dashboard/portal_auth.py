@@ -327,6 +327,13 @@ def require_auth_client(cliente: str) -> bool:
 
 
 # Alias retrocompatible para las páginas de Tiresias existentes
+def logout_client(cliente: str) -> None:
+    """Cierra sesión del portal cliente y limpia token persistente."""
+    cfg = _CLIENTS[cliente]
+    st.session_state[cfg["session_key"]] = False
+    _clear_token()
+
+
 def require_auth_tiresias() -> bool:
     return require_auth_client("tiresias")
 
