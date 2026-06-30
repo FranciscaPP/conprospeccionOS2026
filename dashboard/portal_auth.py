@@ -111,12 +111,9 @@ _CLIENTS: dict[str, dict] = {
     "gbs": {
         "session_key": "portal_auth_gbs",
         "logo_file": "gbs_logo.png",
+        "solo_modulo": True,
         "nav": [
-            ("Onboarding", "pages/14_GBS_Onboarding.py", "base"),
             ("Validación Reuniones", "pages/12_GBS_Validacion_Reuniones.py", "base"),
-            ("Reporte Mensual", "pages/15_GBS_Reporte_Mensual.py", "base"),
-            ("Intelligence Insight", "pages/11_GBS.py", "premium"),
-            ("Playbook SDR", "pages/13_GBS_Playbook_SDR.py", "base"),
         ],
     },
     "bambutech": {
@@ -197,6 +194,8 @@ def render_client_nav(current: str, cliente: str) -> None:
 
         for it in items:
             label, path = it[0], it[1]
+            if cfg.get("solo_modulo"):
+                continue
             es_activa = current in path
             if st.button(label, use_container_width=True, key=_nav_key(path)) and not es_activa:
                 st.switch_page(path)

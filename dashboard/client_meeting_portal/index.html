@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mockup — GBS · Validación de reuniones (mismo UX panel interno)</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --gold:#FFD700;--gold-hover:#FFCC00;--carbon:#333333;--ink:#1A1A1A;
+  --bg:#FAFAF8;--surface:#FFFFFF;--muted-surface:#F4F4F2;--muted:#6B6B6B;
+  --line:#EDECEA;--line-strong:#C9C9C4;--primary:#FFD700;--primary-soft:#FFF7BF;
+  --green:#15803D;--green-bg:#EAF6EF;--orange:#A66A00;--orange-bg:#FFF3D8;
+  --red:#C92B2B;--red-bg:#FDECEA;--blue:#2563EB;--blue-bg:#EAF1FE;
+  --purple:#6D28D9;--purple-bg:#F1EDFF;--gray:#8A8A86;--gray-bg:#F4F4F2;
+}
+*{box-sizing:border-box}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{margin:0;background:#ECECEA;color:var(--ink);font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:14px}
+button,input,select,textarea{font:inherit}
+.mockup-banner{background:#1a1a1a;color:#ffd700;padding:9px 16px;font-size:12px;border-bottom:2px solid #ffd700}
+.mockup-banner b{color:#fff}
+.app{min-width:0;padding:0 12px 24px;background:#ECECEA}
+.top{height:64px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;margin-bottom:14px;background:var(--carbon);color:#FFF;border-radius:0 0 10px 10px;padding:0 18px;box-shadow:0 10px 24px rgba(26,26,26,.14);border-top:3px solid var(--gold)}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--carbon) 0 52%,var(--gold) 52% 100%);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px var(--line-strong)}
+.title h1{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:18px;margin:0;font-weight:700;color:#FFF}
+.title p{font-size:12px;margin:2px 0 0;color:#C9C9C6}
+.user{font-size:12px;text-align:right;color:#ECECEA;white-space:nowrap}
+.user b{display:block;color:#FFF}
+.user span{display:block;font-size:11px;color:#C9C9C6;margin-top:2px}
+.top-meta{min-width:0;max-width:520px;justify-self:center;width:100%;padding:0 10px}
+.top-meta-label{font-size:10px;color:#C9C9C6;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:5px;line-height:1.2}
+.top-meta-row{display:flex;align-items:center;gap:12px}
+.top-meta-ratio{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap}
+.top-meta-bar{flex:1;height:6px;background:#4a4a48;border-radius:99px;overflow:hidden;min-width:100px}
+.top-meta-bar .fill{height:100%;background:var(--gold);border-radius:99px}
+.top-meta .goal-pill{font-size:10px;font-weight:800;background:rgba(255,215,0,.14);color:var(--gold);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+.layout.open{grid-template-columns:minmax(0,1fr) minmax(430px,34vw)}
+.layout.open .main{min-width:0;overflow:hidden}
+.main{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--surface);border:1px solid #D8D8D5;border-radius:10px;box-shadow:0 8px 20px rgba(26,26,26,.05)}
+.filters{padding:14px;display:grid;grid-template-columns:2fr .8fr .8fr 1.35fr .7fr;gap:10px;background:#FAFAF8;border-radius:10px}
+.extra{display:none;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 14px 14px;background:#FAFAF8}
+.extra.open{display:grid}
+.field{height:38px;border:1px solid #D8D8D5;border-radius:9px;background:#FFF;display:flex;align-items:center;gap:8px;padding:0 11px;position:relative;min-width:0}
+.field label{position:absolute;top:-8px;left:9px;background:#FFF;font-size:10px;color:#6B6B6B;font-weight:700;padding:0 4px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{border:0;outline:0;background:transparent;width:100%;height:100%;font-size:12px;color:var(--ink)}
+.field button{border:0;background:transparent;width:100%;height:100%;font-weight:700;font-size:12px;cursor:pointer}
+.date-range{display:grid;grid-template-columns:1fr 1fr auto;gap:4px;align-items:center}
+.date-range input{font-family:"IBM Plex Mono",monospace;font-size:11px}
+.clear-date{border:0;background:transparent;color:var(--muted);cursor:pointer}
+.quick-dates{display:flex;align-items:center;gap:7px;padding:0 14px 12px;background:#FAFAF8;flex-wrap:wrap}
+.quick-dates .qd-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.quick-dates button{border:1px solid #D8D8D5;background:#fff;border-radius:999px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer}
+.quick-dates button:hover{border-color:var(--gold);background:#fffdf0}
+.qd-status{display:inline-flex;gap:7px;flex-wrap:wrap;align-items:center}
+.qd-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid #D8D8D5;background:#fff;border-radius:999px;padding:5px 12px;font:600 11px "IBM Plex Sans",sans-serif;cursor:pointer}
+.qd-chip:before{content:"";width:8px;height:8px;border-radius:99px;background:var(--dot,#9A9A98)}
+.qd-chip.orange{--dot:#92610A}.qd-chip.blue{--dot:#2563EB}.qd-chip.green{--dot:#15803D}.qd-chip.red{--dot:#C0392B}
+.qd-chip.on{border-color:var(--dot);background:#FFFBEF}
+.qd-clear{margin-left:auto;border:1px solid #D8D8D5;background:#fff;border-radius:999px;padding:5px 12px;font:600 11px;cursor:pointer}
+.active-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 12px 12px}
+.filter-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--muted-surface);border-radius:999px;padding:5px 8px;font-size:11px}
+.filter-chip button{border:0;background:transparent;cursor:pointer;color:var(--muted)}
+.progress{padding:16px 18px;background:#FAFAF8}
+.actions-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.review-form{border:1px solid var(--line);border-radius:9px;padding:12px;background:#fafaf8;margin-top:10px}
+.section-head b{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:15px}
+.save-bar{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.draft-hint{font-size:11px;color:var(--orange);font-weight:700;margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);overflow:hidden}
+.kpi{min-height:74px;padding:10px 12px;border-right:1px solid var(--line);display:flex;gap:10px;align-items:center;cursor:pointer}
+.kpi:last-child{border-right:0}
+.kpi.active{box-shadow:inset 0 -3px 0 var(--gold);background:#fffdf0}
+.ico{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:11px}
+.ico.blue{background:var(--blue-bg);color:var(--blue)}
+.ico.green{background:var(--green-bg);color:var(--green)}
+.ico.orange{background:var(--orange-bg);color:var(--orange)}
+.ico.purple{background:var(--purple-bg);color:var(--purple)}
+.ico.red{background:var(--red-bg);color:var(--red)}
+.kpi span{display:block;font-size:11px;font-weight:700}
+.kpi b{display:block;font-family:"IBM Plex Mono",monospace;font-size:24px;line-height:1.1;margin-top:2px}
+.kpi small{display:block;font-size:10.5px;color:var(--muted);margin-top:4px}
+.table-head{padding:11px 14px 7px}
+.table-head h2{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:14px;margin:0}
+.table-head p{font-size:11px;color:var(--muted);margin:3px 0 0}
+.table-wrap{overflow:auto;max-height:560px;border-top:1px solid var(--line)}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+thead th{position:sticky;top:0;z-index:6;background:var(--muted-surface);border-bottom:1px solid var(--line);text-align:left;color:#9A9A98;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:11px;font-weight:600;padding:6px 10px;white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
+.sort,.quick{border:0;background:transparent;color:inherit;font-weight:600;cursor:pointer;padding:0;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.quick.active{color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:6px;padding:0 5px;text-transform:none}
+tbody td{border-bottom:1px solid var(--line);padding:6px 10px;vertical-align:middle;white-space:nowrap;height:38px}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#FFF9D6}
+tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
+.sub{display:block;color:var(--muted);font-size:10.5px;margin-top:2px}
+.company{font-weight:600}
+.chip,.pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:6px;padding:5px 9px;min-width:96px;font-size:.72rem;font-weight:600;border:1px solid transparent}
+.chip:before,.pill:before{content:"";width:6px;height:6px;border-radius:99px;background:currentColor}
+.pill{appearance:none;outline:0;cursor:pointer}
+.pill.readonly{cursor:default}
+.green{background:var(--green-bg);color:var(--green)}
+.orange{background:var(--orange-bg);color:var(--orange)}
+.red{background:var(--red-bg);color:var(--red)}
+.purple{background:var(--purple-bg);color:var(--purple)}
+.blue{background:var(--blue-bg);color:var(--blue)}
+.gray{background:var(--gray-bg);color:var(--gray)}
+.row-actions{display:inline-flex;gap:4px}
+.act-eye{border:1px solid var(--line);background:#fff;border-radius:7px;width:30px;height:28px;cursor:pointer;display:grid;place-items:center}
+.act-eye:hover{border-color:var(--gold);background:#fffdf0}
+.drawer{padding:0;position:sticky;top:10px;display:flex;flex-direction:column}
+.drawer.hidden{display:none}
+.drawer-fixed{flex:0 0 auto;padding:10px 14px 0;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.close{position:absolute;right:8px;top:3px;border:0;background:transparent;font-size:20px;cursor:pointer;z-index:6}
+.detail-band{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;border:1px solid #FFE6A3;background:#FFF7D0;border-radius:8px;padding:10px 28px 10px 12px;margin-bottom:12px}
+.band-main{min-width:190px;flex:1.25 1 190px;padding-right:8px}
+.band-title b{display:block;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:15px;line-height:1.15;font-weight:700}
+.band-title span{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.25}
+.band-item{min-width:118px;flex:0 0 auto;margin-left:auto;text-align:right}
+.band-item small{display:block;color:var(--muted);font-size:10px;line-height:1.05;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.band-item b{display:block;margin-top:3px;font-size:13px;font-weight:700;line-height:1.2}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 18px}
+.sum{border:1px solid var(--line);border-radius:8px;padding:11px 12px;background:#fff;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+.sum:hover{border-color:var(--gold);background:#fffdf0}
+.sum.final-state{border-color:var(--gold);background:var(--primary-soft)}
+.sum small{display:block;font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;letter-spacing:.03em;line-height:1.1}
+.sum .chip{min-width:0;width:100%;padding:7px 9px;font-size:12px;justify-content:flex-start;line-height:1.15}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:#F6F6F4;border:1px solid var(--line);border-radius:8px;margin:0 0 18px;overflow:hidden}
+.tabs button{border:0;border-bottom:2px solid transparent;background:transparent;padding:12px 4px 11px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;line-height:1.15}
+.tabs button.active{color:var(--ink);background:#fff;border-bottom-color:var(--gold)}
+.panel{padding:0 20px 20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 6px}
+.field2 label{display:block;font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em}
+.field2 input,.field2 select,.field2 textarea{width:100%;border:1px solid var(--line);border-radius:7px;background:var(--surface);min-height:30px;padding:5px 8px;font-size:13px;outline:0;line-height:1.35}
+.field2 textarea{min-height:56px;resize:vertical}
+.field2 input[readonly],.field2 textarea[readonly]{background:#FAFAF8;color:var(--muted)}
+.wide{grid-column:1/-1}
+.co-head{margin-bottom:16px}
+.co-head b{display:block;font-size:17px;font-weight:700;line-height:1.2}
+.co-head span{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.4}
+.co-section{border-top:1px solid var(--gold);padding:16px 0 10px}
+.co-section summary{display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none;margin-bottom:12px}
+.co-section summary::-webkit-details-marker{display:none}
+.co-icon{width:36px;height:36px;border-radius:7px;background:var(--primary-soft);display:grid;place-items:center;color:#7A6400;font-weight:800}
+.co-title b{display:block;font-size:14px;font-weight:700;line-height:1.2}
+.co-title span{display:block;color:var(--muted);font-size:11px;margin-top:2px;line-height:1.35}
+.co-chevron{margin-left:auto;font-weight:800}
+.block-title{display:block;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:12px;font-weight:700;margin:10px 0 6px;color:var(--ink)}
+.link-field{display:flex;align-items:center;gap:8px}
+.link-field input{flex:1;min-width:0}
+.open-link{color:var(--blue);font-weight:700;text-decoration:none;font-size:12px;white-space:nowrap}
+.open-link:hover{text-decoration:underline}
+.just-box{border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:#fff;font-size:13px;line-height:1.45;margin-top:8px}
+.just-box b{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:7px}
+.primary,.ghost{border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.primary{border:0;background:var(--gold);color:var(--ink)}
+.ghost{border:1px dashed var(--line-strong);background:#fff;color:var(--carbon)}
+.read{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fff;font-size:13px;line-height:1.45}
+.read p{margin:5px 0}
+.bant-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px}
+.bant-item{border:1px solid #86efac;border-radius:7px;padding:7px 8px;font-size:12px;font-weight:700;text-align:center;line-height:1.3;background:var(--green-bg);color:var(--green)}
+.evidence{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.evi{border:1px solid var(--line);border-radius:8px;padding:7px;background:#fff;font-size:12px;font-weight:600}
+.evi a{color:var(--carbon);text-decoration:underline;text-decoration-color:var(--gold)}
+.history{border-left:2px solid var(--line);padding-left:10px;margin-left:5px}
+.hist{position:relative;margin-bottom:6px}
+.hist:before{content:"";position:absolute;left:-15px;top:3px;width:7px;height:7px;border-radius:99px;background:var(--gold)}
+.hist small{color:var(--muted);font-size:11px;line-height:1.3}
+.hist b{display:block;font-size:13px;font-weight:600;margin:2px 0 1px}
+.hist div{font-size:12px;line-height:1.4;color:var(--ink)}
+.save-note{position:fixed;right:24px;bottom:18px;background:var(--carbon);color:#fff;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;z-index:20;box-shadow:0 8px 24px rgba(26,26,26,.22)}
+.layout.open .kpis{grid-template-columns:repeat(3,1fr)}
+.layout.open .kpi{min-height:66px;padding:8px 10px}
+.layout.open .kpi b{font-size:21px}
+.layout.open table{font-size:10.6px}
+.layout.open thead th,.layout.open tbody td{padding:5px 5px}
+.layout.open .pill{min-width:0;width:100%;padding:4px 5px;font-size:10.2px}
+.layout.open tbody tr.selected{background:#FFF7D0;box-shadow:inset 4px 0 0 var(--gold),inset 0 0 0 1px #F0D28D}
+.layout.open .band-title b{max-width:170px;font-size:14px}
+.layout.open .band-title span{max-width:170px;font-size:11px}
+.layout.open .band-item b{font-size:12px}
+.layout.open .sum small{font-size:9px}
+.layout.open .sum .chip{font-size:11px;padding:6px 8px}
+.layout.open .tabs button{font-size:11px;padding:10px 3px 9px}
+.layout.open .field2 label{font-size:9px}
+.layout.open .field2 input,.layout.open .field2 textarea,.layout.open .field2 select{font-size:12px}
+.layout.open .co-head b{font-size:16px}
+.layout.open .co-title b{font-size:13px}
+@media(max-width:1100px){.layout.open{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark"></div>
+      <div class="title"><h1>__PORTAL_TITLE__</h1><p>__PORTAL_BRAND__</p></div>
+    </div>
+    <div class="top-meta" id="topMeta"></div>
+    <div class="user"><b>__PORTAL_USER__</b><span>__PORTAL_SUBTITLE__</span></div>
+  </header>
+  <div class="layout" id="layout">
+    <main class="main">
+      <section class="card">
+        <div class="filters">
+          <div class="field"><span>🔍</span><input id="q" placeholder="Buscar empresa, contacto, cargo, correo..." oninput="setFilter('q',this.value)"></div>
+          <div class="field"><label>Mes</label><select id="fMonth" onchange="setFilter('month',this.value)"></select></div>
+          <div class="field"><label>Año</label><select id="fYear" onchange="setFilter('year',this.value)"></select></div>
+          <div class="field date-range"><label>Rango de fechas</label><input id="fDateFrom" type="date" onchange="setFilter('dateFrom',this.value)"><input id="fDateTo" type="date" onchange="setFilter('dateTo',this.value)"><button class="clear-date" onclick="resetDateRange()">×</button></div>
+          <div class="field"><button id="moreBtn" onclick="toggleMore()">Más filtros</button></div>
+        </div>
+        <div class="quick-dates">
+          <span class="qd-label">Rápido:</span>
+          <button onclick="setToday()">Hoy</button>
+          <button onclick="setThisWeek()">Esta semana</button>
+          <button onclick="resetDateRange()">Este mes</button>
+          <span id="quickStatus" class="qd-status"></span>
+          <button class="qd-clear" onclick="clearAll()">↻ Limpiar filtros</button>
+        </div>
+        <div class="extra" id="extraFilters">
+          <div class="field"><label>Etapa Agenda</label><select id="fStatus" onchange="setFilter('status',this.value)"></select></div>
+          <div class="field"><label>Evaluación CP</label><select id="fCp" onchange="setFilter('cp',this.value)"></select></div>
+          <div class="field"><label>Evaluación Cliente</label><select id="fClientVal" onchange="setFilter('clientVal',this.value)"></select></div>
+          <div class="field"><label>Estado Final</label><select id="fFinal" onchange="setFilter('final',this.value)"></select></div>
+        </div>
+        <div class="active-filters" id="activeFilters"></div>
+      </section>
+      <section class="card kpis" id="kpis"></section>
+      <section class="card">
+        <div class="table-head"><h2>Seguimiento de reuniones</h2><p>Confirma o solicita revisión desde el panel lateral → pestaña Evaluación Cliente.</p></div>
+        <div class="table-wrap"><table><thead id="thead"></thead><tbody id="rows"></tbody></table></div>
+      </section>
+    </main>
+    <aside class="card drawer hidden" id="drawer">
+      <div class="drawer-fixed">
+        <button class="close" onclick="closeDetail()" aria-label="Cerrar">×</button>
+        <div class="detail-band" id="detailBand"></div>
+        <div class="summary" id="summary"></div>
+        <div class="tabs" id="tabs"></div>
+      </div>
+      <div class="panel" id="panel"></div>
+    </aside>
+  </div>
+</div>
+<script>
+
+function streamlitSend(type,data={}){window.parent.postMessage({isStreamlitMessage:true,type,...data},"*")}
+function componentReady(){streamlitSend("streamlit:componentReady",{apiVersion:1})}
+function setComponentValue(value){streamlitSend("streamlit:setComponentValue",{value,dataType:"json"})}
+function setComponentHeight(){streamlitSend("streamlit:setFrameHeight",{height:Math.max(900,document.documentElement.scrollHeight)})}
+componentReady();window.addEventListener("load",()=>setTimeout(setComponentHeight,100));window.addEventListener("resize",setComponentHeight);
+
+const CLIENT_GOAL = __CLIENT_GOAL__;
+const statuses = ["Reunión futura","Reunión realizada","Reunión cancelada","Reagendar reunión"];
+const cps = ["","Pendiente","Válida","No válida","No necesaria"];
+const clientVals = ["","Pendiente","Válida","No válida","Solicita revisión","No necesaria"];
+const clientValsEditable = ["Pendiente","Válida","Solicita revisión"];
+const finalOptions = ["Pendiente","Reunión válida","Reunión no válida","Reunión cancelada","Reagendar reunión"];
+const clientRevisionReasons = __REVISION_REASONS__;
+const EYE_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+let meetings = __MEETINGS_JSON__;
+
+let selected = null, tab = "Información", panelOpen = false, more = false;
+let clientDrafts = {};
+let reviewFormOpen = {};
+let filters = defaultFilters();
+let sortState = { key: "dateTime", dir: "desc" };
+
+function defaultRange() {
+  const now = new Date();
+  return rangeForMonth(now.getFullYear(), now.getMonth() + 1);
+}
+function defaultFilters() {
+  const r = defaultRange();
+  return { q: "", status: "Todos", cp: "Todos", clientVal: "Todos", final: "Todos", country: "Todos", month: "6", year: "2026", ...r };
+}
+function rangeForMonth(year, month) {
+  const first = new Date(Number(year), Number(month) - 1, 1);
+  const last = new Date(Number(year), Number(month), 0);
+  return { dateFrom: iso(first), dateTo: iso(last) };
+}
+function monthYearRange(year, month) {
+  if (year === "Todos") return { dateFrom: "", dateTo: "" };
+  if (month === "Todos") return { dateFrom: iso(new Date(Number(year), 0, 1)), dateTo: iso(new Date(Number(year), 11, 31)) };
+  return rangeForMonth(year, month);
+}
+function monthOptions() {
+  return [["Todos","Todos"],["1","Enero"],["2","Febrero"],["3","Marzo"],["4","Abril"],["5","Mayo"],["6","Junio"],["7","Julio"],["8","Agosto"],["9","Septiembre"],["10","Octubre"],["11","Noviembre"],["12","Diciembre"]];
+}
+function yearOptions() {
+  return ["Todos", "2026", "2025"];
+}
+function iso(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+}
+function opt(values, current) {
+  return values.map(v => `<option value="${esc(v)}" ${v===current?"selected":""}>${esc(v||"—")}</option>`).join("");
+}
+function optPairs(values, current) {
+  return values.map(v => `<option value="${esc(v[0])}" ${v[0]===current?"selected":""}>${esc(v[1])}</option>`).join("");
+}
+function parseDate(s) {
+  const [d,m,y] = String(s).split("/");
+  return y&&m&&d ? `${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}` : "";
+}
+function dtValue(m) {
+  const d = parseDate(m.date);
+  return `${d} ${m.time}`;
+}
+function finalStatus(m) { return m.final || "Pendiente"; }
+function finalDisplay(m) { return finalStatus(m)==="Pendiente" ? "Pendiente de cierre" : finalStatus(m); }
+function tone(v) {
+  if (["Válida","Reunión realizada","Cumple","Reunión válida"].includes(v)) return "green";
+  if (["Pendiente","Pendiente de cierre","Reagendar reunión"].includes(v)) return "orange";
+  if (["Reunión futura"].includes(v)) return "blue";
+  if (["Solicita revisión"].includes(v)) return "purple";
+  if (["No válida","Reunión cancelada","Reunión no válida"].includes(v)) return "red";
+  if (["No necesaria"].includes(v)) return "gray";
+  return "gray";
+}
+function clientCanEdit(m) {
+  if (["Reunión futura","Reunión cancelada","Reagendar reunión"].includes(m.status)) return false;
+  if (m.cp === "No válida" || m.cp === "No necesaria") return false;
+  if (m.clientVal === "No necesaria") return false;
+  return true;
+}
+function ensureDraft(m) {
+  if (!clientDrafts[m.id]) {
+    clientDrafts[m.id] = {
+      clientVal: m.clientVal || "Pendiente",
+      clientReason: m.clientReason || "",
+      clientComment: m.clientComment || "",
+    };
+  }
+  return clientDrafts[m.id];
+}
+function getDraftClientVal(m) { return ensureDraft(m).clientVal; }
+function hasUnsavedClientDraft(m) {
+  const d = clientDrafts[m.id];
+  if (!d) return false;
+  return d.clientVal !== (m.clientVal || "Pendiente")
+    || d.clientReason !== (m.clientReason || "")
+    || d.clientComment !== (m.clientComment || "");
+}
+function setClientDraft(id, field, value) {
+  const m = meetings.find(x => x.id === id);
+  if (!m || !clientCanEdit(m)) return;
+  ensureDraft(m)[field] = value;
+  selected = id;
+  panelOpen = true;
+  tab = "Evaluación Cliente";
+  render();
+}
+function saveClientEvaluation(id, forcedVal) {
+  const m = meetings.find(x => x.id === id);
+  if (!m || !clientCanEdit(m)) return;
+  const d = ensureDraft(m);
+  if (forcedVal) d.clientVal = forcedVal;
+  if (d.clientVal === "Solicita revisión") {
+    if (!d.clientReason) { notify("Selecciona un motivo"); return false; }
+    if (!String(d.clientComment || "").trim()) { notify("El comentario es obligatorio"); return false; }
+  }
+  notify("Guardando...");
+  setComponentValue({
+    nonce: `${Date.now()}-${Math.random()}`,
+    action: "client_response",
+    meeting: { id: m.id, clientSlug: m.clientSlug || "__CLIENT_SLUG__" },
+    clientVal: d.clientVal,
+    clientReason: d.clientReason || "",
+    clientComment: d.clientComment || "",
+  });
+  reviewFormOpen[id] = false;
+  return true;
+}
+function confirmMeeting(id) {
+  const m = meetings.find(x => x.id === id);
+  if (!m || !clientCanEdit(m)) return;
+  clientDrafts[id] = { clientVal: "Válida", clientReason: "", clientComment: m.clientComment || "" };
+  saveClientEvaluation(id, "Válida");
+}
+function openReviewForm(id) {
+  const m = meetings.find(x => x.id === id);
+  if (!m || !clientCanEdit(m)) return;
+  reviewFormOpen[id] = true;
+  const firstReason = (clientRevisionReasons[0] && clientRevisionReasons[0].key) || "";
+  clientDrafts[id] = {
+    clientVal: "Solicita revisión",
+    clientReason: m.clientReason || firstReason,
+    clientComment: m.clientComment || "",
+  };
+  selected = id; panelOpen = true; tab = "Evaluación Cliente"; render();
+}
+function cancelReviewForm(id) {
+  reviewFormOpen[id] = false;
+  const m = meetings.find(x => x.id === id);
+  if (m) clientDrafts[id] = { clientVal: m.clientVal || "Pendiente", clientReason: m.clientReason || "", clientComment: m.clientComment || "" };
+  render();
+}
+function saveReview(id) {
+  ensureDraft(meetings.find(x => x.id === id)).clientVal = "Solicita revisión";
+  saveClientEvaluation(id, "Solicita revisión");
+}
+function notify(msg) {
+  let n = document.getElementById("saveNote");
+  if (!n) { n = document.createElement("div"); n.id = "saveNote"; n.className = "save-note"; document.body.appendChild(n); }
+  n.textContent = msg;
+  clearTimeout(window.__t);
+  window.__t = setTimeout(() => n.remove(), 1800);
+}
+function setFilter(k, v) {
+  filters[k] = v;
+  if (k === "month" || k === "year") Object.assign(filters, monthYearRange(filters.year, filters.month));
+  render();
+}
+function toggleMore() { more = !more; render(); }
+function resetDateRange() { filters.month = "6"; filters.year = "2026"; Object.assign(filters, defaultRange()); render(); }
+function setToday() { const t = iso(new Date()); filters.dateFrom = t; filters.dateTo = t; render(); }
+function setThisWeek() {
+  const now = new Date(), day = (now.getDay()+6)%7;
+  const mon = new Date(now); mon.setDate(now.getDate()-day);
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  filters.dateFrom = iso(mon); filters.dateTo = iso(sun); render();
+}
+function clearFilter(k) {
+  if (k === "date") { filters.month = "6"; filters.year = "2026"; Object.assign(filters, defaultRange()); }
+  else filters[k] = k === "q" ? "" : "Todos";
+  render();
+}
+function clearAll() { filters = defaultFilters(); render(); }
+function toggleFilter(k, v) { filters[k] = filters[k] === v ? "Todos" : v; }
+function applyFilters() {
+  return meetings.filter(m => {
+    const hay = `${m.company} ${m.contact} ${m.role} ${m.email||""}`.toLowerCase();
+    const md = parseDate(m.date);
+    if (filters.q && !hay.includes(filters.q.toLowerCase())) return false;
+    if (filters.dateFrom && md < filters.dateFrom) return false;
+    if (filters.dateTo && md > filters.dateTo) return false;
+    if (filters.status !== "Todos" && m.status !== filters.status) return false;
+    if (filters.cp !== "Todos" && m.cp !== filters.cp) return false;
+    if (filters.clientVal !== "Todos" && m.clientVal !== filters.clientVal) return false;
+    if (filters.final !== "Todos" && finalStatus(m) !== filters.final) return false;
+    return true;
+  });
+}
+function sortRows(rows) {
+  const dir = sortState.dir === "asc" ? 1 : -1;
+  return [...rows].sort((a,b) => {
+    const av = sortState.key === "dateTime" ? dtValue(a) : String(a[sortState.key] || finalStatus(a));
+    const bv = sortState.key === "dateTime" ? dtValue(b) : String(b[sortState.key] || finalStatus(b));
+    return av > bv ? dir : av < bv ? -dir : 0;
+  });
+}
+function setSort(k) {
+  if (sortState.key === k) sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+  else sortState = { key: k, dir: k === "dateTime" ? "desc" : "asc" };
+  render();
+}
+function optionSets(rows) {
+  const uniq = k => [...new Set(rows.map(m => k === "final" ? finalStatus(m) : m[k]).filter(Boolean))];
+  return { status: uniq("status"), cp: uniq("cp"), clientVal: uniq("clientVal"), final: uniq("final") };
+}
+function activeFilterCount() {
+  return ["status","cp","clientVal","final"].filter(k => filters[k] !== "Todos").length;
+}
+function renderFilters(rows) {
+  const opts = optionSets(applyFilters());
+  document.getElementById("q").value = filters.q;
+  document.getElementById("fMonth").innerHTML = optPairs(monthOptions(), filters.month);
+  document.getElementById("fYear").innerHTML = opt(yearOptions(), filters.year);
+  document.getElementById("fDateFrom").value = filters.dateFrom;
+  document.getElementById("fDateTo").value = filters.dateTo;
+  document.getElementById("fStatus").innerHTML = opt(["Todos",...opts.status], filters.status);
+  document.getElementById("fCp").innerHTML = opt(["Todos",...opts.cp], filters.cp);
+  document.getElementById("fClientVal").innerHTML = opt(["Todos",...opts.clientVal], filters.clientVal);
+  document.getElementById("fFinal").innerHTML = opt(["Todos",...opts.final], filters.final);
+  document.getElementById("extraFilters").classList.toggle("open", more);
+  document.getElementById("moreBtn").textContent = `Más filtros${activeFilterCount() ? ` (${activeFilterCount()})` : ""}`;
+  const labels = { q:"Buscar", status:"Etapa", cp:"CP", clientVal:"Eval. cliente", final:"Final" };
+  const chips = Object.keys(labels).filter(k => (k==="q" && filters.q) || (k!=="q" && filters[k]!=="Todos"))
+    .map(k => `<span class="filter-chip">${labels[k]}: ${esc(filters[k])}<button onclick="clearFilter('${k}')">×</button></span>`);
+  document.getElementById("activeFilters").innerHTML = chips.length
+    ? `<span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-right:6px">Filtros activos:</span>${chips.join("")}`
+    : "";
+}
+function renderQuickStatus() {
+  const chips = statuses.map(s => {
+    const color = s === "Reunión futura" ? "blue" : s === "Reunión realizada" ? "green" : s === "Reunión cancelada" ? "red" : "orange";
+    return [s, "status", s, color];
+  });
+  document.getElementById("quickStatus").innerHTML = chips.map(c =>
+    `<button class="qd-chip ${c[3]} ${filters[c[1]]===c[2]?"on":""}" onclick="toggleFilter('${c[1]}','${c[2]}');render()">${c[0]}</button>`
+  ).join("");
+}
+function pct(n, total) { return total ? `${((n/total)*100).toFixed(1)}% del total` : "0%"; }
+function kpiActive(label) {
+  return (label==="Válidas"&&filters.final==="Reunión válida")||(label==="No válidas"&&filters.final==="Reunión no válida")||(label==="Pendiente CP"&&filters.cp==="Pendiente")||(label==="Pendiente cliente"&&filters.clientVal==="Pendiente");
+}
+function renderKpis(rows) {
+  const total = rows.length || 1;
+  const cards = [
+    ["Total reuniones", rows.length, "Todas las reuniones", "blue", "T", () => { filters.status=filters.cp=filters.clientVal=filters.final="Todos"; }],
+    ["Válidas", rows.filter(x=>finalStatus(x)==="Reunión válida").length, pct(rows.filter(x=>finalStatus(x)==="Reunión válida").length,total), "green", "V", () => toggleFilter("final","Reunión válida")],
+    ["No válidas", rows.filter(x=>finalStatus(x)==="Reunión no válida").length, pct(rows.filter(x=>finalStatus(x)==="Reunión no válida").length,total), "red", "X", () => toggleFilter("final","Reunión no válida")],
+    ["Pendiente CP", rows.filter(x=>x.cp==="Pendiente").length, pct(rows.filter(x=>x.cp==="Pendiente").length,total), "orange", "P", () => toggleFilter("cp","Pendiente")],
+    ["Pendiente cliente", rows.filter(x=>x.clientVal==="Pendiente").length, pct(rows.filter(x=>x.clientVal==="Pendiente").length,total), "orange", "PC", () => toggleFilter("clientVal","Pendiente")],
+  ];
+  window.__kpiActions = cards.map(c => c[5]);
+  document.getElementById("kpis").innerHTML = cards.map((i,idx) =>
+    `<div class="kpi ${kpiActive(i[0])?"active":""}" onclick="__kpiActions[${idx}]();render()"><div class="ico ${i[3]}">${i[4]}</div><div><span>${i[0]}</span><b>${i[1]}</b><small>${i[2]}</small></div></div>`
+  ).join("");
+}
+function renderTopMeta(rows) {
+  const valid = rows.filter(m => finalStatus(m) === "Reunión válida").length;
+  const p = CLIENT_GOAL ? Math.round(valid / CLIENT_GOAL * 100) : 0;
+  const state = p >= 75 ? "EN META" : p >= 20 ? "A MEDIAS" : "ATRASADO";
+  document.getElementById("topMeta").innerHTML = `
+    <div class="top-meta-label">Avance de meta · reuniones válidas / meta contractual</div>
+    <div class="top-meta-row">
+      <span class="top-meta-ratio">${valid} / ${CLIENT_GOAL} · ${p}%</span>
+      <div class="top-meta-bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div>
+      <span class="goal-pill">${state}</span>
+    </div>`;
+}
+function renderHead() {
+  const cols = [["dateTime","Fecha y hora"],["company","Empresa"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluación CP"],["clientVal","Evaluación Cliente"],["final","Estado Final"],["actions","Acciones"]];
+  const filterable = ["status","cp","clientVal","final"];
+  const allOpts = optionSets(applyFilters());
+  const header = (k, label) => {
+    if (k === "actions") return label;
+    if (filterable.includes(k)) {
+      const active = filters[k] !== "Todos";
+      const options = [`<option value="Todos">${label}</option>`].concat((allOpts[k]||[]).map(v => `<option value="${esc(v)}" ${filters[k]===v?"selected":""}>${esc(v)}</option>`)).join("");
+      return `<select class="quick ${active?"active":""}" onchange="setFilter('${k}',this.value)">${options}</select>`;
+    }
+    return `<button class="sort" onclick="setSort('${k}')">${label}${sortState.key===k?(sortState.dir==="asc"?" ▲":" ▼"):""}</button>`;
+  };
+  document.getElementById("thead").innerHTML = `<tr>${cols.map(c => `<th>${header(c[0],c[1])}</th>`).join("")}</tr>`;
+}
+function pillReadonly(val) {
+  return `<span class="pill readonly ${tone(val)}">${esc(val)}</span>`;
+}
+function renderRows(rows) {
+  document.getElementById("rows").innerHTML = sortRows(rows).map(m => `
+    <tr class="${m.id===selected?"selected":""}" onclick="openDetail(${m.id})">
+      <td><b>${esc(m.date)}</b><span class="sub">${esc(m.time)}</span></td>
+      <td class="company">${esc(m.company)}</td>
+      <td>${esc(m.contact)}<span class="sub">${esc(m.role)}</span></td>
+      <td>${pillReadonly(m.status)}</td>
+      <td>${pillReadonly(m.cp)}</td>
+      <td>${pillReadonly(m.clientVal)}</td>
+      <td>${pillReadonly(finalDisplay(m))}</td>
+      <td onclick="event.stopPropagation()"><button class="act-eye" onclick="openDetail(${m.id})">${EYE_SVG}</button></td>
+    </tr>`).join("");
+}
+function openDetail(id) {
+  selected = id;
+  tab = "Información";
+  panelOpen = true;
+  reviewFormOpen[id] = false;
+  const m = meetings.find(x => x.id === id);
+  if (m) {
+    clientDrafts[id] = {
+      clientVal: m.clientVal || "Pendiente",
+      clientReason: m.clientReason || "",
+      clientComment: m.clientComment || "",
+    };
+  }
+  render();
+}
+function closeDetail() { panelOpen = false; render(); }
+function current() { return meetings.find(m => m.id === selected) || meetings[0]; }
+
+function infoSection(title, subtitle, icon, body) {
+  return `<details class="co-section" open><summary><span class="co-icon">${icon}</span><span class="co-title"><b>${title}</b><span>${subtitle}</span></span><span class="co-chevron">⌃</span></summary><div class="grid">${body}</div></details>`;
+}
+function readField(label, val) {
+  return `<div class="field2"><label>${label}</label><input value="${esc(val||"—")}" readonly></div>`;
+}
+function linkField(label, url, linkLabel = "Abrir ↗") {
+  const clean = (url || "").trim();
+  const open = clean
+    ? `<a href="${esc(clean)}" target="_blank" rel="noopener" class="open-link">${linkLabel}</a>`
+    : `<span class="sub">Sin enlace</span>`;
+  return `<div class="field2"><label>${label}</label><div class="link-field"><input value="${esc(clean)}" readonly>${open}</div></div>`;
+}
+function infoTab(m) {
+  return `<div class="co-head"><b>Información de la reunión</b><span>Datos visibles para el cliente.</span></div>`
+    + infoSection("Empresa","Información de la empresa","▣", readField("Nombre de empresa", m.company) + readField("País", m.country) + readField("Sitio web", m.website))
+    + infoSection("Contacto","Información de la persona","○", readField("Nombre del contacto", m.contact) + readField("Cargo", m.role) + readField("Correo", m.email) + readField("Teléfono", m.phone))
+    + infoSection("Reunión","Información de la reunión","▣", readField("Fecha", m.date) + readField("Hora", m.time) + linkField("Enlace reunión", m.meet, "Abrir ↗") + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`);
+}
+function cpTab(m) {
+  const marked = Object.entries(m.bant).filter(([, v]) => v);
+  const bant = marked.length
+    ? `<div class="bant-grid">${marked.map(([k]) => `<div class="bant-item">${k}</div>`).join("")}</div>`
+    : `<div class="read"><p>Sin variables BANT marcadas por Conprospección.</p></div>`;
+  return `<div class="grid">${readField("Evaluación CP", m.cp)}${readField("ICP", m.icp)}</div>
+    <span class="block-title">BANT</span>${bant}
+    ${m.just ? `<div class="just-box"><b>Justificación</b><p style="margin:0">${esc(m.just)}</p></div>` : ""}
+    <div class="read" style="margin-top:10px"><p>El cliente no edita Evaluación CP, BANT ni ICP.</p></div>`;
+}
+function clientTab(m) {
+  if (!clientCanEdit(m)) {
+    return `<div class="read"><p><b>Estado actual:</b> ${esc(m.clientVal)}</p><p><b>Última acción:</b> ${esc(m.clientDate||"Sin fecha")}</p><p><b>Motivo:</b> ${esc(m.clientReason||"—")}</p><p><b>Comentario:</b> ${esc(m.clientComment||"—")}</p></div>`;
+  }
+  const lastSaved = m.clientDate ? `<div class="read"><p><b>Última acción guardada:</b> ${esc(m.clientDate)} · ${esc(m.clientVal)}</p></div>` : "";
+  if (reviewFormOpen[m.id]) {
+    const d = ensureDraft(m);
+    const reasonOpts = clientRevisionReasons.map(r => `<option value="${esc(r.key)}" ${d.clientReason===r.key?"selected":""}>${esc(r.label)}</option>`).join("");
+    return `${lastSaved}<div class="review-form"><div class="read"><p><b>Solicitar revisión</b> — indica motivo y comentario (obligatorio).</p></div><div class="grid" style="margin-top:10px"><div class="field2 wide"><label>Motivo</label><select onchange="setClientDraft(${m.id},'clientReason',this.value)">${reasonOpts}</select></div><div class="field2 wide"><label>Comentario *</label><textarea placeholder="Describe qué debe revisar Conprospección" oninput="setClientDraft(${m.id},'clientComment',this.value)">${esc(d.clientComment)}</textarea></div></div><div class="btn-row save-bar"><button class="ghost" onclick="cancelReviewForm(${m.id})">Cancelar</button><button class="primary" onclick="saveReview(${m.id})">Enviar solicitud de revisión</button></div></div>`;
+  }
+  return `${lastSaved}<div class="read"><p>Confirma la evaluación de Conprospección o solicita revisión si no estás de acuerdo.</p></div><div class="actions-row"><button class="primary" onclick="confirmMeeting(${m.id})">Confirmar reunión</button><button class="ghost" onclick="openReviewForm(${m.id})">Solicitar revisión</button></div>`;
+}
+function finalTab(m) {
+  return `<div class="grid">${readField("Estado Final", finalDisplay(m))}<div class="field2 wide"><label>Mensaje al cliente</label><textarea readonly>${esc(m.finalClientText||"Sin mensaje publicado.")}</textarea></div></div><div class="read"><p>El cliente no define el cierre administrativo.</p></div>`;
+}
+function evidenceTab(m) {
+  const ev = (m.evidence||[]).filter(e => e.url || e.text || e.name);
+  if (!ev.length) return `<div class="read"><p>Sin evidencia para esta reunión.</p></div>`;
+  return `<div class="evidence">${ev.map(e => `<div class="evi">${esc(e.type)}${e.url?`<br><a href="${esc(e.url)}" target="_blank" rel="noopener">Abrir ↗</a>`:""}${e.text?`<small>${esc(e.text)}</small>`:""}</div>`).join("")}</div>`;
+}
+function historyTab(m) {
+  return `<div class="history">${(m.history||[]).map(h => `<div class="hist"><small>${esc(h.when)} · ${esc(h.user)}</small><b>${esc(h.field)}</b><div>${esc(h.text)}</div></div>`).join("")||"<span class='sub'>Sin cambios registrados.</span>"}</div>`;
+}
+function renderPanel() {
+  if (!panelOpen) return;
+  const m = current();
+  document.getElementById("detailBand").innerHTML = `
+    <div class="band-main"><div class="band-title"><b>${esc(m.company)}</b><span>${esc(m.contact)} · ${esc(m.role)}</span></div></div>
+    <div class="band-item"><small>Fecha y hora</small><b>${esc(m.date)} ${esc(m.time)}</b></div>`;
+  const states = [["Etapa Agenda",m.status,"","Información"],["Evaluación CP",m.cp,"","Evaluación CP"],["Evaluación Cliente",hasUnsavedClientDraft(m)?getDraftClientVal(m):m.clientVal,"","Evaluación Cliente"],["Estado Final",finalDisplay(m),"final-state","Estado Final"]];
+  document.getElementById("summary").innerHTML = states.map(i =>
+    `<button class="sum ${i[2]}" onclick="tab='${i[3]}';renderPanel()"><small>${i[0]}</small><span class="chip ${tone(i[1])}">${esc(i[1])}</span></button>`
+  ).join("");
+  const tabs = ["Información","Evaluación CP","Evaluación Cliente","Estado Final","Historial"];
+  document.getElementById("tabs").innerHTML = tabs.map(t =>
+    `<button class="${tab===t?"active":""}" onclick="tab='${t}';renderPanel()">${t}</button>`
+  ).join("");
+  let html = "";
+  if (tab === "Información") html = infoTab(m);
+  if (tab === "Evaluación CP") html = cpTab(m);
+  if (tab === "Evaluación Cliente") html = clientTab(m);
+  if (tab === "Estado Final") html = finalTab(m);
+  if (tab === "Historial") html = historyTab(m);
+  document.getElementById("panel").innerHTML = html;
+}
+function render() {
+  const rows = applyFilters();
+  document.getElementById("layout").classList.toggle("open", panelOpen);
+  document.getElementById("drawer").classList.toggle("hidden", !panelOpen);
+  renderFilters(rows);
+  renderQuickStatus();
+  renderKpis(rows);
+  renderTopMeta(rows);
+  renderHead();
+  renderRows(rows);
+  if (panelOpen) renderPanel();
+}
+render();
+</script>
+</body>
+</html>
