@@ -179,6 +179,13 @@ El encabezado del panel lateral usa una franja superior de resumen:
 - datos operativos en una linea: Cliente, Fecha y hora, SDR asignada y Estado del Caso;
 - SDR asignada y Estado del Caso son editables desde la franja.
 
+Regla visual v6:
+
+- la franja usa padding lateral de 20px en el panel;
+- el bloque empresa lleva separador vertical antes de los datos operativos;
+- los datos operativos deben tener icono, etiqueta y valor;
+- las pestanas se muestran como barra horizontal con subrayado amarillo en la activa, no como botones grandes.
+
 Debajo de la franja se muestran las cuatro tarjetas de estado:
 
 - Etapa Agenda
