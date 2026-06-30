@@ -9,6 +9,38 @@ from dashboard.meeting_shared import (
 )
 
 
+def test_build_client_history_respeta_visibilidad_desde_auditoria():
+    meeting = {
+        "cp": "Válida",
+        "clientVal": "Pendiente",
+        "final": "Reunión válida",
+        "status": "Reunión realizada",
+        "date": "30/06/2026",
+        "time": "11:00 AM",
+        "historyVisibility": {},
+        "history": [
+            {
+                "when": "2026-06-30 18:37",
+                "user": "Francisca / Yanina",
+                "field": "Visibilidad historial",
+                "to": "fecha_realizada: Visible para cliente",
+            },
+            {
+                "when": "2026-06-30 20:09",
+                "user": "CP",
+                "field": "role",
+                "to": "role guardado desde panel interno",
+            },
+        ],
+    }
+    out = project_meeting_for_client(meeting)
+    fields = [item["field"] for item in out["history"]]
+    assert "role" not in fields
+    assert "Visibilidad historial" not in fields
+    assert "guardado desde panel interno" not in " ".join(item["text"] for item in out["history"])
+    assert "Reunión realizada" in fields
+
+
 def test_cancelled_meeting_no_muestra_no_valida_cp():
     cp, client_val, final = _normalize_cancelled_meeting(
         "Reunión cancelada",

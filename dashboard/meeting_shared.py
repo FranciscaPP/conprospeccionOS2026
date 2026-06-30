@@ -589,8 +589,23 @@ def load_meetings(client_slugs: list[str] | None = None):
     return [row for row in all_rows if _txt(row.get("clientSlug")).lower() in allowed]
 
 
+def _resolve_history_visibility(meeting: dict) -> dict:
+    """Combina historial_visibilidad persistido con toggles guardados en auditoría."""
+    visibility = _json_obj(meeting.get("historyVisibility"), {}).copy()
+    for event in reversed(meeting.get("history") or []):
+        if _txt(event.get("field")) != "Visibilidad historial":
+            continue
+        text = _txt(event.get("to")) or _txt(event.get("description")) or ""
+        if ":" not in text:
+            continue
+        key, state = [part.strip() for part in text.split(":", 1)]
+        if key:
+            visibility[key] = _visibility_from_state(state)
+    return visibility
+
+
 def _history_visible(meeting: dict, key: str, default: bool = False) -> bool:
-    visibility = _json_obj(meeting.get("historyVisibility"), {})
+    visibility = _resolve_history_visibility(meeting)
     if key in visibility:
         return bool(visibility[key])
     return default
@@ -616,6 +631,7 @@ def _build_client_history(meeting: dict) -> list[dict]:
     """Historial visible para el cliente; no expone auditoría interna."""
     items: list[dict] = []
     history = meeting.get("history") or []
+    meeting_for_visibility = {**meeting, "historyVisibility": _resolve_history_visibility(meeting)}
 
     def add(when: str, user: str, field: str, text: str) -> None:
         clean = _txt(text)
@@ -630,11 +646,11 @@ def _build_client_history(meeting: dict) -> list[dict]:
             }
         )
 
-    if _history_visible(meeting, "fecha_agenda", False):
+    if _history_visible(meeting_for_visibility, "fecha_agenda", False):
         when = _txt(meeting.get("scheduledDate")) or _txt(meeting.get("date")) or "Sin fecha"
         add(when, "Sistema", "Fecha de agenda", when)
 
-    if meeting.get("status") == "Reunión realizada" and _history_visible(meeting, "fecha_realizada", False):
+    if meeting.get("status") == "Reunión realizada" and _history_visible(meeting_for_visibility, "fecha_realizada", False):
         when = _latest_history_when(history, "Etapa Agenda") or f"{_txt(meeting.get('date'))} {_txt(meeting.get('time'))}".strip()
         add(when, "Sistema", "Reunión realizada", when)
 
@@ -643,14 +659,14 @@ def _build_client_history(meeting: dict) -> list[dict]:
         cp
         and cp not in {"Pendiente", "", "No necesaria"}
         and meeting.get("status") != "Reunión cancelada"
-        and _history_visible(meeting, "fecha_cp", True)
+        and _history_visible(meeting_for_visibility, "fecha_cp", True)
     ):
         when = _latest_history_when(history, "Evaluación CP") or "Sin fecha"
         add(when, "Conprospección", "Evaluación Conprospección", cp)
 
     client_val = _txt(meeting.get("clientVal"))
     if client_val and client_val not in {"Pendiente", ""} and _history_visible(
-        meeting,
+        meeting_for_visibility,
         "fecha_cliente",
         client_val != "No necesaria",
     ):
@@ -659,7 +675,7 @@ def _build_client_history(meeting: dict) -> list[dict]:
         add(when, actor, "Evaluación del cliente", client_val)
 
     final = _txt(meeting.get("final"))
-    if final and final not in {"Pendiente", ""} and _history_visible(meeting, "fecha_final", True):
+    if final and final not in {"Pendiente", ""} and _history_visible(meeting_for_visibility, "fecha_final", True):
         when = _latest_history_when(history, "Estado Final") or "Sin fecha"
         label = "Pendiente de cierre" if final == "Pendiente" else final
         add(when, "Conprospección", "Estado final", label)
