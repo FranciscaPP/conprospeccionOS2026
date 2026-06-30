@@ -83,8 +83,8 @@ def payload_respuesta_cliente(
     """Payload estricto del portal cliente; no admite campos CP u operativos."""
     if estado not in RESPUESTAS_CLIENTE_PERMITIDAS:
         raise ValueError(f"respuesta cliente no permitida: {estado}")
-    if estado == "requiere_revision" and (not motivo or not comentario.strip()):
-        raise ValueError("solicitar revision exige motivo y comentario")
+    if estado == "requiere_revision" and not comentario.strip():
+        raise ValueError("solicitar revision exige comentario")
     now = datetime.now(timezone.utc).isoformat()
     return {
         "reunion_id": int(reunion_id),

@@ -24,8 +24,6 @@ from shared.seguimiento import (
     recalcular_final_y_flags,
     registrar_historial,
 )
-from shared.validacion import MOTIVO_NO_VALIDEZ
-from shared.validacion_ui import LABEL_MOTIVO
 
 _COMPONENT_DIR = Path(__file__).resolve().parent / "client_meeting_portal"
 _TEMPLATE = (_COMPONENT_DIR / "index.html").read_text(encoding="utf-8")
@@ -34,11 +32,6 @@ SUPABASE_URL = supabase_url()
 SUPABASE_KEY = supabase_key()
 _HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
 _WRITE_HEADERS = {**_HEADERS, "Content-Type": "application/json"}
-
-
-def _revision_reasons_json() -> str:
-    reasons = [{"key": key, "label": LABEL_MOTIVO.get(key, key)} for key in MOTIVO_NO_VALIDEZ]
-    return json.dumps(reasons, ensure_ascii=True)
 
 
 def _client_val_to_db(value: str) -> str | None:
@@ -68,7 +61,6 @@ def _build_html(
     html = html.replace("__MEETINGS_JSON__", meetings_json)
     html = html.replace("__CLIENT_GOAL__", str(goal))
     html = html.replace("__CLIENT_SLUG__", client_slug)
-    html = html.replace("__REVISION_REASONS__", _revision_reasons_json())
     html = html.replace("__PORTAL_TITLE__", title)
     html = html.replace("__PORTAL_BRAND__", brand)
     html = html.replace("__PORTAL_USER__", user_label)
@@ -187,7 +179,7 @@ iframe{display:block}
         component_dir,
         key=f"client_portal_{client_slug}_{reload_token}",
     )
-    if isinstance(component_payload, dict):
+    if isinstance(component_payload, dict) and component_payload.get("action") == "client_response":
         nonce = json.dumps(component_payload, sort_keys=True, ensure_ascii=True)
         if st.session_state.get(f"_portal_last_{client_slug}") != nonce:
             st.session_state[f"_portal_last_{client_slug}"] = nonce
@@ -196,4 +188,4 @@ iframe{display:block}
                 st.session_state[f"_portal_reload_{client_slug}"] = reload_token + 1
                 st.toast("Respuesta guardada.")
                 st.rerun()
-            st.error("No fue posible guardar la respuesta. Revisa motivo y comentario.")
+            st.error("No fue posible guardar la respuesta. Revisa el comentario e intenta nuevamente.")

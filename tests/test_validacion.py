@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from shared.validacion import (
@@ -224,20 +226,18 @@ def test_portal_y_seguimiento_dependen_de_la_misma_derivacion_de_estado():
     assert "derivar_estado_flujo(" in interno
 
 
-def test_payload_revision_exige_motivo_y_comentario():
-    for motivo, comentario in ((None, "detalle"), ("otro_contractual", "")):
-        try:
-            payload_respuesta_cliente(
-                123,
-                "gbs",
-                "requiere_revision",
-                motivo=motivo,
-                comentario=comentario,
-            )
-        except ValueError:
-            pass
-        else:
-            raise AssertionError("La revisión incompleta debió ser rechazada")
+def test_payload_revision_exige_comentario():
+    with pytest.raises(ValueError):
+        payload_respuesta_cliente(123, "gbs", "requiere_revision", comentario="")
+    payload = payload_respuesta_cliente(
+        123,
+        "gbs",
+        "requiere_revision",
+        comentario="Favor revisar la fecha acordada",
+    )
+    assert payload["val_estado_cli"] == "requiere_revision"
+    assert payload["comentario_cli"] == "Favor revisar la fecha acordada"
+    assert payload.get("motivo_no_validez") is None
 
 
 def test_cliente_no_puede_rechazar_guardar_no_valida_ni_reagendada():

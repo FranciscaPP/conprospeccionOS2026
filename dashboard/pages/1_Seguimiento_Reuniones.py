@@ -212,7 +212,25 @@ def _evidence(row, seg):
 
 
 def _json_obj(value, default):
-    return value if isinstance(value, type(default)) else default
+    if isinstance(value, type(default)):
+        return value
+    if isinstance(value, str) and value.strip():
+        try:
+            parsed = json.loads(value)
+            if isinstance(parsed, type(default)):
+                return parsed
+        except (json.JSONDecodeError, TypeError):
+            pass
+    if isinstance(default, dict):
+        return {}
+    if isinstance(default, list):
+        return []
+    return default
+
+
+def _visibility_from_state(state: str) -> bool:
+    raw = _txt(state).lower()
+    return "visible" in raw and "solo" not in raw
 
 
 def _apply_evidence_visibility(evidence, saved_visibility, history):
@@ -220,11 +238,16 @@ def _apply_evidence_visibility(evidence, saved_visibility, history):
     for event in reversed(history or []):
         if _txt(event.get("field")) != "Visibilidad evidencia":
             continue
-        text = _txt(event.get("to")) or _txt(event.get("description"))
-        if ":" not in text:
+        evidence_type = _txt(event.get("from"))
+        state = _txt(event.get("to")) or _txt(event.get("description"))
+        if evidence_type and state:
+            visibility[evidence_type] = _visibility_from_state(state)
             continue
-        evidence_type, state = [part.strip() for part in text.split(":", 1)]
-        visibility[evidence_type] = "visible" in state.lower() and "solo" not in state.lower()
+        if ":" not in state:
+            continue
+        evidence_type, state = [part.strip() for part in state.split(":", 1)]
+        if evidence_type:
+            visibility[evidence_type] = _visibility_from_state(state)
     for item in evidence:
         item["clientVisible"] = bool(visibility.get(item.get("type"), item.get("clientVisible", False)))
     return evidence

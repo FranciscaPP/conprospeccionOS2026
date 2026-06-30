@@ -258,14 +258,12 @@ const cps = ["","Pendiente","Válida","No válida","No necesaria"];
 const clientVals = ["","Pendiente","Válida","No válida","Solicita revisión","No necesaria"];
 const clientValsEditable = ["Pendiente","Válida","Solicita revisión"];
 const finalOptions = ["Pendiente","Reunión válida","Reunión no válida","Reunión cancelada","Reagendar reunión"];
-const clientRevisionReasons = __REVISION_REASONS__;
 const EYE_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
 
 let meetings = __MEETINGS_JSON__;
 
 let selected = null, tab = "Información", panelOpen = false, more = false;
 let clientDrafts = {};
-let reviewFormOpen = {};
 let filters = defaultFilters();
 let sortState = { key: "dateTime", dir: "desc" };
 
@@ -359,12 +357,14 @@ function setClientDraft(id, field, value) {
 }
 function saveClientEvaluation(id, forcedVal) {
   const m = meetings.find(x => x.id === id);
-  if (!m || !clientCanEdit(m)) return;
+  if (!m || !clientCanEdit(m)) return false;
   const d = ensureDraft(m);
   if (forcedVal) d.clientVal = forcedVal;
   if (d.clientVal === "Solicita revisión") {
-    if (!d.clientReason) { notify("Selecciona un motivo"); return false; }
-    if (!String(d.clientComment || "").trim()) { notify("El comentario es obligatorio"); return false; }
+    if (!String(d.clientComment || "").trim()) {
+      notify("Escribe un comentario para solicitar revisión");
+      return false;
+    }
   }
   notify("Guardando...");
   setComponentValue({
@@ -372,38 +372,21 @@ function saveClientEvaluation(id, forcedVal) {
     action: "client_response",
     meeting: { id: m.id, clientSlug: m.clientSlug || "__CLIENT_SLUG__" },
     clientVal: d.clientVal,
-    clientReason: d.clientReason || "",
+    clientReason: "",
     clientComment: d.clientComment || "",
   });
-  reviewFormOpen[id] = false;
   return true;
 }
 function confirmMeeting(id) {
   const m = meetings.find(x => x.id === id);
   if (!m || !clientCanEdit(m)) return;
-  clientDrafts[id] = { clientVal: "Válida", clientReason: "", clientComment: m.clientComment || "" };
+  clientDrafts[id] = { clientVal: "Válida", clientReason: "", clientComment: (clientDrafts[id] && clientDrafts[id].clientComment) || m.clientComment || "" };
   saveClientEvaluation(id, "Válida");
 }
-function openReviewForm(id) {
+function saveReview(id) {
   const m = meetings.find(x => x.id === id);
   if (!m || !clientCanEdit(m)) return;
-  reviewFormOpen[id] = true;
-  const firstReason = (clientRevisionReasons[0] && clientRevisionReasons[0].key) || "";
-  clientDrafts[id] = {
-    clientVal: "Solicita revisión",
-    clientReason: m.clientReason || firstReason,
-    clientComment: m.clientComment || "",
-  };
-  selected = id; panelOpen = true; tab = "Evaluación Cliente"; render();
-}
-function cancelReviewForm(id) {
-  reviewFormOpen[id] = false;
-  const m = meetings.find(x => x.id === id);
-  if (m) clientDrafts[id] = { clientVal: m.clientVal || "Pendiente", clientReason: m.clientReason || "", clientComment: m.clientComment || "" };
-  render();
-}
-function saveReview(id) {
-  ensureDraft(meetings.find(x => x.id === id)).clientVal = "Solicita revisión";
+  ensureDraft(m).clientVal = "Solicita revisión";
   saveClientEvaluation(id, "Solicita revisión");
 }
 function notify(msg) {
@@ -550,12 +533,11 @@ function openDetail(id) {
   selected = id;
   tab = "Información";
   panelOpen = true;
-  reviewFormOpen[id] = false;
   const m = meetings.find(x => x.id === id);
   if (m) {
     clientDrafts[id] = {
       clientVal: m.clientVal || "Pendiente",
-      clientReason: m.clientReason || "",
+      clientReason: "",
       clientComment: m.clientComment || "",
     };
   }
@@ -581,7 +563,7 @@ function infoTab(m) {
   return `<div class="co-head"><b>Información de la reunión</b><span>Datos visibles para el cliente.</span></div>`
     + infoSection("Empresa","Información de la empresa","▣", readField("Nombre de empresa", m.company) + readField("País", m.country) + readField("Sitio web", m.website))
     + infoSection("Contacto","Información de la persona","○", readField("Nombre del contacto", m.contact) + readField("Cargo", m.role) + readField("Correo", m.email) + readField("Teléfono", m.phone))
-    + infoSection("Reunión","Información de la reunión","▣", readField("Fecha", m.date) + readField("Hora", m.time) + linkField("Enlace reunión", m.meet, "Abrir ↗") + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`);
+    + infoSection("Reunión","Información de la reunión","▣", readField("Fecha", m.date) + readField("Hora", m.time) + linkField("Enlace reunión", m.meet, "Abrir ↗") + linkField("Grabación", m.recordingUrl, "Abrir grabación") + linkField("Transcripción", m.transcriptUrl, "Abrir transcripción") + `<div class="field2 wide"><label>Información de preparación</label><textarea readonly>${esc(m.info||"Sin información registrada.")}</textarea></div>`);
 }
 function evidenceLinkLabel(e) {
   const t = String(e.type || "").toLowerCase();
@@ -616,15 +598,19 @@ function cpTab(m) {
 }
 function clientTab(m) {
   if (!clientCanEdit(m)) {
-    return `<div class="read"><p><b>Estado actual:</b> ${esc(m.clientVal)}</p><p><b>Última acción:</b> ${esc(m.clientDate||"Sin fecha")}</p><p><b>Motivo:</b> ${esc(m.clientReason||"—")}</p><p><b>Comentario:</b> ${esc(m.clientComment||"—")}</p></div>`;
+    return `<div class="read"><p><b>Estado actual:</b> ${esc(m.clientVal)}</p><p><b>Última acción:</b> ${esc(m.clientDate||"Sin fecha")}</p><p><b>Comentario:</b> ${esc(m.clientComment||"—")}</p></div>`;
   }
-  const lastSaved = m.clientDate ? `<div class="read"><p><b>Última acción guardada:</b> ${esc(m.clientDate)} · ${esc(m.clientVal)}</p></div>` : "";
-  if (reviewFormOpen[m.id]) {
-    const d = ensureDraft(m);
-    const reasonOpts = clientRevisionReasons.map(r => `<option value="${esc(r.key)}" ${d.clientReason===r.key?"selected":""}>${esc(r.label)}</option>`).join("");
-    return `${lastSaved}<div class="review-form"><div class="read"><p><b>Solicitar revisión</b> — indica motivo y comentario (obligatorio).</p></div><div class="grid" style="margin-top:10px"><div class="field2 wide"><label>Motivo</label><select onchange="setClientDraft(${m.id},'clientReason',this.value)">${reasonOpts}</select></div><div class="field2 wide"><label>Comentario *</label><textarea placeholder="Describe qué debe revisar Conprospección" oninput="setClientDraft(${m.id},'clientComment',this.value)">${esc(d.clientComment)}</textarea></div></div><div class="btn-row save-bar"><button class="ghost" onclick="cancelReviewForm(${m.id})">Cancelar</button><button class="primary" onclick="saveReview(${m.id})">Enviar solicitud de revisión</button></div></div>`;
-  }
-  return `${lastSaved}<div class="read"><p>Confirma la evaluación de Conprospección o solicita revisión si no estás de acuerdo.</p></div><div class="actions-row"><button class="primary" onclick="confirmMeeting(${m.id})">Confirmar reunión</button><button class="ghost" onclick="openReviewForm(${m.id})">Solicitar revisión</button></div>`;
+  const d = ensureDraft(m);
+  const lastSaved = m.clientDate
+    ? `<div class="read"><p><b>Última acción guardada:</b> ${esc(m.clientDate)} · ${esc(m.clientVal)}</p>${m.clientVal==="Solicita revisión"?"<p>Puedes confirmar la reunión si ya quedó resuelta, o enviar otra solicitud de revisión.</p>":""}</div>`
+    : "";
+  return `${lastSaved}
+    <div class="read"><p>Confirma la evaluación de Conprospección o solicita revisión si no estás de acuerdo.</p></div>
+    <div class="field2 wide" style="margin-top:10px"><label>Comentario</label><textarea placeholder="Opcional al confirmar. Obligatorio para solicitar revisión." oninput="setClientDraft(${m.id},'clientComment',this.value)">${esc(d.clientComment)}</textarea></div>
+    <div class="actions-row">
+      <button class="primary" onclick="confirmMeeting(${m.id})">Confirmar reunión</button>
+      <button class="ghost" onclick="saveReview(${m.id})">Solicitar revisión</button>
+    </div>`;
 }
 function finalTab(m) {
   return `<div class="grid">${readField("Estado Final", finalDisplay(m))}<div class="field2 wide"><label>Mensaje al cliente</label><textarea readonly>${esc(m.finalClientText||"Sin mensaje publicado.")}</textarea></div></div><div class="read"><p>El cliente no define el cierre administrativo.</p></div>`;
