@@ -247,7 +247,8 @@ Estados: **activo** / **legacy** / **dudoso** / **archivar-luego** / **revisar**
 4. **Cierre automático por confirmación**: sigue abierta — cuando el cliente confirme (en los portales futuros), ¿la evaluación se cierra sola como válida (código y RULEBOOK) o el cierre es siempre manual (RUNBOOK)?
 5. **Evaluación Cliente "No válida" en panel interno**: sigue abierta.
 6. **Esquema Supabase**: sigue abierta — volcar el esquema vivo a migraciones consolidadas.
-7. **Herramientas dudosas**: sigue abierta — confirmar uso real de Alicia (Telegram), scripts Snov y Metabase.
+7. **Herramientas dudosas**: parcialmente resuelta (2026-07-03) — **Alicia (Telegram) eliminada** (`bot.py`, `start_alicia.bat`, `requirements.txt` raíz). Pendiente: confirmar uso real de scripts Snov y Metabase.
 8. **Tests y CI**: sigue abierta — reparar los 6 tests rotos y agregar workflow de tests.
 9. **NUEVA — Portales congelados: ¿online o fuera?** Congelar el desarrollo no es lo mismo que apagarlos: hoy Clickie, GBS y BambuTech usan sus portales para Confirmar/Solicitar revisión. Decidir si quedan publicados tal cual (funcionan) mientras se construyen los nuevos, o se retiran y la validación cliente pasa temporalmente por otro canal.
-10. **NUEVA — Alcance de BambuTech Intelligence Insight**: confirmar si `19_BambuTech_Intelligence_Insight.py` se mantiene como módulo vivo aparte del rediseño.
+10. ~~**Alcance de BambuTech Intelligence Insight**~~ — **RESUELTA (2026-07-03): se queda** como ejemplo/referencia de módulo de inteligencia para clientes.
+11. **NOTA (2026-07-03)**: módulo **MVP Setup rescatado** desde el repo antiguo `conprospeccion-os` (rama `preview/client-setup-os`, 2026-06-06) e integrado en `mvp_setup/`. Docs maestros (`CLAUDE.md`, `AGENTS.md`, `ACTIVE_WORKSPACE.md`, `PROJECT_MASTER_CONTEXT.md`, `docs/ACCESS_MODEL.md`) actualizados al nuevo estado; se retiró la instrucción de Graphify (la carpeta `graphify-out/` no existe en el repo).

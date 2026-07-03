@@ -23,10 +23,13 @@ El trabajo ordinario debe limitarse a:
 - `shared/`
 - `sync/`
 - `supabase/`
+- `mvp_setup/`
 - `tests/`
 - `docs/`
 
-No analizar ni modificar `archive/` salvo que se pida rescatar material historico.
+Limpieza 2026-07-03: `archive/`, `mockups/`, `scripts/` y todas las
+paginas de portal cliente y Tiresias fueron eliminadas del repo. Los
+portales cliente se reconstruiran desde cero a partir del panel interno.
 
 ## Datos canonicos
 

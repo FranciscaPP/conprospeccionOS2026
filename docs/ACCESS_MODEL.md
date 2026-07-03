@@ -45,29 +45,17 @@ No crear:
 
 ## Portales cliente
 
-Los portales cliente son paneles separados por cliente. No son vistas por rol interno.
+Estado 2026-07-03: los portales cliente fueron eliminados del repo por
+decision de Francisca. Se reconstruiran desde cero como proyeccion del
+panel interno. La unica pagina cliente conservada como referencia es
+`dashboard/pages/19_BambuTech_Intelligence_Insight.py` (acceso via
+`dashboard/portal_auth.py`).
 
-Rutas activas:
+Reglas que deben regir los portales futuros (sin cambio):
 
-```text
-dashboard/pages/12_GBS_Validacion_Reuniones.py
-dashboard/pages/7_Clickie_Validacion_Reuniones.py
-dashboard/pages/18_BambuTech_Validacion_Reuniones.py
-```
-
-Implementacion de acceso:
-
-```text
-dashboard/portal_auth.py
-```
-
-Regla:
-
-- GBS solo ve reuniones `cliente_slug = 'gbs'`.
-- Clickie solo ve reuniones `cliente_slug = 'clickie'`.
-- BambuTech solo ve reuniones `cliente_slug = 'bambutech'`.
-
-El cliente puede confirmar o solicitar revision desde su portal. No puede decidir Estado Final ni modificar Evaluacion CP, BANT, ICP, evidencia interna o notas internas.
+- Los portales son paneles separados por cliente. No son vistas por rol interno.
+- Cada cliente solo ve reuniones de su propio `cliente_slug`.
+- El cliente puede confirmar o solicitar revision (con motivo obligatorio). No puede decidir Estado Final ni modificar Evaluacion CP, BANT, ICP, evidencia interna o notas internas.
 
 ## Seguridad pendiente
 

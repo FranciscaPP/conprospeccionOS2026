@@ -1,6 +1,6 @@
 # Workspace activo
 
-Fecha de referencia: 2026-06-27
+Fecha de referencia: 2026-07-03
 
 ## Estado actual
 
@@ -26,6 +26,7 @@ Para trabajo normal del producto:
 - `shared/`
 - `sync/`
 - `supabase/`
+- `mvp_setup/`
 - `tests/`
 - `docs/`
 - `README.md`
@@ -35,15 +36,12 @@ Para trabajo normal del producto:
 
 ## Que no se debe tocar sin instruccion explicita
 
-- `archive/`
-- `.next/`
-- `.vercel/`
-- `.netlify/`
-- `node_modules/`
-- prototipos HTML bajo `mockups/`
-- carpetas historicas de React/Next (`app/`, `components/`, `lib/`) cuando el cambio sea del producto Streamlit
+- `.vercel/`, `.netlify/`, `node_modules/` u otras carpetas locales de herramientas
+- datos locales de clientes (`CLIENTES/`, bases Excel/CSV): nunca se suben al repo
 
-Estas carpetas pueden existir por historia del proyecto, pero no son el producto activo.
+Limpieza 2026-07-03: se eliminaron del repo `archive/`, `mockups/`,
+`scripts/`, los mockups de `dashboard/` y todas las paginas de portal
+cliente y Tiresias. El unico frente de desarrollo es el panel interno.
 
 ## Rutas oficiales
 
@@ -53,12 +51,17 @@ Panel interno oficial:
 dashboard/pages/1_Seguimiento_Reuniones.py
 ```
 
-Portales cliente activos:
+Portales cliente: eliminados del repo el 2026-07-03. Se reconstruiran
+desde cero como proyeccion del panel interno. Referencia conservada:
 
 ```text
-dashboard/pages/12_GBS_Validacion_Reuniones.py
-dashboard/pages/7_Clickie_Validacion_Reuniones.py
-dashboard/pages/18_BambuTech_Validacion_Reuniones.py
+dashboard/pages/19_BambuTech_Intelligence_Insight.py
+```
+
+Modulo de onboarding de clientes (app Streamlit independiente):
+
+```text
+mvp_setup/app.py
 ```
 
 ## Ejecucion local
