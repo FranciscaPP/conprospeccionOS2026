@@ -27,10 +27,16 @@ Trabajar normalmente solo en:
 - `shared/`
 - `sync/`
 - `supabase/`
+- `mvp_setup/`
 - `tests/`
 - `docs/`
 
-No analizar ni modificar `archive/`, `.next/`, `.vercel/`, `.netlify/`, `node_modules/` ni prototipos fuera del alcance activo salvo que se pida explicitamente.
+Estado 2026-07-03: los portales cliente fueron eliminados del repo. Se
+reconstruiran desde cero como proyeccion del panel interno. La unica
+pagina cliente que sobrevive es `19_BambuTech_Intelligence_Insight.py`,
+conservada como ejemplo/referencia.
+
+No trabajar en React, Next.js, Vercel ni Netlify salvo instruccion explicita.
 
 ## Ramas y deploy
 
@@ -54,17 +60,6 @@ Main file path: dashboard/app.py
 No usar el repo historico `FranciscaPP/conprospeccion-os` ni agregar remoto `streamlit`.
 
 No desarrollar en `master`.
-
-## Graphify
-
-Este proyecto tiene grafo de conocimiento en `graphify-out/`.
-
-Reglas:
-
-- Para preguntas de codigo, primero usar `graphify query "<pregunta>"` cuando exista `graphify-out/graph.json`.
-- Usar `graphify path "<A>" "<B>"` para relaciones y `graphify explain "<concepto>"` para conceptos puntuales.
-- No leer masivamente `graphify-out/`; usar el CLI.
-- Despues de modificar codigo o documentacion estructural, ejecutar `graphify update . --force`.
 
 ## Regla de paginas Streamlit
 
