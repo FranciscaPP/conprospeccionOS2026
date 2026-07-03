@@ -90,40 +90,11 @@ def _clear_token() -> None:
 
 
 _CLIENTS: dict[str, dict] = {
-    "tiresias": {
-        "session_key": "portal_auth_tiresias",
-        "logo_file": "tiresias_logo.png",
-        "nav": [
-            ("Indicadores", "pages/3_Tiresias.py"),
-            ("Validación Reuniones", "pages/4_Tiresias_Validacion_Reuniones.py"),
-            ("Playbook SDR", "pages/5_Tiresias_Playbook_SDR.py"),
-        ],
-    },
-    "clickie": {
-        "session_key": "portal_auth_clickie",
-        "logo_file": "clickie_logo.png",
-        "nav": [
-            ("Indicadores", "pages/6_Clickie.py"),
-            ("Validación Reuniones", "pages/7_Clickie_Validacion_Reuniones.py"),
-            ("Playbook SDR", "pages/8_Clickie_Playbook_SDR.py"),
-        ],
-    },
-    "gbs": {
-        "session_key": "portal_auth_gbs",
-        "logo_file": "gbs_logo.png",
-        "solo_modulo": True,
-        "nav": [
-            ("Validación Reuniones", "pages/12_GBS_Validacion_Reuniones.py", "base"),
-        ],
-    },
     "bambutech": {
         "session_key": "portal_auth_bambutech",
         "logo_file": "bambutech_logo.png",
         "nav": [
-            ("Onboarding", "pages/17_BambuTech_Onboarding.py", "base"),
-            ("Validación Reuniones", "pages/18_BambuTech_Validacion_Reuniones.py", "base"),
             ("Intelligence Insight", "pages/19_BambuTech_Intelligence_Insight.py", "premium"),
-            ("Playbook SDR", "pages/20_BambuTech_Playbook_SDR.py", "base"),
         ],
     },
 }
@@ -332,14 +303,6 @@ def logout_client(cliente: str) -> None:
     cfg = _CLIENTS[cliente]
     st.session_state[cfg["session_key"]] = False
     _clear_token()
-
-
-def require_auth_tiresias() -> bool:
-    return require_auth_client("tiresias")
-
-
-def require_auth_gbs() -> bool:
-    return require_auth_client("gbs")
 
 
 def require_auth_bambutech() -> bool:
