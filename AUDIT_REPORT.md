@@ -228,6 +228,13 @@ Estados: **activo** / **legacy** / **dudoso** / **archivar-luego** / **revisar**
 
 ## 7. DECISIONES QUE FRANCISCA DEBE APROBAR
 
+> **Actualización 2026-07-03 (2) — limpieza ejecutada en esta rama** (nada llega a producción hasta hacer merge a `main`):
+> - Eliminadas las 15 páginas de portales cliente y Tiresias (3-8, 10-15, 17, 18, 20), `client_meeting_portal.py` + su componente, y los módulos `shared/` que solo ellas usaban (`clickie_brand`, `gbs_brand`, `gbs_data`, `icp_summary`, `pdf_report`, `kpis`, `validacion_ui`).
+> - Eliminado legacy: `archive/`, `mockups/`, `scripts/`, mockups de `dashboard/`, `build_mockup.py`, `next-dev.log`, `next-dev.err.log`, `diagnostico.py`, `process_gbs_snov.py`.
+> - `portal_auth.py` podado a solo BambuTech/Insight. Tests obsoletos retirados; quedan 31 pasando y 2 fallos preexistentes (`test_dedup_reuniones`, marcador `<<DEDUP-PURO>>` eliminado del panel en un refactor anterior).
+> - **Queda vivo**: panel interno (1), 2_Clientes, 9_SDRs, 16_Client_Setup_OS (interno), 19_BambuTech_Intelligence_Insight (pendiente de confirmación), `shared/` núcleo, `sync/`, `supabase/`, `bot.py`/`start_alicia.bat` (pendiente confirmar uso).
+> - Todo lo borrado es recuperable desde el historial git (commit de referencia: el anterior a esta limpieza).
+>
 > **Actualización 2026-07-03 — decisiones comunicadas por Francisca:**
 > - **Tiresias ya no es cliente.** Se archivan sus páginas y accesos. (Resuelve la decisión 1.)
 > - **Cotización ya no existe** (era específica de GBS). Se elimina la regla cotización→válida automática y sus taxonomías. (Resuelve la decisión 3.)

@@ -159,30 +159,11 @@ def test_futuro_no_tiene_acciones_cliente():
 
 def test_kpi_gbs_definitivos():
     assert KPI_GBS == ("total", "validas", "no_validas", "avance_meta")
-    portal = Path("dashboard/pages/12_GBS_Validacion_Reuniones.py").read_text(encoding="utf-8")
-    for label in (
-        "Total reuniones",
-        "Válidas",
-        "No válidas",
-        "Pendiente cliente",
-        "En revisión",
-        "Reagenda",
-    ):
-        assert label in portal
-    assert "gbs_meeting_table_header" in portal
-    assert "Ver detalle" in portal
-    assert "VISIBLE_ETAPAS_AGENDA" in portal
-    assert '["all", *VISIBLE_ETAPAS_AGENDA]' in portal
-    assert '"Todo"' in portal
-    assert '"pending_client": "Pendiente validación cliente"' not in portal
-    assert '"dispute": "En disputa"' not in portal
 
 
 def test_campos_vacios_no_producen_texto_visible():
     for value in (None, "", "N/A", "Sin dato", "No disponible", "null", "—"):
         assert texto_real(value) == ""
-    portal = Path("dashboard/pages/12_GBS_Validacion_Reuniones.py").read_text(encoding="utf-8")
-    assert 'if not clean:\n        return ""' in portal
 
 
 def test_informacion_reunion_prioriza_edicion_manual_y_raw_data():
@@ -217,13 +198,6 @@ def test_bant_puede_venir_de_ghl_o_completarse_internamente():
         "bant_cp": "B,N",
         "icp_cumple": True,
     }
-
-
-def test_portal_y_seguimiento_dependen_de_la_misma_derivacion_de_estado():
-    portal = Path("dashboard/pages/12_GBS_Validacion_Reuniones.py").read_text(encoding="utf-8")
-    interno = Path("dashboard/pages/1_Seguimiento_Reuniones.py").read_text(encoding="utf-8")
-    assert "derivar_estado_flujo(" in portal
-    assert "derivar_estado_flujo(" in interno
 
 
 def test_payload_revision_exige_comentario():
