@@ -36,8 +36,6 @@ reconstruiran desde cero como proyeccion del panel interno. La unica
 pagina cliente que sobrevive es `19_BambuTech_Intelligence_Insight.py`,
 conservada como ejemplo/referencia.
 
-No trabajar en React, Next.js, Vercel ni Netlify salvo instruccion explicita.
-
 ## Ramas y deploy
 
 La rama de trabajo oficial es `main`.

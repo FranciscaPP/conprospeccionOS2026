@@ -50,19 +50,14 @@ Todo desarrollo activo debe realizarse bajo:
 - `sync/`
 - `supabase/`
 
-Vercel, Next.js y React quedan archivados y no constituyen una implementación activa.
-
-Las reglas de negocio, flujos y decisiones de UX útiles que fueron definidas durante la etapa de Vercel pueden rescatarse como especificación funcional. Ese rescate no implica reactivar la aplicación, copiar sus componentes ni conservar su arquitectura.
+Streamlit es la única implementación. Vercel, Next.js y React fueron
+eliminados del proyecto (2026-07-03) y no deben reintroducirse.
 
 Reglas obligatorias para material heredado:
 
-1. No se debe copiar código de Vercel ni asumir su arquitectura como base del producto.
-2. Una regla heredada desde Vercel solo es válida cuando no contradice este Rulebook.
-3. Las decisiones definidas o implementadas recientemente en Streamlit también deben respetar este Rulebook.
-4. Si la implementación actual de Streamlit contradice este Rulebook, la contradicción se considera deuda funcional que debe corregirse.
-5. Si el contenido archivado de Vercel contradice este Rulebook, debe ignorarse.
-6. `archive/` solo debe revisarse cuando el usuario solicite explícitamente rescatar una regla o referencia puntual.
-7. El material archivado no debe utilizarse para búsquedas generales, comparaciones automáticas o decisiones de implementación.
+1. Las decisiones definidas o implementadas en Streamlit deben respetar este Rulebook.
+2. Si la implementación actual de Streamlit contradice este Rulebook, la contradicción se considera deuda funcional que debe corregirse.
+3. El material de etapas anteriores (recuperable solo desde el historial git) no debe utilizarse para decisiones de implementación; solo sirve como referencia puntual si el usuario lo pide.
 
 Este Rulebook es el filtro final para aceptar, adaptar o descartar cualquier regla heredada, independientemente de su origen.
 

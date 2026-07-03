@@ -13,7 +13,7 @@ La aplicacion oficial actual es Streamlit.
 - URL publica Streamlit oficial: `https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones`
 - URL local esperada: `http://localhost:8502/Seguimiento_Reuniones`
 
-Las carpetas de Next.js, React, Vercel, Netlify y prototipos visuales no son implementaciones activas del producto. Pueden conservar decisiones de negocio o referencias visuales, pero no deben usarse como base tecnica salvo instruccion explicita.
+Streamlit es la unica implementacion. No usar React, Next.js, Vercel ni Netlify como base tecnica salvo instruccion explicita.
 
 ## Alcance activo
 
@@ -87,16 +87,12 @@ Regla practica:
 
 No desarrollar directamente en `master`.
 
-El repo `FranciscaPP/conprospeccion-os` y la app antigua `https://conprospeccion-os.streamlit.app` quedan como respaldo historico temporal. No usarlos para nuevos cambios.
+Estado 2026-07-03: la app antigua `conprospeccion-os.streamlit.app` fue
+eliminada. Los repos historicos y los proyectos de Vercel quedaron
+marcados para eliminacion manual por Francisca.
 
-Paso pendiente no destructivo: despues de algunos dias de uso estable, archivar o eliminar manualmente el repo historico `FranciscaPP/conprospeccion-os` y la app antigua.
-
-Vercel:
-
-- El proyecto Vercel historico `conprospeccion-os-2026` no forma parte del producto activo.
-- `vercel.json` desactiva **todos** los deployments automaticos de Git (incluye PRs y ramas feature). El producto activo es solo Streamlit Cloud.
-- Para dejar de recibir correos del bot: en Vercel → proyecto `conprospeccion-os-2026` → Settings → Git → desconectar el repo, o Ignored Build Step = "Don't build anything".
-- No agregar `package.json`, Next.js ni configuracion React para satisfacer Vercel.
+Vercel fue eliminado del producto por completo. No agregar `vercel.json`,
+`package.json`, Next.js ni configuracion React por ningun motivo.
 
 ## Documentacion relacionada
 

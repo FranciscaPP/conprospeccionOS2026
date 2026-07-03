@@ -218,7 +218,7 @@ Estados: **activo** / **legacy** / **dudoso** / **archivar-luego** / **revisar**
 | `shared/validacion.py`, `shared/seguimiento.py`, `shared/config.py` | Núcleo de reglas contractuales y acceso a datos; todo el producto depende de ellos. |
 | `.github/workflows/sync-commercial-data.yml` y `sync/scripts/{sync_ghl,sync_meetings,sync_pipelines,derive_meetings_from_opportunities,ghl_client,supabase_rest,config}.py` | Pipeline de datos automatizado (3×/día). |
 | `supabase/functions/ghl-webhook/index.ts`, `meeting-evidence/index.ts` | Endpoints vivos que alimentan la base de producción. |
-| `vercel.json` | Es el interruptor que mantiene apagados los deploys Vercel. Quitarlo puede reactivar el bot. |
+| ~~`vercel.json`~~ | **Actualización 2026-07-03: eliminado.** Francisca ordenó quitar Vercel de todo; los proyectos `conprospeccion-os-2026` y `cp-mockup-deploy` deben borrarse en vercel.com para que nada se reactive. |
 | `.env.example` (sin borrar claves) y cualquier `.env`/`secrets` locales | Plantilla de credenciales; los secretos reales viven en Streamlit Cloud y GitHub Secrets. |
 | `.streamlit/config.toml` | Config de despliegue. |
 | Migraciones SQL existentes (`supabase/migrations/`, `sync/supabase/migrations/`, `sync/migrations/`) | Aunque incompletas, son el único registro histórico del esquema; no renumerar ni editar en caliente. |
