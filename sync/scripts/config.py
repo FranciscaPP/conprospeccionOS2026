@@ -20,8 +20,7 @@ class Settings:
 
 
 def load_project_env() -> None:
-    # Next/Vercel usa .env.local en desarrollo; los scripts heredados aceptan
-    # tambien .env/.env.txt para compatibilidad con la etapa Streamlit.
+    # Acepta .env.local/.env/.env.txt por compatibilidad con entornos previos.
     for candidate in [
         ROOT / ".env.local",
         ROOT / ".env",

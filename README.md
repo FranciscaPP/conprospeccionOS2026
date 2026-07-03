@@ -9,16 +9,14 @@ Aplicacion operativa oficial de Conprospeccion, desarrollada en Streamlit.
 - URL publica oficial: `https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones`
 - URL local: `http://localhost:8502/Seguimiento_Reuniones`
 
-Streamlit es la implementacion actual. Next.js, React, Vercel, Netlify, HTML mockups y prototipos antiguos no son producto activo.
-
-`vercel.json` existe solo para impedir deployments automaticos del proyecto Vercel historico (incluye PRs). El producto activo es Streamlit Cloud. Si siguen llegando correos de `vercel[bot]`, desconecta el repo en el dashboard de Vercel.
+Streamlit es la unica implementacion. No agregar React, Next.js, Vercel ni Netlify.
 
 ## Inicio rapido
 
 Desde la raiz del repositorio:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -r dashboard/requirements.txt
 python -m streamlit run dashboard/app.py --server.port 8502
 ```
 
@@ -35,11 +33,10 @@ dashboard/    Aplicacion Streamlit, paginas, autenticacion y assets
 shared/       Logica Python compartida
 sync/         Procesos de sincronizacion y reporting
 supabase/     Migraciones y funciones de infraestructura
+mvp_setup/    App local de onboarding de clientes
 tests/        Pruebas del producto activo
 docs/         Documentacion funcional y operativa
 ```
-
-No analizar ni modificar `archive/` salvo peticion explicita.
 
 ## Documentacion obligatoria
 
