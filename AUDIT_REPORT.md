@@ -228,11 +228,19 @@ Estados: **activo** / **legacy** / **dudoso** / **archivar-luego** / **revisar**
 
 ## 7. DECISIONES QUE FRANCISCA DEBE APROBAR
 
-1. **Tiresias**: ¿se archivan las 4 páginas Tiresias (3, 4, 5, 10) y se retira su password de portal? Hoy el portal permite al cliente cerrar validez, contra la regla vigente.
-2. **Unificación de estados**: autorizar el plan para que panel maestro y portal GBS consuman `shared/validacion.py` (hoy solo Clickie y BambuTech lo hacen). Mientras tanto, definir qué pantalla manda si muestran estados distintos.
-3. **Cotización**: ¿"Solicita cotización" debe seguir cerrándose automáticamente como válida y sumar a meta, siendo que no es uno de los 7 estados oficiales?
-4. **Cierre automático por confirmación**: cuando el cliente confirma, ¿la evaluación se cierra sola como válida (código y RULEBOOK actuales) o el cierre es siempre manual (RUNBOOK actual)? Hay que corregir uno de los dos.
-5. **Evaluación Cliente "No válida" en panel interno**: ¿se mantiene como registro interno de lo que expresó el cliente, o se elimina la opción para dejar solo Pendiente/Confirmar/Solicita revisión/No necesaria?
-6. **Esquema Supabase**: autorizar (en una sesión futura, no en esta) el volcado del esquema vivo a migraciones consolidadas para que el repo vuelva a ser fuente de verdad.
-7. **Herramientas dudosas**: confirmar si Alicia (Telegram), los scripts Snov y Metabase siguen usándose manualmente, para decidir archivo o mantenimiento.
-8. **Tests y CI**: aprobar reparar los 6 tests rotos y agregar un workflow de tests (no cambia reglas de negocio, pero toca archivos existentes, prohibido en esta sesión).
+> **Actualización 2026-07-03 — decisiones comunicadas por Francisca:**
+> - **Tiresias ya no es cliente.** Se archivan sus páginas y accesos. (Resuelve la decisión 1.)
+> - **Cotización ya no existe** (era específica de GBS). Se elimina la regla cotización→válida automática y sus taxonomías. (Resuelve la decisión 3.)
+> - **Único frente de desarrollo: el panel interno `1_Seguimiento_Reuniones`.** Ningún portal cliente existente (7 Clickie, 12 GBS, 18 BambuTech) se sigue desarrollando: se congelarán y los portales cliente se reconstruirán desde cero como proyección del panel interno.
+> - **Posible excepción:** `19_BambuTech_Intelligence_Insight` podría conservar su lógica (módulo analítico, independiente del flujo de validación). Pendiente de confirmar.
+
+1. ~~**Tiresias**~~ — **RESUELTA (2026-07-03): Tiresias fuera.** Archivar páginas 3, 4, 5, 10 y retirar `PORTAL_PASSWORD_TIRESIAS`.
+2. **Unificación de estados**: sigue abierta pero cambia de forma. Al reconstruir todo desde el panel interno, hay que decidir el cerebro del panel: (a) que consuma `shared/validacion.py` (recomendado: ya implementa los 7 estados de la intención y tiene tests), o (b) declarar canónica la lógica JS embebida actual del panel y portar los 7 estados hacia ella.
+3. ~~**Cotización**~~ — **RESUELTA (2026-07-03): cotización se elimina** de `derivar_final`, `ETAPAS_AGENDA` y `ESTATUS_VALIDACION`.
+4. **Cierre automático por confirmación**: sigue abierta — cuando el cliente confirme (en los portales futuros), ¿la evaluación se cierra sola como válida (código y RULEBOOK) o el cierre es siempre manual (RUNBOOK)?
+5. **Evaluación Cliente "No válida" en panel interno**: sigue abierta.
+6. **Esquema Supabase**: sigue abierta — volcar el esquema vivo a migraciones consolidadas.
+7. **Herramientas dudosas**: sigue abierta — confirmar uso real de Alicia (Telegram), scripts Snov y Metabase.
+8. **Tests y CI**: sigue abierta — reparar los 6 tests rotos y agregar workflow de tests.
+9. **NUEVA — Portales congelados: ¿online o fuera?** Congelar el desarrollo no es lo mismo que apagarlos: hoy Clickie, GBS y BambuTech usan sus portales para Confirmar/Solicitar revisión. Decidir si quedan publicados tal cual (funcionan) mientras se construyen los nuevos, o se retiran y la validación cliente pasa temporalmente por otro canal.
+10. **NUEVA — Alcance de BambuTech Intelligence Insight**: confirmar si `19_BambuTech_Intelligence_Insight.py` se mantiene como módulo vivo aparte del rediseño.
