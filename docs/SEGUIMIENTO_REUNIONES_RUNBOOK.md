@@ -109,6 +109,10 @@ Implementacion vigente del guardado:
 - Python recibe el payload, escribe en `seguimiento_reuniones`, actualiza campos base permitidos en `reuniones` y registra auditoria en `meeting_status_history`.
 - No usar `fetch("/Seguimiento_Reuniones?...")` para guardar. Streamlit devuelve el shell HTML y no ejecuta la pagina como endpoint HTTP tradicional.
 - No exponer `SUPABASE_KEY` ni `service_role` en JavaScript del navegador.
+- No restaurar reuniones desde `localStorage` como fuente de verdad. Puede usarse solo como apoyo temporal de UI, pero los datos visibles y persistentes deben venir de Supabase.
+- Si el payload incluye una columna que no existe en `seguimiento_reuniones`, PostgREST rechaza el guardado completo con `PGRST204`. Antes de agregar campos nuevos al payload, aplicar la migracion correspondiente en Supabase.
+- Incidente 2026-07-06: los guardados fallaban porque produccion no tenia `historial_visibilidad` ni `historial_manual`. Se agregaron de forma aditiva a `seguimiento_reuniones` y el guardado ahora tolera columnas futuras faltantes eliminandolas del reintento.
+- La carga de campos GHL debe usar `reuniones`, `seguimiento_reuniones`, `contactos` y, cuando no exista fila de contacto, el `raw_data.contact` embebido en la reunion.
 
 ## SDR asignada
 

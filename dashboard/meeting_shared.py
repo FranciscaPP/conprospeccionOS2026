@@ -19,7 +19,7 @@ import requests
 from shared.config import supabase_key, supabase_url
 from shared.meeting_scope import ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de
-from shared.validacion import texto_real, valor_custom_field
+from shared.validacion import bant_desde_fuentes, informacion_reunion, texto_real, valor_custom_field
 
 SUPABASE_URL = supabase_url()
 SUPABASE_KEY = supabase_key()
@@ -346,10 +346,14 @@ def _contact_enrichment(contact):
         "website": website,
         "linkedin": linkedin,
         "linkedinCompany": linkedin_company,
-        "companySize": _custom_field(fields, "3uQfRamZN2ruaNg367XL"),
-        "sourceChannel": _custom_field(fields, "mipcTmLgax5URM1q3Mut") or _txt(raw.get("source")),
-        "companyInfo": _custom_field(fields, "x8bV5PXJ0MgJcmdMk9Bd", "uWCMW4RCrWDGlu02nMkp"),
+        "companySize": _custom_field(fields, "3uQfRamZN2ruaNg367XL", "SZKSPwPVwnjbHZpCzdg8"),
+        "sourceChannel": _custom_field(fields, "mipcTmLgax5URM1q3Mut") or _txt(contact.get("fuente")) or _txt(raw.get("source")),
+        "companyInfo": _custom_field(fields, "x8bV5PXJ0MgJcmdMk9Bd", "uWCMW4RCrWDGlu02nMkp", "QfY4XP9fPVWKAidootqt"),
         "contactInfo": _custom_field(fields, "iZwhsMPoJZ5IgdcA3kYk", "Q6PFJIn4ETLXlgsKRwvx"),
+        "contactInfoMeeting": _txt(contact.get("informacion_reunion")) or texto_real(
+            valor_custom_field(source, ("informacion para reunion", "preparacion_para_la_reunion"))
+        ),
+        "bantSdr": contact.get("bant_sdr"),
     }
 
 
@@ -421,12 +425,16 @@ def cargar_reuniones_reales_poc():
     )
     base_response = requests.get(
         f"{SUPABASE_URL}/rest/v1/reuniones"
-        "?select=id,ghl_contact_id,fecha_agendada,direccion_reunion,recording_url,transcript_url,ai_summary,ai_evidence,sdr_slug",
+        "?select=id,ghl_contact_id,fecha_agendada,direccion_reunion,recording_url,transcript_url,"
+        "ai_summary,ai_evidence,ai_bant_detected,sdr_slug,informacion_reunion,bant_sdr,"
+        "observacion,notas,raw_data,pais,industria,cargo,email,telefono,empresa,contacto",
         headers=SUPABASE_HEADERS,
         timeout=15,
     )
     contacts_response = requests.get(
-        f"{SUPABASE_URL}/rest/v1/contactos?select=ghl_contact_id,sdr_slug,raw_data,custom_fields&cliente_slug=in.({slugs})",
+        f"{SUPABASE_URL}/rest/v1/contactos?select=ghl_contact_id,sdr_slug,fuente,raw_data,custom_fields,"
+        "informacion_reunion,bant_sdr,pais,industria,cargo,email,telefono,nombre_contacto,nombre_empresa"
+        f"&cliente_slug=in.({slugs})",
         headers=SUPABASE_HEADERS,
         timeout=15,
     )
@@ -488,7 +496,23 @@ def cargar_reuniones_reales_poc():
             continue
         seg = tracking.get(int(rid), {})
         base_row = base_meetings.get(int(rid), {})
-        extra = contact_extra.get(row.get("ghl_contact_id"), {})
+        base_raw = _json_obj(base_row.get("raw_data"), {})
+        base_contact = _json_obj(base_raw.get("contact"), {}) if isinstance(base_raw, dict) else {}
+        base_contact_fields = base_raw.get("contact_custom_fields", []) if isinstance(base_raw, dict) else []
+        extra = contact_extra.get(row.get("ghl_contact_id")) or _contact_enrichment(
+            {
+                "raw_data": base_contact,
+                "custom_fields": base_contact_fields or base_contact.get("customFields") or [],
+                "informacion_reunion": base_row.get("informacion_reunion"),
+                "bant_sdr": base_row.get("bant_sdr"),
+                "fuente": base_contact.get("source"),
+            }
+        )
+        merged_raw = {
+            "raw_data": base_raw or row.get("raw_data") or {},
+            "contact_custom_fields": base_raw.get("contact_custom_fields", []),
+        }
+        merged_row = {**base_row, **row, **merged_raw}
         slug = _txt(row.get("cliente_slug")).lower()
         status = _status_label(row, seg)
         cp = _cp_label(row, seg)
@@ -522,19 +546,19 @@ def cargar_reuniones_reales_poc():
                 "sortKey": _dt_sort_key({"date": date_label, "time": time_label}),
                 "scheduledDate": _date_es(base_row.get("fecha_agendada")),
                 "client": _client_label(slug, row.get("cliente")),
-                "company": _txt(row.get("empresa"), "-").title(),
-                "contact": _txt(row.get("contacto"), "-").title(),
-                "role": _txt(row.get("cargo"), "-").title(),
+                "company": _txt(row.get("empresa") or base_row.get("empresa"), "-").title(),
+                "contact": _txt(row.get("contacto") or base_row.get("contacto"), "-").title(),
+                "role": _txt(row.get("cargo") or base_row.get("cargo"), "-").title(),
                 "sdr": assigned_sdr,
                 "status": status,
                 "cp": cp,
                 "clientVal": client_val,
                 "final": final,
                 "caseStatus": _txt(seg.get("estado_caso")) or _case_status(cp, client_val, final),
-                "email": _txt(row.get("email")),
-                "phone": _txt(row.get("telefono")),
-                "country": _country_label(row.get("pais")),
-                "industry": _txt(row.get("industria")),
+                "email": _txt(row.get("email") or base_row.get("email")),
+                "phone": _txt(row.get("telefono") or base_row.get("telefono")),
+                "country": _country_label(row.get("pais") or base_row.get("pais")),
+                "industry": _txt(row.get("industria") or base_row.get("industria")),
                 "website": extra.get("website", ""),
                 "linkedin": extra.get("linkedin", ""),
                 "linkedinCompany": extra.get("linkedinCompany", ""),
@@ -547,9 +571,10 @@ def cargar_reuniones_reales_poc():
                 "meet": _txt(base_row.get("direccion_reunion")),
                 "recordingUrl": recording_url,
                 "transcriptUrl": transcript_url,
-                "info": _txt(seg.get("informacion_reunion_manual")) or _txt(row.get("informacion_reunion")),
+                "info": informacion_reunion(merged_row, seg) or extra.get("contactInfoMeeting", ""),
+                "operationalNotes": _txt(base_row.get("observacion")) or _txt(base_row.get("notas")),
                 "icp": "Cumple" if seg.get("icp_cumple") is True else "No cumple" if seg.get("icp_cumple") is False else "No evaluado",
-                "bant": _bant(seg.get("bant_cp") or row.get("bant_sdr")),
+                "bant": _bant(",".join(bant_desde_fuentes({**merged_row, "bant_sdr": base_row.get("bant_sdr") or row.get("bant_sdr") or extra.get("bantSdr")}, seg))),
                 "just": _txt(seg.get("comentario_cp")),
                 "next": _txt(seg.get("proximo_paso")),
                 "notes": _txt(seg.get("notas_internas")),

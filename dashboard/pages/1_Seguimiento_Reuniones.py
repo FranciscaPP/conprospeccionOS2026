@@ -423,13 +423,22 @@ def _flag_meta_countable(final_value):
 
 
 def _post_tracking(payload):
-    response = requests.post(
-        f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones",
-        params={"on_conflict": "reunion_id"},
-        headers={**SUPABASE_WRITE_HEADERS, "Prefer": "resolution=merge-duplicates,return=representation"},
-        json=payload,
-        timeout=15,
-    )
+    body = dict(payload)
+    response = None
+    for _ in range(5):
+        response = requests.post(
+            f"{SUPABASE_URL}/rest/v1/seguimiento_reuniones",
+            params={"on_conflict": "reunion_id"},
+            headers={**SUPABASE_WRITE_HEADERS, "Prefer": "resolution=merge-duplicates,return=representation"},
+            json=body,
+            timeout=15,
+        )
+        if response.ok:
+            return response
+        missing = re.search(r"Could not find the '([^']+)' column", response.text or "")
+        if not missing or missing.group(1) not in body:
+            return response
+        body.pop(missing.group(1), None)
     return response
 
 
@@ -603,6 +612,10 @@ def _save_dashboard_payload(payload):
         "hora_reunion": _time_db(meeting.get("time")),
         "informacion_reunion": _txt(meeting.get("info")) or None,
         "estado_reunion": _txt(meeting.get("status")) or None,
+        "observacion": _txt(meeting.get("operationalNotes")) or None,
+        "direccion_reunion": _txt(meeting.get("meet")) or None,
+        "recording_url": _txt(meeting.get("recordingUrl")) or None,
+        "transcript_url": _txt(meeting.get("transcriptUrl")) or None,
     }
     base_payload = {key: value for key, value in base_payload.items() if value is not None}
 
@@ -842,7 +855,6 @@ let meetings=[
 ];
 const storageKey="cp_meetings_v5_poc_detail_v2";
 let savedMeetings=null;try{savedMeetings=JSON.parse(localStorage.getItem(storageKey)||"null")}catch(e){savedMeetings=null}
-if(Array.isArray(savedMeetings)){meetings=savedMeetings}
 meetings=meetings.map(m=>({...m,caseStatus:m.caseStatus||"Abierto",cp:m.status==="Reunión cancelada"?"No necesaria":m.cp,clientVal:m.status==="Reunión cancelada"?"No necesaria":m.clientVal,final:m.status==="Reunión cancelada"?"Reunión cancelada":m.final,clientActor:m.clientActor||m.contact||"",clientTimeline:m.clientTimeline||buildClientTimeline(m),historyVisibility:m.historyVisibility||{}}));
 let selected=null, tab="Información", panelOpen=false, more=false, notifOpen=false, rowMenuId=null, newMeetOpen=false;
 let filters=defaultFilters();
@@ -857,13 +869,15 @@ function optPairs(values,current){return values.map(v=>`<option value="${esc(v[0
 function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
 function opt(values,current){return values.map(v=>`<option value="${esc(v)}" ${v===current?"selected":""}>${esc(v)}</option>`).join("")}
+function tableStatusLabel(v){return String(v??"").replace(/^Reunión\s+/,"").replace(/^ReuniÃ³n\s+/,"").replace(/^Reagendar reunión$/,"Reagendar").replace(/^Reagendar reuniÃ³n$/,"Reagendar")}
+function optTable(values,current){return values.map(v=>`<option value="${esc(v)}" ${v===current?"selected":""}>${esc(tableStatusLabel(v))}</option>`).join("")}
 function parseDate(s){const [d,m,y]=String(s).split("/");return y&&m&&d?`${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`:""}
 function dtValue(m){const d=parseDate(m.date);const hour=m.time.includes("PM")&&m.time.slice(0,2)!=="12"?Number(m.time.slice(0,2))+12:Number(m.time.slice(0,2));return `${d} ${String(hour).padStart(2,"0")}${m.time.slice(2,5)}`}
 function finalStatus(m){return m.final||"Pendiente"}
 function finalDisplay(m){return finalStatus(m)==="Pendiente"?"Pendiente de cierre":finalStatus(m)}
 function persist(){localStorage.setItem(storageKey,JSON.stringify(meetings))}
 function notify(msg){let n=document.getElementById("saveNote");if(!n){n=document.createElement("div");n.id="saveNote";n.className="save-note";document.body.appendChild(n)}n.textContent=msg;clearTimeout(window.__saveNoteTimer);window.__saveNoteTimer=setTimeout(()=>n.remove(),1800)}
-function compactMeeting(m){return {id:m.id,clientSlug:m.clientSlug,client:m.client,date:m.date,time:m.time,scheduledDate:m.scheduledDate,company:m.company,contact:m.contact,role:m.role,email:m.email,phone:m.phone,country:m.country,industry:m.industry,sdr:m.sdr,status:m.status,cp:m.cp,clientVal:m.clientVal,final:m.final,caseStatus:m.caseStatus,info:m.info,icp:m.icp,bant:m.bant,just:m.just,notes:m.notes,next:m.next,clientReason:m.clientReason,clientComment:m.clientComment,clientActor:m.clientActor,clientEvidence:m.clientEvidence,cpResponse:m.cpResponse,finalReason:m.finalReason,finalClientText:m.finalClientText,finalInternalNote:m.finalInternalNote,evidence:m.evidence,historyVisibility:m.historyVisibility,cancelWho:m.cancelWho,cancelReason:m.cancelReason,cancelComment:m.cancelComment,rescheduleWho:m.rescheduleWho,rescheduleReason:m.rescheduleReason,rescheduleOld:m.rescheduleOld,rescheduleNew:m.rescheduleNew,rescheduleComment:m.rescheduleComment}}
+function compactMeeting(m){return {id:m.id,clientSlug:m.clientSlug,client:m.client,date:m.date,time:m.time,scheduledDate:m.scheduledDate,company:m.company,contact:m.contact,role:m.role,email:m.email,phone:m.phone,country:m.country,industry:m.industry,sdr:m.sdr,status:m.status,cp:m.cp,clientVal:m.clientVal,final:m.final,caseStatus:m.caseStatus,info:m.info,icp:m.icp,bant:m.bant,just:m.just,notes:m.notes,next:m.next,clientReason:m.clientReason,clientComment:m.clientComment,clientActor:m.clientActor,clientEvidence:m.clientEvidence,cpResponse:m.cpResponse,finalReason:m.finalReason,finalClientText:m.finalClientText,finalInternalNote:m.finalInternalNote,evidence:m.evidence,historyVisibility:m.historyVisibility,cancelWho:m.cancelWho,cancelReason:m.cancelReason,cancelComment:m.cancelComment,rescheduleWho:m.rescheduleWho,rescheduleReason:m.rescheduleReason,rescheduleOld:m.rescheduleOld,rescheduleNew:m.rescheduleNew,rescheduleComment:m.rescheduleComment,operationalNotes:m.operationalNotes,meet:m.meet,recordingUrl:m.recordingUrl,transcriptUrl:m.transcriptUrl}}
 async function saveMeeting(m,section,silent=false,extra={}){if(!m||!m.id||!m.clientSlug){if(!silent)notify("No se pudo guardar: falta cliente o reunión");return false}try{if(!silent)notify("Guardando...");setComponentValue({nonce:`${Date.now()}-${Math.random()}`,section,meeting:compactMeeting(m),...extra});if(!silent)notify(`${section} guardado`);return true}catch(err){console.error(err);notify(`Error al guardar: ${err.message||err}`);return false}}
 async function saveSection(section){const m=current();addHistory(m,`Guardar ${section}`,"Pendiente","Guardado");persist();const ok=await saveMeeting(m,section,true);render();if(ok){closeDetail();notify(`✓ ${section}: cambios guardados con éxito`)}else{notify(`✗ Error al guardar ${section}. Revisa e intenta nuevamente`)}}
 function saveBar(section,label){return `<div class="btn-row save-bar"><button class="primary" onclick="saveSection('${section}')">${label}</button></div>`}
@@ -901,8 +915,8 @@ function pct(n,total){return total?`${((n/total)*100).toFixed(1)}% del total`:"0
 function clientColor(code){return {Clickie:"#F59E0B",GBS:"#7C3AED",BambuTech:"#15803D"}[code]||"#9A9A98"}
 function goalState(p){if(p>=75)return["EN META","goal-ok"];if(p>=20)return["A MEDIAS","goal-mid"];return["ATRASADO","goal-bad"]}
 function renderProgress(rows){let codes=[...new Set(rows.map(m=>m.client))];if(filters.client!=="Todos")codes=[filters.client];document.getElementById("clientProgress").innerHTML=codes.map(code=>{const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);const valid=rows.filter(m=>m.client===code&&finalStatus(m)==="Reunión válida").length;const p=goal?Math.round(valid/goal*100):0;const state=goalState(p);const color=clientColor(code);return `<div class="card client" onclick="filters.client='${esc(code)}';render()" style="cursor:pointer;--client-color:${color}"><div class="client-top"><div class="client-name"><span class="client-badge">${esc(code[0]||"?")}</span><span>${esc(code)}</span></div><span class="client-count">${p}%</span></div><div class="bar"><div class="fill" style="width:${Math.min(p,100)}%"></div></div><div class="client-foot"><span class="client-ratio">${valid} / ${goal}</span><span class="goal-pill ${state[1]}">${state[0]}</span></div></div>`}).join("")||`<div class="sub">Sin reuniones para los filtros aplicados.</div>`}
-function renderHead(){const cols=[["dateTime","Fecha y hora"],["client","Cliente"],["company","Empresa"],["sdr","SDR"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluación CP"],["clientVal","Evaluación Cliente"],["final","Estado Final"],["actions","Acciones"]];const filterable=["client","sdr","status","cp","clientVal","final"];const allOpts=optionSets(applyFilters({ignore:filterable}));const header=(k,label)=>{if(k==="actions")return label;if(filterable.includes(k)){const active=filters[k]!=="Todos";const options=[`<option value="Todos">${label}</option>`].concat((allOpts[k]||[]).map(v=>`<option value="${esc(v)}" ${filters[k]===v?"selected":""}>${esc(v)}</option>`)).join("");return `<select class="quick ${active?"active":""}" title="Filtrar ${label}" onchange="setFilter('${k}',this.value)">${options}</select>`}return `<button class="sort" onclick="setSort('${k}')">${label}${sortState.key===k?(sortState.dir==="asc"?" ▲":" ▼"):""}</button>`};document.getElementById("thead").innerHTML=`<tr>${cols.map(c=>`<th>${header(c[0],c[1])}</th>`).join("")}</tr>`}
-function renderRows(rows){document.getElementById("rows").innerHTML=sortRows(rows).map(m=>`<tr class="${m.id===selected?"selected":""}" onclick="openDetail(${m.id})"><td><b>${m.date}</b><span class="sub">${m.time}</span></td><td><span class="avatar-sm ${m.client.toLowerCase()}">${m.client[0]}</span><span class="company">${m.client}</span></td><td>${esc(m.company)}</td><td onclick="event.stopPropagation()"><div class="sdr-cell"><select class="sdr-select" title="Cambiar SDR" onchange="setField(${m.id},'sdr',this.value)">${opt([...new Set([m.sdr||"Sin asignar",...meetings.map(x=>x.sdr).filter(Boolean)])],m.sdr||"Sin asignar")}</select></div></td><td>${esc(m.contact)}<span class="sub">${esc(m.role)}</span></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.status)}" onchange="setField(${m.id},'status',this.value)">${opt(statuses,m.status)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.cp)}" onchange="setField(${m.id},'cp',this.value)">${opt(cps,m.cp)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.clientVal)}" onchange="setField(${m.id},'clientVal',this.value)">${opt(clientVals,m.clientVal)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(finalStatus(m))}" onchange="setField(${m.id},'final',this.value)">${opt(finalOptions,finalStatus(m))}</select></td><td onclick="event.stopPropagation()"><div class="row-actions"><button class="act-eye" title="Ver detalle" onclick="openDetail(${m.id})">${EYE_SVG}</button><button class="act-kebab" title="Más opciones" onclick="toggleRowMenu(event,${m.id})">⋮</button></div></td></tr>`).join("")}
+function renderHead(){const cols=[["dateTime","Fecha y hora"],["client","Cliente"],["company","Empresa"],["sdr","SDR"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluación CP"],["clientVal","Evaluación Cliente"],["final","Estado Final"],["actions","Acciones"]];const filterable=["client","sdr","status","cp","clientVal","final"];const allOpts=optionSets(applyFilters({ignore:filterable}));const header=(k,label)=>{if(k==="actions")return label;if(filterable.includes(k)){const active=filters[k]!=="Todos";const options=[`<option value="Todos">${label}</option>`].concat((allOpts[k]||[]).map(v=>`<option value="${esc(v)}" ${filters[k]===v?"selected":""}>${esc(tableStatusLabel(v))}</option>`)).join("");return `<select class="quick ${active?"active":""}" title="Filtrar ${label}" onchange="setFilter('${k}',this.value)">${options}</select>`}return `<button class="sort" onclick="setSort('${k}')">${label}${sortState.key===k?(sortState.dir==="asc"?" ▲":" ▼"):""}</button>`};document.getElementById("thead").innerHTML=`<tr>${cols.map(c=>`<th>${header(c[0],c[1])}</th>`).join("")}</tr>`}
+function renderRows(rows){document.getElementById("rows").innerHTML=sortRows(rows).map(m=>`<tr class="${m.id===selected?"selected":""}" onclick="openDetail(${m.id})"><td><b>${m.date}</b><span class="sub">${m.time}</span></td><td><span class="avatar-sm ${m.client.toLowerCase()}">${m.client[0]}</span><span class="company">${m.client}</span></td><td>${esc(m.company)}</td><td onclick="event.stopPropagation()"><div class="sdr-cell"><select class="sdr-select" title="Cambiar SDR" onchange="setField(${m.id},'sdr',this.value)">${opt([...new Set([m.sdr||"Sin asignar",...meetings.map(x=>x.sdr).filter(Boolean)])],m.sdr||"Sin asignar")}</select></div></td><td>${esc(m.contact)}<span class="sub">${esc(m.role)}</span></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.status)}" onchange="setField(${m.id},'status',this.value)">${optTable(statuses,m.status)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.cp)}" onchange="setField(${m.id},'cp',this.value)">${optTable(cps,m.cp)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(m.clientVal)}" onchange="setField(${m.id},'clientVal',this.value)">${optTable(clientVals,m.clientVal)}</select></td><td onclick="event.stopPropagation()"><select class="pill ${tone(finalStatus(m))}" onchange="setField(${m.id},'final',this.value)">${optTable(finalOptions,finalStatus(m))}</select></td><td onclick="event.stopPropagation()"><div class="row-actions"><button class="act-eye" title="Ver detalle" onclick="openDetail(${m.id})">${EYE_SVG}</button><button class="act-kebab" title="Más opciones" onclick="toggleRowMenu(event,${m.id})">⋮</button></div></td></tr>`).join("")}
 function openDetail(id){selected=id;tab="Información";panelOpen=true;render()}
 function closeDetail(){panelOpen=false;document.body.classList.remove("detail-open");render()}
 function closeRowMenus(){const el=document.getElementById("rowMenuFloat");if(el)el.remove();rowMenuId=null}
