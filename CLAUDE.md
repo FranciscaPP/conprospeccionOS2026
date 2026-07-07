@@ -1,71 +1,10 @@
 # Instrucciones para Claude Code
 
-## Producto activo
+La fuente unica de verdad de este repositorio es **`PROJECT_MASTER_CONTEXT.md`**.
 
-El producto oficial es la aplicacion Streamlit:
+Leelo primero. Ahi esta todo: el producto activo (app Streamlit), el mapa del
+proyecto, el alcance de trabajo, las reglas de ramas y deploy, la regla de
+paginas Streamlit y el indice de los demas documentos.
 
-- Entrada: `dashboard/app.py`
-- Panel maestro interno: `dashboard/pages/1_Seguimiento_Reuniones.py`
-- URL local: `http://localhost:8502/Seguimiento_Reuniones`
-- URL publica oficial: `https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones`
-
-No trabajar en React, Next.js, Vercel, Netlify ni HTML mockups salvo instruccion explicita.
-
-## Mapa del proyecto
-
-El mapa del proyecto (que hace cada carpeta y donde esta lo importante) es
-la seccion "Project map" de `AGENTS.md`. Esa es la **fuente unica**: si la
-estructura del repo cambia, actualiza `AGENTS.md` y no dupliques el mapa
-aqui. Este archivo (`CLAUDE.md`) solo lo referencia para no desincronizar.
-
-## Documentos que debes leer antes de cambios amplios
-
-- `PROJECT_MASTER_CONTEXT.md`
-- `ACTIVE_WORKSPACE.md`
-- `docs/SEGUIMIENTO_REUNIONES_RUNBOOK.md`
-- `CONPROSPECCION_OS_RULEBOOK.md`
-- `AGENTS.md`
-
-## Alcance activo
-
-Trabajar normalmente solo en:
-
-- `dashboard/`
-- `shared/`
-- `sync/`
-- `supabase/`
-- `mvp_setup/`
-- `tests/`
-- `docs/`
-
-Estado 2026-07-03: los portales cliente fueron eliminados del repo. Se
-reconstruiran desde cero como proyeccion del panel interno. La unica
-pagina cliente que sobrevive es `19_BambuTech_Intelligence_Insight.py`,
-conservada como ejemplo/referencia.
-
-## Ramas y deploy
-
-La rama de trabajo oficial es `main`.
-
-Publicar:
-
-```powershell
-git push origin main
-```
-
-Estado verificado de Streamlit Cloud al 2026-06-27:
-
-```text
-App URL: https://conprospeccion-os2026.streamlit.app
-Repository: franciscapp/conprospeccionOS2026
-Branch: main
-Main file path: dashboard/app.py
-```
-
-No usar el repo historico `FranciscaPP/conprospeccion-os` ni agregar remoto `streamlit`.
-
-No desarrollar en `master`.
-
-## Regla de paginas Streamlit
-
-No dejar POCs, backups ni experimentos dentro de `dashboard/pages`. Streamlit puede convertir esos archivos en paginas visibles.
+No dupliques aqui lo que ya vive en `PROJECT_MASTER_CONTEXT.md`. Si algo
+cambia, actualizalo alla (fuente unica) para no desincronizar.

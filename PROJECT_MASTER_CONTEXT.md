@@ -4,6 +4,12 @@ Fecha de referencia: 2026-06-27
 
 Este documento define la fuente oficial de verdad tecnica del repositorio Conprospeccion OS2026.
 
+**Fuente unica.** Este es el documento que cualquier IA o persona nueva debe
+leer primero. `CLAUDE.md` (lo lee Claude) y `AGENTS.md` (lo leen Codex,
+Cursor y otras IA) solo apuntan aqui; no duplican contenido. Si algo cambia
+(mapa, alcance, reglas, deploy), se actualiza **aqui** y en ningun otro lado,
+para que nunca haya dos versiones distintas.
+
 ## Producto oficial
 
 La aplicacion oficial actual es Streamlit.
@@ -30,6 +36,31 @@ El trabajo ordinario debe limitarse a:
 Limpieza 2026-07-03: `archive/`, `mockups/`, `scripts/` y todas las
 paginas de portal cliente y Tiresias fueron eliminadas del repo. Los
 portales cliente se reconstruiran desde cero a partir del panel interno.
+
+## Mapa del proyecto
+
+Estructura para orientarse rapido (cualquier IA o persona nueva la lee y
+entiende el repo sin explorar archivo por archivo):
+
+- `dashboard/` — App Streamlit (el producto). `app.py` es la entrada.
+  - `dashboard/pages/` — Paginas del panel. La principal es
+    `1_Seguimiento_Reuniones.py` (panel maestro interno). Tambien:
+    `2_Clientes.py`, `9_SDRs.py`, `16_Client_Setup_OS.py`,
+    `19_BambuTech_Intelligence_Insight.py` (referencia),
+    `20_GBS_Intelligence_Insight.py`.
+  - `master_auth.py`, `portal_auth.py` — Login / autenticacion.
+  - `meeting_component.py`, `meeting_shared.py` — UI y logica de la tabla
+    de reuniones.
+- `shared/` — Codigo reutilizable. Clave: `validacion.py` (los 7 estados
+  oficiales de una reunion), `seguimiento.py`, `meeting_scope.py`,
+  `config.py`, `cp_design.py` (design system carbon + dorado), `metas.py`,
+  `planes.py`.
+- `sync/` — Sincronizacion de datos hacia Supabase (`scripts/`,
+  `migrations/`, `queries/`) + CI.
+- `supabase/` — Base de datos: `migrations/` y `functions/` (edge functions).
+- `mvp_setup/` — Modulo de setup / onboarding de clientes (app propia).
+- `tests/` — Pruebas (pytest).
+- `docs/` — Documentacion funcional (ver el RUNBOOK del panel de reuniones).
 
 ## Datos canonicos
 
@@ -94,9 +125,19 @@ marcados para eliminacion manual por Francisca.
 Vercel fue eliminado del producto por completo. No agregar `vercel.json`,
 `package.json`, Next.js ni configuracion React por ningun motivo.
 
+## Regla de paginas Streamlit
+
+No dejar POCs, backups ni experimentos dentro de `dashboard/pages`. Streamlit
+puede convertir esos archivos en paginas visibles.
+
 ## Documentacion relacionada
 
-- `ACTIVE_WORKSPACE.md`: estado operativo actual del workspace.
-- `docs/SEGUIMIENTO_REUNIONES_RUNBOOK.md`: reglas funcionales, UI/UX, persistencia y deploy del panel de reuniones.
-- `CONPROSPECCION_OS_RULEBOOK.md`: reglas generales de autoridad de Conprospeccion y portal cliente.
-- `AGENTS.md`: instrucciones para agentes de codigo.
+Indice de todos los documentos del repo. Antes de cambios amplios, leer los
+marcados con (*).
+
+- `ACTIVE_WORKSPACE.md` (*): estado operativo actual del workspace.
+- `docs/SEGUIMIENTO_REUNIONES_RUNBOOK.md` (*): reglas funcionales, UI/UX, persistencia y deploy del panel de reuniones.
+- `CONPROSPECCION_OS_RULEBOOK.md` (*): reglas generales de autoridad de Conprospeccion y portal cliente.
+- `AGENTS.md`: puerta de entrada para Codex, Cursor y otras IA (apunta a este documento).
+- `CLAUDE.md`: puerta de entrada para Claude (apunta a este documento).
+- `AUDIT_REPORT.md`: registro historico de la auditoria 2026-07-03 (memoria, no reglas vigentes).
