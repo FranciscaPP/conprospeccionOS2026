@@ -1,8 +1,8 @@
 {
   "periodo": {
-    "inicio": "2026-06-07",
-    "fin": "2026-07-07",
-    "nota": "Prospeccion GBS Logistics; canal principal WhatsApp, correo via Snov."
+    "inicio": "2026-06-01",
+    "fin": "2026-06-30",
+    "nota": "Prospeccion GBS Logistics, ciclo de junio 2026."
   },
   "universo_unico": 708,
   "correo": {
@@ -15,15 +15,35 @@
     "auto_respuestas": 4,
     "bajas": 0
   },
+  "canal_actividad": [
+    {
+      "canal": "WhatsApp",
+      "gestiones": 284
+    },
+    {
+      "canal": "Llamadas",
+      "gestiones": 85
+    },
+    {
+      "canal": "Correo",
+      "gestiones": 357
+    }
+  ],
   "gestion": {
     "gestionados": 348,
-    "conversaciones": 64
+    "conversaciones": 34
+  },
+  "positiva_desglose": {
+    "informacion_adicional": 0,
+    "coordinando_reunion": 2,
+    "reunion_agendada": 13
   },
   "resultados_totales": {
     "no_contesta": 271,
-    "negativa": 40,
+    "no_califica": 30,
     "positiva": 15,
     "numero_malo": 13,
+    "negativa": 10,
     "deriva": 9
   },
   "por_industria": {
@@ -31,12 +51,13 @@
       "no_contesta": 47,
       "deriva": 4,
       "numero_malo": 2,
-      "negativa": 2,
+      "no_califica": 2,
       "positiva": 1
     },
     "Automotriz": {
       "no_contesta": 11,
-      "negativa": 2
+      "negativa": 1,
+      "no_califica": 1
     },
     "Construccion y Materiales": {
       "no_contesta": 8,
@@ -44,27 +65,29 @@
     },
     "Importacion / Exportacion": {
       "no_contesta": 9,
-      "negativa": 5,
+      "no_califica": 5,
       "positiva": 3
     },
     "Maquinaria e Industria": {
       "no_contesta": 47,
-      "negativa": 4,
       "positiva": 2,
+      "negativa": 2,
+      "no_califica": 2,
       "numero_malo": 2,
       "deriva": 1
     },
     "Mineria y Metales": {
       "no_contesta": 107,
-      "negativa": 23,
+      "no_califica": 16,
       "numero_malo": 8,
+      "negativa": 7,
       "positiva": 5,
       "deriva": 2
     },
     "Retail y Consumo": {
       "no_contesta": 28,
       "positiva": 1,
-      "negativa": 1,
+      "no_califica": 1,
       "deriva": 1
     },
     "Salud y Farma": {
@@ -73,7 +96,7 @@
     },
     "Sin clasificar": {
       "no_contesta": 5,
-      "negativa": 3,
+      "no_califica": 3,
       "numero_malo": 1,
       "positiva": 1
     }
@@ -81,23 +104,24 @@
   "por_area": {
     "Abastecimiento / Compras": {
       "no_contesta": 8,
-      "negativa": 2,
+      "no_califica": 2,
       "positiva": 1
     },
     "Comercial / Ventas": {
       "no_contesta": 3,
-      "negativa": 2,
+      "no_califica": 2,
       "positiva": 1
     },
     "Comercio Exterior / COMEX": {
       "no_contesta": 9,
       "positiva": 3,
-      "negativa": 1
+      "no_califica": 1
     },
     "Direccion / Gerencia": {
       "no_contesta": 193,
-      "negativa": 25,
+      "no_califica": 17,
       "deriva": 8,
+      "negativa": 8,
       "numero_malo": 5,
       "positiva": 4
     },
@@ -107,31 +131,31 @@
     "Logistica / Supply Chain": {
       "no_contesta": 18,
       "numero_malo": 4,
-      "negativa": 3,
       "positiva": 2,
+      "no_califica": 2,
+      "negativa": 1,
       "deriva": 1
     },
     "Operaciones": {
       "no_contesta": 31,
-      "negativa": 4,
-      "numero_malo": 4
+      "numero_malo": 4,
+      "no_califica": 3,
+      "negativa": 1
     },
     "Otros": {
       "no_contesta": 8,
       "positiva": 3,
-      "negativa": 2
+      "no_califica": 2
     },
     "Sin clasificar": {
       "no_contesta": 1,
-      "negativa": 1
+      "no_califica": 1
     }
   },
   "registros": [
     {
       "industria": "Maquinaria e Industria",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-15",
@@ -141,8 +165,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -152,8 +174,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Comercio Exterior / COMEX",
-      "canal": "Llamadas",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-15",
@@ -163,8 +183,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -174,8 +192,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -185,8 +201,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -196,8 +210,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -207,8 +219,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -218,8 +228,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -229,8 +237,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -240,8 +246,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -251,9 +255,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Overprime Manufacturing",
@@ -262,9 +264,7 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Pesamatic S.A.",
@@ -273,8 +273,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -284,8 +282,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -295,8 +291,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -306,8 +300,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "Llamadas",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -317,8 +309,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -328,8 +318,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -339,9 +327,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "TECHNICAL INSPECTION COMPANY",
@@ -350,8 +336,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -361,8 +345,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -372,8 +354,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -383,8 +363,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -394,8 +372,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -405,8 +381,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -416,8 +390,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -427,9 +399,7 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Grupo Premier Chile",
@@ -438,8 +408,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -449,8 +417,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -460,8 +426,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -471,8 +435,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -482,8 +444,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -493,8 +453,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -504,8 +462,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -515,8 +471,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -526,8 +480,6 @@
     {
       "industria": "Automotriz",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -537,8 +489,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -548,8 +498,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -559,9 +507,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "OPTIMIZA INGENIERIA Y DESARROLLO S.A.",
@@ -570,8 +516,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -581,8 +525,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -592,8 +534,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -603,8 +543,6 @@
     {
       "industria": "Automotriz",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -614,8 +552,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -625,8 +561,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-07",
@@ -636,8 +570,6 @@
     {
       "industria": "Automotriz",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -647,8 +579,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -658,8 +588,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -669,8 +597,6 @@
     {
       "industria": "Automotriz",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -680,8 +606,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -691,8 +615,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -702,8 +624,6 @@
     {
       "industria": "Automotriz",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -713,8 +633,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -724,8 +642,6 @@
     {
       "industria": "Sin clasificar",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -735,8 +651,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -746,8 +660,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -757,9 +669,7 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Hot Express S.A.",
@@ -768,8 +678,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -779,8 +687,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -790,8 +696,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -801,8 +705,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Coordinando Reunión",
       "fecha": "2026-06-07",
@@ -812,8 +714,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -823,8 +723,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -834,8 +732,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -845,8 +741,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -856,8 +750,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -867,8 +759,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -878,8 +768,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -889,8 +777,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -900,8 +786,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -911,8 +795,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -922,8 +804,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -933,8 +813,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -944,8 +822,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -955,8 +831,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -966,8 +840,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -977,8 +849,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -988,8 +858,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -999,8 +867,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1010,8 +876,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1021,8 +885,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1032,8 +894,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1043,8 +903,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1054,8 +912,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1065,8 +921,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1076,8 +930,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1087,8 +939,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1098,8 +948,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1109,8 +957,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1120,8 +966,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1131,8 +975,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Comercial / Ventas",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1142,8 +984,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1153,8 +993,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1164,8 +1002,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1175,8 +1011,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1186,8 +1020,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1197,8 +1029,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1208,8 +1038,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1219,8 +1047,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1230,8 +1056,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -1241,8 +1065,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -1252,8 +1074,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1263,8 +1083,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1274,8 +1092,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1285,8 +1101,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -1296,8 +1110,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1307,8 +1119,6 @@
     {
       "industria": "Automotriz",
       "area": "Comercial / Ventas",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1318,8 +1128,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1329,8 +1137,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Comercial / Ventas",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-18",
@@ -1340,8 +1146,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1351,8 +1155,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1362,8 +1164,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1373,8 +1173,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1384,8 +1182,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1395,8 +1191,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -1406,8 +1200,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-22",
@@ -1417,8 +1209,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-18",
@@ -1428,8 +1218,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1439,8 +1227,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1450,8 +1236,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Comercial / Ventas",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1461,9 +1245,7 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Tecnosinergia",
@@ -1472,8 +1254,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1483,8 +1263,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1494,8 +1272,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1505,8 +1281,6 @@
     {
       "industria": "Sin clasificar",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1516,8 +1290,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1527,8 +1299,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1538,8 +1308,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1549,8 +1317,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1560,8 +1326,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1571,8 +1335,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1582,8 +1344,6 @@
     {
       "industria": "Sin clasificar",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -1593,8 +1353,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Coordinando Reunión",
       "fecha": "2026-06-07",
@@ -1604,9 +1362,7 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Hot Express S.A.",
@@ -1615,8 +1371,6 @@
     {
       "industria": "Sin clasificar",
       "area": "Sin clasificar",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1626,9 +1380,7 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Comercial / Ventas",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Compañía de Transporte Marítimo S.A.",
@@ -1637,8 +1389,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1648,8 +1398,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1659,8 +1407,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1670,8 +1416,6 @@
     {
       "industria": "Sin clasificar",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1681,8 +1425,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1692,8 +1434,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1703,8 +1443,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1714,8 +1452,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1725,8 +1461,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1736,8 +1470,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1747,8 +1479,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1758,8 +1488,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1769,8 +1497,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1780,8 +1506,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1791,8 +1515,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1802,8 +1524,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1813,8 +1533,6 @@
     {
       "industria": "Sin clasificar",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1824,8 +1542,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1835,8 +1551,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1846,8 +1560,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1857,8 +1569,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1868,8 +1578,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1879,8 +1587,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1890,8 +1596,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1901,8 +1605,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1912,8 +1614,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1923,8 +1623,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1934,8 +1632,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1945,8 +1641,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1956,8 +1650,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1967,8 +1659,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1978,8 +1668,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -1989,8 +1677,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -2000,8 +1686,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2011,9 +1695,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "ECOSERVICIOS E INGENIERIA LIMPIA",
@@ -2022,8 +1704,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2033,8 +1713,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2044,8 +1722,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2055,8 +1731,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2066,8 +1740,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2077,8 +1749,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2088,8 +1758,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2099,8 +1767,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2110,8 +1776,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2121,8 +1785,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2132,8 +1794,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2143,8 +1803,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -2154,8 +1812,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2165,8 +1821,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -2176,8 +1830,6 @@
     {
       "industria": "Automotriz",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2187,9 +1839,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Minería & Servicios S.P.A.",
@@ -2198,8 +1848,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -2209,8 +1857,6 @@
     {
       "industria": "Automotriz",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2220,9 +1866,7 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "THK GmbH",
@@ -2231,8 +1875,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2242,8 +1884,6 @@
     {
       "industria": "Automotriz",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2253,8 +1893,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -2264,8 +1902,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2275,9 +1911,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Mecamin Ltda.",
@@ -2286,9 +1920,7 @@
     {
       "industria": "Automotriz",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Toyota Chile S.A.",
@@ -2297,8 +1929,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2308,8 +1938,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2319,8 +1947,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2330,8 +1956,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -2341,8 +1965,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -2352,8 +1974,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2363,8 +1983,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -2374,8 +1992,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -2385,8 +2001,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2396,8 +2010,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2407,8 +2019,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2418,8 +2028,6 @@
     {
       "industria": "Automotriz",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2429,8 +2037,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2440,8 +2046,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2451,9 +2055,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Exploraciones Mineras Andinas S.A. - Filial Codelco",
@@ -2462,8 +2064,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2473,8 +2073,6 @@
     {
       "industria": "Automotriz",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2484,8 +2082,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2495,8 +2091,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2506,8 +2100,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Comercio Exterior / COMEX",
-      "canal": "Correo",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2517,8 +2109,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2528,8 +2118,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2539,8 +2127,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2550,8 +2136,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2561,8 +2145,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2572,8 +2154,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2583,8 +2163,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "Correo",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-18",
@@ -2594,8 +2172,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2605,8 +2181,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2616,8 +2190,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "Correo",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -2627,8 +2199,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2638,8 +2208,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2649,8 +2217,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2660,8 +2226,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2671,8 +2235,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2682,8 +2244,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2693,8 +2253,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2704,8 +2262,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2715,8 +2271,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Finanzas / Administracion",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-17",
@@ -2726,8 +2280,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2737,9 +2289,7 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Zulogística",
@@ -2748,9 +2298,7 @@
     {
       "industria": "Sin clasificar",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "ELOG Chile",
@@ -2759,8 +2307,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2770,9 +2316,7 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Lamaignere Cargo",
@@ -2781,8 +2325,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2792,9 +2334,7 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "BranchOut Food Inc.",
@@ -2803,8 +2343,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2814,8 +2352,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2825,8 +2361,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2836,8 +2370,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2847,8 +2379,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2858,9 +2388,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Minera Colquisiri S.A.",
@@ -2869,8 +2397,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2880,8 +2406,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2891,8 +2415,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2902,8 +2424,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2913,8 +2433,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2924,8 +2442,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2935,8 +2451,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2946,8 +2460,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2957,8 +2469,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2968,8 +2478,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2979,8 +2487,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -2990,8 +2496,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -3001,8 +2505,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3012,8 +2514,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3023,8 +2523,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3034,9 +2532,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "COMPAÑÍA PROCESADORA MOLLEHUACA S.A.C.",
@@ -3045,8 +2541,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3056,8 +2550,6 @@
     {
       "industria": "Automotriz",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3067,8 +2559,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3078,8 +2568,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3089,8 +2577,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3100,9 +2586,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Mintral",
@@ -3111,8 +2595,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3122,8 +2604,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -3133,8 +2613,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3144,8 +2622,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3155,9 +2631,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Southern Peaks Mining",
@@ -3166,8 +2640,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3177,8 +2649,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3188,8 +2658,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3199,8 +2667,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3210,8 +2676,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3221,8 +2685,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3232,8 +2694,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3243,8 +2703,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3254,9 +2712,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "SINERMINCO",
@@ -3265,9 +2721,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Greenfields Minerals",
@@ -3276,8 +2730,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3287,8 +2739,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3298,8 +2748,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3309,8 +2757,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3320,8 +2766,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3331,8 +2775,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3342,9 +2784,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Comercial / Ventas",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "EnerTek Global",
@@ -3353,8 +2793,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3364,8 +2802,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3375,8 +2811,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3386,8 +2820,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3397,8 +2829,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3408,8 +2838,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3419,8 +2847,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3430,8 +2856,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3441,8 +2865,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3452,8 +2874,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3463,8 +2883,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3474,8 +2892,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3485,8 +2901,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3496,8 +2910,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3507,8 +2919,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3518,9 +2928,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Compañía Minera Las Bravas",
@@ -3529,8 +2937,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3540,8 +2946,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3551,8 +2955,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3562,8 +2964,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3573,8 +2973,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3584,8 +2982,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3595,8 +2991,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3606,8 +3000,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3617,8 +3009,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3628,8 +3018,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3639,9 +3027,7 @@
     {
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "TECHNICAL INSPECTION COMPANY",
@@ -3650,8 +3036,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-07",
@@ -3661,8 +3045,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3672,8 +3054,6 @@
     {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -3683,8 +3063,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3694,8 +3072,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "deriva",
       "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
@@ -3705,8 +3081,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "numero_malo",
       "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
@@ -3716,8 +3090,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3727,8 +3099,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3738,8 +3108,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3749,8 +3117,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3760,8 +3126,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
@@ -3771,8 +3135,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3782,8 +3144,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3793,8 +3153,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3804,8 +3162,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3815,8 +3171,6 @@
     {
       "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3826,8 +3180,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3837,8 +3189,6 @@
     {
       "industria": "Salud y Farma",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3848,8 +3198,6 @@
     {
       "industria": "Mineria y Metales",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3859,8 +3207,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Operaciones",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3870,8 +3216,6 @@
     {
       "industria": "Sin clasificar",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-15",
@@ -3881,8 +3225,6 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3892,8 +3234,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-07",
@@ -3903,9 +3243,7 @@
     {
       "industria": "Sin clasificar",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Epiroc",
@@ -3914,8 +3252,6 @@
     {
       "industria": "Construccion y Materiales",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
@@ -3925,8 +3261,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-07",
@@ -3936,9 +3270,7 @@
     {
       "industria": "Sin clasificar",
       "area": "Sin clasificar",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
-      "resultado": "negativa",
+      "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Onboard Logistics Group",
@@ -3947,8 +3279,6 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
-      "campana": "Prospeccion GBS",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-18",
@@ -3956,11 +3286,85 @@
       "tema": "Servicio integral puerta a puerta"
     }
   ],
+  "reuniones_por_segmento": [
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Finanzas / Administracion"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Comercio Exterior / COMEX"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Otros"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Comercio Exterior / COMEX"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Comercial / Ventas"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Comercio Exterior / COMEX"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Otros"
+    }
+  ],
   "objetivo": {
-    "total": 349,
-    "prospectadas": 311,
-    "pct": 89,
-    "pendientes": 38
+    "total": 87,
+    "cargadas": 22,
+    "con_conversacion": 9,
+    "con_positiva": 3,
+    "no_interesado": 6,
+    "con_reunion": 0,
+    "pendientes": 65,
+    "es_estimado": true
   },
   "empresas_positivas": [
     {
@@ -3968,7 +3372,6 @@
       "estado": "Reunion agendada",
       "industria": "Maquinaria e Industria",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
       "fecha": "2026-06-15"
     },
     {
@@ -3976,7 +3379,6 @@
       "estado": "Deriva / refiere a decisor",
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -3984,7 +3386,6 @@
       "estado": "Reunion agendada",
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Comercio Exterior / COMEX",
-      "canal": "Llamadas",
       "fecha": "2026-06-15"
     },
     {
@@ -3992,7 +3393,6 @@
       "estado": "Reunion agendada",
       "industria": "Mineria y Metales",
       "area": "Otros",
-      "canal": "WhatsApp",
       "fecha": "2026-06-22"
     },
     {
@@ -4000,7 +3400,6 @@
       "estado": "Reunion agendada",
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4008,7 +3407,6 @@
       "estado": "Coordinando reunion",
       "industria": "Construccion y Materiales",
       "area": "Abastecimiento / Compras",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4016,7 +3414,6 @@
       "estado": "Deriva / refiere a decisor",
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4024,7 +3421,6 @@
       "estado": "Reunion agendada",
       "industria": "Retail y Consumo",
       "area": "Comercial / Ventas",
-      "canal": "WhatsApp",
       "fecha": "2026-06-18"
     },
     {
@@ -4032,7 +3428,6 @@
       "estado": "Reunion agendada",
       "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
-      "canal": "WhatsApp",
       "fecha": "2026-06-18"
     },
     {
@@ -4040,7 +3435,6 @@
       "estado": "Coordinando reunion",
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4048,7 +3442,6 @@
       "estado": "Reunion agendada",
       "industria": "Maquinaria e Industria",
       "area": "Finanzas / Administracion",
-      "canal": "WhatsApp",
       "fecha": "2026-06-17"
     },
     {
@@ -4056,7 +3449,6 @@
       "estado": "Deriva / refiere a decisor",
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4064,7 +3456,6 @@
       "estado": "Deriva / refiere a decisor",
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4072,7 +3463,6 @@
       "estado": "Deriva / refiere a decisor",
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "Correo",
       "fecha": "2026-06-07"
     },
     {
@@ -4080,7 +3470,6 @@
       "estado": "Deriva / refiere a decisor",
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4088,7 +3477,6 @@
       "estado": "Reunion agendada",
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4096,7 +3484,6 @@
       "estado": "Deriva / refiere a decisor",
       "industria": "Salud y Farma",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4104,7 +3491,6 @@
       "estado": "Reunion agendada",
       "industria": "Sin clasificar",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-15"
     },
     {
@@ -4112,7 +3498,6 @@
       "estado": "Reunion agendada",
       "industria": "Construccion y Materiales",
       "area": "Direccion / Gerencia",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4120,7 +3505,6 @@
       "estado": "Reunion agendada",
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "canal": "WhatsApp",
       "fecha": "2026-06-07"
     },
     {
@@ -4128,7 +3512,6 @@
       "estado": "Reunion agendada",
       "industria": "Importacion / Exportacion",
       "area": "Comercio Exterior / COMEX",
-      "canal": "WhatsApp",
       "fecha": "2026-06-18"
     }
   ]

@@ -1,14 +1,16 @@
 """Intelligence Insight de GBS Logistics: estrategia comercial y resultados.
 
-Panel INTERNO de Conprospeccion (colores del design system del panel de
+Panel INTERNO de Conprospección (colores del design system del panel de
 Seguimiento de Reuniones). Lee el snapshot sin PII generado por
 dashboard/data/build_gbs_snapshot.py + reuniones reales de Supabase.
 """
 from __future__ import annotations
 
+import base64
 import html
 import json
 import sys
+from collections import Counter
 from datetime import date
 from pathlib import Path
 
@@ -26,10 +28,10 @@ sys.path.insert(0, str(DASHBOARD_DIR))
 from master_auth import require_master_auth
 from shared.config import supabase_key, supabase_url
 from shared.cp_design import (
-    CP_BG, CP_BLUE, CP_BLUE_BG, CP_CARBON, CP_GOLD, CP_GOLD_SOFT, CP_GRAY, CP_GRAY_BG,
-    CP_GREEN, CP_GREEN_BG, CP_HEAT, CP_INK, CP_LINE, CP_LINE_STRONG, CP_MUTED,
-    CP_MUTED_SURFACE, CP_ORANGE, CP_ORANGE_BG, CP_PURPLE, CP_PURPLE_BG, CP_RED,
-    CP_RED_BG, CP_SURFACE, FONT_BODY, FONT_HEAD, FONT_IMPORT, FONT_MONO,
+    CP_BG, CP_CARBON, CP_GOLD, CP_GOLD_SOFT, CP_GRAY, CP_GREEN, CP_GREEN_BG,
+    CP_HEAT, CP_INK, CP_LINE, CP_LINE_STRONG, CP_MUTED, CP_MUTED_SURFACE,
+    CP_ORANGE, CP_ORANGE_BG, CP_PURPLE, CP_PURPLE_BG, CP_RED, CP_RED_BG,
+    CP_SURFACE, FONT_BODY, FONT_HEAD, FONT_IMPORT, FONT_MONO,
 )
 
 try:
@@ -53,6 +55,16 @@ st.markdown(f"<style>{FONT_IMPORT} .stApp{{font-family:{FONT_BODY}}}</style>", u
 SB_URL, SB_KEY = supabase_url().rstrip("/"), supabase_key()
 HEADERS = {"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}"}
 SLUG = "gbs"
+ASSETS_DIR = DASHBOARD_DIR / "assets"
+
+
+def _logo_b64(fname: str = "cp_mark_dark.png") -> str:
+    p = ASSETS_DIR / fname
+    if not p.exists():
+        return ""
+    ext = p.suffix.lstrip(".")
+    d = base64.b64encode(p.read_bytes()).decode()
+    return f'<img src="data:image/{ext};base64,{d}" height="28" style="object-fit:contain">'
 
 
 @st.cache_data(ttl=45, show_spinner=False)
@@ -98,27 +110,40 @@ def meta_gbs() -> int:
             return int(float(rows[0]["reuniones_validas_meta"]))
     except Exception:
         pass
-    return 30
+    return 45
 
 
 REAL = reuniones_reales()
 META = meta_gbs()
 SNAP = cargar_snapshot()
 if not SNAP:
-    st.error("Aun no se ha generado el consolidado del mes. Corre dashboard/data/build_gbs_snapshot.py")
+    st.error("Aún no se ha generado el consolidado del mes. Corre dashboard/data/build_gbs_snapshot.py")
     st.stop()
 
 REG = pd.DataFrame(SNAP["registros"])
 REG["fecha"] = pd.to_datetime(REG["fecha"], errors="coerce").dt.date
 CORREO = SNAP["correo"]
+CANAL_ACTIVIDAD = pd.DataFrame(SNAP["canal_actividad"])
 OBJ = SNAP["objetivo"]
+POSITIVA_DESGLOSE = SNAP.get("positiva_desglose", {})
+REUNIONES_SEGMENTO = SNAP.get("reuniones_por_segmento", [])
 EMPRESAS_POSITIVAS = SNAP.get("empresas_positivas", [])
 RES_LABEL = {
-    "positiva": "Pidieron reunion o informacion", "deriva": "Derivan / refieren a un decisor",
-    "negativa": "No interesado / no califica", "reagendar": "Reagendar",
-    "no_contesta": "En seguimiento (sin respuesta aun)", "numero_malo": "Contacto no valido",
+    "positiva": "Piden información o reunión", "deriva": "Derivan / refieren a un decisor",
+    "negativa": "No interesado", "no_califica": "No cumple ICP objetivo",
+    "reagendar": "Reagendar",
+    "no_contesta": "En seguimiento (sin respuesta aún)", "numero_malo": "Contacto no válido (teléfono inexistente)",
 }
 EXCLUIR_SEG = {"Sin clasificar", "Otros"}
+
+
+def subtipo_positiva(estado_raw: str) -> str:
+    s = str(estado_raw or "").lower()
+    if "reunión agendada" in s or "reunion agendada" in s:
+        return "reunion_agendada"
+    if "coordinando" in s:
+        return "coordinando_reunion"
+    return "informacion_adicional"
 
 
 # ---------------- helpers de UI ----------------
@@ -148,7 +173,7 @@ def scard(label, value, sub="", color=CP_CARBON, tip=""):
 def bars(rows, color):
     mx = max((v for _, v in rows), default=0) or 1
     return "".join(
-        f'<div style="display:grid;grid-template-columns:230px 1fr 42px;gap:10px;align-items:center;margin:7px 0">'
+        f'<div style="display:grid;grid-template-columns:250px 1fr 42px;gap:10px;align-items:center;margin:7px 0">'
         f'<span style="font-size:12px;text-align:right;color:{CP_CARBON}">{n}</span>'
         f'<div style="height:22px;background:{CP_MUTED_SURFACE};border-radius:7px;overflow:hidden">'
         f'<div style="height:100%;width:{max(4, round(v / mx * 100))}%;background:{color};border-radius:7px"></div></div>'
@@ -167,13 +192,13 @@ def top_tabla(df, dim):
         if key in EXCLUIR_SEG:
             continue
         pos = int(sub.resultado.isin(["positiva", "deriva"]).sum())
-        conv = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
+        conv = int((~sub.resultado.isin(["no_contesta", "numero_malo", "no_califica"])).sum())
         tasa = pos / conv if conv else 0
         rows.append((key, len(sub), conv, pos, tasa))
     rows.sort(key=lambda r: (-r[3], -r[2], -r[1]))
     rows = rows[:5]
     body = (
-        '<div style="display:grid;grid-template-columns:1fr 72px 82px 62px 58px;gap:8px;'
+        '<div style="display:grid;grid-template-columns:1fr 72px 100px 62px 58px;gap:8px;'
         f'padding:0 4px 7px;border-bottom:1px solid {CP_LINE};font-size:10px;font-weight:700;'
         f'text-transform:uppercase;color:{CP_MUTED}">'
         '<span>Segmento</span><span>Gestiones</span><span>Conversaciones</span>'
@@ -181,7 +206,7 @@ def top_tabla(df, dim):
     )
     for name, gest, conv, pos, tasa in rows:
         body += (
-            '<div style="display:grid;grid-template-columns:1fr 72px 82px 62px 58px;gap:8px;'
+            '<div style="display:grid;grid-template-columns:1fr 72px 100px 62px 58px;gap:8px;'
             f'padding:9px 4px;border-bottom:1px solid {CP_LINE};font-size:11.5px;align-items:center">'
             f'<b style="color:{CP_CARBON}">{name}</b><span>{gest}</span><span>{conv}</span>'
             f'<span style="color:{CP_GREEN};font-weight:800">{pos}</span>'
@@ -189,7 +214,7 @@ def top_tabla(df, dim):
         )
     empty = (
         f"<span style='font-size:12px;color:{CP_MUTED}'>"
-        "Todavia no hay muestra suficiente para comparar este segmento."
+        "Todavía no hay muestra suficiente para comparar este segmento."
         "</span>"
     )
     content = body if rows else empty
@@ -197,68 +222,47 @@ def top_tabla(df, dim):
             f'padding:14px 16px">{content}</div>'), rows
 
 
-def segment_matrix(df):
+def segment_matrix(df, reuniones_conteo: Counter):
     rows = []
-    quality = {
-        "Comercio Exterior / COMEX": 1.0,
-        "Abastecimiento / Compras": 1.0,
-        "Logistica / Supply Chain": .95,
-        "Direccion / Gerencia": .9,
-        "Operaciones": .8,
-        "Finanzas / Administracion": .6,
-        "Comercial / Ventas": .6,
-        "Otros": .5,
-    }
     for (industry, area), sub in df.groupby(["industria", "area"]):
         if industry in EXCLUIR_SEG or area in EXCLUIR_SEG:
             continue
         accounts = int(sub["empresa"].replace("", pd.NA).nunique())
-        conversations = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
+        conversations = int((~sub.resultado.isin(["no_contesta", "numero_malo", "no_califica"])).sum())
         positive = conteo(sub, "positiva", "deriva")
-        meetings = int(sub["estado_raw"].str.contains("Reunion Agendada|Reunión Agendada", case=False, na=False).sum())
+        meetings = reuniones_conteo.get((industry, area), 0)
         rate = positive / conversations if conversations else 0
-        volume_factor = .4 + .6 * min(accounts / 30, 1)
-        stage_factor = .7 + .3 * min(meetings / 2, 1)
-        score = round(100 * rate * volume_factor * quality.get(area, .65) * stage_factor)
-        if conversations >= 15 and accounts >= 25:
-            confidence = "Alta"
-        elif conversations >= 8 or accounts >= 25:
-            confidence = "Media"
-        else:
-            confidence = "Baja"
-        if conversations < 8 and accounts < 25:
-            signal, decision = "Muestra insuficiente", "Ampliar muestra"
-        elif score >= 26:
+        if meetings >= 2:
             signal, decision = "Alta oportunidad", "Aumentar cobertura"
-        elif score >= 14:
+        elif meetings == 1 or positive >= 2:
             signal, decision = "Oportunidad media", "Mantener y ampliar"
-        elif score >= 7:
+        elif conversations >= 5:
             signal, decision = "Exploratorio", "Testear segunda muestra"
         else:
-            signal, decision = "Baja senal", "Ajustar mensaje"
+            signal, decision = "Muestra insuficiente", "Ampliar muestra"
         rows.append({
             "Macroindustria": industry, "Macrocargo": area, "Cuentas activadas": accounts,
             "Conversaciones": conversations, "Positivas": positive,
-            "Tasa positiva": rate, "Reuniones": meetings, "Score": score,
-            "Confianza": confidence, "Senal": signal, "Decision": decision,
+            "Tasa positiva": rate, "Reuniones": meetings,
+            "Señal": signal, "Decisión": decision,
         })
     return pd.DataFrame(rows).sort_values(
-        ["Cuentas activadas", "Conversaciones", "Positivas", "Score"], ascending=False
+        ["Reuniones", "Positivas", "Conversaciones"], ascending=False
     ) if rows else pd.DataFrame()
 
 
 def insight_row(insight, evidence, implication, action):
     return {"Insight": insight, "Evidencia": evidence,
-            "Implicancia": implication, "Accion recomendada": action}
+            "Implicancia": implication, "Acción recomendada": action}
 
 
 def _lat(value) -> str:
+    """Solo repara mojibake (UTF-8 leido como Latin-1); Helvetica/Latin-1 SI
+    soporta tildes y ene espanola, asi que no se eliminan acentos reales."""
     return (
         str(value)
-        .replace("—", "-").replace("–", "-").replace("→", "->")
-        .replace("×", "x").replace("ó", "o").replace("á", "a")
-        .replace("é", "e").replace("í", "i").replace("ú", "u")
-        .replace("ñ", "n")
+        .replace("â€”", "-").replace("â€“", "-").replace("â†’", "->")
+        .replace("Ã—", "x")
         .encode("latin-1", "replace").decode("latin-1")
     )
 
@@ -267,19 +271,19 @@ def html_table(df: pd.DataFrame, *, small: bool = True) -> str:
     if df is None or df.empty:
         return (
             f'<div style="padding:13px;background:{CP_MUTED_SURFACE};color:{CP_MUTED};'
-            f'border:1px dashed {CP_LINE_STRONG};border-radius:10px">Sin registros para la seleccion activa.</div>'
+            f'border:1px dashed {CP_LINE_STRONG};border-radius:10px">Sin registros para la selección activa.</div>'
         )
     font = "11px" if small else "12px"
     out = [
         '<div style="overflow-x:auto;width:100%">',
         '<table style="width:100%;border-collapse:collapse;background:#fff;table-layout:fixed;'
-        f'font-size:{font};line-height:1.38;border:1px solid {CP_LINE};border-radius:9px;overflow:hidden">',
+        f'font-size:{font};line-height:1.4;border:1px solid {CP_LINE};border-radius:9px;overflow:hidden">',
         "<thead><tr>",
     ]
     for col in df.columns:
         out.append(
             f'<th style="background:{CP_MUTED_SURFACE};color:{CP_MUTED};text-align:left;padding:9px 8px;'
-            f'border:1px solid {CP_LINE};font-weight:700;white-space:normal;word-break:normal">'
+            f'border:1px solid {CP_LINE};font-weight:700;white-space:normal;word-break:normal;overflow-wrap:break-word">'
             f"{html.escape(str(col))}</th>"
         )
     out.append("</tr></thead><tbody>")
@@ -288,7 +292,7 @@ def html_table(df: pd.DataFrame, *, small: bool = True) -> str:
         for value in row:
             out.append(
                 f'<td style="padding:8px;border:1px solid {CP_LINE};vertical-align:top;'
-                'white-space:normal;overflow-wrap:anywhere;word-break:normal">'
+                'white-space:normal;overflow-wrap:break-word;word-break:break-word">'
                 f"{html.escape(str(value))}</td>"
             )
         out.append("</tr>")
@@ -298,14 +302,16 @@ def html_table(df: pd.DataFrame, *, small: bool = True) -> str:
 
 # ================= HEADER =================
 _ini = pd.to_datetime(SNAP["periodo"]["inicio"]).date()
+_fin_periodo = pd.to_datetime(SNAP["periodo"]["fin"]).date()
+_logo = _logo_b64()
 st.markdown(
     f'<div style="background:{CP_CARBON};color:#fff;border-radius:0 0 12px 12px;padding:16px 22px;'
     f'display:flex;align-items:center;justify-content:space-between;box-shadow:0 10px 24px rgba(26,26,26,.14)">'
     f'<div style="display:flex;align-items:center;gap:14px">'
-    f'<div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,{CP_CARBON} 0 52%,{CP_GOLD} 52% 100%);box-shadow:inset 0 0 0 2px #fff"></div>'
+    f'{_logo}'
     f'<div><div style="font-family:{FONT_HEAD};font-size:19px;font-weight:800;line-height:1.1">Intelligence Insight · GBS Logistics</div>'
-    f'<div style="font-size:12px;color:#C9C9C6;margin-top:2px">Prospeccion multicanal (WhatsApp + correo) · se actualiza 1x/mes</div></div></div>'
-    f'<div style="font-size:11px;color:#C9C9C6;text-align:right;font-family:{FONT_HEAD};font-weight:600">Conprospeccion<br>Panel interno</div></div>',
+    f'<div style="font-size:12px;color:#C9C9C6;margin-top:2px">Prospección multicanal · ciclo de junio 2026</div></div></div>'
+    f'<div style="font-size:11px;color:#C9C9C6;text-align:right">Panel interno Conprospección</div></div>',
     unsafe_allow_html=True,
 )
 
@@ -325,8 +331,8 @@ st.markdown(
 mc1, mc2 = st.columns([4, 1])
 mc1.markdown(
     f'<div style="font-size:12px;color:{CP_CARBON};padding:7px 2px">'
-    f'<b>{REAL["total"]} reuniones registradas</b> · {REAL["validas"]} validas para la meta. '
-    f'La evaluacion contractual se consulta en el panel de Seguimiento de Reuniones.</div>',
+    f'<b>{REAL["total"]} reuniones registradas</b> · {REAL["validas"]} válidas para la meta. '
+    f'La evaluación contractual definitiva se consulta en el panel de Seguimiento de Reuniones.</div>',
     unsafe_allow_html=True,
 )
 if mc2.button("Ver seguimiento →", key="goto_seg", use_container_width=True):
@@ -335,102 +341,95 @@ if mc2.button("Ver seguimiento →", key="goto_seg", use_container_width=True):
 st.markdown(
     f'<div style="background:{CP_GOLD_SOFT};border:1px solid #F0D28D;border-left:5px solid {CP_GOLD};'
     f'border-radius:10px;padding:11px 17px;margin:12px 0;font-size:13px;color:#5A4A00">'
-    f'<b>Este ciclo fue de estrategia.</b> Probamos prospeccion multicanal (WhatsApp y correo) sobre '
-    f'importadores/exportadores en Chile, Peru y Colombia para detectar industrias, areas y mensajes '
-    f'con mejor respuesta para el servicio logistico integral de GBS.</div>',
+    f'<b>Este ciclo fue de estrategia.</b> Probamos prospección multicanal sobre '
+    f'importadores/exportadores en Chile, Perú y Colombia para detectar industrias, áreas y mensajes '
+    f'con mejor respuesta para el servicio logístico integral de GBS. Se ajustó el ICP durante el ciclo '
+    f'(se retiraron cuentas peruanas fuera de perfil), por eso el universo total de este consolidado '
+    f'es más acotado y las tasas de respuesta se ven más nítidas que en el ciclo anterior.</div>',
     unsafe_allow_html=True,
 )
 
 # ===== Panel maestro de filtros cruzados =====
 valid_dates = REG["fecha"].dropna()
-min_date = valid_dates.min() if not valid_dates.empty else _ini
-max_date = valid_dates.max() if not valid_dates.empty else date.today()
-min_date = max(min_date, _ini)
+min_date = _ini
+max_date = _fin_periodo
 with st.container(border=True):
     st.markdown(
         f'<div style="display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:5px">'
-        f'<div><div style="font-family:{FONT_HEAD};font-size:17px;font-weight:800;color:{CP_INK}">Control del analisis</div>'
-        f'<div style="font-size:12px;color:{CP_MUTED}">Cada ajuste recalcula todas las metricas, tablas, '
+        f'<div><div style="font-family:{FONT_HEAD};font-size:17px;font-weight:800;color:{CP_INK}">Control del análisis</div>'
+        f'<div style="font-size:12px;color:{CP_MUTED}">Cada ajuste recalcula todas las métricas, tablas, '
         'heatmaps, insights y recomendaciones que aparecen debajo.</div></div>'
         f'<span style="background:{CP_GOLD_SOFT};color:#7A6400;border:1px solid #F0D28D;border-radius:999px;'
         'padding:5px 11px;font-size:10px;font-weight:800;white-space:nowrap">FILTROS GLOBALES</span></div>',
         unsafe_allow_html=True,
     )
-    fc = st.columns([1.08, 1, 1.35, 1.25])
+    fc = st.columns([1.2, 1.4, 1.4])
     period = fc[0].date_input(
-        "Periodo", value=(min_date, max_date), min_value=min_date, max_value=max_date, format="DD/MM/YYYY",
+        "Período", value=(min_date, max_date), min_value=min_date, max_value=max_date, format="DD/MM/YYYY",
     )
     start_date, end_date = (
         period if isinstance(period, (tuple, list)) and len(period) == 2 else (min_date, max_date)
     )
     date_base = REG[REG["fecha"].between(start_date, end_date, inclusive="both")]
-    f_canal = fc[1].selectbox("Canal", ["Todos"] + sorted(date_base["canal"].dropna().unique()))
-    base_ind = date_base if f_canal == "Todos" else date_base[date_base["canal"] == f_canal]
-    f_ind = fc[2].selectbox(
+    f_ind = fc[1].selectbox(
         "Macroindustria",
-        ["Todas"] + sorted(x for x in base_ind["industria"].dropna().unique() if str(x).strip()),
+        ["Todas"] + sorted(x for x in date_base["industria"].dropna().unique() if str(x).strip()),
     )
-    base_area = base_ind if f_ind == "Todas" else base_ind[base_ind["industria"] == f_ind]
-    f_area = fc[3].selectbox(
-        "Macrocargo (area)",
+    base_area = date_base if f_ind == "Todas" else date_base[date_base["industria"] == f_ind]
+    f_area = fc[2].selectbox(
+        "Macrocargo (área)",
         ["Todas"] + sorted(x for x in base_area["area"].dropna().unique() if str(x).strip()),
     )
     st.markdown(
         f'<div style="font-size:11px;color:{CP_MUTED};margin-top:2px">'
         f'Vista activa: <b>{start_date:%d/%m/%Y}-{end_date:%d/%m/%Y}</b> · '
-        f'<b>{f_canal}</b> · <b>{f_ind}</b> · <b>{f_area}</b></div>',
+        f'<b>{f_ind}</b> · <b>{f_area}</b></div>',
         unsafe_allow_html=True,
     )
 
 REGf = date_base.copy()
-if f_canal != "Todos": REGf = REGf[REGf.canal == f_canal]
 if f_ind != "Todas": REGf = REGf[REGf.industria == f_ind]
 if f_area != "Todas": REGf = REGf[REGf.area == f_area]
 
 fp, fd = conteo(REGf, "positiva"), conteo(REGf, "deriva")
-fn, fr = conteo(REGf, "negativa"), conteo(REGf, "reagendar")
+fneg = conteo(REGf, "negativa")
+fnocalifica = conteo(REGf, "no_califica")
 fnoc, fmalo = conteo(REGf, "no_contesta"), conteo(REGf, "numero_malo")
-fconv = len(REGf) - fnoc - fmalo
+fconv = len(REGf) - fnoc - fmalo - fnocalifica
 fpostot = fp + fd
 
 # ===== Resumen filtrado =====
-section("Resumen del ciclo", "Las metricas responden a los filtros seleccionados")
+section("Resumen del ciclo", "Las métricas responden a los filtros seleccionados")
 tasa = fpostot / fconv if fconv else 0
 rs = st.columns(4)
 rs[0].markdown(scard("Gestiones", len(REGf), "Registros dentro del filtro"), unsafe_allow_html=True)
-rs[1].markdown(scard("Conversaciones", fconv, "Excluye sin respuesta y contacto invalido"), unsafe_allow_html=True)
-rs[2].markdown(scard("Respuestas positivas", fpostot, f"{fp} interes directo + {fd} derivaciones", CP_GREEN), unsafe_allow_html=True)
+rs[1].markdown(scard("Conversaciones", fconv, "Excluye sin respuesta, contacto no válido y fuera de ICP"), unsafe_allow_html=True)
+rs[2].markdown(scard("Respuestas positivas", fpostot, f"{fp} interés directo + {fd} derivaciones", CP_GREEN), unsafe_allow_html=True)
 rs[3].markdown(scard("Tasa positiva", f"{tasa:.0%}", "Positivas / conversaciones", CP_GREEN), unsafe_allow_html=True)
 st.caption(
-    f"Base multicanal total: {SNAP['universo_unico']:,} contactos unicos (WhatsApp + correo). "
-    "Las metricas superiores corresponden a la gestion con resultado registrado."
+    f"Base de gestión del ciclo: {SNAP['universo_unico']:,} contactos únicos. "
+    "Las métricas superiores corresponden a la gestión con resultado registrado."
 )
 
-# ===== Actividad por canal =====
-section("Actividad por canal", "Distribucion de gestiones, conversaciones y positivas dentro del filtro")
-channel_rows = []
-for channel, sub in REGf.groupby("canal"):
-    conv = len(sub) - conteo(sub, "no_contesta") - conteo(sub, "numero_malo")
-    channel_rows.append((channel, len(sub), conv, conteo(sub, "positiva", "deriva")))
-channel_rows.sort(key=lambda row: (-row[1], row[0]))
-activity_df = pd.DataFrame(channel_rows, columns=["Canal", "Gestiones", "Conversaciones", "Positivas"]) if channel_rows else pd.DataFrame()
-if channel_rows:
-    activity_df["Tasa positiva"] = activity_df.apply(
-        lambda row: f"{row['Positivas'] / row['Conversaciones']:.0%}" if row["Conversaciones"] else "0%", axis=1,
-    )
-    st.dataframe(activity_df, hide_index=True, use_container_width=True)
-if start_date == min_date and end_date == max_date and f_canal in {"Todos", "Correo"} and f_ind == "Todas" and f_area == "Todas":
-    st.caption(
-        f"Volumen agregado de correo (Snov) del periodo: {CORREO['enviados']:,} enviados · "
-        f"{CORREO['entregados']:,} entregados · {CORREO['contactados']:,} contactados · "
-        f"{CORREO['respuestas']} respuestas rastreadas. Estas campanas no tenian tracking de apertura activo, "
-        "por eso el correo aporta alcance pero la conversacion se concentra en WhatsApp."
-    )
+# ===== Volumen de gestión por canal =====
+section("Volumen de gestión por canal", "Un mismo contacto puede haber sido gestionado por más de un canal")
+st.dataframe(CANAL_ACTIVIDAD.rename(columns={"canal": "Canal", "gestiones": "Gestiones"}),
+             hide_index=True, use_container_width=True)
+st.caption(
+    "Estos volúmenes no son mutuamente excluyentes: una misma empresa puede haber sido contactada "
+    "por más de un canal durante el ciclo. Los resultados de conversación (más abajo) se analizan "
+    "de forma agregada, sin desglosar conversión por canal."
+)
 
-# ===== Resultados de conversacion =====
-section("Resultados de conversacion", "Como respondio el mercado en WhatsApp, llamadas y correo")
+# ===== Resultados de conversación =====
+section("Resultados de conversación", "Cómo respondió el mercado durante el ciclo")
+pos_desglose_txt = (
+    f"Información adicional: {POSITIVA_DESGLOSE.get('informacion_adicional', 0)} · "
+    f"Coordinando reunión: {POSITIVA_DESGLOSE.get('coordinando_reunion', 0)} · "
+    f"Reunión agendada: {POSITIVA_DESGLOSE.get('reunion_agendada', 0)}"
+)
 res_rows = [(RES_LABEL[k], conteo(REGf, k)) for k in
-            ["positiva", "deriva", "reagendar", "negativa", "no_contesta", "numero_malo"]]
+            ["positiva", "deriva", "negativa", "no_califica", "no_contesta", "numero_malo"]]
 res_rows_sorted = sorted([(n, v) for n, v in res_rows if v > 0], key=lambda row: row[1], reverse=True)
 st.caption("Ordenado de mayor a menor por cantidad de respuestas dentro de la vista activa.")
 st.markdown(bars(res_rows_sorted, CP_CARBON), unsafe_allow_html=True)
@@ -439,136 +438,144 @@ st.markdown(
     f'<span style="background:{CP_GREEN_BG};color:{CP_GREEN};padding:4px 11px;border-radius:9px">'
     f'Positivas: {fpostot}{f" ({fpostot / fconv:.0%})" if fconv else ""}</span>'
     f'<span style="background:{CP_PURPLE_BG};color:{CP_PURPLE};padding:4px 11px;border-radius:9px">Derivaciones: {fd}</span>'
-    f'<span style="background:{CP_RED_BG};color:{CP_RED};padding:4px 11px;border-radius:9px">Negativas: {fn}</span>'
-    f'<span style="background:{CP_ORANGE_BG};color:{CP_ORANGE};padding:4px 11px;border-radius:9px">En seguimiento: {fnoc}</span>'
+    f'<span style="background:{CP_RED_BG};color:{CP_RED};padding:4px 11px;border-radius:9px">No interesado: {fneg}</span>'
+    f'<span style="background:{CP_ORANGE_BG};color:{CP_ORANGE};padding:4px 11px;border-radius:9px">No cumple ICP: {fnocalifica}</span>'
+    f'<span style="background:{CP_MUTED_SURFACE};color:{CP_GRAY};padding:4px 11px;border-radius:9px">En seguimiento: {fnoc}</span>'
     f'</div>',
     unsafe_allow_html=True,
 )
+st.caption(
+    f"Positivas = piden información adicional, están coordinando reunión o ya tienen reunión agendada "
+    f"({pos_desglose_txt}). 'No cumple ICP objetivo' es distinto de 'no interesado': significa que el "
+    "contacto no calza con el perfil buscado (tamaño, país, flujo de importación), no que haya rechazado "
+    "la propuesta; por eso se excluye del cálculo de tasa positiva junto con contacto no válido y sin respuesta."
+)
 
 # ===== Empresas que respondieron =====
-section("Empresas que respondieron", "Cuentas con informacion adicional, coordinando o reunion agendada")
+section("Empresas que respondieron", "Cuentas con información adicional, coordinando reunión o reunión agendada")
 empresas_df = pd.DataFrame(EMPRESAS_POSITIVAS)
 if EMPRESAS_POSITIVAS:
     empresas_df["fecha"] = pd.to_datetime(empresas_df["fecha"], errors="coerce").dt.date
     empresas_df = empresas_df[empresas_df["fecha"].between(start_date, end_date, inclusive="both")]
-    if f_canal != "Todos":
-        empresas_df = empresas_df[empresas_df["canal"] == f_canal]
     if f_ind != "Todas":
         empresas_df = empresas_df[empresas_df["industria"] == f_ind]
     if f_area != "Todas":
         empresas_df = empresas_df[empresas_df["area"] == f_area]
     if empresas_df.empty:
-        st.info("Este segmento todavia no registra empresas con respuesta positiva.")
+        st.info("Este segmento todavía no registra empresas con respuesta positiva.")
     else:
         st.dataframe(
             empresas_df.rename(columns={
                 "empresa": "Empresa", "estado": "Estado", "industria": "Macro-industria",
-                "area": "Macro-cargo (area)", "canal": "Canal",
+                "area": "Macro-cargo (área)",
             }),
             hide_index=True, use_container_width=True,
-            column_order=["Empresa", "Estado", "Macro-industria", "Macro-cargo (area)", "Canal"],
+            column_order=["Empresa", "Estado", "Macro-industria", "Macro-cargo (área)"],
         )
 else:
-    st.info("El detalle de empresas se incorporara en el proximo consolidado.")
+    st.info("El detalle de empresas se incorporará en el próximo consolidado.")
 
 # ===== Respuesta por segmento =====
-section("Respuesta por segmento", "Donde esta respondiendo mejor el mercado?")
-segments = segment_matrix(REGf)
+section(
+    "Respuesta por segmento",
+    "Cruce entre la industria del prospecto y el área que decide la compra, para ver dónde responde mejor el mercado",
+)
+st.caption(
+    "\"Conversaciones\" = contactos que respondieron algo (se excluyen los que no contestaron, el "
+    "contacto no válido y los que no cumplen el ICP). El mapa de calor colorea más oscuro los segmentos "
+    "con más reuniones y respuestas positivas."
+)
+reuniones_counter = Counter(
+    (r["industria"], r["area"]) for r in REUNIONES_SEGMENTO
+    if (f_ind == "Todas" or r["industria"] == f_ind) and (f_area == "Todas" or r["area"] == f_area)
+)
+segments = segment_matrix(REGf, reuniones_counter)
 if segments.empty:
-    st.info(
-        "Todavia no hay muestra suficiente para concluir. Se requieren al menos 8 conversaciones "
-        "efectivas o 25 cuentas activadas en un segmento para una lectura confiable."
-    )
+    st.info("Todavía no hay muestra suficiente para concluir en esta combinación de filtros.")
 else:
     heat = alt.Chart(segments).mark_rect(cornerRadius=4).encode(
-        x=alt.X("Macrocargo:N", title="Macrocargo (area)", axis=alt.Axis(labelAngle=0, labelLimit=130, labelPadding=8)),
+        x=alt.X("Macrocargo:N", title="Macrocargo (área)", axis=alt.Axis(labelAngle=0, labelLimit=160, labelPadding=8)),
         y=alt.Y("Macroindustria:N", title="Macroindustria"),
-        color=alt.Color("Score:Q", title="Score",
-                        scale=alt.Scale(domain=[0, 12, 25, 45], range=CP_HEAT)),
+        color=alt.Color("Reuniones:Q", title="Reuniones",
+                        scale=alt.Scale(domain=[0, 1, 2, 4], range=CP_HEAT)),
         tooltip=["Macroindustria", "Macrocargo", "Cuentas activadas", "Conversaciones", "Positivas",
-                 alt.Tooltip("Tasa positiva:Q", format=".0%"), "Reuniones", "Score", "Confianza", "Senal", "Decision"],
+                 alt.Tooltip("Tasa positiva:Q", format=".0%"), "Reuniones", "Señal", "Decisión"],
     ).properties(height=max(260, 38 * segments["Macroindustria"].nunique()))
     st.altair_chart(heat, use_container_width=True)
-    st.caption(
-        "Score de oportunidad = tasa positiva x volumen de cuentas x calidad del cargo x avance de etapa. "
-        "Los segmentos pequenos se marcan como muestra insuficiente aunque tengan una tasa alta."
-    )
     segment_view = segments.copy()
     segment_view["Segmento"] = segment_view["Macroindustria"] + " + " + segment_view["Macrocargo"]
     segment_view["Tasa positiva"] = segment_view["Tasa positiva"].map(lambda x: f"{x:.0%}")
     segment_view = segment_view[[
         "Segmento", "Cuentas activadas", "Conversaciones", "Positivas", "Tasa positiva",
-        "Reuniones", "Score", "Confianza", "Senal", "Decision",
+        "Reuniones", "Señal", "Decisión",
     ]]
-    st.markdown(html_table(segment_view), unsafe_allow_html=True)
+    st.markdown(html_table(segment_view, small=False), unsafe_allow_html=True)
 
-# ===== Rankings =====
-section("Top industrias y cargos", "Rankings recalculados segun los filtros superiores")
+# ===== Top industrias y cargos =====
+section("Top 5 industrias y cargos", "Rankings recalculados según los filtros superiores, ordenados por respuestas positivas")
 si, sa = st.columns(2)
 with si:
-    st.markdown("<b style='font-size:12.5px'>Top macro-industrias</b>", unsafe_allow_html=True)
+    st.markdown("<b style='font-size:12.5px'>Top 5 macro-industrias</b>", unsafe_allow_html=True)
     html_i, rows_i = top_tabla(REGf, "industria")
     st.markdown(html_i, unsafe_allow_html=True)
 with sa:
-    st.markdown("<b style='font-size:12.5px'>Top macro-cargos (areas)</b>", unsafe_allow_html=True)
+    st.markdown("<b style='font-size:12.5px'>Top 5 macro-cargos (áreas)</b>", unsafe_allow_html=True)
     html_a, rows_a = top_tabla(REGf, "area")
     st.markdown(html_a, unsafe_allow_html=True)
-    with st.expander("Que es un macro-cargo (area)?"):
-        st.caption("Agrupamos los cientos de cargos en areas funcionales (COMEX, Abastecimiento, "
-                   "Logistica, Direccion, Operaciones, Finanzas, Comercial) para definir estrategia por area.")
+    with st.expander("¿Qué es un macro-cargo (área)?"):
+        st.caption("Agrupamos los cientos de cargos en áreas funcionales (COMEX, Abastecimiento, "
+                   "Logística, Dirección, Operaciones, Finanzas, Comercial) para definir estrategia por área.")
+st.markdown(
+    f'<div style="background:{CP_MUTED_SURFACE};border:1px solid {CP_LINE};border-radius:10px;'
+    f'padding:11px 14px;margin-top:10px;font-size:12px;color:{CP_CARBON};line-height:1.55">'
+    f'<b>Por qué avanzamos más en Minería y Metales / Alimentos, Bebidas y Agro:</b> la cartera de '
+    'inversión minera en Chile llegó a USD 104.500 millones proyectados a 2034, con 13 proyectos de cobre '
+    'acelerados para 2026 — más actividad minera implica más equipos, insumos y repuestos que mover. '
+    'En paralelo, Chile y Perú están ampliando bodegas de cadena de frío para vino y alimentos, el '
+    'diferenciador específico de GBS en carga temperada. Es coherente con la experiencia previa de '
+    'Conprospección en servicios similares: estos sectores tienden a responder mejor cuando el mensaje '
+    'es de visibilidad y continuidad operativa, no de precio.</div>',
+    unsafe_allow_html=True,
+)
 
-# ===== Que aprendimos del mercado =====
-section("Que aprendimos del mercado", "Cada lectura conecta evidencia, implicancia y una accion")
+# ===== Qué aprendimos del mercado =====
+section("Qué aprendimos del mercado", "Cada lectura conecta evidencia, implicancia y una acción")
 learning_rows = []
 if not segments.empty:
-    reliable = segments[(segments["Conversaciones"] >= 8) | (segments["Cuentas activadas"] >= 25)]
+    reliable = segments[(segments["Reuniones"] >= 1) | (segments["Conversaciones"] >= 5)]
     lead = (reliable if not reliable.empty else segments).iloc[0]
     learning_rows.append(insight_row(
-        f"Mayor senal en {lead['Macroindustria']} + {lead['Macrocargo']}",
+        f"Mayor señal en {lead['Macroindustria']} + {lead['Macrocargo']}",
         f"{lead['Conversaciones']} conversaciones, {lead['Positivas']} positivas y "
-        f"{lead['Reuniones']} reuniones; confianza {lead['Confianza'].lower()}.",
-        "La oportunidad depende de combinar contexto industrial y area compradora, no solo de una tasa aislada.",
-        lead["Decision"],
-    ))
-channel_summary = []
-for channel, sub in REGf.groupby("canal"):
-    conv = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
-    positives = conteo(sub, "positiva", "deriva")
-    if conv:
-        channel_summary.append((channel, conv, positives, positives / conv))
-if channel_summary:
-    best_channel = max(channel_summary, key=lambda row: (row[3], row[1]))
-    learning_rows.append(insight_row(
-        f"{best_channel[0]} genera la mejor senal dentro de la vista",
-        f"{best_channel[1]} conversaciones y {best_channel[2]} positivas ({best_channel[3]:.0%}).",
-        "El canal debe evaluarse por calidad de conversacion y no solo por volumen de impactos.",
-        "Mantenerlo dentro de una cadencia multicanal y ampliar muestra antes de reasignar esfuerzo.",
+        f"{lead['Reuniones']} reuniones agendadas en este segmento.",
+        "La oportunidad depende de combinar contexto industrial y área compradora, no solo de una tasa aislada.",
+        lead["Decisión"],
     ))
 learning_rows.append(insight_row(
-    "La compra logistica la decide la gerencia, pero la operan otras areas",
-    f"La vista contiene {REGf['area'].nunique()} areas funcionales con actividad; Direccion concentra el volumen.",
-    "Importar con regularidad involucra a Gerencia (decide), COMEX/Abastecimiento (operan) y Logistica.",
-    "Buscar 2-3 perfiles por cuenta prioritaria y comparar respuesta por area.",
+    "La compra logística la decide la gerencia, pero la operan otras áreas",
+    f"La vista contiene {REGf['area'].nunique()} áreas funcionales con actividad; Dirección/Gerencia concentra el volumen.",
+    "Importar con regularidad involucra a Gerencia (decide), COMEX/Abastecimiento y Logística (operan).",
+    "Buscar 2-3 perfiles por cuenta prioritaria y comparar respuesta por área.",
 ))
 learning_rows.append(insight_row(
-    "El correo aporta alcance; WhatsApp aporta la conversacion",
-    f"{CORREO['enviados']:,} correos enviados sin tracking de apertura vs. gestion conversacional en WhatsApp.",
-    "El correo abre la puerta pero la respuesta calificada de GBS ocurre en WhatsApp.",
-    "Activar tracking de apertura/respuesta en Snov para medir el correo de punta a punta.",
+    "El ajuste de ICP redujo el universo pero mejoró la calidad de respuesta",
+    "Se retiraron del ciclo cuentas peruanas fuera de perfil (tamaño o flujo de importación insuficiente).",
+    "Un universo más chico y mejor calificado concentra la conversación en cuentas con más probabilidad real de avanzar.",
+    "Mantener el ICP ajustado y aplicar el mismo filtro antes de cargar el próximo lote.",
 ))
 st.markdown(html_table(pd.DataFrame(learning_rows)), unsafe_allow_html=True)
 
 # ===== Mensajes y dolores =====
-section("Mensajes y dolores que estan resonando",
-        "Tema asociado a la campana; es una inferencia analitica, no una transcripcion del prospecto")
+section("Mensajes y dolores que están resonando",
+        "Tema asociado a la campaña; es una inferencia analítica, no una transcripción del prospecto")
 theme_rows = []
 for theme, sub in REGf.groupby("tema"):
     accounts = int(sub["empresa"].replace("", pd.NA).nunique())
-    conversations = int((~sub.resultado.isin(["no_contesta", "numero_malo"])).sum())
+    conversations = int((~sub.resultado.isin(["no_contesta", "numero_malo", "no_califica"])).sum())
     positives = conteo(sub, "positiva", "deriva")
     best_industry = (
         sub[sub.resultado.isin(["positiva", "deriva"])]["industria"].value_counts().index[0]
-        if positives else "Sin senal suficiente"
+        if positives else "Sin señal suficiente"
     )
     rate = positives / conversations if conversations else 0
     recommendation = (
@@ -579,89 +586,92 @@ for theme, sub in REGf.groupby("tema"):
     theme_rows.append({
         "Tema": theme, "Cuentas impactadas": accounts, "Conversaciones": conversations,
         "Positivas": positives, "Tasa positiva": f"{rate:.0%}",
-        "Mejor industria": best_industry, "Recomendacion": recommendation,
+        "Mejor industria": best_industry, "Recomendación": recommendation,
     })
 theme_df = pd.DataFrame(theme_rows).sort_values(
-    ["Cuentas impactadas", "Positivas", "Conversaciones"], ascending=False
+    ["Positivas", "Cuentas impactadas", "Conversaciones"], ascending=False
 ) if theme_rows else pd.DataFrame()
+st.caption("Ordenado por respuestas positivas, luego cuentas impactadas y conversaciones.")
 if theme_df.empty:
-    st.info("Todavia no hay muestra suficiente para comparar mensajes dentro de esta seleccion.")
+    st.info("Todavía no hay muestra suficiente para comparar mensajes dentro de esta selección.")
 else:
     st.markdown(html_table(theme_df), unsafe_allow_html=True)
     theme_lead = theme_df.iloc[0]
     st.success(
-        f"Insight: **{theme_lead['Tema']}** concentra la mayor senal observable "
-        f"({theme_lead['Positivas']} positivas). Conviene validar con copy etiquetado por tema en el proximo ciclo."
+        f"Insight: **{theme_lead['Tema']}** concentra la mayor señal observable "
+        f"({theme_lead['Positivas']} positivas). Conviene validar con copy etiquetado por tema en el próximo ciclo."
     )
 
 # ===== Negativas y objeciones =====
-section("Negativas y objeciones", "Las respuestas negativas tambien orientan segmentacion y copy")
+section("Negativas y objeciones", "Las respuestas de \"no interesado\" también orientan segmentación y copy")
 negative = REGf[REGf.resultado == "negativa"].copy()
 objection_rows = []
 for objection, sub in negative.groupby("estado_raw"):
     common_industry = sub["industria"].value_counts().index[0] if not sub.empty else "-"
-    if "califica" in objection.lower():
-        reading = "Puede ser desajuste de ICP: sin flujo de importacion recurrente o fuera de mercado."
-        action = "Revisar ICP (importador mensual) y priorizar mineria/maquinaria/alimentos."
-    else:
-        reading = "Falta de prioridad o proveedor logistico vigente."
-        action = "Reformular desde dolor operativo (visibilidad, aduana, un solo interlocutor) y recontactar."
     objection_rows.append({
-        "Objecion": objection, "Cantidad": len(sub), "Industria mas frecuente": common_industry,
-        "Lectura": reading, "Accion": action,
+        "Objeción": objection, "Cantidad": len(sub), "Industria más frecuente": common_industry,
+        "Lectura": "Ya cuenta con proveedor logístico vigente o no es prioridad en este momento.",
+        "Acción": "Reforzar la propuesta de valor diferenciada (servicio integral, un solo interlocutor, "
+                  "carga temperada) y programar un recontacto en el próximo trimestre.",
     })
 if objection_rows:
     st.dataframe(pd.DataFrame(objection_rows), hide_index=True, use_container_width=True)
 else:
-    st.info("No hay negativas registradas dentro de la combinacion de filtros seleccionada.")
+    st.info("No hay contactos de \"no interesado\" dentro de la combinación de filtros seleccionada.")
 
 # ===== Contexto de mercado =====
-section("Contexto de mercado relevante", "Senales del rubro para interpretar los datos; no sustituyen los de campana")
+section("Contexto de mercado relevante", "Señales del rubro para interpretar los datos; no sustituyen los de campaña")
 market_context = pd.DataFrame([
     {
-        "Tendencia": "Importadores pyme sin area logistica robusta",
-        "Por que importa para GBS": "Es el corazon del ICP: empresas que delegan la cadena completa (flete, aduana, seguro, transporte local) a un solo interlocutor.",
-        "Segmentos conectados": "Mineria, Maquinaria, Alimentos y Retail que importan de forma recurrente",
-        "Senal": "Direccion/Gerencia concentra el volumen de respuesta",
+        "Tendencia": "La cartera de inversión minera en Chile sigue en expansión",
+        "Por qué importa para GBS": "USD 104.500 millones proyectados a 2034 y 13 proyectos de cobre "
+                                    "acelerados para 2026 significan más equipos, insumos y repuestos por mover.",
+        "Segmentos conectados": "Minería y Metales, Maquinaria e Industria",
+        "Fuente": "EY / Mining.com — Cartera de Inversión Minera Chile 2026",
     },
     {
-        "Tendencia": "Reconfiguracion de cadenas de suministro (origenes USA/China/Europa)",
-        "Por que importa para GBS": "Aumenta la necesidad de asesoria en rutas, consolidado y visibilidad de carga para importadores en Chile y Peru.",
-        "Segmentos conectados": "Maquinaria e Industria, Importacion/Exportacion",
-        "Senal": "COMEX y Abastecimiento muestran interes directo",
+        "Tendencia": "Chile se consolida como plataforma logística regional",
+        "Por qué importa para GBS": "Más de 65 acuerdos comerciales y mejoras en ventanilla única aduanera "
+                                    "refuerzan a Chile como corredor de reexportación hacia Perú, Bolivia y Colombia.",
+        "Segmentos conectados": "Importación / Exportación, Retail y Consumo",
+        "Fuente": "Mordor Intelligence — Chile & Peru Freight and Logistics Market",
     },
     {
-        "Tendencia": "Carga temperada para vino y alimentos",
-        "Por que importa para GBS": "Diferenciador especifico de GBS (Thermoliner, control de humedad, registro de temperatura) frente a forwarders genericos.",
+        "Tendencia": "Expansión de bodegas de cadena de frío en Chile y Perú",
+        "Por qué importa para GBS": "Ambos países están sumando bodegas Clase A de cadena de frío; "
+                                    "encaja directo con el diferenciador de GBS en carga temperada para vino y alimentos.",
         "Segmentos conectados": "Alimentos, Bebidas y Agro",
-        "Senal": "Segmento con derivaciones a decisor",
+        "Fuente": "Mordor Intelligence — Chile & Peru Freight and Logistics Market",
     },
 ])
 st.markdown(html_table(market_context), unsafe_allow_html=True)
-st.caption("Fuente: definicion de ICP y diferenciadores de GBS (onboarding) cruzada con la respuesta observada en campana.")
+st.caption(
+    "Fuentes: EY / Mining.com (cartera de inversión minera en Chile 2026) y Mordor Intelligence "
+    "(mercado de carga y logística Chile-Perú), cruzadas con la respuesta observada en el ciclo."
+)
 
-# ===== Cobertura de cuentas =====
-section("Cobertura de cuentas", "Embudo de empresas alcanzadas dentro de la combinacion activa de filtros")
-active_accounts = int(REGf["empresa"].replace("", pd.NA).nunique())
-conversation_accounts = int(REGf[~REGf.resultado.isin(["no_contesta", "numero_malo"])]["empresa"].replace("", pd.NA).nunique())
-positive_accounts = int(REGf[REGf.resultado.isin(["positiva", "deriva"])]["empresa"].replace("", pd.NA).nunique())
-meeting_accounts = int(REGf[REGf["estado_raw"].str.contains("Reunion Agendada|Reunión Agendada", case=False, na=False)]["empresa"].replace("", pd.NA).nunique())
+# ===== Cobertura de empresas objetivo =====
+section(
+    "Cobertura de empresas objetivo entregadas por GBS",
+    "Avance sobre el listado de cuentas objetivo que GBS priorizó para este ciclo",
+)
 o = st.columns(5)
 for col, item in zip(o, [
-    ("Universo alcanzado", OBJ["total"], "Empresas en la base GBS", CP_CARBON),
-    ("Activadas en vista", active_accounts, "Segun filtros y periodo", CP_CARBON),
-    ("Con conversacion", conversation_accounts, "Respuesta efectiva", CP_PURPLE),
-    ("Con senal positiva", positive_accounts, "Interes o derivacion", CP_GREEN),
-    ("Con reunion", meeting_accounts, "Reunion agendada", CP_GREEN),
+    ("Universo objetivo", OBJ["total"], "Empresas priorizadas por GBS", CP_CARBON),
+    ("Cargadas al sistema", OBJ["cargadas"], "Ya ingresadas a gestión", CP_CARBON),
+    ("Con conversación", OBJ["con_conversacion"], "Respuesta efectiva", CP_PURPLE),
+    ("Con señal positiva", OBJ["con_positiva"], "Interés directo", CP_GREEN),
+    ("Con reunión", OBJ["con_reunion"], "Reunión agendada", CP_GREEN),
 ]):
     col.markdown(scard(*item), unsafe_allow_html=True)
 st.caption(
-    f"Universo de empresas prospectadas por GBS: {OBJ['total']}; "
-    f"{OBJ['prospectadas']} con gestion registrada ({OBJ['pct']}%); quedan {OBJ['pendientes']} por activar."
+    f"Universo objetivo entregado por GBS: {OBJ['total']} empresas. Quedan {OBJ['pendientes']} por cargar. "
+    "El avance es una estimación de referencia mientras se completa el cruce uno a uno con la base de gestión; "
+    "no se identifican empresas específicas por etapa."
 )
 
-# ===== Proximos pasos =====
-section("Proximos pasos", "Plan ejecutivo conectado con los datos y la hipotesis del proximo ciclo")
+# ===== Próximos pasos =====
+section("Próximos pasos", "Plan ejecutivo conectado con los datos y la hipótesis del próximo ciclo")
 lead_segment = None if segments.empty else segments.iloc[0]
 lead_text = (
     f"{lead_segment['Macroindustria']} + {lead_segment['Macrocargo']}"
@@ -669,27 +679,28 @@ lead_text = (
 )
 next_steps = pd.DataFrame([
     {
-        "Decision": "Concentrar prospeccion",
-        "Accion Conprospeccion": f"Ampliar la muestra de {lead_text} sin declarar ganador hasta superar el umbral de confianza.",
-        "Accion GBS": "Confirmar industrias prioritarias (mineria, maquinaria, alimentos) y cuentas a excluir.",
-        "Indicador": ">=8 conversaciones o >=25 cuentas por segmento",
+        "Decisión": "Concentrar prospección",
+        "Acción Conprospección": f"Ampliar la muestra de {lead_text} sin declarar ganador hasta superar el umbral de confianza.",
+        "Acción GBS": "Confirmar industrias prioritarias (minería, maquinaria, alimentos) y cuentas a excluir.",
+        "Indicador": "Reuniones agendadas y positivas por segmento",
     },
     {
-        "Decision": "Multithreading por cuenta",
-        "Accion Conprospeccion": "Sumar COMEX/Abastecimiento y Logistica ademas de Gerencia en cada cuenta prioritaria.",
-        "Accion GBS": "Definir objeciones y propuesta de valor por area (quien decide vs. quien opera).",
-        "Indicador": "2-3 areas activadas por cuenta",
+        "Decisión": "Multithreading por cuenta",
+        "Acción Conprospección": "Sumar COMEX/Abastecimiento y Logística además de Gerencia en cada cuenta prioritaria.",
+        "Acción GBS": "Definir objeciones y propuesta de valor por área (quién decide vs. quién opera).",
+        "Indicador": "2-3 áreas activadas por cuenta",
     },
     {
-        "Decision": "Cerrar el loop del correo",
-        "Accion Conprospeccion": "Activar tracking de apertura/respuesta en Snov y etiquetar copy por tema.",
-        "Accion GBS": "Validar mensajes de valor agregado (aduana, visibilidad, un solo interlocutor).",
-        "Indicador": "Tasa de apertura y respuesta por campana",
+        "Decisión": "Blindar la lista de exclusión de clientes activos",
+        "Acción Conprospección": "Revisar y cruzar la lista de clientes activos de GBS contra cada nueva carga "
+                                  "de contactos antes de lanzar campaña, para que no vuelva a ocurrir.",
+        "Acción GBS": "Mantener actualizada la lista de clientes activos a excluir.",
+        "Indicador": "Cero clientes activos recontactados por campaña",
     },
     {
-        "Decision": "Vender dolor, no flete",
-        "Accion Conprospeccion": "Separar copy por servicio integral, visibilidad de carga, asesoria aduanera y carga temperada.",
-        "Accion GBS": "Entregar casos concretos por problema resuelto (sin abrir con precio).",
+        "Decisión": "Vender dolor, no flete",
+        "Acción Conprospección": "Separar copy por servicio integral, visibilidad de carga, asesoría aduanera y carga temperada.",
+        "Acción GBS": "Entregar casos concretos por problema resuelto (sin abrir con precio).",
         "Indicador": "Tasa positiva por tema de mensaje",
     },
 ])
@@ -697,10 +708,11 @@ st.markdown(html_table(next_steps), unsafe_allow_html=True)
 st.markdown(
     f'<div style="background:{CP_GOLD_SOFT};border:1px solid #F0D28D;border-left:5px solid {CP_GOLD};'
     f'border-radius:11px;padding:15px 18px;margin-top:12px;font-size:13px;line-height:1.65;color:#5A4A00">'
-    f'<b>Hipotesis del ciclo 2:</b> los importadores de mineria, maquinaria y alimentos contactados desde '
-    f'Gerencia y luego COMEX/Abastecimiento responderan mejor a mensajes de servicio integral y visibilidad '
-    f'de carga que a un mensaje generico de flete.<br><b>Criterio de validacion:</b> comparar tasa positiva '
-    f'y reuniones con al menos 8 conversaciones efectivas o 25 cuentas activadas por combinacion.</div>',
+    f'<b>Hipótesis del ciclo 2:</b> Los importadores de minería, maquinaria y alimentos contactados desde '
+    f'Gerencia y luego COMEX/Abastecimiento responderán mejor a mensajes de servicio integral y visibilidad '
+    f'de carga que a un mensaje genérico de flete.<br><b>Cómo lo vamos a validar:</b> el próximo ciclo '
+    f'comparamos la tasa positiva y las reuniones agendadas de este segmento contra el resto, una vez que '
+    f'acumule más volumen de conversaciones.</div>',
     unsafe_allow_html=True,
 )
 
@@ -708,7 +720,7 @@ st.markdown(
 # ===== Descargas =====
 def report_table(df):
     if df is None or df.empty:
-        return '<div class="empty">Sin registros para la seleccion activa.</div>'
+        return '<div class="empty">Sin registros para la selección activa.</div>'
     return df.to_html(index=False, border=0, classes="report-table", escape=True)
 
 
@@ -719,22 +731,22 @@ def informe_html():
         segment_report["Tasa positiva"] = segment_report["Tasa positiva"].map(lambda x: f"{x:.0%}")
         segment_report = segment_report[[
             "Segmento", "Cuentas activadas", "Conversaciones", "Positivas",
-            "Tasa positiva", "Reuniones", "Score", "Confianza", "Senal", "Decision",
+            "Tasa positiva", "Reuniones", "Señal", "Decisión",
         ]].head(10)
     results_report = pd.DataFrame([
         {"Resultado": RES_LABEL[key], "Cantidad": conteo(REGf, key)}
-        for key in ["positiva", "deriva", "reagendar", "negativa", "no_contesta", "numero_malo"]
+        for key in ["positiva", "deriva", "negativa", "no_califica", "no_contesta", "numero_malo"]
     ]).sort_values("Cantidad", ascending=False)
     company_report = empresas_df.rename(columns={
         "empresa": "Empresa", "estado": "Estado", "industria": "Macroindustria",
-        "area": "Macrocargo", "canal": "Canal", "fecha": "Fecha",
+        "area": "Macrocargo", "fecha": "Fecha",
     }) if EMPRESAS_POSITIVAS and not empresas_df.empty else pd.DataFrame()
     if not company_report.empty:
-        company_report = company_report[["Empresa", "Estado", "Macroindustria", "Macrocargo", "Canal", "Fecha"]]
+        company_report = company_report[["Empresa", "Estado", "Macroindustria", "Macrocargo", "Fecha"]]
     kpis = [
         ("Gestiones", len(REGf)), ("Conversaciones", fconv),
         ("Respuestas positivas", fpostot), ("Tasa positiva", f"{tasa:.0%}"),
-        ("Cuentas activadas", active_accounts), ("Cuentas con reunion", meeting_accounts),
+        ("Cuentas objetivo cargadas", OBJ["cargadas"]), ("Cuentas con reunión objetivo", OBJ["con_reunion"]),
     ]
     kpi_html = "".join(f'<div class="kpi"><strong>{value}</strong><span>{label}</span></div>' for label, value in kpis)
     return f"""<!DOCTYPE html>
@@ -751,42 +763,41 @@ body{{font-family:{FONT_BODY};background:{CP_BG};color:{CP_INK};max-width:1280px
 .kpi strong{{display:block;font-family:{FONT_MONO};font-size:24px;color:{CP_CARBON}}} .kpi span{{font-size:11px;text-transform:uppercase;font-weight:800}}
 h2{{font-family:{FONT_HEAD};font-size:19px;border-left:5px solid {CP_GOLD};padding-left:12px;margin-top:30px}}
 .report-table{{width:100%;border-collapse:collapse;background:#fff;font-size:10.5px;margin:10px 0 18px;table-layout:fixed}}
-.report-table th{{background:{CP_MUTED_SURFACE};color:{CP_CARBON};text-align:left;padding:9px;border:1px solid {CP_LINE};white-space:normal;overflow-wrap:anywhere}}
-.report-table td{{padding:8px;border:1px solid {CP_LINE};vertical-align:top;white-space:normal;overflow-wrap:anywhere}}
+.report-table th{{background:{CP_MUTED_SURFACE};color:{CP_CARBON};text-align:left;padding:9px;border:1px solid {CP_LINE};white-space:normal;overflow-wrap:break-word}}
+.report-table td{{padding:8px;border:1px solid {CP_LINE};vertical-align:top;white-space:normal;overflow-wrap:break-word}}
 .note{{background:{CP_GOLD_SOFT};border-left:5px solid {CP_GOLD};padding:14px 17px;border-radius:8px}}
 .method{{font-size:11px;color:{CP_MUTED};background:#fff;padding:14px;border:1px solid {CP_LINE};border-radius:9px}}
 .empty{{padding:14px;background:{CP_MUTED_SURFACE};color:{CP_MUTED};border:1px dashed {CP_LINE_STRONG}}}
 a{{color:{CP_ORANGE}}}@media print{{body{{padding:0}} .hero{{break-inside:avoid}}}}
 </style></head><body>
 <div class="hero"><h1>Intelligence Insight - GBS Logistics</h1>
-<p>Reporte del ciclo comercial - generado desde el panel interno de Conprospeccion</p></div>
-<div class="filter"><b>Seleccion exportada:</b> {start_date:%d/%m/%Y}-{end_date:%d/%m/%Y} ·
-Canal: {f_canal} · Macroindustria: {f_ind} · Macrocargo: {f_area}</div>
+<p>Reporte del ciclo comercial - generado desde el panel interno de Conprospección</p></div>
+<div class="filter"><b>Selección exportada:</b> {start_date:%d/%m/%Y}-{end_date:%d/%m/%Y} ·
+Macroindustria: {f_ind} · Macrocargo: {f_area}</div>
 <h2>Resumen ejecutivo</h2>
 <div class="kpis">{kpi_html}</div>
-<div class="note"><b>Avance contractual:</b> {REAL['validas']} de {META} reuniones validas ({pct_meta}%).</div>
-<h2>Actividad por canal</h2>{report_table(activity_df if channel_rows else pd.DataFrame())}
-<div class="method">Correo agregado (Snov): {CORREO['enviados']:,} enviados · {CORREO['entregados']:,} entregados ·
-{CORREO['contactados']:,} contactados · {CORREO['respuestas']} respuestas rastreadas (sin tracking de apertura).</div>
-<h2>Resultados de conversacion</h2>{report_table(results_report)}
+<div class="note"><b>Avance contractual:</b> {REAL['validas']} de {META} reuniones válidas ({pct_meta}%).</div>
+<h2>Volumen de gestión por canal</h2>{report_table(CANAL_ACTIVIDAD.rename(columns={"canal": "Canal", "gestiones": "Gestiones"}))}
+<div class="method">Un mismo contacto puede haber sido gestionado por más de un canal; estos volúmenes no son mutuamente excluyentes.</div>
+<h2>Resultados de conversación</h2>{report_table(results_report)}
+<div class="method">Positivas = información adicional + coordinando reunión + reunión agendada ({pos_desglose_txt}).</div>
 <h2>Empresas que respondieron</h2>{report_table(company_report)}
 <h2>Respuesta por segmento</h2>{report_table(segment_report if not segments.empty else pd.DataFrame())}
-<div class="method">Score = tasa positiva x volumen de cuentas x calidad del cargo x avance de etapa.</div>
-<h2>Que aprendimos del mercado</h2>{report_table(pd.DataFrame(learning_rows))}
-<h2>Mensajes y dolores que estan resonando</h2>{report_table(theme_df)}
+<h2>Qué aprendimos del mercado</h2>{report_table(pd.DataFrame(learning_rows))}
+<h2>Mensajes y dolores que están resonando</h2>{report_table(theme_df)}
 <h2>Negativas y objeciones</h2>{report_table(pd.DataFrame(objection_rows))}
 <h2>Contexto de mercado relevante</h2>{report_table(market_context)}
-<h2>Cobertura de cuentas</h2>
+<h2>Cobertura de empresas objetivo entregadas por GBS</h2>
 <div class="kpis">
-<div class="kpi"><strong>{OBJ['total']}</strong><span>Universo alcanzado</span></div>
-<div class="kpi"><strong>{active_accounts}</strong><span>Activadas en vista</span></div>
-<div class="kpi"><strong>{conversation_accounts}</strong><span>Con conversacion</span></div>
-<div class="kpi"><strong>{positive_accounts}</strong><span>Con senal positiva</span></div>
-<div class="kpi"><strong>{meeting_accounts}</strong><span>Con reunion</span></div>
-<div class="kpi"><strong>{OBJ['pendientes']}</strong><span>Por activar</span></div></div>
-<h2>Proximos pasos</h2>{report_table(next_steps)}
-<div class="note"><b>Hipotesis del ciclo 2:</b> importadores de mineria, maquinaria y alimentos contactados desde
-Gerencia y luego COMEX/Abastecimiento responderan mejor a mensajes de servicio integral y visibilidad de carga.</div>
+<div class="kpi"><strong>{OBJ['total']}</strong><span>Universo objetivo</span></div>
+<div class="kpi"><strong>{OBJ['cargadas']}</strong><span>Cargadas al sistema</span></div>
+<div class="kpi"><strong>{OBJ['con_conversacion']}</strong><span>Con conversación</span></div>
+<div class="kpi"><strong>{OBJ['con_positiva']}</strong><span>Con señal positiva</span></div>
+<div class="kpi"><strong>{OBJ['con_reunion']}</strong><span>Con reunión</span></div>
+<div class="kpi"><strong>{OBJ['pendientes']}</strong><span>Por cargar</span></div></div>
+<h2>Próximos pasos</h2>{report_table(next_steps)}
+<div class="note"><b>Hipótesis del ciclo 2:</b> los importadores de minería, maquinaria y alimentos contactados desde
+Gerencia y luego COMEX/Abastecimiento responderán mejor a mensajes de servicio integral y visibilidad de carga.</div>
 </body></html>"""
 
 
@@ -797,14 +808,14 @@ def _pdf_df_segmentos() -> pd.DataFrame:
     df["Segmento"] = df["Macroindustria"] + " + " + df["Macrocargo"]
     df["Tasa positiva"] = df["Tasa positiva"].map(lambda x: f"{x:.0%}")
     return df[["Segmento", "Cuentas activadas", "Conversaciones", "Positivas", "Tasa positiva",
-               "Reuniones", "Score", "Confianza", "Senal", "Decision"]].head(10)
+               "Reuniones", "Señal", "Decisión"]].head(10)
 
 
 def _pdf_table_cards(pdf: FPDF, df: pd.DataFrame, *, max_rows: int | None = None) -> None:
     if df is None or df.empty:
         pdf.set_font("Helvetica", "I", 8)
         pdf.set_text_color(100, 116, 139)
-        pdf.multi_cell(0, 5, _lat("Sin registros para la seleccion activa."))
+        pdf.multi_cell(0, 5, _lat("Sin registros para la selección activa."))
         return
     use = df.head(max_rows) if max_rows else df
     for idx, row in use.iterrows():
@@ -865,36 +876,36 @@ def construir_pdf() -> bytes:
     pdf.set_x(14)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(201, 201, 198)
-    pdf.cell(0, 5, _lat(f"{start_date:%d/%m/%Y}-{end_date:%d/%m/%Y} | Canal: {f_canal} | Industria: {f_ind} | Area: {f_area}"), ln=1)
+    pdf.cell(0, 5, _lat(f"{start_date:%d/%m/%Y}-{end_date:%d/%m/%Y} | Industria: {f_ind} | Área: {f_area}"), ln=1)
     pdf.set_y(38)
 
     _pdf_section(pdf, "Resumen ejecutivo", "Estado del ciclo y avance contractual")
     resumen = pd.DataFrame([
-        {"Metrica": "Avance meta", "Valor": f"{REAL['validas']} / {META} ({pct_meta}%)"},
-        {"Metrica": "Gestiones", "Valor": len(REGf)},
-        {"Metrica": "Conversaciones", "Valor": fconv},
-        {"Metrica": "Respuestas positivas", "Valor": fpostot},
-        {"Metrica": "Tasa positiva", "Valor": f"{tasa:.0%}"},
-        {"Metrica": "Cuentas activadas", "Valor": f"{OBJ['prospectadas']} / {OBJ['total']} ({OBJ['pct']}%)"},
+        {"Métrica": "Avance meta", "Valor": f"{REAL['validas']} / {META} ({pct_meta}%)"},
+        {"Métrica": "Gestiones", "Valor": len(REGf)},
+        {"Métrica": "Conversaciones", "Valor": fconv},
+        {"Métrica": "Respuestas positivas", "Valor": fpostot},
+        {"Métrica": "Tasa positiva", "Valor": f"{tasa:.0%}"},
+        {"Métrica": "Cuentas objetivo cargadas", "Valor": f"{OBJ['cargadas']} / {OBJ['total']}"},
     ])
     _pdf_table_cards(pdf, resumen)
 
-    _pdf_section(pdf, "Actividad por canal")
-    _pdf_table_cards(pdf, activity_df if channel_rows else pd.DataFrame())
+    _pdf_section(pdf, "Volumen de gestión por canal")
+    _pdf_table_cards(pdf, CANAL_ACTIVIDAD.rename(columns={"canal": "Canal", "gestiones": "Gestiones"}))
 
-    _pdf_section(pdf, "Resultados de conversacion")
+    _pdf_section(pdf, "Resultados de conversación")
     _pdf_table_cards(pdf, pd.DataFrame([
         {"Resultado": RES_LABEL[key], "Cantidad": conteo(REGf, key)}
-        for key in ["positiva", "deriva", "reagendar", "negativa", "no_contesta", "numero_malo"]
+        for key in ["positiva", "deriva", "negativa", "no_califica", "no_contesta", "numero_malo"]
     ]).sort_values("Cantidad", ascending=False))
 
-    _pdf_section(pdf, "Respuesta por segmento", "Top 10 por cuentas, conversaciones, positivas y score")
+    _pdf_section(pdf, "Respuesta por segmento", "Top 10 por reuniones, positivas y conversaciones")
     _pdf_table_cards(pdf, _pdf_df_segmentos(), max_rows=10)
 
-    _pdf_section(pdf, "Que aprendimos del mercado")
+    _pdf_section(pdf, "Qué aprendimos del mercado")
     _pdf_table_cards(pdf, pd.DataFrame(learning_rows))
 
-    _pdf_section(pdf, "Mensajes y dolores que estan resonando")
+    _pdf_section(pdf, "Mensajes y dolores que están resonando")
     _pdf_table_cards(pdf, theme_df)
 
     _pdf_section(pdf, "Negativas y objeciones")
@@ -903,7 +914,7 @@ def construir_pdf() -> bytes:
     _pdf_section(pdf, "Contexto de mercado relevante")
     _pdf_table_cards(pdf, market_context)
 
-    _pdf_section(pdf, "Proximos pasos")
+    _pdf_section(pdf, "Próximos pasos")
     _pdf_table_cards(pdf, next_steps)
 
     return bytes(pdf.output())

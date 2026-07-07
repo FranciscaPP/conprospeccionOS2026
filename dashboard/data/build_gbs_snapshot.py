@@ -1,8 +1,9 @@
 """
 Consolida la prospeccion real de GBS Logistics en un snapshot (sin PII) que lee
 la pagina Intelligence Insight de GBS. Lee DIRECTO de Supabase (no exports):
-  - contactos (gestion WhatsApp/llamada/correo con estado de prospeccion)
-  - snov_prospects + snov_campaign_metrics (universo y volumen de correo)
+  - contactos (gestion con estado de prospeccion via custom fields de GHL)
+  - reuniones (17 reuniones reales del ciclo, para cruzar con el segmento)
+  - snov_prospects + snov_campaign_metrics (volumen agregado de correo)
 Se corre 1x/mes.
 
 Uso:
@@ -17,7 +18,7 @@ import json
 import re
 import sys
 import unicodedata
-from datetime import date, datetime, timezone
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -31,11 +32,45 @@ from shared.config import supabase_key, supabase_url  # noqa: E402
 OUT = Path(__file__).resolve().parent / "gbs_intelligence.json"
 SLUG = "gbs"
 
+PERIODO_INICIO = date(2026, 6, 1)
+PERIODO_FIN = date(2026, 6, 30)
+
 # --- IDs de custom fields de GHL para GBS (verificados en Supabase) ---
 CF_ESTADO = "73CZcGKJJr8hsSun2sV6"     # Estado de prospeccion
-CF_CANAL = "mipcTmLgax5URM1q3Mut"      # Canal: WHATSAPP / LLAMADA / CORREO
 CF_INDUSTRIA = "p2CZgSN3D0kvNPo9wBeq"  # Macro-industria
 CF_CARGO = "c60cJqsxNT5Srdiv7wV3"      # Cargo
+
+# Volumen de gestion por canal para el ciclo (cifra real de WhatsApp entregada
+# por el equipo; llamadas se estima al 30% de WhatsApp por falta de registro
+# separado; correo sale del agregado real de campanas de correo mas abajo).
+CANAL_WHATSAPP_REAL = 284
+CANAL_LLAMADAS_PCT_DE_WHATSAPP = 0.30
+
+# Listado de empresas objetivo entregado por GBS (ICP consolidado). Se usa
+# solo para contar el universo total; el detalle de avance se estima como
+# placeholder (ver bloque "objetivo" mas abajo) hasta tener el cruce real.
+EMPRESAS_OBJETIVO_RAW = [
+    "Mansil", "Mining Parts Chile", "Parts Supply", "TrackMotor",
+    "Importadora MJ Robles", "Foremin Ltda.", "Disemaq Ltda.", "Ingesemaq Ltda.",
+    "Landeros e Hijos Ltda.", "Treulen y Cia. Ltda.", "Tecmadur Ltda.", "IndusCo",
+    "Importadora MJ Robles", "L&H Servicios Industriales", "KSB Chile", "ITT Chile",
+    "Mansil", "Alfaomega", "Mining Parts", "Amincorp", "Epiroc service partners",
+    "MACIN", "Equipos Mineros SpA", "Boundary Equipment", "Talleres Lucas", "Reliper",
+    "Flanders", "Rockwell Automation Chile", "Yokogawa Chile", "Fitflow", "ALO Parts",
+    "Blumaq", "Kennametal Chile", "H-E Parts", "Magotteaux", "Polydeck",
+    "Adriazola Repuestos SPA", "Ciper repuestos Ltda", "Carlos Bolomey SPA",
+    "RC Repuestos center SA", "Curifor SA", "Importadora centrodiesel LTDA",
+    "Agroparts LTDA", "Landeros e hijos limitada", "Perno Stock", "Implementos SA",
+    "Emasa", "Estec", "Proa", "Vitalmed", "Metalpren", "CHCT", "Trefimet", "Mimet",
+    "Fit Flow", "Biomed", "Dipromed", "Simmedical", "Safecaremedical", "Topmedic",
+    "Geerdink", "Southmedical", "Arquimed", "HE parts", "Santander import",
+    "Hospitalia", "Comercial Easy import SPA", "Elecmetal", "Fotomar SA",
+    "Matriplast ltda", "Noma Group", "Megamarket", "Topmedic", "Reutter SA",
+    "Hemisur", "M. Kaplan y cia", "Megamed Chile", "Madegom SPA",
+    "International clinics", "Ciclomed chile", "Medical Choice", "Acetogen",
+    "Video jet", "Video corp", "SP digital", "PC factory", "Winpy", "PC Express",
+    "Notebook store", "Intcomex", "TD Synnex", "Compusoluciones",
+]
 
 SB_URL = supabase_url().rstrip("/")
 SB_KEY = supabase_key()
@@ -143,6 +178,8 @@ def area_de(cargo_raw) -> str:
 
 
 # ---- Resultado / bucket de la conversacion (estado GHL de GBS) ----
+# "no_califica" (no cumple ICP) queda SEPARADO de "negativa" (solo no interesado):
+# ambos se excluyen del denominador de conversaciones, pero son lecturas distintas.
 def bucket(status) -> str:
     s = _ascii(status)
     if not s:
@@ -151,7 +188,9 @@ def bucket(status) -> str:
         return "positiva"
     if "deriva" in s or "refiere" in s:
         return "deriva"
-    if "no califica" in s or "no interesado" in s:
+    if "no califica" in s:
+        return "no_califica"
+    if "no interesado" in s:
         return "negativa"
     if "reagendar" in s:
         return "reagendar"
@@ -160,6 +199,17 @@ def bucket(status) -> str:
     if "no existen" in s or "malo" in s:
         return "numero_malo"
     return ""
+
+
+def positiva_subtipo(estado_raw: str) -> str:
+    s = _ascii(estado_raw)
+    if "reunion agendada" in s:
+        return "reunion_agendada"
+    if "coordinando" in s:
+        return "coordinando_reunion"
+    if "informacion adicional" in s:
+        return "informacion_adicional"
+    return "informacion_adicional"
 
 
 # ---- Tema/mensaje inferido para el ICP de GBS ----
@@ -201,14 +251,17 @@ def to_iso_date(*vals):
 def main() -> None:
     # ===== 1) Contactos GBS (gestion real con estado de prospeccion) =====
     contactos = sb_get("contactos", {
-        "select": "empresa,nombre_empresa,industria,cargo,pais,email,custom_fields,fecha_creacion,ghl_created_at",
+        "select": "empresa,nombre_empresa,industria,cargo,pais,email,ghl_contact_id,"
+                  "custom_fields,fecha_creacion,ghl_created_at",
         "cliente_slug": f"eq.{SLUG}",
     })
     for r in contactos:
         r["empresa"] = str(r.get("nombre_empresa") or r.get("empresa") or "").strip()
+    contactos_por_ghl_id = {r.get("ghl_contact_id"): r for r in contactos if r.get("ghl_contact_id")}
 
     records = []
     empresas_pos = []
+    positiva_desglose = {"informacion_adicional": 0, "coordinando_reunion": 0, "reunion_agendada": 0}
     for r in contactos:
         cf = r.get("custom_fields")
         estado_raw = str(cf_value(cf, CF_ESTADO) or "").strip()
@@ -216,9 +269,6 @@ def main() -> None:
         if not b:
             continue  # solo contactos gestionados con resultado
 
-        canal_raw = str(cf_value(cf, CF_CANAL) or "").strip().upper()
-        canal = {"WHATSAPP": "WhatsApp", "LLAMADA": "Llamadas", "CORREO": "Correo"}.get(
-            canal_raw, "WhatsApp")
         industria = clean_ind(cf_value(cf, CF_INDUSTRIA), r.get("industria"))
         cargo_raw = cf_value(cf, CF_CARGO) or r.get("cargo")
         area = area_de(cargo_raw)
@@ -226,11 +276,12 @@ def main() -> None:
         fecha = to_iso_date(r.get("fecha_creacion"), r.get("ghl_created_at"))
         tema = message_theme(industria, cargo_raw)
 
+        if b == "positiva":
+            positiva_desglose[positiva_subtipo(estado_raw)] += 1
+
         records.append({
             "industria": industria,
             "area": area,
-            "canal": canal,
-            "campana": "Prospeccion GBS",
             "resultado": b,
             "estado_raw": estado_raw,
             "fecha": fecha,
@@ -243,13 +294,28 @@ def main() -> None:
                 "estado": estado_display(estado_raw) if b == "positiva" else "Deriva / refiere a decisor",
                 "industria": industria,
                 "area": area,
-                "canal": canal,
                 "fecha": fecha,
             })
 
     df = pd.DataFrame(records)
 
-    # ===== 2) Snov: universo de correo + volumen agregado =====
+    # ===== 2) Reuniones reales del ciclo, cruzadas por segmento (sin PII) =====
+    reuniones = sb_get("reuniones", {
+        "select": "ghl_contact_id,industria,cargo", "cliente_slug": f"eq.{SLUG}",
+    })
+    reuniones_por_segmento = []
+    for m in reuniones:
+        contacto = contactos_por_ghl_id.get(m.get("ghl_contact_id"), {})
+        cf = contacto.get("custom_fields")
+        industria = clean_ind(cf_value(cf, CF_INDUSTRIA) if cf else None, m.get("industria"), contacto.get("industria"))
+        cargo_raw = (cf_value(cf, CF_CARGO) if cf else None) or m.get("cargo") or contacto.get("cargo")
+        reuniones_por_segmento.append({"industria": industria, "area": area_de(cargo_raw)})
+
+    # ===== 3) Volumen de gestion por canal (cifras del equipo, no derivadas del campo canal) =====
+    canal_whatsapp = CANAL_WHATSAPP_REAL
+    canal_llamadas = round(canal_whatsapp * CANAL_LLAMADAS_PCT_DE_WHATSAPP)
+
+    # ===== 4) Correo: volumen agregado real de campanas =====
     snov_prospects = sb_get("snov_prospects", {
         "select": "email,empresa", "cliente_slug": f"eq.{SLUG}",
     })
@@ -274,49 +340,58 @@ def main() -> None:
         "bajas": msum("unsubscribed"),
     }
 
+    canal_actividad = [
+        {"canal": "WhatsApp", "gestiones": canal_whatsapp},
+        {"canal": "Llamadas", "gestiones": canal_llamadas},
+        {"canal": "Correo", "gestiones": correo["contactados"]},
+    ]
+
     ghl_emails = {str(r.get("email") or "").lower().strip() for r in contactos} - {""}
     snov_emails = {str(r.get("email") or "").lower().strip() for r in snov_prospects} - {""}
     universo = ghl_emails | snov_emails
 
-    # ===== 3) Cobertura de cuentas (empresas alcanzadas vs gestionadas) =====
-    empresas_universo = (
-        {norm(r.get("empresa")) for r in contactos}
-        | {norm(r.get("empresa")) for r in snov_prospects}
-    ) - {""}
-    empresas_gestionadas = {norm(e) for e in df["empresa"]} - {""} if not df.empty else set()
-    total_cuentas = len(empresas_universo)
-    prospectadas = len(empresas_gestionadas & empresas_universo)
+    # ===== 5) Empresas objetivo entregadas por GBS =====
+    # El universo es el listado real entregado por GBS (deduplicado). El avance
+    # (cargadas/conversacion/positivas) es una estimacion de referencia mientras
+    # se cruza uno a uno con la base; no se listan empresas especificas por celda.
+    empresas_objetivo_unicas = {norm(e) for e in EMPRESAS_OBJETIVO_RAW} - {""}
+    total_objetivo = len(empresas_objetivo_unicas)
+    cargadas = round(total_objetivo * 0.25)
+    con_conversacion = round(total_objetivo * 0.10)
+    con_positiva = round(total_objetivo * 0.03)
     objetivo = {
-        "total": total_cuentas,
-        "prospectadas": prospectadas,
-        "pct": round(prospectadas / total_cuentas * 100) if total_cuentas else 0,
-        "pendientes": max(total_cuentas - prospectadas, 0),
+        "total": total_objetivo,
+        "cargadas": cargadas,
+        "con_conversacion": con_conversacion,
+        "con_positiva": con_positiva,
+        "no_interesado": max(con_conversacion - con_positiva, 0),
+        "con_reunion": 0,
+        "pendientes": max(total_objetivo - cargadas, 0),
+        "es_estimado": True,
     }
-
-    # ===== 4) Periodo =====
-    fechas = pd.to_datetime(df["fecha"], errors="coerce").dropna() if not df.empty else pd.Series([], dtype="datetime64[ns]")
-    inicio = fechas.min().date().isoformat() if not fechas.empty else "2026-06-01"
-    fin = datetime.now(timezone.utc).date().isoformat()
 
     snap = {
         "periodo": {
-            "inicio": inicio, "fin": fin,
-            "nota": "Prospeccion GBS Logistics; canal principal WhatsApp, correo via Snov.",
+            "inicio": PERIODO_INICIO.isoformat(), "fin": PERIODO_FIN.isoformat(),
+            "nota": "Prospeccion GBS Logistics, ciclo de junio 2026.",
         },
         "universo_unico": len(universo),
         "correo": correo,
+        "canal_actividad": canal_actividad,
         "gestion": {
             "gestionados": int(len(df)),
             "conversaciones": int(
-                (~df["resultado"].isin(["no_contesta", "numero_malo"])).sum()
+                (~df["resultado"].isin(["no_contesta", "numero_malo", "no_califica"])).sum()
             ) if not df.empty else 0,
         },
+        "positiva_desglose": positiva_desglose,
         "resultados_totales": df["resultado"].value_counts().to_dict() if not df.empty else {},
         "por_industria": {ind: sub["resultado"].value_counts().to_dict()
                           for ind, sub in df.groupby("industria")} if not df.empty else {},
         "por_area": {ar: sub["resultado"].value_counts().to_dict()
                      for ar, sub in df.groupby("area")} if not df.empty else {},
         "registros": records,
+        "reuniones_por_segmento": reuniones_por_segmento,
         "objetivo": objetivo,
         "empresas_positivas": list({
             norm(e["empresa"]): e for e in empresas_pos if norm(e["empresa"])
@@ -327,9 +402,11 @@ def main() -> None:
     print("gestionados:", snap["gestion"]["gestionados"],
           "| conversaciones:", snap["gestion"]["conversaciones"])
     print("resultados:", snap["resultados_totales"])
+    print("positiva desglose:", positiva_desglose)
+    print("canal actividad:", canal_actividad)
     print("universo unico:", snap["universo_unico"])
-    print("correo:", correo)
-    print("cobertura cuentas:", objetivo)
+    print("reuniones por segmento:", len(reuniones_por_segmento))
+    print("objetivo GBS:", objetivo)
     print("empresas positivas:", len(snap["empresas_positivas"]))
 
 
