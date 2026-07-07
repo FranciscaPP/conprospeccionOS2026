@@ -13,31 +13,10 @@ No trabajar en React, Next.js, Vercel, Netlify ni HTML mockups salvo instruccion
 
 ## Mapa del proyecto
 
-Estructura para orientarse rapido (cualquier IA o persona nueva la lee y
-entiende el repo sin explorar archivo por archivo):
-
-- `dashboard/` — App Streamlit (el producto). `app.py` es la entrada.
-  - `dashboard/pages/` — Paginas del panel. La principal es
-    `1_Seguimiento_Reuniones.py` (panel maestro interno). Tambien:
-    `2_Clientes.py`, `9_SDRs.py`, `16_Client_Setup_OS.py`,
-    `19_BambuTech_Intelligence_Insight.py` (referencia),
-    `20_GBS_Intelligence_Insight.py`.
-  - `master_auth.py`, `portal_auth.py` — Login / autenticacion.
-  - `meeting_component.py`, `meeting_shared.py` — UI y logica de la tabla
-    de reuniones.
-- `shared/` — Codigo reutilizable. Clave: `validacion.py` (los 7 estados
-  oficiales de una reunion), `seguimiento.py`, `meeting_scope.py`,
-  `config.py`, `cp_design.py` (design system carbon + dorado), `metas.py`,
-  `planes.py`.
-- `sync/` — Sincronizacion de datos hacia Supabase (`scripts/`,
-  `migrations/`, `queries/`) + CI.
-- `supabase/` — Base de datos: `migrations/` y `functions/` (edge functions).
-- `mvp_setup/` — Modulo de setup / onboarding de clientes (app propia).
-- `tests/` — Pruebas (pytest).
-- `docs/` — Documentacion funcional (ver el RUNBOOK del panel de reuniones).
-
-Fuente de verdad de datos: la base Supabase viva (el repo no refleja todo
-el esquema).
+El mapa del proyecto (que hace cada carpeta y donde esta lo importante) es
+la seccion "Project map" de `AGENTS.md`. Esa es la **fuente unica**: si la
+estructura del repo cambia, actualiza `AGENTS.md` y no dupliques el mapa
+aqui. Este archivo (`CLAUDE.md`) solo lo referencia para no desincronizar.
 
 ## Documentos que debes leer antes de cambios amplios
 
