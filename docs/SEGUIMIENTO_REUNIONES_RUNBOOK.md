@@ -109,6 +109,8 @@ Implementacion vigente del guardado:
 - Python recibe el payload, escribe en `seguimiento_reuniones`, actualiza campos base permitidos en `reuniones` y registra auditoria en `meeting_status_history`.
 - No usar `fetch("/Seguimiento_Reuniones?...")` para guardar. Streamlit devuelve el shell HTML y no ejecuta la pagina como endpoint HTTP tradicional.
 - No exponer `SUPABASE_KEY` ni `service_role` en JavaScript del navegador.
+- Regla vigente de Etapa Agenda: solo `Reunion futura` se infiere automaticamente por fecha/hora. `Reunion realizada`, `Reunion cancelada` y `Reagendar reunion` deben venir de decision manual persistida; el panel no debe adivinar cancelaciones por texto heredado de sync/GHL.
+- Cuando se guarda `Reunion cancelada`, el panel debe persistir en `seguimiento_reuniones` (`status_reunion`, `val_estado_cp`, `val_estado_cli`, `val_estado_final`, `flag_meta_countable`) y tambien dejar consistente `reuniones.estado_reunion`, `reuniones.estado_validacion`, `reuniones.es_valida` y `reuniones.cancelada`.
 - No restaurar reuniones desde `localStorage` como fuente de verdad. Puede usarse solo como apoyo temporal de UI, pero los datos visibles y persistentes deben venir de Supabase.
 - Si el payload incluye una columna que no existe en `seguimiento_reuniones`, PostgREST rechaza el guardado completo con `PGRST204`. Antes de agregar campos nuevos al payload, aplicar la migracion correspondiente en Supabase.
 - Incidente 2026-07-06: los guardados fallaban porque produccion no tenia `historial_visibilidad` ni `historial_manual`. Se agregaron de forma aditiva a `seguimiento_reuniones` y el guardado ahora tolera columnas futuras faltantes eliminandolas del reintento.

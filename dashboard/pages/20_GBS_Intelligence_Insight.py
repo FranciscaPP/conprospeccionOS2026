@@ -67,17 +67,6 @@ def _logo_b64(fname: str = "cp_mark_dark.png") -> str:
     return f'<img src="data:image/{ext};base64,{d}" height="28" style="object-fit:contain">'
 
 
-# Reuniones cuyo estado en Supabase (seguimiento_reuniones.flag_meta_countable)
-# no coincide con la revision manual confirmada en el panel de Seguimiento
-# (2026-07-07): la cancelacion no se persistio para estos 3 reunion_id, y hay
-# 2 filas de seguimiento huerfanas (sin reunion asociada). Se excluyen aqui
-# hasta que se corrija la persistencia en el panel de Seguimiento.
-# reunion_id -> motivo: 7856 Baika Fruit (cancelada), 8166 Santibanez Customs
-# Broker (cancelada), 8169 Minera Colquisiri S.A. (cancelada), 5354/5355
-# huerfanas (sin reunion real asociada).
-GBS_VALIDAS_EXCLUIR_MANUAL = {7856, 8166, 8169, 5354, 5355}
-
-
 @st.cache_data(ttl=45, show_spinner=False)
 def reuniones_reales():
     meetings = requests.get(
@@ -92,11 +81,7 @@ def reuniones_reales():
     ).json()
     meetings = meetings if isinstance(meetings, list) else []
     tracking = tracking if isinstance(tracking, list) else []
-    validas = sum(
-        1 for x in tracking
-        if x.get("flag_meta_countable") is True
-        and x.get("reunion_id") not in GBS_VALIDAS_EXCLUIR_MANUAL
-    )
+    validas = sum(1 for x in tracking if x.get("flag_meta_countable") is True)
     reagendar = sum(1 for x in tracking if x.get("status_reunion") in {"reagendada", "reagendar"})
     no_validas = sum(1 for x in tracking if x.get("val_estado_final") == "no_valida")
     return {"total": len(meetings), "validas": validas, "reagendar": reagendar, "no_validas": no_validas}

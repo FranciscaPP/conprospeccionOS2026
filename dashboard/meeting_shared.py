@@ -4,6 +4,7 @@ from __future__ import annotations
 import base64
 import datetime
 import json
+import unicodedata
 from pathlib import Path
 
 import streamlit as st
@@ -93,35 +94,51 @@ def _now_chile():
     return datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-4)))
 
 
-def _status_label(row, seg):
-    raw = f"{_txt(seg.get('status_reunion'))} {_txt(row.get('estado_reunion'))}".lower()
-    if "reagend" in raw:
-        return "Reagendar reunión"
-    if "cancel" in raw or "no_asist" in raw:
+def _manual_status_label(value):
+    value = unicodedata.normalize("NFD", _txt(value).lower())
+    value = "".join(ch for ch in value if unicodedata.category(ch) != "Mn")
+    value = value.replace("ã³", "o").replace("ãº", "u").replace("ã©", "e")
+    if "futura" in value:
+        return "Reunión futura"
+    if "cancel" in value:
         return "Reunión cancelada"
-    # Regla de negocio: toda reunión cuya fecha/hora aún no ocurre es
-    # "Reunión futura", por encima de cualquier estado "realizada/válida"
-    # heredado del sync. Solo cancelada/reagendar (arriba) la sobreescriben.
+    if "reagend" in value:
+        return "Reagendar reunión"
+    if "realizada" in value:
+        return "Reunión realizada"
+    return ""
+
+
+def _is_future_meeting(row):
     try:
         d = datetime.date.fromisoformat(str(row.get("fecha") or "")[:10])
     except Exception:
-        return "Reunión futura"
+        return True
     now_local = _now_chile()
     today = now_local.date()
     if d > today:
-        return "Reunión futura"
+        return True
     if d == today:
         raw_time = _txt(row.get("hora"))
         if not raw_time:
-            return "Reunión futura"
+            return True
         try:
             parts = raw_time.split(":")
             meeting_time = datetime.time(int(parts[0]), int(parts[1]) if len(parts) > 1 else 0)
-            if meeting_time > now_local.time():
-                return "Reunión futura"
+            return meeting_time > now_local.time()
         except Exception:
-            return "Reunión futura"
-    # La reunión ya ocurrió por fecha/hora.
+            return True
+    return False
+
+
+def _status_label(row, seg):
+    # Regla vigente: solo "Reunión futura" se infiere por fecha/hora. El resto
+    # de la etapa agenda debe venir de una decisión manual persistida.
+    manual = _manual_status_label(seg.get("status_reunion")) or _manual_status_label(row.get("estado_reunion"))
+    if manual:
+        return manual
+    if _is_future_meeting(row):
+        return "Reunión futura"
     return "Reunión realizada"
 
 
