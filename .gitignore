@@ -19,6 +19,8 @@ data/
 !dashboard/data/
 !dashboard/data/bambutech_intelligence.json
 !dashboard/data/build_bambutech_snapshot.py
+!dashboard/data/gbs_intelligence.json
+!dashboard/data/build_gbs_snapshot.py
 apollo_export/
 *.xlsx
 *.xls
