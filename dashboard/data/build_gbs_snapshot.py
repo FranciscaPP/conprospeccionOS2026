@@ -351,24 +351,10 @@ def main() -> None:
     universo = ghl_emails | snov_emails
 
     # ===== 5) Empresas objetivo entregadas por GBS =====
-    # El universo es el listado real entregado por GBS (deduplicado). El avance
-    # (cargadas/conversacion/positivas) es una estimacion de referencia mientras
-    # se cruza uno a uno con la base; no se listan empresas especificas por celda.
+    # Solo se guarda el total real del listado (deduplicado). No se estima ni
+    # se publica avance por etapa: no hay cruce uno a uno confirmado todavia.
     empresas_objetivo_unicas = {norm(e) for e in EMPRESAS_OBJETIVO_RAW} - {""}
-    total_objetivo = len(empresas_objetivo_unicas)
-    cargadas = round(total_objetivo * 0.25)
-    con_conversacion = round(total_objetivo * 0.10)
-    con_positiva = round(total_objetivo * 0.03)
-    objetivo = {
-        "total": total_objetivo,
-        "cargadas": cargadas,
-        "con_conversacion": con_conversacion,
-        "con_positiva": con_positiva,
-        "no_interesado": max(con_conversacion - con_positiva, 0),
-        "con_reunion": 0,
-        "pendientes": max(total_objetivo - cargadas, 0),
-        "es_estimado": True,
-    }
+    objetivo = {"total": len(empresas_objetivo_unicas)}
 
     snap = {
         "periodo": {

@@ -310,8 +310,8 @@ st.markdown(
     f'<div style="display:flex;align-items:center;gap:14px">'
     f'{_logo}'
     f'<div><div style="font-family:{FONT_HEAD};font-size:19px;font-weight:800;line-height:1.1">Intelligence Insight · GBS Logistics</div>'
-    f'<div style="font-size:12px;color:#C9C9C6;margin-top:2px">Prospección multicanal · ciclo de junio 2026</div></div></div>'
-    f'<div style="font-size:11px;color:#C9C9C6;text-align:right">Panel interno Conprospección</div></div>',
+    f'<div style="font-size:12px;color:#C9C9C6;margin-top:2px">Prospección multicanal · Ciclo de junio 2026</div></div></div>'
+    f'</div>',
     unsafe_allow_html=True,
 )
 
@@ -453,6 +453,11 @@ st.caption(
 
 # ===== Empresas que respondieron =====
 section("Empresas que respondieron", "Cuentas con información adicional, coordinando reunión o reunión agendada")
+st.caption(
+    "Esta tabla cuenta empresas, no gestiones: si dos contactos de la misma empresa respondieron "
+    "positivo, cuenta una sola vez. Por eso el número de filas es menor que las respuestas positivas "
+    "de la sección anterior (que cuenta por contacto)."
+)
 empresas_df = pd.DataFrame(EMPRESAS_POSITIVAS)
 if EMPRESAS_POSITIVAS:
     empresas_df["fecha"] = pd.to_datetime(empresas_df["fecha"], errors="coerce").dt.date
@@ -478,20 +483,21 @@ else:
 # ===== Respuesta por segmento =====
 section(
     "Respuesta por segmento",
-    "Cruce entre la industria del prospecto y el área que decide la compra, para ver dónde responde mejor el mercado",
+    "Cruce entre la industria del prospecto y el área que decide la compra, solo en los segmentos con reunión agendada",
 )
 st.caption(
     "\"Conversaciones\" = contactos que respondieron algo (se excluyen los que no contestaron, el "
-    "contacto no válido y los que no cumplen el ICP). El mapa de calor colorea más oscuro los segmentos "
-    "con más reuniones y respuestas positivas."
+    "contacto no válido y los que no cumplen el ICP). Se muestran únicamente los segmentos que ya "
+    "tienen al menos una reunión agendada; el resto todavía no tiene evidencia suficiente para comparar."
 )
 reuniones_counter = Counter(
     (r["industria"], r["area"]) for r in REUNIONES_SEGMENTO
     if (f_ind == "Todas" or r["industria"] == f_ind) and (f_area == "Todas" or r["area"] == f_area)
 )
 segments = segment_matrix(REGf, reuniones_counter)
+segments = segments[segments["Reuniones"] >= 1] if not segments.empty else segments
 if segments.empty:
-    st.info("Todavía no hay muestra suficiente para concluir en esta combinación de filtros.")
+    st.info("Todavía no hay segmentos con reunión agendada en esta combinación de filtros.")
 else:
     heat = alt.Chart(segments).mark_rect(cornerRadius=4).encode(
         x=alt.X("Macrocargo:N", title="Macrocargo (área)", axis=alt.Axis(labelAngle=0, labelLimit=160, labelPadding=8)),
@@ -528,7 +534,7 @@ with sa:
 st.markdown(
     f'<div style="background:{CP_MUTED_SURFACE};border:1px solid {CP_LINE};border-radius:10px;'
     f'padding:11px 14px;margin-top:10px;font-size:12px;color:{CP_CARBON};line-height:1.55">'
-    f'<b>Por qué avanzamos más en Minería y Metales / Alimentos, Bebidas y Agro:</b> la cartera de '
+    f'<b>Por qué avanzamos más en Minería y Metales / Alimentos, Bebidas y Agro:</b> La cartera de '
     'inversión minera en Chile llegó a USD 104.500 millones proyectados a 2034, con 13 proyectos de cobre '
     'acelerados para 2026 — más actividad minera implica más equipos, insumos y repuestos que mover. '
     'En paralelo, Chile y Perú están ampliando bodegas de cadena de frío para vino y alimentos, el '
@@ -607,14 +613,18 @@ section("Negativas y objeciones", "Las respuestas de \"no interesado\" también 
 negative = REGf[REGf.resultado == "negativa"].copy()
 objection_rows = []
 for objection, sub in negative.groupby("estado_raw"):
-    common_industry = sub["industria"].value_counts().index[0] if not sub.empty else "-"
+    top_industrias = sub["industria"].value_counts().head(3)
+    industrias_txt = ", ".join(f"{ind} ({n})" for ind, n in top_industrias.items()) if not sub.empty else "-"
     objection_rows.append({
-        "Objeción": objection, "Cantidad": len(sub), "Industria más frecuente": common_industry,
+        "Objeción": objection, "Cantidad": len(sub), "Industrias más frecuentes": industrias_txt,
         "Lectura": "Ya cuenta con proveedor logístico vigente o no es prioridad en este momento.",
         "Acción": "Reforzar la propuesta de valor diferenciada (servicio integral, un solo interlocutor, "
                   "carga temperada) y programar un recontacto en el próximo trimestre.",
     })
 if objection_rows:
+    st.caption(
+        "Se muestran hasta 3 industrias por objeción para no atribuirla solo a la industria con más volumen."
+    )
     st.dataframe(pd.DataFrame(objection_rows), hide_index=True, use_container_width=True)
 else:
     st.info("No hay contactos de \"no interesado\" dentro de la combinación de filtros seleccionada.")
@@ -650,26 +660,6 @@ st.caption(
     "(mercado de carga y logística Chile-Perú), cruzadas con la respuesta observada en el ciclo."
 )
 
-# ===== Cobertura de empresas objetivo =====
-section(
-    "Cobertura de empresas objetivo entregadas por GBS",
-    "Avance sobre el listado de cuentas objetivo que GBS priorizó para este ciclo",
-)
-o = st.columns(5)
-for col, item in zip(o, [
-    ("Universo objetivo", OBJ["total"], "Empresas priorizadas por GBS", CP_CARBON),
-    ("Cargadas al sistema", OBJ["cargadas"], "Ya ingresadas a gestión", CP_CARBON),
-    ("Con conversación", OBJ["con_conversacion"], "Respuesta efectiva", CP_PURPLE),
-    ("Con señal positiva", OBJ["con_positiva"], "Interés directo", CP_GREEN),
-    ("Con reunión", OBJ["con_reunion"], "Reunión agendada", CP_GREEN),
-]):
-    col.markdown(scard(*item), unsafe_allow_html=True)
-st.caption(
-    f"Universo objetivo entregado por GBS: {OBJ['total']} empresas. Quedan {OBJ['pendientes']} por cargar. "
-    "El avance es una estimación de referencia mientras se completa el cruce uno a uno con la base de gestión; "
-    "no se identifican empresas específicas por etapa."
-)
-
 # ===== Próximos pasos =====
 section("Próximos pasos", "Plan ejecutivo conectado con los datos y la hipótesis del próximo ciclo")
 lead_segment = None if segments.empty else segments.iloc[0]
@@ -681,26 +671,28 @@ next_steps = pd.DataFrame([
     {
         "Decisión": "Concentrar prospección",
         "Acción Conprospección": f"Ampliar la muestra de {lead_text} sin declarar ganador hasta superar el umbral de confianza.",
-        "Acción GBS": "Confirmar industrias prioritarias (minería, maquinaria, alimentos) y cuentas a excluir.",
         "Indicador": "Reuniones agendadas y positivas por segmento",
     },
     {
         "Decisión": "Multithreading por cuenta",
         "Acción Conprospección": "Sumar COMEX/Abastecimiento y Logística además de Gerencia en cada cuenta prioritaria.",
-        "Acción GBS": "Definir objeciones y propuesta de valor por área (quién decide vs. quién opera).",
         "Indicador": "2-3 áreas activadas por cuenta",
     },
     {
         "Decisión": "Blindar la lista de exclusión de clientes activos",
         "Acción Conprospección": "Revisar y cruzar la lista de clientes activos de GBS contra cada nueva carga "
                                   "de contactos antes de lanzar campaña, para que no vuelva a ocurrir.",
-        "Acción GBS": "Mantener actualizada la lista de clientes activos a excluir.",
         "Indicador": "Cero clientes activos recontactados por campaña",
+    },
+    {
+        "Decisión": "Retomar el listado de cuentas objetivo",
+        "Acción Conprospección": f"Priorizar la prospección de la lista de cuentas objetivo entregada por GBS "
+                                  f"({OBJ['total']} empresas) en el próximo lote.",
+        "Indicador": "Cuentas objetivo activadas",
     },
     {
         "Decisión": "Vender dolor, no flete",
         "Acción Conprospección": "Separar copy por servicio integral, visibilidad de carga, asesoría aduanera y carga temperada.",
-        "Acción GBS": "Entregar casos concretos por problema resuelto (sin abrir con precio).",
         "Indicador": "Tasa positiva por tema de mensaje",
     },
 ])
@@ -710,8 +702,8 @@ st.markdown(
     f'border-radius:11px;padding:15px 18px;margin-top:12px;font-size:13px;line-height:1.65;color:#5A4A00">'
     f'<b>Hipótesis del ciclo 2:</b> Los importadores de minería, maquinaria y alimentos contactados desde '
     f'Gerencia y luego COMEX/Abastecimiento responderán mejor a mensajes de servicio integral y visibilidad '
-    f'de carga que a un mensaje genérico de flete.<br><b>Cómo lo vamos a validar:</b> el próximo ciclo '
-    f'comparamos la tasa positiva y las reuniones agendadas de este segmento contra el resto, una vez que '
+    f'de carga que a un mensaje genérico de flete.<br><b>Cómo lo vamos a validar:</b> En el próximo ciclo '
+    f'compararemos la tasa positiva y las reuniones agendadas de este segmento contra el resto, una vez que '
     f'acumule más volumen de conversaciones.</div>',
     unsafe_allow_html=True,
 )
@@ -746,7 +738,6 @@ def informe_html():
     kpis = [
         ("Gestiones", len(REGf)), ("Conversaciones", fconv),
         ("Respuestas positivas", fpostot), ("Tasa positiva", f"{tasa:.0%}"),
-        ("Cuentas objetivo cargadas", OBJ["cargadas"]), ("Cuentas con reunión objetivo", OBJ["con_reunion"]),
     ]
     kpi_html = "".join(f'<div class="kpi"><strong>{value}</strong><span>{label}</span></div>' for label, value in kpis)
     return f"""<!DOCTYPE html>
@@ -787,14 +778,6 @@ Macroindustria: {f_ind} · Macrocargo: {f_area}</div>
 <h2>Mensajes y dolores que están resonando</h2>{report_table(theme_df)}
 <h2>Negativas y objeciones</h2>{report_table(pd.DataFrame(objection_rows))}
 <h2>Contexto de mercado relevante</h2>{report_table(market_context)}
-<h2>Cobertura de empresas objetivo entregadas por GBS</h2>
-<div class="kpis">
-<div class="kpi"><strong>{OBJ['total']}</strong><span>Universo objetivo</span></div>
-<div class="kpi"><strong>{OBJ['cargadas']}</strong><span>Cargadas al sistema</span></div>
-<div class="kpi"><strong>{OBJ['con_conversacion']}</strong><span>Con conversación</span></div>
-<div class="kpi"><strong>{OBJ['con_positiva']}</strong><span>Con señal positiva</span></div>
-<div class="kpi"><strong>{OBJ['con_reunion']}</strong><span>Con reunión</span></div>
-<div class="kpi"><strong>{OBJ['pendientes']}</strong><span>Por cargar</span></div></div>
 <h2>Próximos pasos</h2>{report_table(next_steps)}
 <div class="note"><b>Hipótesis del ciclo 2:</b> los importadores de minería, maquinaria y alimentos contactados desde
 Gerencia y luego COMEX/Abastecimiento responderán mejor a mensajes de servicio integral y visibilidad de carga.</div>
@@ -886,7 +869,6 @@ def construir_pdf() -> bytes:
         {"Métrica": "Conversaciones", "Valor": fconv},
         {"Métrica": "Respuestas positivas", "Valor": fpostot},
         {"Métrica": "Tasa positiva", "Valor": f"{tasa:.0%}"},
-        {"Métrica": "Cuentas objetivo cargadas", "Valor": f"{OBJ['cargadas']} / {OBJ['total']}"},
     ])
     _pdf_table_cards(pdf, resumen)
 

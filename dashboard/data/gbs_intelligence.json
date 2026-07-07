@@ -3357,14 +3357,7 @@
     }
   ],
   "objetivo": {
-    "total": 87,
-    "cargadas": 22,
-    "con_conversacion": 9,
-    "con_positiva": 3,
-    "no_interesado": 6,
-    "con_reunion": 0,
-    "pendientes": 65,
-    "es_estimado": true
+    "total": 87
   },
   "empresas_positivas": [
     {
