@@ -18,7 +18,7 @@ import altair as alt
 import pandas as pd
 import requests
 import streamlit as st
-from fpdf import FPDF
+from xhtml2pdf import pisa
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DASHBOARD_DIR = Path(__file__).resolve().parent.parent
@@ -332,17 +332,6 @@ def segment_matrix(df, reuniones_conteo: Counter):
 def insight_row(insight, evidence, implication, action):
     return {"Insight": insight, "Evidencia": evidence,
             "Implicancia": implication, "Acción recomendada": action}
-
-
-def _lat(value) -> str:
-    """Solo repara mojibake (UTF-8 leido como Latin-1); Helvetica/Latin-1 SI
-    soporta tildes y ene espanola, asi que no se eliminan acentos reales."""
-    return (
-        str(value)
-        .replace("â€”", "-").replace("â€“", "-").replace("â†’", "->")
-        .replace("Ã—", "x")
-        .encode("latin-1", "replace").decode("latin-1")
-    )
 
 
 def html_table(df: pd.DataFrame, *, small: bool = True) -> str:
@@ -763,7 +752,44 @@ st.markdown(
 def report_table(df):
     if df is None or df.empty:
         return '<div class="empty">Sin registros para la selección activa.</div>'
-    return df.to_html(index=False, border=0, classes="report-table", escape=True)
+    # xhtml2pdf calcula el ancho de columna por contenido e ignora tanto
+    # table-layout:fixed como el width por CSS en <col>; solo respeta el
+    # atributo HTML width (no el style), asi que se usa ese para forzar un
+    # ancho parejo y que ninguna columna se salga de la pagina. Ademas, si
+    # una columna tiene celdas realmente vacias, xhtml2pdf ignora el ancho
+    # fijado y comprime esa columna por contenido (se ve recortada); por eso
+    # se rellenan las vacias con un espacio duro antes de generar la tabla.
+    df = df.replace("", "-").fillna("-")
+    width_pct = round(100 / len(df.columns), 2)
+    colgroup = "<colgroup>" + "".join(f'<col width="{width_pct}%">' for _ in df.columns) + "</colgroup>"
+    table_html = df.to_html(index=False, border=0, classes="report-table", escape=True)
+    return table_html.replace('<table class="dataframe report-table">',
+                              f'<table class="dataframe report-table">{colgroup}', 1)
+
+
+def _pdf_css() -> str:
+    # xhtml2pdf no soporta grid/flexbox: layout con tablas y bloques simples.
+    # "-pdf-keep-with-next" evita que un titulo quede solo al final de pagina.
+    return f"""
+@page {{ size: A4; margin: 1.7cm 1.4cm; }}
+*{{box-sizing:border-box}}
+body{{font-family:Helvetica,Arial,sans-serif;color:{CP_INK};line-height:1.45;font-size:10.5px;margin:0}}
+.hero{{background:{CP_CARBON};color:#fff;padding:16px 20px;border-radius:8px;margin-bottom:12px}}
+.hero h1{{margin:0;font-size:19px}} .hero p{{margin:5px 0 0;color:#C9C9C6;font-size:10px}}
+.filter{{margin:0 0 12px;padding:9px 13px;border:1.4px solid {CP_GOLD};background:{CP_GOLD_SOFT};border-radius:7px;font-size:10px}}
+.kpis-table{{width:100%;border-collapse:separate;border-spacing:6px 0;margin:8px 0 4px}}
+.kpi{{background:#fff;border:1px solid {CP_LINE};border-top:3px solid {CP_GOLD};border-radius:7px;padding:9px;text-align:center}}
+.kpi strong{{display:block;font-size:16px;color:{CP_CARBON}}}
+.kpi span{{font-size:8px;text-transform:uppercase;font-weight:700;color:{CP_INK}}}
+h2{{font-size:13.5px;border-left:4px solid {CP_GOLD};padding-left:8px;margin:14px 0 6px;-pdf-keep-with-next:true}}
+.report-table{{width:100%;table-layout:fixed;border-collapse:collapse;background:#fff;font-size:9px;margin:0 0 10px}}
+.report-table th{{background:{CP_MUTED_SURFACE};color:{CP_CARBON};text-align:left;padding:5px;border:1px solid {CP_LINE};word-wrap:break-word;overflow-wrap:break-word}}
+.report-table td{{padding:5px;border:1px solid {CP_LINE};vertical-align:top;word-wrap:break-word;overflow-wrap:break-word}}
+.note{{background:{CP_GOLD_SOFT};border-left:4px solid {CP_GOLD};padding:9px 11px;border-radius:6px;font-size:9.5px;margin-bottom:10px}}
+.method{{font-size:8.5px;color:{CP_MUTED};background:#fff;padding:7px 9px;border:1px solid {CP_LINE};border-radius:6px;margin-bottom:10px}}
+.empty{{padding:8px;background:{CP_MUTED_SURFACE};color:{CP_MUTED};border:1px dashed {CP_LINE_STRONG};font-size:9px}}
+a{{color:{CP_ORANGE}}}
+"""
 
 
 def informe_html():
@@ -783,41 +809,27 @@ def informe_html():
         ("Gestiones", len(REGf)), ("Conversaciones", fconv),
         ("Respuestas positivas", fpostot), ("Tasa positiva", f"{tasa:.0%}"),
     ]
-    kpi_html = "".join(f'<div class="kpi"><strong>{value}</strong><span>{label}</span></div>' for label, value in kpis)
+    kpi_html = "<table class='kpis-table'><tr>" + "".join(
+        f"<td style='width:25%'><div class='kpi'><strong>{value}</strong><span>{label}</span></div></td>"
+        for label, value in kpis
+    ) + "</tr></table>"
     return f"""<!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="es"><head><meta charset="UTF-8">
 <title>GBS Logistics - Intelligence Insight</title>
-<style>
-{FONT_IMPORT}
-body{{font-family:{FONT_BODY};background:{CP_BG};color:{CP_INK};max-width:1280px;margin:0 auto;padding:28px;line-height:1.5}}
-.hero{{background:{CP_CARBON};color:#fff;padding:28px 32px;border-radius:16px}}
-.hero h1{{margin:0;font-family:{FONT_HEAD};font-size:28px}} .hero p{{margin:7px 0 0;color:#C9C9C6}}
-.filter{{margin:18px 0;padding:15px 18px;border:2px solid {CP_GOLD};background:{CP_GOLD_SOFT};border-radius:12px}}
-.kpis{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}}
-.kpi{{background:#fff;border:1px solid {CP_LINE};border-top:4px solid {CP_GOLD};border-radius:11px;padding:15px;text-align:center}}
-.kpi strong{{display:block;font-family:{FONT_MONO};font-size:24px;color:{CP_CARBON}}} .kpi span{{font-size:11px;text-transform:uppercase;font-weight:800}}
-h2{{font-family:{FONT_HEAD};font-size:19px;border-left:5px solid {CP_GOLD};padding-left:12px;margin-top:30px}}
-.report-table{{width:100%;border-collapse:collapse;background:#fff;font-size:10.5px;margin:10px 0 18px;table-layout:fixed}}
-.report-table th{{background:{CP_MUTED_SURFACE};color:{CP_CARBON};text-align:left;padding:9px;border:1px solid {CP_LINE};white-space:normal;overflow-wrap:break-word}}
-.report-table td{{padding:8px;border:1px solid {CP_LINE};vertical-align:top;white-space:normal;overflow-wrap:break-word}}
-.note{{background:{CP_GOLD_SOFT};border-left:5px solid {CP_GOLD};padding:14px 17px;border-radius:8px}}
-.method{{font-size:11px;color:{CP_MUTED};background:#fff;padding:14px;border:1px solid {CP_LINE};border-radius:9px}}
-.empty{{padding:14px;background:{CP_MUTED_SURFACE};color:{CP_MUTED};border:1px dashed {CP_LINE_STRONG}}}
-a{{color:{CP_ORANGE}}}@media print{{body{{padding:0}} .hero{{break-inside:avoid}}}}
-</style></head><body>
+<style>{_pdf_css()}</style></head><body>
 <div class="hero"><h1>Intelligence Insight - GBS Logistics</h1>
 <p>Reporte del ciclo comercial - generado desde el panel interno de Conprospección</p></div>
 <div class="filter"><b>Selección exportada:</b> {start_date:%d/%m/%Y}-{end_date:%d/%m/%Y} ·
 Macroindustria: {f_ind} · Macrocargo: {f_area}</div>
 <h2>Resumen ejecutivo</h2>
-<div class="kpis">{kpi_html}</div>
+{kpi_html}
 <div class="note"><b>Avance contractual:</b> {REAL['validas']} de {META} reuniones válidas ({pct_meta}%).</div>
 <h2>Volumen de gestión por canal</h2>{report_table(CANAL_ACTIVIDAD.rename(columns={"canal": "Canal", "gestiones": "Gestiones"}))}
 <div class="method">Un mismo contacto puede haber sido gestionado por más de un canal; estos volúmenes no son mutuamente excluyentes.</div>
 <h2>Resultados de conversación</h2>{report_table(results_report)}
 <div class="method">Positivas = información adicional + coordinando reunión + reunión agendada ({pos_desglose_txt}).</div>
 <h2>Reuniones y cotizaciones del ciclo</h2>{report_table(reuniones_df)}
-<h2>Respuesta por segmento</h2>{report_table(segment_report if not segments.empty else pd.DataFrame())}
+<h2>Reuniones por segmento</h2>{report_table(segment_report if not segments.empty else pd.DataFrame())}
 <h2>Qué aprendimos del mercado</h2>{report_table(pd.DataFrame(learning_rows))}
 <h2>Mensajes y dolores que están resonando</h2>{report_table(theme_df)}
 <h2>Negativas y objeciones</h2>{report_table(pd.DataFrame(objection_rows))}
@@ -828,125 +840,13 @@ Gerencia y luego COMEX/Abastecimiento responderán mejor a mensajes de servicio 
 </body></html>"""
 
 
-def _pdf_df_segmentos() -> pd.DataFrame:
-    if segments.empty:
-        return pd.DataFrame()
-    df = segments.copy()
-    df["Segmento"] = df["Macroindustria"] + " + " + df["Macrocargo"]
-    df["Tasa positiva"] = df["Tasa positiva"].map(lambda x: f"{x:.0%}")
-    return df[["Segmento", "Cuentas activadas", "Conversaciones", "Positivas", "Tasa positiva",
-               "Reuniones", "Señal", "Decisión"]].head(10)
-
-
-def _pdf_table_cards(pdf: FPDF, df: pd.DataFrame, *, max_rows: int | None = None) -> None:
-    if df is None or df.empty:
-        pdf.set_font("Helvetica", "I", 8)
-        pdf.set_text_color(100, 116, 139)
-        pdf.multi_cell(0, 5, _lat("Sin registros para la selección activa."))
-        return
-    use = df.head(max_rows) if max_rows else df
-    for idx, row in use.iterrows():
-        if pdf.get_y() > 250:
-            pdf.add_page()
-        pdf.set_draw_color(217, 226, 219)
-        pdf.set_fill_color(248, 250, 248)
-        x, y = pdf.get_x(), pdf.get_y()
-        pdf.rect(x, y, 182, 7, "DF")
-        pdf.set_xy(x + 2, y + 1.5)
-        pdf.set_font("Helvetica", "B", 8)
-        pdf.set_text_color(26, 26, 26)
-        pdf.cell(0, 4, _lat(f"Registro {idx + 1}"), ln=1)
-        pdf.set_font("Helvetica", "", 7.5)
-        pdf.set_text_color(45, 55, 48)
-        for col in use.columns:
-            value = row.get(col, "")
-            pdf.set_x(16)
-            pdf.set_font("Helvetica", "B", 7.5)
-            pdf.multi_cell(38, 4, _lat(f"{col}:"), border=0)
-            y_after_label = pdf.get_y()
-            pdf.set_xy(55, y_after_label - 4)
-            pdf.set_font("Helvetica", "", 7.5)
-            pdf.multi_cell(137, 4, _lat(value), border=0)
-        pdf.ln(2)
-
-
-def _pdf_section(pdf: FPDF, title: str, subtitle: str = "") -> None:
-    if pdf.get_y() > 238:
-        pdf.add_page()
-    pdf.ln(4)
-    pdf.set_draw_color(255, 215, 0)
-    pdf.set_line_width(1.2)
-    y = pdf.get_y()
-    pdf.line(14, y, 14, y + 8)
-    pdf.set_xy(17, y - 1)
-    pdf.set_text_color(26, 26, 26)
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(0, 6, _lat(title), ln=1)
-    if subtitle:
-        pdf.set_x(17)
-        pdf.set_text_color(100, 116, 139)
-        pdf.set_font("Helvetica", "", 8)
-        pdf.multi_cell(0, 4, _lat(subtitle))
-    pdf.ln(2)
-
-
 def construir_pdf() -> bytes:
-    pdf = FPDF(format="A4")
-    pdf.set_auto_page_break(auto=True, margin=14)
-    pdf.add_page()
-    pdf.set_fill_color(51, 51, 51)
-    pdf.rect(0, 0, 210, 29, "F")
-    pdf.set_xy(14, 8)
-    pdf.set_text_color(255, 255, 255)
-    pdf.set_font("Helvetica", "B", 16)
-    pdf.cell(0, 7, _lat("Intelligence Insight - GBS Logistics"), ln=1)
-    pdf.set_x(14)
-    pdf.set_font("Helvetica", "", 9)
-    pdf.set_text_color(201, 201, 198)
-    pdf.cell(0, 5, _lat(f"{start_date:%d/%m/%Y}-{end_date:%d/%m/%Y} | Industria: {f_ind} | Área: {f_area}"), ln=1)
-    pdf.set_y(38)
-
-    _pdf_section(pdf, "Resumen ejecutivo", "Estado del ciclo y avance contractual")
-    resumen = pd.DataFrame([
-        {"Métrica": "Avance meta", "Valor": f"{REAL['validas']} / {META} ({pct_meta}%)"},
-        {"Métrica": "Gestiones", "Valor": len(REGf)},
-        {"Métrica": "Conversaciones", "Valor": fconv},
-        {"Métrica": "Respuestas positivas", "Valor": fpostot},
-        {"Métrica": "Tasa positiva", "Valor": f"{tasa:.0%}"},
-    ])
-    _pdf_table_cards(pdf, resumen)
-
-    _pdf_section(pdf, "Volumen de gestión por canal")
-    _pdf_table_cards(pdf, CANAL_ACTIVIDAD.rename(columns={"canal": "Canal", "gestiones": "Gestiones"}))
-
-    _pdf_section(pdf, "Reuniones y cotizaciones del ciclo")
-    _pdf_table_cards(pdf, reuniones_df)
-
-    _pdf_section(pdf, "Resultados de conversación")
-    _pdf_table_cards(pdf, pd.DataFrame([
-        {"Resultado": RES_LABEL[key], "Cantidad": conteo(REGf, key)}
-        for key in ["positiva", "deriva", "negativa", "no_califica", "no_contesta", "numero_malo"]
-    ]).sort_values("Cantidad", ascending=False))
-
-    _pdf_section(pdf, "Respuesta por segmento", "Top 10 por reuniones, positivas y conversaciones")
-    _pdf_table_cards(pdf, _pdf_df_segmentos(), max_rows=10)
-
-    _pdf_section(pdf, "Qué aprendimos del mercado")
-    _pdf_table_cards(pdf, pd.DataFrame(learning_rows))
-
-    _pdf_section(pdf, "Mensajes y dolores que están resonando")
-    _pdf_table_cards(pdf, theme_df)
-
-    _pdf_section(pdf, "Negativas y objeciones")
-    _pdf_table_cards(pdf, pd.DataFrame(objection_rows))
-
-    _pdf_section(pdf, "Contexto de mercado relevante")
-    _pdf_table_cards(pdf, market_context)
-
-    _pdf_section(pdf, "Próximos pasos")
-    _pdf_table_cards(pdf, next_steps)
-
-    return bytes(pdf.output())
+    """Genera el PDF a partir del MISMO HTML del informe (mismos colores y
+    layout), en vez de reconstruir el diseño a mano con FPDF."""
+    import io
+    buffer = io.BytesIO()
+    pisa.CreatePDF(informe_html(), dest=buffer)
+    return buffer.getvalue()
 
 
 st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
