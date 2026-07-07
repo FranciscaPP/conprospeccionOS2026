@@ -99,4 +99,4 @@ Vercel fue eliminado del producto por completo. No agregar `vercel.json`,
 - `ACTIVE_WORKSPACE.md`: estado operativo actual del workspace.
 - `docs/SEGUIMIENTO_REUNIONES_RUNBOOK.md`: reglas funcionales, UI/UX, persistencia y deploy del panel de reuniones.
 - `CONPROSPECCION_OS_RULEBOOK.md`: reglas generales de autoridad de Conprospeccion y portal cliente.
-- `AGENTS.md`: instrucciones para agentes de codigo y Graphify.
+- `AGENTS.md`: instrucciones para agentes de codigo.
