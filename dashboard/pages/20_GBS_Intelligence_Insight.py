@@ -95,6 +95,33 @@ _ESTADO_FINAL_LABEL = {
     "pendiente": "Pendiente",
 }
 
+# El campo motivo_no_valida en Supabase trae texto generico ("ICP y Variables
+# BANT") que no es claro para el reporte. Se reemplaza por una redaccion
+# curada y consistente para las reuniones ya revisadas manualmente en el
+# panel de Seguimiento (2026-07-07), sin mencionar BANT.
+_MOTIVO_CURADO = {
+    "fundicion ferrosa": "ICP incorrecto (empresa de Perú)",
+    "autorel": "ICP incorrecto (empresa de Perú)",
+    "hot express s.a.": "ICP incorrecto (competencia)",
+    "minera colquisiri s.a.": "ICP incorrecto (competencia)",
+    "baika fruit": "Sin información suficiente para evaluar",
+    "dysmar soluciones industriales": "ICP incorrecto (empresa de Perú)",
+    "santibañez customs broker": "ICP incorrecto (competencia)",
+}
+
+
+def _sin_acentos(x: str) -> str:
+    import unicodedata
+    return unicodedata.normalize("NFKD", str(x or "")).encode("ascii", "ignore").decode().lower().strip()
+
+
+_MOTIVO_CURADO_NORM = {_sin_acentos(k): v for k, v in _MOTIVO_CURADO.items()}
+
+
+def _motivo_de(empresa: str, motivo_raw: str) -> str:
+    curado = _MOTIVO_CURADO_NORM.get(_sin_acentos(empresa))
+    return curado if curado else (motivo_raw or "")
+
 
 @st.cache_data(ttl=45, show_spinner=False)
 def reuniones_detalle():
@@ -125,12 +152,15 @@ def reuniones_detalle():
         observacion = str(m.get("observacion") or "")
         tipo = "Cotización" if "cotiz" in observacion.lower() else "Reunión"
         fecha = pd.to_datetime(m.get("fecha_reunion"), errors="coerce")
+        empresa = m.get("empresa") or "-"
+        estado_final = _ESTADO_FINAL_LABEL.get(estado_raw, "Pendiente")
+        motivo = _motivo_de(empresa, m.get("motivo_no_valida")) if estado_final != "Válida" else ""
         rows.append({
-            "Empresa": m.get("empresa") or "-",
+            "Empresa": empresa,
             "Fecha": fecha.date() if not pd.isna(fecha) else None,
             "Tipo": tipo,
-            "Estado final": _ESTADO_FINAL_LABEL.get(estado_raw, "Pendiente"),
-            "Motivo": m.get("motivo_no_valida") or "",
+            "Estado final": estado_final,
+            "Motivo": motivo,
         })
     df = pd.DataFrame(rows)
     return df.sort_values("Fecha", ascending=False) if not df.empty else df
@@ -514,15 +544,10 @@ else:
         "cuando la reunión no fue válida o se canceló (por ejemplo, ICP incorrecto)."
     )
 
-# ===== Respuesta por segmento =====
+# ===== Reuniones por segmento =====
 section(
-    "Respuesta por segmento",
-    "Cruce entre la industria del prospecto y el área que decide la compra, solo en los segmentos con reunión agendada",
-)
-st.caption(
-    "\"Conversaciones\" = contactos que respondieron algo (se excluyen los que no contestaron, el "
-    "contacto no válido y los que no cumplen el ICP). Se muestran únicamente los segmentos que ya "
-    "tienen al menos una reunión agendada; el resto todavía no tiene evidencia suficiente para comparar."
+    "Reuniones por segmento",
+    "Cantidad de reuniones agendadas por cruce de industria del prospecto y área que decide la compra",
 )
 reuniones_counter = Counter(
     (r["industria"], r["area"]) for r in REUNIONES_SEGMENTO
@@ -538,18 +563,9 @@ else:
         y=alt.Y("Macroindustria:N", title="Macroindustria"),
         color=alt.Color("Reuniones:Q", title="Reuniones",
                         scale=alt.Scale(domain=[0, 1, 2, 4], range=CP_HEAT)),
-        tooltip=["Macroindustria", "Macrocargo", "Cuentas activadas", "Conversaciones", "Positivas",
-                 alt.Tooltip("Tasa positiva:Q", format=".0%"), "Reuniones", "Señal", "Decisión"],
+        tooltip=["Macroindustria", "Macrocargo", "Reuniones"],
     ).properties(height=max(260, 38 * segments["Macroindustria"].nunique()))
     st.altair_chart(heat, use_container_width=True)
-    segment_view = segments.copy()
-    segment_view["Segmento"] = segment_view["Macroindustria"] + " + " + segment_view["Macrocargo"]
-    segment_view["Tasa positiva"] = segment_view["Tasa positiva"].map(lambda x: f"{x:.0%}")
-    segment_view = segment_view[[
-        "Segmento", "Cuentas activadas", "Conversaciones", "Positivas", "Tasa positiva",
-        "Reuniones", "Señal", "Decisión",
-    ]]
-    st.markdown(html_table(segment_view, small=False), unsafe_allow_html=True)
 
 # ===== Top industrias y cargos =====
 section("Top 5 industrias y cargos", "Rankings recalculados según los filtros superiores, ordenados por respuestas positivas")
