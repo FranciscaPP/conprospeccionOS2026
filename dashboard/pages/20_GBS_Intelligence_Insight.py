@@ -87,6 +87,55 @@ def reuniones_reales():
     return {"total": len(meetings), "validas": validas, "reagendar": reagendar, "no_validas": no_validas}
 
 
+_ESTADO_FINAL_LABEL = {
+    "valida": "Válida", "reunion_valida": "Válida",
+    "no_valida": "No válida", "reunion_no_valida": "No válida",
+    "cancelacion": "Cancelada", "cancelada": "Cancelada",
+    "reagendar": "Reagendar", "reagendada": "Reagendar",
+    "pendiente": "Pendiente",
+}
+
+
+@st.cache_data(ttl=45, show_spinner=False)
+def reuniones_detalle():
+    """Detalle real de las reuniones/cotizaciones del ciclo (empresa, fecha,
+    tipo, estado final y motivo cuando aplica), cruzando reuniones con la
+    validacion definitiva de seguimiento_reuniones."""
+    meetings = requests.get(
+        f"{SB_URL}/rest/v1/reuniones"
+        "?select=id,empresa,fecha_reunion,observacion,motivo_no_valida"
+        f"&cliente_slug=eq.{SLUG}",
+        headers=HEADERS, timeout=15,
+    ).json()
+    tracking = requests.get(
+        f"{SB_URL}/rest/v1/seguimiento_reuniones"
+        "?select=reunion_id,val_estado_final"
+        f"&cliente_slug=eq.{SLUG}",
+        headers=HEADERS, timeout=15,
+    ).json()
+    meetings = meetings if isinstance(meetings, list) else []
+    tracking = tracking if isinstance(tracking, list) else []
+    estado_por_id = {t.get("reunion_id"): t.get("val_estado_final") for t in tracking}
+
+    rows = []
+    for m in meetings:
+        estado_raw = estado_por_id.get(m.get("id"))
+        if estado_raw == "excluida":
+            continue  # registro de seguimiento huerfano, no corresponde a esta reunion
+        observacion = str(m.get("observacion") or "")
+        tipo = "Cotización" if "cotiz" in observacion.lower() else "Reunión"
+        fecha = pd.to_datetime(m.get("fecha_reunion"), errors="coerce")
+        rows.append({
+            "Empresa": m.get("empresa") or "-",
+            "Fecha": fecha.date() if not pd.isna(fecha) else None,
+            "Tipo": tipo,
+            "Estado final": _ESTADO_FINAL_LABEL.get(estado_raw, "Pendiente"),
+            "Motivo": m.get("motivo_no_valida") or "",
+        })
+    df = pd.DataFrame(rows)
+    return df.sort_values("Fecha", ascending=False) if not df.empty else df
+
+
 @st.cache_data(ttl=120, show_spinner=False)
 def cargar_snapshot():
     p = DASHBOARD_DIR / "data" / "gbs_intelligence.json"
@@ -127,7 +176,6 @@ CANAL_ACTIVIDAD = pd.DataFrame(SNAP["canal_actividad"])
 OBJ = SNAP["objetivo"]
 POSITIVA_DESGLOSE = SNAP.get("positiva_desglose", {})
 REUNIONES_SEGMENTO = SNAP.get("reuniones_por_segmento", [])
-EMPRESAS_POSITIVAS = SNAP.get("empresas_positivas", [])
 RES_LABEL = {
     "positiva": "Piden información o reunión", "deriva": "Derivan / refieren a un decisor",
     "negativa": "No interesado", "no_califica": "No cumple ICP objetivo",
@@ -451,34 +499,20 @@ st.caption(
     "la propuesta; por eso se excluye del cálculo de tasa positiva junto con contacto no válido y sin respuesta."
 )
 
-# ===== Empresas que respondieron =====
-section("Empresas que respondieron", "Cuentas con información adicional, coordinando reunión o reunión agendada")
-st.caption(
-    "Esta tabla cuenta empresas, no gestiones: si dos contactos de la misma empresa respondieron "
-    "positivo, cuenta una sola vez. Por eso el número de filas es menor que las respuestas positivas "
-    "de la sección anterior (que cuenta por contacto)."
+# ===== Reuniones y cotizaciones del ciclo =====
+section(
+    "Reuniones y cotizaciones del ciclo",
+    "Las 17 reuniones/cotizaciones registradas, con su estado final y motivo cuando aplica",
 )
-empresas_df = pd.DataFrame(EMPRESAS_POSITIVAS)
-if EMPRESAS_POSITIVAS:
-    empresas_df["fecha"] = pd.to_datetime(empresas_df["fecha"], errors="coerce").dt.date
-    empresas_df = empresas_df[empresas_df["fecha"].between(start_date, end_date, inclusive="both")]
-    if f_ind != "Todas":
-        empresas_df = empresas_df[empresas_df["industria"] == f_ind]
-    if f_area != "Todas":
-        empresas_df = empresas_df[empresas_df["area"] == f_area]
-    if empresas_df.empty:
-        st.info("Este segmento todavía no registra empresas con respuesta positiva.")
-    else:
-        st.dataframe(
-            empresas_df.rename(columns={
-                "empresa": "Empresa", "estado": "Estado", "industria": "Macro-industria",
-                "area": "Macro-cargo (área)",
-            }),
-            hide_index=True, use_container_width=True,
-            column_order=["Empresa", "Estado", "Macro-industria", "Macro-cargo (área)"],
-        )
+reuniones_df = reuniones_detalle()
+if reuniones_df.empty:
+    st.info("Aún no hay reuniones registradas para este ciclo.")
 else:
-    st.info("El detalle de empresas se incorporará en el próximo consolidado.")
+    st.dataframe(reuniones_df, hide_index=True, use_container_width=True)
+    st.caption(
+        "Estado final validado en el panel de Seguimiento de Reuniones. \"Motivo\" solo aparece "
+        "cuando la reunión no fue válida o se canceló (por ejemplo, ICP incorrecto)."
+    )
 
 # ===== Respuesta por segmento =====
 section(
@@ -729,12 +763,6 @@ def informe_html():
         {"Resultado": RES_LABEL[key], "Cantidad": conteo(REGf, key)}
         for key in ["positiva", "deriva", "negativa", "no_califica", "no_contesta", "numero_malo"]
     ]).sort_values("Cantidad", ascending=False)
-    company_report = empresas_df.rename(columns={
-        "empresa": "Empresa", "estado": "Estado", "industria": "Macroindustria",
-        "area": "Macrocargo", "fecha": "Fecha",
-    }) if EMPRESAS_POSITIVAS and not empresas_df.empty else pd.DataFrame()
-    if not company_report.empty:
-        company_report = company_report[["Empresa", "Estado", "Macroindustria", "Macrocargo", "Fecha"]]
     kpis = [
         ("Gestiones", len(REGf)), ("Conversaciones", fconv),
         ("Respuestas positivas", fpostot), ("Tasa positiva", f"{tasa:.0%}"),
@@ -772,7 +800,7 @@ Macroindustria: {f_ind} · Macrocargo: {f_area}</div>
 <div class="method">Un mismo contacto puede haber sido gestionado por más de un canal; estos volúmenes no son mutuamente excluyentes.</div>
 <h2>Resultados de conversación</h2>{report_table(results_report)}
 <div class="method">Positivas = información adicional + coordinando reunión + reunión agendada ({pos_desglose_txt}).</div>
-<h2>Empresas que respondieron</h2>{report_table(company_report)}
+<h2>Reuniones y cotizaciones del ciclo</h2>{report_table(reuniones_df)}
 <h2>Respuesta por segmento</h2>{report_table(segment_report if not segments.empty else pd.DataFrame())}
 <h2>Qué aprendimos del mercado</h2>{report_table(pd.DataFrame(learning_rows))}
 <h2>Mensajes y dolores que están resonando</h2>{report_table(theme_df)}
@@ -874,6 +902,9 @@ def construir_pdf() -> bytes:
 
     _pdf_section(pdf, "Volumen de gestión por canal")
     _pdf_table_cards(pdf, CANAL_ACTIVIDAD.rename(columns={"canal": "Canal", "gestiones": "Gestiones"}))
+
+    _pdf_section(pdf, "Reuniones y cotizaciones del ciclo")
+    _pdf_table_cards(pdf, reuniones_df)
 
     _pdf_section(pdf, "Resultados de conversación")
     _pdf_table_cards(pdf, pd.DataFrame([
