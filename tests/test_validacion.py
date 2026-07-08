@@ -35,8 +35,10 @@ def test_cp_valida_cliente_pendiente():
     assert derivar_final("realizada", "valida", "espera", "B,A", evidencia_suficiente=True) == "pendiente"
 
 
-def test_cp_valida_cliente_confirma():
-    assert derivar_final("realizada", "valida", "valida", "") == "valida"
+def test_cliente_confirma_no_cierra_valida_sola():
+    # La confirmacion del cliente no cierra la validez: queda pendiente hasta
+    # que Conprospeccion cierre el Estado Final a mano.
+    assert derivar_final("realizada", "valida", "valida", "") == "pendiente"
 
 
 def test_cliente_no_puede_saltar_cp():
@@ -50,9 +52,11 @@ def test_estados_operativos_no_cierran_negativo_automaticamente():
     assert derivar_final("reagendada", "valida", "espera", "B,A") == "pendiente"
 
 
-def test_bant_y_evidencia_no_resuelven_resultado_negativo():
-    assert derivar_final("realizada", "valida", "valida", "B", evidencia_suficiente=True) == "valida"
-    assert derivar_final("realizada", "valida", "valida", "B,A", evidencia_suficiente=False) == "valida"
+def test_bant_y_evidencia_no_cierran_validez_sola():
+    # BANT y evidencia son informativos: no cierran la validez. Sin cierre
+    # manual de Conprospeccion, el resultado es pendiente.
+    assert derivar_final("realizada", "valida", "valida", "B", evidencia_suficiente=True) == "pendiente"
+    assert derivar_final("realizada", "valida", "valida", "B,A", evidencia_suficiente=False) == "pendiente"
 
 
 def test_icp_faltante_no_invalida_y_gbs_cumple_salvo_cancelada():
@@ -67,14 +71,16 @@ def test_solicitud_revision_queda_pendiente():
     assert flag_meta_countable("pendiente") is False
 
 
-def test_revision_no_descuenta_valida_ya_contabilizada():
+def test_revision_no_descuenta_valida_cerrada_a_mano():
+    # Una validez ya cerrada a mano (Estado Final manual = override) se conserva
+    # aunque el cliente solicite revision; la resolucion la decide Conprospeccion.
     assert (
         derivar_final(
             "realizada",
             "valida",
             "requiere_revision",
             "B,A",
-            resultado_actual="valida",
+            override="valida",
         )
         == "valida"
     )
@@ -224,7 +230,9 @@ def test_cliente_no_puede_rechazar_guardar_no_valida_ni_reagendada():
             raise AssertionError(f"El estado cliente {estado} debió ser rechazado")
 
 
-def test_recalculo_persiste_final_y_kpi_con_fila_recien_guardada():
+def test_recalculo_sin_cierre_manual_queda_pendiente():
+    # CP evaluo valida y el cliente confirmo, pero nadie cerro el Estado Final
+    # a mano: no cuenta a la meta, queda pendiente de cierre de Conprospeccion.
     row = {
         "status_reunion": "realizada",
         "val_estado_cp": "valida",
@@ -237,26 +245,23 @@ def test_recalculo_persiste_final_y_kpi_con_fila_recien_guardada():
         result = recalcular_final_y_flags(123, "gbs", fila=row)
     payload = post.call_args.kwargs["json"]
     assert result["persisted"] is True
-    assert result["final"] == "valida"
-    assert payload["val_estado_final"] == "valida"
-    assert payload["flag_meta_countable"] is True
-    assert payload["flag_cliente_pendiente"] is False
+    assert result["final"] == "pendiente"
+    assert payload["val_estado_final"] == "pendiente"
+    assert payload["flag_meta_countable"] is False
 
 
-def test_recalculo_acepta_evidencia_de_la_reunion_base():
+def test_recalculo_cierre_manual_persiste_valida():
+    # Con cierre manual (final_override=True) la validez se persiste y cuenta.
     row = {
         "status_reunion": "realizada",
         "val_estado_cp": "valida",
         "val_estado_cli": "valida",
         "bant_cp": "B,A",
+        "final_override": True,
+        "val_estado_final": "valida",
     }
     with patch("shared.seguimiento.requests.post", return_value=Mock(ok=True)):
-        result = recalcular_final_y_flags(
-            123,
-            "gbs",
-            fila=row,
-            evidencia_suficiente=True,
-        )
+        result = recalcular_final_y_flags(123, "gbs", fila=row)
     assert result["final"] == "valida"
     assert result["countable"] is True
 
@@ -281,6 +286,7 @@ def test_recalculo_revision_preserva_valida_ya_contabilizada():
         "val_estado_cp": "valida",
         "val_estado_cli": "requiere_revision",
         "val_estado_final": "valida",
+        "final_override": True,
         "bant_cp": "B,A",
     }
     with patch("shared.seguimiento.requests.post", return_value=Mock(ok=True)):

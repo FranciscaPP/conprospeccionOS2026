@@ -140,4 +140,9 @@ marcados con (*).
 - `CONPROSPECCION_OS_RULEBOOK.md` (*): reglas generales de autoridad de Conprospeccion y portal cliente.
 - `AGENTS.md`: puerta de entrada para Codex, Cursor y otras IA (apunta a este documento).
 - `CLAUDE.md`: puerta de entrada para Claude (apunta a este documento).
-- `AUDIT_REPORT.md`: registro historico de la auditoria 2026-07-03 (memoria, no reglas vigentes).
+- `AUDIT_REPORT.md`: informe historico de la auditoria 2026-07-03 (memoria, no reglas vigentes).
+- `RLS_AUDIT.md`: informe de seguridad sobre RLS de Supabase (diagnostico y plan; no son reglas vigentes).
+
+> Los informes (`AUDIT_REPORT.md`, `RLS_AUDIT.md`) son fotos de un momento
+> para consulta. No definen reglas: las reglas vivas estan en este maestro y
+> en los documentos marcados con (*).
