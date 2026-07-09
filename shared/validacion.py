@@ -429,26 +429,27 @@ def derivar_final(
     evidencia_suficiente=None,
     resultado_actual=None,
 ):
-    """Deriva el resultado final sin permitir cierres negativos del cliente.
+    """Deriva el resultado final. La VALIDEZ ES SIEMPRE MANUAL.
 
-    BANT, evidencia y estados operativos son informativos. Una solicitud de
-    revision mantiene pendiente la resolucion de Conprospeccion y conserva una
-    validez ya contabilizada hasta que exista resolucion interna.
+    Una reunion solo cuenta como ``valida`` cuando Conprospeccion la cierra a
+    mano (Estado Final manual = ``override``). Nada la cierra sola: ni la
+    cotizacion ni la confirmacion del cliente. El cliente solo confirma o
+    solicita revision; nunca cierra la validez. Lo unico automatico del flujo
+    es marcar una reunion como ``reunion_futura`` por fecha de agenda (ver
+    ``derivar_etapa_agenda``), que no se decide aqui.
+
+    ``val_cp`` en ``cancelacion`` o ``no_valida`` refleja una decision propia de
+    Conprospeccion (cancelar / rechazar) y no cuenta a la meta.
+
+    ``bant_cp``, ``evidencia_suficiente`` y ``resultado_actual`` se conservan en
+    la firma por compatibilidad, pero ya no alteran el resultado.
     """
     if override:
         return override
     if val_cp == "cancelacion":
         return "cancelacion"
-    if status_reunion in {"cotizacion", "solicita_cotizacion"}:
-        return "valida"
     if val_cp == "no_valida":
         return "no_valida"
-    if val_cp != "valida":
-        return "pendiente"
-    if val_cli == "valida":
-        return "valida"
-    if val_cli in ("requiere_revision", "no_valida", "reagendada"):
-        return "valida" if resultado_actual == "valida" else "pendiente"
     return "pendiente"
 
 

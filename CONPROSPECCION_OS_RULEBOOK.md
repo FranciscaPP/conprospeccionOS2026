@@ -83,8 +83,11 @@ Confirmar significa que el cliente está de acuerdo con la evaluación positiva 
 La confirmación:
 
 - se registra en el historial;
-- cierra la evaluación como válida cuando la evaluación de Conprospección es válida;
-- permite que la reunión sume a la meta únicamente cuando el resultado final sea `válida`;
+- **no cierra la reunión por sí sola**: la validez es siempre manual y solo
+  Conprospección cierra el Estado Final. La confirmación del cliente queda como
+  antecedente y la reunión sigue pendiente hasta ese cierre manual;
+- permite que la reunión sume a la meta únicamente cuando Conprospección cierra
+  el resultado final como `válida`;
 - no permite modificar BANT, evidencia ni estados operativos.
 
 ### 4.2 Solicitar revisión
