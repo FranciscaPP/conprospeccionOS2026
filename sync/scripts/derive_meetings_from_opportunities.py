@@ -51,6 +51,19 @@ def main() -> None:
         if row.get("ghl_contact_id")
     }
 
+    # El CALENDARIO manda: una reunion es la cita de calendario de GHL.
+    # La oportunidad de pipeline solo se usa como respaldo para reuniones que
+    # NO tienen cita de calendario. Si el contacto ya tiene una cita real
+    # (ghl_appointment_id que no empieza con "opportunity:"), no se deriva la
+    # reunion desde la oportunidad, para no crear un duplicado (misma reunion
+    # en dos filas). Asi se sincroniza solo por calendario cuando la cita existe.
+    contactos_con_cita_real: set[tuple[str, str]] = {
+        (row.get("cliente_slug"), row.get("ghl_contact_id"))
+        for row in supabase.select_all("reuniones", "cliente_slug,ghl_contact_id,ghl_appointment_id")
+        if row.get("ghl_contact_id")
+        and not str(row.get("ghl_appointment_id") or "").startswith("opportunity:")
+    }
+
     opp_updates = []
     meeting_rows = []
     for opp in opportunities:
@@ -70,6 +83,10 @@ def main() -> None:
         )
 
         if not stage.get("is_meeting_stage"):
+            continue
+
+        # Calendario manda: si el contacto ya tiene cita real, no duplicar.
+        if (opp.get("cliente_slug"), opp.get("ghl_contact_id")) in contactos_con_cita_real:
             continue
 
         stage_dt = parse_dt(opp.get("last_stage_change_at")) or parse_dt(opp.get("ghl_created_at"))

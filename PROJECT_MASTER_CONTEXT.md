@@ -74,6 +74,23 @@ Supabase es la base operacional usada por la aplicacion:
 
 El panel maestro puede completar, corregir y decidir cuando GHL no trae informacion suficiente. Esos cambios deben quedar persistidos y trazables. La sincronizacion futura hacia GHL debe partir de estos mismos campos, no de copias visuales.
 
+### Origen de las reuniones (regla anti-duplicados)
+
+Una reunion se sincroniza **desde el calendario de GHL** (cita). El calendario
+es la fuente de verdad. Las oportunidades del pipeline **no** crean reuniones
+cuando el contacto ya tiene una cita de calendario; solo se derivan reuniones
+desde una oportunidad cuando esa reunion **no existe** como cita de calendario
+(respaldo, para no perder reuniones que solo viven en el pipeline).
+
+Motivo: antes se creaban dos filas por reunion (una desde la cita y otra desde
+la oportunidad) y aparecian **duplicadas** en el panel. La regla vive en
+`sync/scripts/derive_meetings_from_opportunities.py` (omite derivar si el
+contacto ya tiene una `ghl_appointment_id` que no empieza con `opportunity:`).
+
+Para ocultar un duplicado ya existente (o cualquier reunion) se usa el flag
+`reuniones.excluida = true`; la vista `vw_reuniones_semana` y las paginas de
+Intelligence Insight filtran por `excluida = false`. Es reversible.
+
 ## Acceso vigente
 
 No existe un sistema de roles internos.
