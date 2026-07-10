@@ -1,0 +1,13 @@
+# rebuild marker: 2026-06-18-gbs-production (fuerza reconstrucción de contenedor en Streamlit Cloud)
+streamlit>=1.34
+pillow>=10.0
+pandas>=2.0
+openpyxl>=3.1
+requests>=2.31
+pypdf>=4.0
+fpdf2>=2.7
+xhtml2pdf>=0.2.17
+python-dotenv>=1.0
+supabase>=2.0
+altair>=5.0
+tzdata>=2024.1

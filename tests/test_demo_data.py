@@ -20,8 +20,10 @@ sys.path.insert(0, str(ROOT))
 
 from shared import demo_data
 
-PAGINA_DEMO = ROOT / "dashboard" / "pages" / "21_Demo_Panel_Reuniones.py"
-PAGINA_ONBOARDING = ROOT / "dashboard" / "pages" / "22_Demo_Onboarding.py"
+APP_DEMO = ROOT / "demo"
+PAGINA_DEMO = APP_DEMO / "pages" / "demo_reuniones.py"
+PAGINA_ONBOARDING = APP_DEMO / "pages" / "demo.py"
+ENTRADA_DEMO = APP_DEMO / "app.py"
 PLANTILLA = ROOT / "dashboard" / "seguimiento_poc_template.py"
 
 MODULOS_PROHIBIDOS = {"requests", "supabase", "shared.config", "meeting_shared"}
@@ -66,6 +68,40 @@ def test_el_demo_no_puede_tocar_supabase(archivo):
     importados = _imports_de(archivo)
     assert not (importados & MODULOS_PROHIBIDOS)
     assert not (importados & NOMBRES_PROHIBIDOS)
+
+
+# ── Separacion entre la app demo y el panel interno ──────────────────────────
+def test_la_app_demo_solo_contiene_las_dos_paginas_del_demo():
+    """Streamlit expone por URL TODAS las paginas de una app.
+
+    Mientras el demo vivia en dashboard/pages, un prospecto que escribiera
+    /Seguimiento_Reuniones aterrizaba en el login del equipo. Aqui esas paginas
+    no existen: no hay URL que adivinar.
+    """
+    paginas = sorted(p.name for p in (APP_DEMO / "pages").glob("*.py"))
+    assert paginas == ["demo.py", "demo_reuniones.py"]
+
+
+def test_ninguna_pagina_interna_quedo_dentro_de_la_app_demo():
+    internas = {"1_Seguimiento_Reuniones", "2_Clientes", "9_SDRs",
+                "16_Client_Setup_OS", "19_BambuTech_Intelligence_Insight",
+                "20_GBS_Intelligence_Insight"}
+    nombres = {p.stem for p in APP_DEMO.rglob("*.py")}
+    assert not (nombres & internas)
+
+
+def test_el_panel_interno_ya_no_expone_las_paginas_demo():
+    """Tampoco al reves: el equipo no ve el demo mezclado con su trabajo."""
+    paginas_internas = {p.stem for p in (ROOT / "dashboard" / "pages").glob("*.py")}
+    assert not any(nombre.lower().startswith("demo") or "_demo_" in nombre.lower()
+                   for nombre in paginas_internas)
+
+
+def test_la_entrada_del_demo_exige_autenticacion_antes_de_cualquier_pagina():
+    entrada = ENTRADA_DEMO.read_text(encoding="utf-8")
+    assert 'require_auth_client("demo")' in entrada
+    # El st.stop() debe ir antes del switch_page, o el gate no sirve de nada.
+    assert entrada.index("st.stop()") < entrada.index("st.switch_page")
 
 
 # ── Registro de componentes ──────────────────────────────────────────────────

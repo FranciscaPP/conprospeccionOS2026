@@ -97,13 +97,14 @@ _CLIENTS: dict[str, dict] = {
             ("Intelligence Insight", "pages/19_BambuTech_Intelligence_Insight.py", "premium"),
         ],
     },
-    # Portal demo para prospectos comerciales. Datos ficticios, sin Supabase.
+    # Portal demo para prospectos. Vive en la app aparte `demo/app.py`, no en
+    # el panel interno: sus rutas son relativas a demo/, no a dashboard/.
     "demo": {
         "session_key": "portal_auth_demo",
         "logo_file": "conprospeccion_logo.png",
         "nav": [
-            ("Onboarding", "pages/22_Demo_Onboarding.py", "demo"),
-            ("Seguimiento de Reuniones", "pages/21_Demo_Panel_Reuniones.py", "demo"),
+            ("Onboarding", "pages/demo.py", "demo"),
+            ("Seguimiento de Reuniones", "pages/demo_reuniones.py", "demo"),
         ],
     },
 }

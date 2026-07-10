@@ -20,8 +20,12 @@ from pathlib import Path
 
 import streamlit as st
 
+# demo/pages/<pagina>.py -> ROOT es la raiz del repo.
+# Los modulos compartidos (portal_auth, meeting_component, la plantilla del panel)
+# siguen viviendo en dashboard/, que es la fuente de verdad. El demo los importa,
+# no los duplica.
 ROOT = Path(__file__).resolve().parent.parent.parent
-DASHBOARD_DIR = Path(__file__).resolve().parent.parent
+DASHBOARD_DIR = ROOT / "dashboard"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 
@@ -44,7 +48,7 @@ st.set_page_config(page_title="Demo - Onboarding", layout="wide")
 if not require_auth_client("demo"):
     st.stop()
 
-render_client_nav("22_Demo_Onboarding", "demo")
+render_client_nav("demo.py", "demo")
 
 st.markdown(
     f"""
