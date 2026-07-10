@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT))
 from shared import demo_data
 
 PAGINA_DEMO = ROOT / "dashboard" / "pages" / "21_Demo_Panel_Reuniones.py"
+PAGINA_ONBOARDING = ROOT / "dashboard" / "pages" / "22_Demo_Onboarding.py"
 PLANTILLA = ROOT / "dashboard" / "seguimiento_poc_template.py"
 
 MODULOS_PROHIBIDOS = {"requests", "supabase", "shared.config", "meeting_shared"}
@@ -57,14 +58,70 @@ def _imports_de(path: Path) -> set[str]:
 
 @pytest.mark.parametrize(
     "archivo",
-    [ROOT / "shared" / "demo_data.py", PAGINA_DEMO, PLANTILLA],
-    ids=["demo_data", "pagina_demo", "plantilla"],
+    [ROOT / "shared" / "demo_data.py", PAGINA_DEMO, PAGINA_ONBOARDING, PLANTILLA],
+    ids=["demo_data", "pagina_demo", "pagina_onboarding", "plantilla"],
 )
 def test_el_demo_no_puede_tocar_supabase(archivo):
     """Garantia dura: sin estos imports, escribir en produccion es imposible."""
     importados = _imports_de(archivo)
     assert not (importados & MODULOS_PROHIBIDOS)
     assert not (importados & NOMBRES_PROHIBIDOS)
+
+
+# ── Formulario de onboarding ─────────────────────────────────────────────────
+@pytest.fixture(scope="module")
+def onboarding() -> str:
+    return PAGINA_ONBOARDING.read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="module")
+def onboarding_visible(onboarding) -> str:
+    """El codigo sin docstring de modulo ni comentarios.
+
+    El docstring documenta de que archivo viene la pagina, y ese nombre incluye a
+    un cliente real. Es texto para quien lee el codigo, no para el prospecto.
+    """
+    arbol = ast.parse(onboarding)
+    doc = ast.get_docstring(arbol)
+    src = onboarding.replace(doc, "", 1) if doc else onboarding
+    return "\n".join(l for l in src.split("\n") if not l.strip().startswith("#"))
+
+
+def test_el_onboarding_no_menciona_a_ningun_cliente_real(onboarding_visible):
+    """El original venia lleno de referencias a GBS: dominio, ejecutivo, nicho."""
+    prohibidos = ("gbs", "bambutech", "clickie", "tiresias", "Sam Miller",
+                  "thermoliner", "DHL", "freight forwarder", "COMEX")
+    minusculas = onboarding_visible.lower()
+    for termino in prohibidos:
+        assert termino.lower() not in minusculas, termino
+
+
+def test_el_onboarding_no_trae_datos_precargados(onboarding):
+    """El original traia defaults del ICP de GBS. Aqui todo empieza en blanco."""
+    assert "default=[]" in onboarding
+    assert "default=[\"" not in onboarding
+    # Ni valores iniciales en campos de texto o numero.
+    assert 'value="' not in onboarding
+    assert "value=None" in onboarding
+
+
+def test_el_onboarding_deja_las_listas_desplegables_sin_seleccion(onboarding):
+    """index=None obliga al prospecto a elegir; sin eso Streamlit preselecciona."""
+    assert onboarding.count("index=None") >= 4
+
+
+def test_el_onboarding_usa_la_paleta_de_conprospeccion(onboarding):
+    """Misma marca que el panel de Seguimiento de Reuniones."""
+    assert "from shared.cp_design import" in onboarding
+    # Sin rastros del morado de GBS.
+    for morado in ("#7c3aed", "#4c1d95", "#5b21b6", "#ede9fe"):
+        assert morado not in onboarding
+
+
+def test_el_envio_del_onboarding_avisa_que_no_guarda_nada(onboarding):
+    assert "nada de lo que escribas se almacena" in onboarding
+    assert "upsert" not in onboarding
+    assert "_notify_telegram" not in onboarding
 
 
 def test_la_plantilla_solo_usa_la_libreria_estandar():

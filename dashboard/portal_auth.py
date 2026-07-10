@@ -102,6 +102,7 @@ _CLIENTS: dict[str, dict] = {
         "session_key": "portal_auth_demo",
         "logo_file": "conprospeccion_logo.png",
         "nav": [
+            ("Onboarding", "pages/22_Demo_Onboarding.py", "demo"),
             ("Seguimiento de Reuniones", "pages/21_Demo_Panel_Reuniones.py", "demo"),
         ],
     },
