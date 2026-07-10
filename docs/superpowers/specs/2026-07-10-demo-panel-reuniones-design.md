@@ -166,12 +166,19 @@ aparezca ningún cliente real (`gbs`, `bambutech`, `clickie`, `tiresias`,
 ### Estado del navegador
 
 El demo usa `storageKey = "cp_meetings_demo_v1"`, distinta de la del panel
-interno. No comparten estado.
+interno, para no pisar su `localStorage`.
 
-A diferencia del panel interno —que bloquea la restauración desde `localStorage`
-porque su verdad está en Supabase— el demo la conserva. Eso es justamente lo que
-permite al prospecto ver sus propios cambios sin que nada se escriba en el
-servidor.
+El HTML escribe en `localStorage` pero **nunca restaura** las reuniones desde
+ahí: la línea que lo hacía ya no existe en la plantilla. Por lo tanto los cambios
+del prospecto viven en memoria y se pierden al recargar. Es exactamente el
+comportamiento que queremos, y explica por qué el demo no necesita limpieza entre
+prospectos.
+
+Nota: `1_Seguimiento_Reuniones.py` conserva dos llamadas a `.replace()` que ya no
+encuentran su objetivo —una para eliminar esa restauración, otra para inyectar un
+fallback de `clientGoals`— porque ambos efectos quedaron incorporados
+directamente en el HTML. Son redundantes, no están rotas. Se dejaron intactas
+para que la extracción de la plantilla fuera un movimiento puro.
 
 ### Autenticación
 

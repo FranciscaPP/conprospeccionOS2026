@@ -11,8 +11,8 @@ AISLAMIENTO: esta pagina no importa requests, supabase, shared.config ni
 meeting_shared. Es incapaz de leer o escribir en produccion.
 
 El prospecto puede filtrar, abrir reuniones y cambiar estados. Los cambios viven
-en el navegador y desaparecen al limpiar el sitio, asi el portal se mantiene util
-para el siguiente prospecto.
+en memoria y se pierden al recargar, asi el portal se auto-resetea para el
+siguiente prospecto.
 """
 from __future__ import annotations
 

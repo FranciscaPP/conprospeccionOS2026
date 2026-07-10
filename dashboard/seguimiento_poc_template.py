@@ -354,9 +354,10 @@ def construir_html_demo(meetings: list, cp_mark_uri: str = "") -> str:
             "No se encontro el bloque `let meetings=[...]` en la plantilla."
         )
 
-    # Clave propia: el demo no comparte estado con el panel interno. Y a diferencia
-    # de este, el demo SI restaura desde localStorage: es lo que permite al
-    # prospecto ver sus cambios sin que nada se escriba en el servidor.
+    # Clave propia para que el demo no pise el localStorage del panel interno.
+    # El HTML escribe ahi, pero nunca restaura las reuniones desde localStorage:
+    # los cambios del prospecto viven en memoria y se pierden al recargar. Eso es
+    # justamente lo que queremos, y por eso el demo no necesita limpieza.
     return html.replace(
         'const storageKey="cp_meetings_v5_poc_detail_v2";',
         'const storageKey="cp_meetings_demo_v1";',

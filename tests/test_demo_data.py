@@ -94,9 +94,19 @@ def test_el_html_lleva_las_reuniones_ficticias_inyectadas(html_demo):
 
 
 def test_el_html_usa_su_propia_clave_de_almacenamiento(html_demo):
-    """No debe compartir estado de navegador con el panel interno."""
+    """No debe pisar el localStorage del panel interno."""
     assert "cp_meetings_demo_v1" in html_demo
     assert "cp_meetings_v5_poc_detail_v2" not in html_demo
+
+
+def test_los_cambios_del_prospecto_no_sobreviven_a_una_recarga(html_demo):
+    """El HTML escribe en localStorage pero no restaura las reuniones desde ahi.
+
+    Si alguien reintrodujera esa restauracion, el demo arrastraria los cambios de
+    un prospecto al siguiente. Es la unica razon por la que el portal no necesita
+    limpieza entre demos.
+    """
+    assert "meetings=savedMeetings" not in html_demo
 
 
 def test_si_la_plantilla_pierde_el_punto_de_inyeccion_falla_ruidosamente(monkeypatch):
