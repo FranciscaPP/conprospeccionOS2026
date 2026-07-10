@@ -40,6 +40,21 @@ if not require_auth_client("demo"):
 
 render_client_nav("21_Demo_Panel_Reuniones", "demo")
 
+# Mismo tratamiento de ancho que el panel interno (1_Seguimiento_Reuniones.py):
+# sin el contenedor centrado de Streamlit, el panel se ve encajonado. A diferencia
+# de aquel, aqui se conserva la barra lateral, que trae el "Cerrar sesion" del
+# prospecto; solo se ocultan el encabezado y la barra de herramientas.
+st.markdown(
+    """
+<style>
+header, [data-testid="stToolbar"], [data-testid="stDecoration"] { display:none !important; }
+.block-container { max-width:100% !important; padding:0 !important; }
+iframe { display:block; width:100% !important; }
+</style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 def _asset_data_uri(relative_path: str, mime: str = "image/png") -> str:
     path = DASHBOARD_DIR / relative_path
