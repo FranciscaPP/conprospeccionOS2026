@@ -40,7 +40,7 @@ def render_bambutech_page_header(title: str, subtitle: str, meta_html: str = "")
 
 def _check_login(slug: str, user: str, pwd: str) -> bool:
     expected = portal_passwords().get(slug, "")
-    expected_user = {"bambutech": "Bambutech"}.get(slug)
+    expected_user = {"bambutech": "Bambutech", "demo": "DEMO"}.get(slug)
     user_ok = True if expected_user is None else user.strip() == expected_user
     return bool(expected) and user_ok and pwd == expected
 
@@ -97,6 +97,14 @@ _CLIENTS: dict[str, dict] = {
             ("Intelligence Insight", "pages/19_BambuTech_Intelligence_Insight.py", "premium"),
         ],
     },
+    # Portal demo para prospectos comerciales. Datos ficticios, sin Supabase.
+    "demo": {
+        "session_key": "portal_auth_demo",
+        "logo_file": "conprospeccion_logo.png",
+        "nav": [
+            ("Seguimiento de Reuniones", "pages/21_Demo_Panel_Reuniones.py", "demo"),
+        ],
+    },
 }
 
 
@@ -126,6 +134,9 @@ def render_client_nav(current: str, cliente: str) -> None:
         # Color de acento por cliente (GBS = morado de marca).
         if cliente == "bambutech":
             nav_accent, nav_accent2 = "#38d430", "#208d25"
+        elif cliente == "demo":
+            # Dorado oscuro de Conprospeccion: legible como fondo con texto blanco.
+            nav_accent, nav_accent2 = "#A66A00", "#7A4F00"
         else:
             nav_accent = "#7c3aed" if cliente == "gbs" else "#1e40af"
             nav_accent2 = "#5b21b6" if cliente == "gbs" else "#1e3a8a"
@@ -193,6 +204,9 @@ def require_auth_client(cliente: str) -> bool:
     if cliente == "bambutech":
         accent, accent2 = "#38d430", "#208d25"
         login_bg = "linear-gradient(135deg,#f4f6f4 0%,#e8eee9 55%,#f8faf8 100%)"
+    elif cliente == "demo":
+        accent, accent2 = "#A66A00", "#7A4F00"
+        login_bg = "linear-gradient(135deg,#FAFAF8 0%,#FFF7BF 55%,#FAFAF8 100%)"
     else:
         accent = "#7c3aed" if cliente == "gbs" else "#1e40af"
         accent2 = "#db2777" if cliente == "gbs" else "#2563eb"

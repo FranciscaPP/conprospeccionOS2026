@@ -88,12 +88,18 @@ def ghl_agency_token() -> str:
 
 
 def portal_passwords() -> dict[str, str]:
-    """Devuelve {cliente_slug: password} para el portal de clientes."""
+    """Devuelve {cliente_slug: password} para el portal de clientes.
+
+    `demo` trae fallback en codigo a proposito: es la credencial que se comparte
+    con prospectos por correo, no un secreto. La variable de entorno permite
+    rotarla sin tocar el codigo.
+    """
     return {
         "tiresias": _get("PORTAL_PASSWORD_TIRESIAS"),
         "clickie":  _get("PORTAL_PASSWORD_CLICKIE"),
         "gbs":      _get("PORTAL_PASSWORD_GBS"),
         "bambutech": _get("PORTAL_PASSWORD_BAMBUTECH"),
+        "demo":     _get("PORTAL_PASSWORD_DEMO") or "DEMO2026",
     }
 
 

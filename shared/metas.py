@@ -11,6 +11,7 @@ METAS = {
     "gbs":       {"validas": 45,  "tipo": "contrato"},
     "bambutech": {"validas": 100, "tipo": "contrato"},
     "clickie":   {"validas": 6,   "tipo": "mensual"},
+    "demo":      {"validas": 12,  "tipo": "mensual"},  # portal demo para prospectos
 }
 
 # Mapa nombre visible (mayúsculas) -> slug, para dashboards que agrupan por nombre.
