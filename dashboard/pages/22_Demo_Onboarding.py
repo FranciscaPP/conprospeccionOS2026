@@ -50,7 +50,12 @@ st.markdown(
     f"""
 <style>
 header, [data-testid="stToolbar"], [data-testid="stDecoration"] {{ display:none !important; }}
-.block-container {{ max-width:1180px !important; padding-top:1rem !important; }}
+/* Ancho completo, igual que el panel de Seguimiento. Streamlit topa el
+   contenedor en ~1180px y le mete 80px de relleno a cada lado. */
+.block-container {{
+    max-width:100% !important;
+    padding:1rem 32px 2rem !important;
+}}
 .stApp {{ background:{CP_BG}; }}
 
 /* Boton primario: dorado con texto tinta. Blanco sobre dorado no se lee. */
