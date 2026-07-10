@@ -68,6 +68,48 @@ def test_el_demo_no_puede_tocar_supabase(archivo):
     assert not (importados & NOMBRES_PROHIBIDOS)
 
 
+# ── Registro de componentes ──────────────────────────────────────────────────
+def _nombre_de_componente(archivo: Path) -> str | None:
+    """Extrae el `name=` que la pagina pasa a render_meeting_component."""
+    arbol = ast.parse(archivo.read_text(encoding="utf-8"))
+    for nodo in ast.walk(arbol):
+        if (
+            isinstance(nodo, ast.Call)
+            and isinstance(nodo.func, ast.Name)
+            and nodo.func.id == "render_meeting_component"
+        ):
+            for kw in nodo.keywords:
+                if kw.arg == "name" and isinstance(kw.value, ast.Constant):
+                    return kw.value.value
+            return None  # usa el nombre por defecto
+    return None
+
+
+def test_el_demo_registra_su_componente_con_nombre_propio():
+    """El registro de componentes de Streamlit es global a la aplicacion.
+
+    Si el panel interno y el demo declaran el mismo nombre con directorios
+    distintos, el segundo sobrescribe al primero y una pagina termina sirviendo
+    el HTML de la otra. Con datos reales de por medio, eso es una fuga.
+    """
+    panel_interno = ROOT / "dashboard" / "pages" / "1_Seguimiento_Reuniones.py"
+    nombre_demo = _nombre_de_componente(PAGINA_DEMO)
+
+    assert nombre_demo is not None, "la pagina demo debe pasar un name explicito"
+    assert nombre_demo != _nombre_de_componente(panel_interno)
+    assert nombre_demo != "seguimiento_reuniones_operativo"
+
+
+def test_el_demo_escribe_su_componente_en_su_propio_directorio():
+    """Dos directorios distintos, o una pagina pisaria el index.html de la otra."""
+    demo = PAGINA_DEMO.read_text(encoding="utf-8")
+    interno = (ROOT / "dashboard" / "pages" / "1_Seguimiento_Reuniones.py").read_text(
+        encoding="utf-8"
+    )
+    assert "cp_demo_panel_reuniones_component" in demo
+    assert "cp_demo_panel_reuniones_component" not in interno
+
+
 # ── Formulario de onboarding ─────────────────────────────────────────────────
 @pytest.fixture(scope="module")
 def onboarding() -> str:

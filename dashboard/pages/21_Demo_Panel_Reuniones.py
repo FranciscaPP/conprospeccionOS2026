@@ -80,4 +80,12 @@ COMPONENT_DIR.mkdir(parents=True, exist_ok=True)
 
 # El componente devuelve payloads cuando el usuario guarda, crea o elimina.
 # El demo los ignora deliberadamente: no hay backend al que escribir.
-render_meeting_component(COMPONENT_DIR, key="demo_panel_reuniones")
+#
+# El `name` debe ser distinto del que usa el panel interno: el registro de
+# componentes de Streamlit es global a la aplicacion, y compartir nombre haria
+# que una pagina sirviera el HTML de la otra.
+render_meeting_component(
+    COMPONENT_DIR,
+    key="demo_panel_reuniones",
+    name="demo_panel_reuniones_operativo",
+)
