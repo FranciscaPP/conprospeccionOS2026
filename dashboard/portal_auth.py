@@ -105,6 +105,7 @@ _CLIENTS: dict[str, dict] = {
         "nav": [
             ("Onboarding", "pages/demo.py", "demo"),
             ("Seguimiento de Reuniones", "pages/demo_reuniones.py", "demo"),
+            ("Intelligence Insight", "pages/demo_intelligence.py", "demo"),
         ],
     },
 }

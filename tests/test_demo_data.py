@@ -79,7 +79,7 @@ def test_la_app_demo_solo_contiene_las_dos_paginas_del_demo():
     no existen: no hay URL que adivinar.
     """
     paginas = sorted(p.name for p in (APP_DEMO / "pages").glob("*.py"))
-    assert paginas == ["demo.py", "demo_reuniones.py"]
+    assert paginas == ["demo.py", "demo_intelligence.py", "demo_reuniones.py"]
 
 
 def test_ninguna_pagina_interna_quedo_dentro_de_la_app_demo():
