@@ -91,6 +91,16 @@ Para ocultar un duplicado ya existente (o cualquier reunion) se usa el flag
 `reuniones.excluida = true`; la vista `vw_reuniones_semana` y las paginas de
 Intelligence Insight filtran por `excluida = false`. Es reversible.
 
+**Respaldo por calendario (iCal).** Cuando GHL esta caido o intermitente, el
+sync lee el feed iCal publico de cada cliente (`sync/scripts/sync_calendar_ics.py`)
+y agrega las reuniones que falten. Los eventos creados por GHL en Google Calendar
+llevan en su descripcion el `event_id`, que **es** el `ghl_appointment_id`; por eso
+el respaldo importa con ese mismo id y **se fusiona** con GHL (no duplica), y solo
+inserta lo que falta. Requisito: el calendario debe estar compartido en publico
+como **"Ver todos los detalles"** (no "Solo libre/ocupado"); si esta en modo
+ocupado, los eventos no traen `event_id` y no sirven de respaldo (caso Clickie a
+la fecha). Feeds configurados en `ICS_URLS` del script (publicos, no secretos).
+
 ## Acceso vigente
 
 No existe un sistema de roles internos.
