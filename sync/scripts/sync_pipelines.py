@@ -60,7 +60,9 @@ def classify_stage(stage_name: str) -> tuple[str, bool, bool | None]:
 
 
 def token_for_client(client: dict[str, Any]) -> str:
-    env_key = f"GHL_TOKEN_{client['slug'].upper()}"
+    env_key = {
+        "gbs": "GHL_TOKEN_GBS_LOGISTICS",
+    }.get(client["slug"], f"GHL_TOKEN_{client['slug'].upper()}")
     token = get_optional_env(env_key)
     if not token:
         raise RuntimeError(f"Falta {env_key} en .env/.env.txt")
