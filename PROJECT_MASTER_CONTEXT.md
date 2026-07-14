@@ -101,6 +101,21 @@ como **"Ver todos los detalles"** (no "Solo libre/ocupado"); si esta en modo
 ocupado, los eventos no traen `event_id` y no sirven de respaldo (caso Clickie a
 la fecha). Feeds configurados en `ICS_URLS` del script (publicos, no secretos).
 
+### Meta de reuniones validas (acumulada)
+
+Regla unica en `shared/metas.py` (`avance_meta`, `avance_acumulado_por_mes`),
+que deben usar TODAS las pantallas (panel interno de Seguimiento, portal cliente
+de validacion e Intelligence Insight) para mostrar lo mismo:
+
+- **Contrato** (GBS 45, BambuTech 100, Just4U 40, Ecosmart 30): el avance
+  ACUMULA todas las validas de todos los meses hacia la meta total. Las validas
+  de junio siguen contando en julio, agosto, etc.
+- **Mensual** (Clickie 6): solo cuenta las validas del mes en curso; reinicia
+  cada mes.
+
+Solo cuentan reuniones de **calendario/agenda** (no oportunidades de pipeline) y
+no excluidas.
+
 ## Acceso vigente
 
 No existe un sistema de roles internos.
