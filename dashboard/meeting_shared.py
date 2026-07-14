@@ -617,6 +617,7 @@ def cargar_reuniones_reales_poc():
                 "historyVisibility": _json_obj(seg.get("historial_visibilidad"), {}),
                 "historialManual": manual_history,
                 "goal": int(meta["validas"]) if meta else 0,
+                "goalMonthly": bool(meta and meta.get("tipo") == "mensual"),
             }
         )
     rows = _dedupe_clickie_latest(rows)
