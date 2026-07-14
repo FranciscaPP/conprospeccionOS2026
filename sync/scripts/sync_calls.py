@@ -30,9 +30,12 @@ def parse_dt(value: str | None) -> datetime | None:
 
 
 def token_for_client(client: dict[str, Any]) -> str:
-    token = get_optional_env(f"GHL_TOKEN_{client['slug'].upper()}")
+    env_key = {
+        "gbs": "GHL_TOKEN_GBS_LOGISTICS",
+    }.get(client["slug"], f"GHL_TOKEN_{client['slug'].upper()}")
+    token = get_optional_env(env_key)
     if not token:
-        raise RuntimeError(f"Falta GHL_TOKEN_{client['slug'].upper()}")
+        raise RuntimeError(f"Falta {env_key} en .env/.env.txt")
     return token
 
 
