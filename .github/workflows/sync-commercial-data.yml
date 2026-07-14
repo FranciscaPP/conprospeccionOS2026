@@ -92,3 +92,7 @@ jobs:
           python sync/scripts/sync_meetings.py --client-slug clickie
           python sync/scripts/sync_pipelines.py --client-slug clickie
           python sync/scripts/derive_meetings_from_opportunities.py
+          # Respaldo por calendario (iCal): agrega reuniones que GHL no trajo
+          # (p.ej. si GHL estuvo caido). Se enlaza por event_id = ghl_appointment_id,
+          # asi no duplica. Nunca debe tumbar el sync -> se ignora su error.
+          python sync/scripts/sync_calendar_ics.py || echo "::warning::Respaldo iCal fallo (no critico)"
