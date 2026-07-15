@@ -199,6 +199,14 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
       <div class="mark"></div>
       <div class="title"><h1>__PORTAL_TITLE__</h1><p>__PORTAL_BRAND__</p></div>
     </div>
+    <div class="top-meta">
+      <div class="top-meta-label">Avance de meta (acumulado)</div>
+      <div class="top-meta-row">
+        <span class="top-meta-ratio" id="metaRatio">0 / 0</span>
+        <div class="top-meta-bar"><div class="fill" id="metaFill" style="width:0%"></div></div>
+        <span class="goal-pill" id="metaPill">0%</span>
+      </div>
+    </div>
     <div class="user"><b>__PORTAL_USER__</b><span>__PORTAL_SUBTITLE__</span></div>
   </header>
   <div class="layout" id="layout">
@@ -668,6 +676,20 @@ function renderPanel() {
   if (tab === "Historial") html = historyTab(m);
   document.getElementById("panel").innerHTML = html;
 }
+function renderMeta() {
+  // Meta ACUMULADA (igual que el panel interno): cuenta TODAS las validas de
+  // GBS (todos los meses), independiente de los filtros de la tabla. GBS es de
+  // contrato, asi que el avance suma sin reiniciar.
+  const valid = meetings.filter(m => finalStatus(m) === "Reunión válida").length;
+  const goal = CLIENT_GOAL || 0;
+  const p = goal ? Math.round(valid / goal * 100) : 0;
+  const ratio = document.getElementById("metaRatio");
+  const fill = document.getElementById("metaFill");
+  const pill = document.getElementById("metaPill");
+  if (ratio) ratio.textContent = `${valid} / ${goal}`;
+  if (fill) fill.style.width = Math.min(p, 100) + "%";
+  if (pill) pill.textContent = p + "%";
+}
 function render() {
   const rows = applyFilters();
   document.getElementById("layout").classList.toggle("open", panelOpen);
@@ -675,6 +697,7 @@ function render() {
   renderFilters(rows);
   renderQuickStatus();
   renderKpis(rows);
+  renderMeta();
   renderHead();
   renderRows(rows);
   if (panelOpen) renderPanel();
