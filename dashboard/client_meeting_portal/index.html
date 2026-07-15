@@ -361,10 +361,9 @@ function setClientDraft(id, field, value) {
   const m = meetings.find(x => x.id === id);
   if (!m || !clientCanEdit(m)) return;
   ensureDraft(m)[field] = value;
-  selected = id;
-  panelOpen = true;
-  tab = "Evaluación Cliente";
-  render();
+  // NO re-renderizar aquí: reconstruir el panel en cada tecla hace que el campo
+  // de texto pierda el foco y no se pueda escribir. El valor queda guardado en
+  // el borrador y se lee al Confirmar / Solicitar revisión.
 }
 function saveClientEvaluation(id, forcedVal) {
   const m = meetings.find(x => x.id === id);
