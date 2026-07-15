@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mockup — GBS · Validación de reuniones (mismo UX panel interno)</title>
+<title>Validación de reuniones · Portal cliente</title>
 <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
 :root{
@@ -23,7 +23,7 @@ button,input,select,textarea{font:inherit}
 .app{min-width:0;padding:0 12px 24px;background:#ECECEA}
 .top{height:64px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin-bottom:14px;background:var(--carbon);color:#FFF;border-radius:0 0 10px 10px;padding:0 18px;box-shadow:0 10px 24px rgba(26,26,26,.14);border-top:3px solid var(--gold)}
 .brand{display:flex;align-items:center;gap:14px}
-.mark{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--carbon) 0 52%,var(--gold) 52% 100%);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px var(--line-strong)}
+.brand-logo{height:34px;width:auto;max-width:150px;object-fit:contain;display:block}
 .title h1{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:18px;margin:0;font-weight:700;color:#FFF}
 .title p{font-size:12px;margin:2px 0 0;color:#C9C9C6}
 .user{font-size:12px;text-align:right;color:#ECECEA;white-space:nowrap}
@@ -196,7 +196,7 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 <div class="app">
   <header class="top">
     <div class="brand">
-      <div class="mark"></div>
+      <img class="brand-logo" src="__BRAND_MARK__" alt="Conprospección">
       <div class="title"><h1>__PORTAL_TITLE__</h1><p>__PORTAL_BRAND__</p></div>
     </div>
     <div class="top-meta">
@@ -281,7 +281,7 @@ function defaultRange() {
 }
 function defaultFilters() {
   const r = defaultRange();
-  return { q: "", status: "Todos", cp: "Todos", clientVal: "Todos", final: "Todos", country: "Todos", month: "6", year: "2026", ...r };
+  return { q: "", status: "Todos", cp: "Todos", clientVal: "Todos", final: "Todos", country: "Todos", month: String(new Date().getMonth()+1), year: String(new Date().getFullYear()), ...r };
 }
 function rangeForMonth(year, month) {
   const first = new Date(Number(year), Number(month) - 1, 1);
@@ -416,7 +416,7 @@ function setFilter(k, v) {
   render();
 }
 function toggleMore() { more = !more; render(); }
-function resetDateRange() { filters.month = "6"; filters.year = "2026"; Object.assign(filters, defaultRange()); render(); }
+function resetDateRange() { filters.month = String(new Date().getMonth()+1); filters.year = String(new Date().getFullYear()); Object.assign(filters, defaultRange()); render(); }
 function setToday() { const t = iso(new Date()); filters.dateFrom = t; filters.dateTo = t; render(); }
 function setThisWeek() {
   const now = new Date(), day = (now.getDay()+6)%7;
@@ -425,7 +425,7 @@ function setThisWeek() {
   filters.dateFrom = iso(mon); filters.dateTo = iso(sun); render();
 }
 function clearFilter(k) {
-  if (k === "date") { filters.month = "6"; filters.year = "2026"; Object.assign(filters, defaultRange()); }
+  if (k === "date") { filters.month = String(new Date().getMonth()+1); filters.year = String(new Date().getFullYear()); Object.assign(filters, defaultRange()); }
   else filters[k] = k === "q" ? "" : "Todos";
   render();
 }

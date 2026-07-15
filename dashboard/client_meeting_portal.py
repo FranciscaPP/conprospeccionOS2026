@@ -27,6 +27,18 @@ from shared.seguimiento import (
 
 _COMPONENT_DIR = Path(__file__).resolve().parent / "client_meeting_portal"
 _TEMPLATE = (_COMPONENT_DIR / "index.html").read_text(encoding="utf-8")
+_ASSETS_DIR = Path(__file__).resolve().parent / "assets"
+
+
+def _asset_data_uri(fname: str, mime: str = "image/png") -> str:
+    path = _ASSETS_DIR / fname
+    try:
+        import base64
+
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    except Exception:
+        return ""
+    return f"data:{mime};base64,{encoded}"
 
 SUPABASE_URL = supabase_url()
 SUPABASE_KEY = supabase_key()
@@ -58,6 +70,7 @@ def _build_html(
         row["clientSlug"] = client_slug
     meetings_json = json.dumps(projected, ensure_ascii=True).replace("</", "<\\/")
     html = _TEMPLATE
+    html = html.replace("__BRAND_MARK__", _asset_data_uri("cp_mark_dark.png"))
     html = html.replace("__MEETINGS_JSON__", meetings_json)
     html = html.replace("__CLIENT_GOAL__", str(goal))
     html = html.replace("__CLIENT_SLUG__", client_slug)
