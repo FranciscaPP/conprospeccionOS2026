@@ -37,6 +37,14 @@ Limpieza 2026-07-03: `archive/`, `mockups/`, `scripts/` y todas las
 paginas de portal cliente y Tiresias fueron eliminadas del repo. Los
 portales cliente se reconstruiran desde cero a partir del panel interno.
 
+Portal cliente GBS reconstruido (2026-07-15): `dashboard/pages/12_GBS.py`
+(URL publica `conprospeccion-os2026.streamlit.app/GBS`)
++ `dashboard/client_meeting_portal.py` (componente reutilizable). Reutiliza la
+estructura del panel interno; el cliente solo confirma o solicita revision (con
+motivo: ICP / BANT / ICP+BANT, comentario obligatorio y evidencia opcional).
+Login por `portal_auth.require_auth_client("gbs")`. Etapa/CP/Estado Final son
+solo lectura; sin columnas Cliente/SDR. Los demas portales se haran igual.
+
 ## Mapa del proyecto
 
 Estructura para orientarse rapido (cualquier IA o persona nueva la lee y
