@@ -1,30 +1,17 @@
-# Conprospeccion OS MVP
+# Dashboard — App Streamlit (producto oficial)
 
-App local para crear clientes, ordenar archivos y generar la estructura inicial de onboarding de Conprospeccion.
+Esta carpeta es la aplicación Streamlit oficial de Conprospección OS 2026.
 
-## Ejecutar
+- Entrada principal: `app.py`
+- Panel maestro interno: `pages/1_Seguimiento_Reuniones.py`
+- Portales de cliente: `client_meeting_portal.py` + `pages/12_GBS.py` (GBS en `/GBS`)
+- URL pública: https://conprospeccion-os2026.streamlit.app
 
-```powershell
-cd "C:\Users\Admin\OneDrive\Documents\Con Prospección\Conprospeccion_OS_App"
-pip install -r requirements.txt
-streamlit run app.py
-```
+## Fuente única de verdad
 
-## Carpeta de clientes
+Toda la orientación del proyecto (mapa, reglas, deploy, ramas) vive en
+**`PROJECT_MASTER_CONTEXT.md`** en la raíz del repo. Léelo primero.
 
-Por defecto crea clientes en:
-
-```text
-C:\Users\Admin\OneDrive\Documents\Con Prospección\CLIENTES OS
-```
-
-## Alcance MVP
-
-- Crear cliente.
-- Crear estructura completa.
-- Subir y ordenar archivos.
-- Seleccionar logo.
-- Generar firma HTML.
-- Crear archivos base `.md`, `.json`, `.html` y `.sql`.
-- Ver estado y archivos.
-- Placeholders para chat contextual, aprobacion ICP e integraciones futuras.
+Repo oficial ÚNICO: `FranciscaPP/conprospeccionOS2026`, rama `main`. Streamlit
+Cloud despliega desde ahí. El repo antiguo `conprospeccion-os` (sin `2026`)
+quedó obsoleto y no debe usarse.

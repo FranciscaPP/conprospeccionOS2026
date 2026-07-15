@@ -1,7 +1,7 @@
 """
 Configuración centralizada de ConprospecciónOS.
 Todos los módulos (dashboard, alicia, mvp_setup, sync) deben importar desde aquí.
-El .env vive en la RAÍZ del proyecto (conprospeccion-os/.env).
+El .env vive en la RAÍZ del repo (conprospeccionOS2026/.env).
 En Streamlit Cloud, las variables se leen desde st.secrets.
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-_ROOT = Path(__file__).resolve().parent.parent  # conprospeccion-os/
+_ROOT = Path(__file__).resolve().parent.parent  # raíz del repo conprospeccionOS2026/
 _loaded = False
 
 

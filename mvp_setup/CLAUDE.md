@@ -14,14 +14,17 @@ mvp_setup/
 │   ├── firma.py        # Genera firma HTML de email
 │   ├── estado.py       # Estado JSON del proyecto
 │   └── templates.py    # Plantillas de contenido
-└── .env            # ANTHROPIC_API_KEY, SUPABASE_URL, NETLIFY_TOKEN
+└── .env            # ANTHROPIC_API_KEY, SUPABASE_URL
 ```
 
 ## Rutas importantes
 
-- Clientes: `C:\Users\Admin\OneDrive\Documents\Con Prospección\CLIENTES OS\CLIENTES\`
-- GitHub: https://github.com/FranciscaPP/conprospeccion-os (carpeta `mvp_setup/`)
+- Repo oficial ÚNICO: https://github.com/FranciscaPP/conprospeccionOS2026 (carpeta `mvp_setup/`)
 - App corriendo en: http://localhost:8501
+
+> El repo antiguo `conprospeccion-os` (sin `2026`) quedó obsoleto. No usarlo.
+> La única fuente de verdad es `conprospeccionOS2026` y el documento
+> `PROJECT_MASTER_CONTEXT.md` en su raíz.
 
 ## Python correcto
 
@@ -29,4 +32,7 @@ mvp_setup/
 
 ## Parte de ConprospecciónOS
 
-Este proyecto es un módulo dentro de `ConprospeccionOS/` (el sistema operativo central de ConProspección). No edites archivos en la carpeta antigua `CLIENTES OS\ConprospeccionOS\`.
+Este proyecto es un módulo dentro del repo oficial `conprospeccionOS2026` (el
+sistema operativo central de ConProspección). La fuente única de verdad es
+`PROJECT_MASTER_CONTEXT.md` en la raíz del repo. No trabajar sobre el repo ni
+las carpetas antiguas `conprospeccion-os` / `CLIENTES OS\ConprospeccionOS\`.
