@@ -701,6 +701,9 @@ function render() {
   renderHead();
   renderRows(rows);
   if (panelOpen) renderPanel();
+  // Reajustar el alto del iframe tras cada render para que, al abrir el panel
+  // de detalle (más alto), no se corte el contenido y se pueda ver todo.
+  setTimeout(setComponentHeight, 50);
 }
 render();
 </script>
