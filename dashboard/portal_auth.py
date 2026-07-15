@@ -97,6 +97,13 @@ _CLIENTS: dict[str, dict] = {
             ("Intelligence Insight", "pages/19_BambuTech_Intelligence_Insight.py", "premium"),
         ],
     },
+    "gbs": {
+        "session_key": "portal_auth_gbs",
+        "logo_file": "gbs_logo.png",
+        "nav": [
+            ("Validación de reuniones", "pages/12_GBS_Validacion_Reuniones.py", "premium"),
+        ],
+    },
     # Portal demo para prospectos. Vive en la app aparte `demo/app.py`, no en
     # el panel interno: sus rutas son relativas a demo/, no a dashboard/.
     "demo": {
