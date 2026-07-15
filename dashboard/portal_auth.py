@@ -101,7 +101,7 @@ _CLIENTS: dict[str, dict] = {
         "session_key": "portal_auth_gbs",
         "logo_file": "gbs_logo.png",
         "nav": [
-            ("Validación de reuniones", "pages/12_GBS_Validacion_Reuniones.py", "premium"),
+            ("Validación de reuniones", "pages/12_GBS.py", "premium"),
         ],
     },
     # Portal demo para prospectos. Vive en la app aparte `demo/app.py`, no en
