@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import tempfile
-from datetime import timedelta
 from pathlib import Path
 
 import requests
@@ -218,15 +217,15 @@ iframe{display:block}
         unsafe_allow_html=True,
     )
 
-    @st.fragment(run_every=timedelta(seconds=12))
-    def _live_portal() -> None:
-        _render_portal_frame(
-            client_slug=client_slug,
-            page_key=page_key,
-            title=title,
-            brand=brand,
-            user_label=user_label,
-            user_subtitle=user_subtitle,
-        )
-
-    _live_portal()
+    # Sin auto-refresco: la página no debe recargarse sola porque reinicia el
+    # scroll, cierra el panel lateral y borra lo que el cliente está escribiendo
+    # en su evaluación. Se renderiza una vez (igual que el panel interno); cada
+    # interacción del cliente ya dispara un rerun natural de Streamlit.
+    _render_portal_frame(
+        client_slug=client_slug,
+        page_key=page_key,
+        title=title,
+        brand=brand,
+        user_label=user_label,
+        user_subtitle=user_subtitle,
+    )
