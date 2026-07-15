@@ -280,8 +280,10 @@ function defaultRange() {
   return rangeForMonth(now.getFullYear(), now.getMonth() + 1);
 }
 function defaultFilters() {
-  const r = defaultRange();
-  return { q: "", status: "Todos", cp: "Todos", clientVal: "Todos", final: "Todos", country: "Todos", month: String(new Date().getMonth()+1), year: String(new Date().getFullYear()), ...r };
+  // Portal cliente: por defecto mostrar TODAS las reuniones (no solo el mes en
+  // curso). El cliente valida reuniones de meses anteriores; si el filtro parte
+  // en el mes actual, la tabla aparece vacía y no puede evaluar nada.
+  return { q: "", status: "Todos", cp: "Todos", clientVal: "Todos", final: "Todos", country: "Todos", month: "Todos", year: "Todos", dateFrom: "", dateTo: "" };
 }
 function rangeForMonth(year, month) {
   const first = new Date(Number(year), Number(month) - 1, 1);
