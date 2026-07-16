@@ -105,8 +105,9 @@ def _manual_status_label(value):
     value = unicodedata.normalize("NFD", _txt(value).lower())
     value = "".join(ch for ch in value if unicodedata.category(ch) != "Mn")
     value = value.replace("ã³", "o").replace("ãº", "u").replace("ã©", "e")
-    if "futura" in value:
-        return "Reunión futura"
+    # "Reunión futura" NO se considera estado manual: se deriva SOLO de la fecha
+    # (regla oficial). Si quedó un "futura" persistido y la fecha ya pasó, debe
+    # mostrarse como realizada, no quedar pegado en futura.
     if "cancel" in value:
         return "Reunión cancelada"
     if "reagend" in value:
