@@ -271,6 +271,7 @@ const EYE_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" str
 let meetings = __MEETINGS_JSON__;
 
 let selected = null, tab = "Información", panelOpen = false, more = false;
+let reviewOpen = false; // formulario de "Solicitar revisión" abierto en el drawer
 let clientDrafts = {};
 let filters = defaultFilters();
 let sortState = { key: "dateTime", dir: "desc" };
@@ -398,6 +399,14 @@ function confirmMeeting(id) {
   clientDrafts[id] = { clientVal: "Válida", clientReason: "", clientComment: (clientDrafts[id] && clientDrafts[id].clientComment) || m.clientComment || "" };
   saveClientEvaluation(id, "Válida");
 }
+function openReview(id) {
+  const m = meetings.find(x => x.id === id);
+  if (!m || !clientCanEdit(m)) return;
+  reviewOpen = true;
+  selected = id; panelOpen = true; tab = "Evaluación Cliente";
+  renderPanel();
+}
+function cancelReview() { reviewOpen = false; renderPanel(); }
 function saveReview(id) {
   const m = meetings.find(x => x.id === id);
   if (!m || !clientCanEdit(m)) return;
@@ -553,6 +562,7 @@ function openDetail(id) {
   selected = id;
   tab = "Información";
   panelOpen = true;
+  reviewOpen = false;
   const m = meetings.find(x => x.id === id);
   if (m) {
     clientDrafts[id] = {
@@ -563,7 +573,7 @@ function openDetail(id) {
   }
   render();
 }
-function closeDetail() { panelOpen = false; render(); }
+function closeDetail() { panelOpen = false; reviewOpen = false; render(); }
 function current() { return meetings.find(m => m.id === selected) || meetings[0]; }
 
 function infoSection(title, subtitle, icon, body) {
@@ -638,16 +648,28 @@ function clientTab(m) {
   }
   const d = ensureDraft(m);
   const lastSaved = m.clientDate
-    ? `<div class="read"><p><b>Última acción guardada:</b> ${esc(m.clientDate)} · ${esc(m.clientVal)}</p>${m.clientVal==="Solicita revisión"?"<p>Puedes confirmar la reunión si ya quedó resuelta, o enviar otra solicitud de revisión.</p>":""}</div>`
+    ? `<div class="read"><p><b>Última acción guardada:</b> ${esc(m.clientDate)} · ${esc(m.clientVal)}</p>${m.clientVal==="Solicita revisión"?"<p>Puedes aprobar la reunión si ya quedó resuelta, o enviar otra solicitud de revisión.</p>":""}</div>`
     : "";
+  // Paso 1: solo dos botones. Aprobar reunión, o abrir el formulario de revisión.
+  if (!reviewOpen) {
+    return `${lastSaved}
+      <div class="read"><p>Aprueba la reunión o solicita una revisión si no estás de acuerdo con la evaluación de Conprospección.</p></div>
+      <div class="actions-row">
+        <button class="primary" onclick="confirmMeeting(${m.id})">Aprobar reunión</button>
+        <button class="ghost" onclick="openReview(${m.id})">Solicitar revisión</button>
+      </div>`;
+  }
+  // Paso 2: formulario de revisión (motivo + comentario obligatorios, evidencia opcional).
   return `${lastSaved}
-    <div class="read"><p>Confirma la evaluación de Conprospección o solicita revisión si no estás de acuerdo.</p></div>
-    <div class="field2 wide" style="margin-top:10px"><label>Motivo (solo para solicitar revisión)</label><select onchange="setClientDraft(${m.id},'clientReason',this.value)"><option value="">— Selecciona un motivo —</option><option value="No cumple ICP" ${d.clientReason==="No cumple ICP"?"selected":""}>No cumple ICP</option><option value="No cumple BANT" ${d.clientReason==="No cumple BANT"?"selected":""}>No cumple BANT</option><option value="No cumple ICP ni BANT" ${d.clientReason==="No cumple ICP ni BANT"?"selected":""}>No cumple ICP ni BANT</option></select></div>
-    <div class="field2 wide" style="margin-top:10px"><label>Comentario <span style="color:#db2777">(obligatorio para solicitar revisión)</span></label><textarea placeholder="Opcional al confirmar. Obligatorio para solicitar revisión." oninput="setClientDraft(${m.id},'clientComment',this.value)">${esc(d.clientComment)}</textarea></div>
-    <div class="field2 wide" style="margin-top:10px"><label>Evidencia (opcional)</label><textarea placeholder="Pega un enlace o describe la evidencia (opcional)" oninput="setClientDraft(${m.id},'clientEvidence',this.value)">${esc(d.clientEvidence||"")}</textarea></div>
-    <div class="actions-row">
-      <button class="primary" onclick="confirmMeeting(${m.id})">Confirmar reunión</button>
-      <button class="ghost" onclick="saveReview(${m.id})">Solicitar revisión</button>
+    <div class="review-form">
+      <div class="section-head" style="margin-bottom:10px"><b>Solicitar revisión</b></div>
+      <div class="field2 wide"><label>Motivo <span style="color:#db2777">(obligatorio)</span></label><select onchange="setClientDraft(${m.id},'clientReason',this.value)"><option value="">— Selecciona un motivo —</option><option value="No cumple ICP" ${d.clientReason==="No cumple ICP"?"selected":""}>No cumple ICP</option><option value="No cumple BANT" ${d.clientReason==="No cumple BANT"?"selected":""}>No cumple BANT</option><option value="No cumple ICP ni BANT" ${d.clientReason==="No cumple ICP ni BANT"?"selected":""}>No cumple ICP ni BANT</option></select></div>
+      <div class="field2 wide" style="margin-top:10px"><label>Comentario <span style="color:#db2777">(obligatorio)</span></label><textarea placeholder="Explica por qué solicitas la revisión." oninput="setClientDraft(${m.id},'clientComment',this.value)">${esc(d.clientComment)}</textarea></div>
+      <div class="field2 wide" style="margin-top:10px"><label>Evidencia (opcional)</label><textarea placeholder="Pega un enlace (Drive, correo, etc.) que respalde la revisión." oninput="setClientDraft(${m.id},'clientEvidence',this.value)">${esc(d.clientEvidence||"")}</textarea></div>
+      <div class="actions-row">
+        <button class="primary" onclick="saveReview(${m.id})">Guardar</button>
+        <button class="ghost" onclick="cancelReview()">Cancelar</button>
+      </div>
     </div>`;
 }
 function finalTab(m) {
