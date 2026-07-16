@@ -413,6 +413,11 @@ function notify(msg) {
 }
 function setFilter(k, v) {
   filters[k] = v;
+  // Si eligen un mes con el año en "Todos", tomar el año actual; si no,
+  // monthYearRange devuelve rango vacío y el filtro de mes no haría nada.
+  if (k === "month" && v !== "Todos" && (filters.year === "Todos" || !filters.year)) {
+    filters.year = String(new Date().getFullYear());
+  }
   if (k === "month" || k === "year") Object.assign(filters, monthYearRange(filters.year, filters.month));
   render();
 }
