@@ -374,6 +374,24 @@ def _period_caption(period: str, start: date | None, end: date | None) -> str:
     return f"{period}: {start.strftime('%d/%m/%Y')} - {end.strftime('%d/%m/%Y')}"
 
 
+def _selected_period_bounds() -> tuple[date | None, date | None]:
+    period = st.session_state.get("board_period", "Pendientes semana actual")
+    if period == "Rango manual":
+        start = st.session_state.get("board_date_from")
+        end = st.session_state.get("board_date_to")
+        if isinstance(start, date) and isinstance(end, date):
+            return (start, end) if start <= end else (end, start)
+        return None, None
+    return _period_bounds(period, _today())
+
+
+def _date_visible_in_selected_period(day: date) -> bool:
+    start, end = _selected_period_bounds()
+    if not start or not end:
+        return True
+    return start <= day <= end
+
+
 def _filter_tasks(
     tasks: list[dict[str, Any]],
     owner: str,
@@ -703,6 +721,11 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
                     source,
                 )
                 st.session_state["selected_task_id"] = task["id"]
+                if not _date_visible_in_selected_period(edit_due):
+                    st.session_state["board_period"] = "Todas las fechas"
+                    st.session_state["work_board_notice"] = (
+                        "La tarea quedo fuera del periodo que estabas viendo; cambie la vista a Todas las fechas para que no se esconda."
+                    )
                 st.success("Cambios guardados.")
                 st.rerun()
         if closed:
@@ -1226,6 +1249,9 @@ if selected_period == "Rango manual":
         st.warning("El rango de fechas esta invertido. Ajusta Desde y Hasta.")
         date_from, date_to = date_to, date_from
 st.markdown("</div>", unsafe_allow_html=True)
+
+if notice := st.session_state.pop("work_board_notice", ""):
+    st.info(notice)
 
 base_visible_tasks = _filter_tasks(
     tasks,
