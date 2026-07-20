@@ -429,6 +429,16 @@ def _clear_selected_task() -> None:
     st.session_state["selected_task_id"] = ""
 
 
+def _consume_board_payload(payload: dict[str, Any]) -> bool:
+    nonce = str(payload.get("nonce") or "")
+    if not nonce:
+        return True
+    if st.session_state.get("_work_board_last_nonce") == nonce:
+        return False
+    st.session_state["_work_board_last_nonce"] = nonce
+    return True
+
+
 def _selected_task(tasks: list[dict[str, Any]]) -> dict[str, Any] | None:
     selected_id = st.session_state.get("selected_task_id")
     for task in tasks:
@@ -1003,16 +1013,20 @@ with board_area:
         statuses=STATUSES,
         status_meta=STATUS_META,
     )
-    if isinstance(board_payload, dict):
+    if isinstance(board_payload, dict) and _consume_board_payload(board_payload):
         action = board_payload.get("action")
         task_id = str(board_payload.get("task_id") or "")
         if action == "open" and task_id:
-            _open_editor(task_id)
-            st.rerun()
+            if st.session_state.get("selected_task_id") != task_id:
+                _open_editor(task_id)
+                st.rerun()
         if action == "move" and task_id and board_payload.get("status") in STATUSES:
-            update_task(task_id, {"status": board_payload["status"]}, source)
-            st.session_state["selected_task_id"] = task_id
-            st.rerun()
+            target_status = board_payload["status"]
+            current_task = next((task for task in visible_tasks if str(task.get("id")) == task_id), None)
+            if not current_task or current_task.get("status") != target_status:
+                update_task(task_id, {"status": target_status}, source)
+                st.session_state["selected_task_id"] = task_id
+                st.rerun()
 
 with editor_area:
     selected_task = _selected_task(visible_tasks)
