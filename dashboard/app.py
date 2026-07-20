@@ -104,6 +104,13 @@ MODULOS = [
     },
     {
         "icon": "",
+        "nombre": "Work and Project Management",
+        "desc": "Tablero interno para asignar tareas a Yanina o Francisca, ordenar prioridades, fechas limite y avance semanal.",
+        "tag": "beta", "tag_label": "Interno",
+        "color": "#6d28d9",
+    },
+    {
+        "icon": "",
         "nombre": "Portal Cliente",
         "desc": "Cada cliente revisa sus reuniones y las marca como Válida, No válida o Reagendar. El cambio se sincroniza automáticamente con el sistema comercial.",
         "tag": "live", "tag_label": "En vivo",

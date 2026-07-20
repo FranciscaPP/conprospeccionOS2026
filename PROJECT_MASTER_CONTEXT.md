@@ -53,7 +53,7 @@ entiende el repo sin explorar archivo por archivo):
 - `dashboard/` — App Streamlit (el producto). `app.py` es la entrada.
   - `dashboard/pages/` — Paginas del panel. La principal es
     `1_Seguimiento_Reuniones.py` (panel maestro interno). Tambien:
-    `2_Clientes.py`, `9_SDRs.py`, `16_Client_Setup_OS.py`,
+    `2_Clientes.py`, `3_Work_and_Project_Management.py`, `9_SDRs.py`, `16_Client_Setup_OS.py`,
     `19_BambuTech_Intelligence_Insight.py` (referencia),
     `20_GBS_Intelligence_Insight.py`.
   - `master_auth.py`, `portal_auth.py` — Login / autenticacion.
