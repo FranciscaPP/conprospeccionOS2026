@@ -1,4 +1,4 @@
-"""Portal cliente BambooTech: entrada publica con acceso a todos los modulos."""
+"""Portal cliente BambuTech: entrada publica con acceso a todos los modulos."""
 from __future__ import annotations
 
 import sys
@@ -16,11 +16,11 @@ from shared.cp_design import CP_CARBON, CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_LINE, 
 from shared.planes import plan_de
 
 
-st.set_page_config(page_title="BambooTech - Portal Cliente", layout="wide", page_icon="")
+st.set_page_config(page_title="BambuTech - Portal Cliente", layout="wide", page_icon="")
 if not require_auth_client("bambutech"):
     st.stop()
 
-render_client_nav("15_BambooTech", "bambutech")
+render_client_nav("15_BambuTech", "bambutech")
 
 st.markdown(
     """
@@ -50,7 +50,7 @@ st.markdown(
     f"""
 <div style="background:{CP_GOLD_SOFT};border:1px solid #F0D28D;border-left:5px solid {CP_GOLD};
 border-radius:8px;padding:14px 18px;color:{CP_INK};font-size:13px;line-height:1.55">
-Este es el punto de entrada publico del portal BambooTech. Desde aqui el cliente puede revisar
+Este es el punto de entrada publico del portal BambuTech. Desde aqui el cliente puede revisar
 sus reuniones, consultar el avance comercial y acceder al material operativo del proyecto.
 </div>
 <div class="portal-grid">

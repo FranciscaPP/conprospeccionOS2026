@@ -18,7 +18,7 @@ from shared.cp_design import CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_LINE, CP_MUTED
 
 PLAYBOOK_URL = "https://bambutechservices.playbook.report-conprospeccion.com/ruta"
 
-st.set_page_config(page_title="Bamboo Touch - Playbook SDR", layout="wide", page_icon="")
+st.set_page_config(page_title="BambuTech - Playbook SDR", layout="wide", page_icon="")
 if not require_auth_client("bambutech"):
     st.stop()
 
@@ -46,7 +46,7 @@ render_bambutech_page_header(
 st.markdown(
     f"""
 <div class="pb-shell" style="border-left:5px solid {CP_GOLD};background:{CP_GOLD_SOFT}">
-  <p>Este modulo muestra el Playbook SDR oficial de BambooTech. Si el navegador no permite verlo
+  <p>Este modulo muestra el Playbook SDR oficial de BambuTech. Si el navegador no permite verlo
   embebido, abre el link publico en una pestaña nueva.</p>
   <div style="height:10px"></div>
   <a class="pb-link" href="{PLAYBOOK_URL}" target="_blank" rel="noopener">Abrir playbook oficial</a>

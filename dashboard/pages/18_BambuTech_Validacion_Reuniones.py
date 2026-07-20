@@ -14,7 +14,7 @@ from portal_auth import render_client_nav, require_auth_client
 
 
 st.set_page_config(
-    page_title="Bamboo Touch - Validacion Reuniones",
+    page_title="BambuTech - Validacion Reuniones",
     layout="wide",
     page_icon="",
 )
@@ -28,8 +28,8 @@ render_client_meeting_portal(
     client_slug="bambutech",
     page_key="18_BambuTech_Validacion_Reuniones",
     title="Validacion de reuniones",
-    brand="Bamboo Touch / BambuTech Services - Portal cliente",
-    user_label="Usuario Bamboo Touch",
+    brand="BambuTech Services - Portal cliente",
+    user_label="Usuario BambuTech",
     user_subtitle="Validacion contractual",
     hide_chrome=False,
 )

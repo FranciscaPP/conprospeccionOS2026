@@ -95,7 +95,7 @@ _CLIENTS: dict[str, dict] = {
         "session_key": "portal_auth_bambutech",
         "logo_file": "bambutech_logo.png",
         "nav": [
-            ("Inicio portal", "pages/15_BambooTech.py", "base"),
+            ("Inicio portal", "pages/15_BambuTech.py", "base"),
             ("Onboarding", "pages/17_BambuTech_Onboarding.py", "base"),
             ("Validación de reuniones", "pages/18_BambuTech_Validacion_Reuniones.py", "base"),
             ("Intelligence Insight", "pages/19_BambuTech_Intelligence_Insight.py", "premium"),

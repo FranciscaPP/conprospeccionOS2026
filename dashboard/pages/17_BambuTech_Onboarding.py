@@ -16,7 +16,7 @@ from shared.bambutech_brand import ICP_DEFAULT
 from shared.cp_design import CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_LINE, CP_MUTED, CP_MUTED_SURFACE
 
 
-st.set_page_config(page_title="Bamboo Touch - Onboarding", layout="wide", page_icon="")
+st.set_page_config(page_title="BambuTech - Onboarding", layout="wide", page_icon="")
 if not require_auth_client("bambutech"):
     st.stop()
 
@@ -47,7 +47,7 @@ st.markdown(
     f'<h3>Resumen ICP acordado</h3>'
     f'<p>Esta es la referencia que usa Conprospeccion para evaluar fit comercial '
     f'en reuniones, campanas y analisis. La definicion queda centralizada para que '
-    f'el equipo de Bamboo Touch y Conprospeccion miren el mismo criterio.</p></div>',
+    f'el equipo de BambuTech y Conprospeccion miren el mismo criterio.</p></div>',
     unsafe_allow_html=True,
 )
 

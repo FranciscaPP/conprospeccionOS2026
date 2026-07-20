@@ -162,12 +162,12 @@ for i, m in enumerate(MODULOS):
 
 st.markdown("---")
 st.markdown("### Accesos rápidos por cliente")
-st.markdown("Bamboo Touch / BambuTech Services")
+st.markdown("BambuTech Services")
 
 bt_cols = st.columns(5)
 with bt_cols[0]:
-    if st.button("Portal BambooTech", use_container_width=True, type="primary", key="home_bambu_portal"):
-        st.switch_page("pages/15_BambooTech.py")
+    if st.button("Portal BambuTech", use_container_width=True, type="primary", key="home_bambu_portal"):
+        st.switch_page("pages/15_BambuTech.py")
 with bt_cols[1]:
     if st.button("Onboarding", use_container_width=True, key="home_bambu_onboarding"):
         st.switch_page("pages/17_BambuTech_Onboarding.py")
