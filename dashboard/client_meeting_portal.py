@@ -205,17 +205,30 @@ def render_client_meeting_portal(
     brand: str = "",
     user_label: str = "Portal cliente",
     user_subtitle: str = "Validación contractual",
+    hide_chrome: bool = True,
 ) -> None:
-    st.markdown(
-        """
+    if hide_chrome:
+        st.markdown(
+            """
 <style>
 [data-testid="stSidebar"],[data-testid="collapsedControl"],header[data-testid="stHeader"]{display:none!important}
 .block-container{max-width:100%!important;padding:0!important}
 iframe{display:block}
 </style>
-        """,
-        unsafe_allow_html=True,
-    )
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """
+<style>
+[data-testid="collapsedControl"],header[data-testid="stHeader"]{display:none!important}
+.block-container{max-width:100%!important;padding:0!important}
+iframe{display:block}
+</style>
+            """,
+            unsafe_allow_html=True,
+        )
 
     # Sin auto-refresco: la página no debe recargarse sola porque reinicia el
     # scroll, cierra el panel lateral y borra lo que el cliente está escribiendo

@@ -160,6 +160,27 @@ for i, m in enumerate(MODULOS):
         """, unsafe_allow_html=True)
         st.markdown("")
 
+st.markdown("---")
+st.markdown("### Accesos rápidos por cliente")
+st.markdown("Bamboo Touch / BambuTech Services")
+
+bt_cols = st.columns(5)
+with bt_cols[0]:
+    if st.button("Portal BambooTech", use_container_width=True, type="primary", key="home_bambu_portal"):
+        st.switch_page("pages/15_BambooTech.py")
+with bt_cols[1]:
+    if st.button("Onboarding", use_container_width=True, key="home_bambu_onboarding"):
+        st.switch_page("pages/17_BambuTech_Onboarding.py")
+with bt_cols[2]:
+    if st.button("Validación reuniones", use_container_width=True, key="home_bambu_validacion"):
+        st.switch_page("pages/18_BambuTech_Validacion_Reuniones.py")
+with bt_cols[3]:
+    if st.button("Intelligence Insight", use_container_width=True, key="home_bambu_intelligence"):
+        st.switch_page("pages/19_BambuTech_Intelligence_Insight.py")
+with bt_cols[4]:
+    if st.button("Playbook SDR", use_container_width=True, key="home_bambu_playbook"):
+        st.switch_page("pages/20_BambuTech_Playbook_SDR.py")
+
 # ── Estado del sistema ────────────────────────────────────────────────────────
 st.markdown("---")
 st.markdown("### Estado del sistema")
