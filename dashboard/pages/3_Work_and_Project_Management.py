@@ -495,35 +495,77 @@ def _render_task_card(task: dict[str, Any], source: str) -> None:
 
 
 def _render_editor(task: dict[str, Any], source: str) -> None:
+    status = STATUS_META.get(task["status"], STATUS_META["Pendiente"])
+    priority = PRIORITY_META.get(task["priority"], PRIORITY_META["Media"])
+    owner = OWNER_META.get(task["owner"], OWNER_META["Yanina"])
+    client = CLIENT_META.get(task["client"], CLIENT_META["Interno"])
+    client_label = CLIENT_LABELS.get(task["client"], task["client"])
+
+    def chip(label: str, meta: dict[str, str]) -> str:
+        return (
+            f'<span class="detail-chip" style="color:{meta["color"]};'
+            f'background:{meta["bg"]};border-color:{meta["border"]}">{_esc(label)}</span>'
+        )
+
     st.markdown(
-        """
-        <section class="cp-card">
-          <div class="cp-section-head">
-            <div><h2>Editar tarea</h2><p>Actualizar detalle, responsable, prioridad, estado, fecha y referencia.</p></div>
+        f"""
+        <section class="cp-card drawer-card">
+          <div class="detail-band">
+            <div class="band-main">
+              <div class="band-title">
+                <b>{_esc(task['title'])}</b>
+                <span>{_esc(client_label)} - {_esc(task['owner'])}</span>
+              </div>
+            </div>
+            <div class="band-item">
+              <small>Fecha limite</small>
+              <b>{_esc(_fmt_date(task.get('due_date')))}</b>
+            </div>
+            <div class="band-item">
+              <small>Responsable</small>
+              <b>{_esc(task['owner'])}</b>
+            </div>
           </div>
-          <div class="cp-form-shell compact-form">
+          <div class="summary-grid">
+            <div class="sum-box"><small>Estado</small>{chip(task['status'], status)}</div>
+            <div class="sum-box"><small>Prioridad</small>{chip(task['priority'], priority)}</div>
+            <div class="sum-box"><small>Cliente</small>{chip(client_label, client)}</div>
+            <div class="sum-box"><small>Asignada a</small>{chip(task['owner'], owner)}</div>
+          </div>
+          <div class="tabs-lite">
+            <div class="active">Gestion</div>
+            <div>Detalle</div>
+            <div>Historial</div>
+          </div>
+          <div class="editor-copy">
+            <b>Gestion de la tarea</b>
+            <span>Actualiza los campos operativos y guarda los cambios.</span>
+          </div>
+          <div class="cp-form-shell compact-form drawer-form">
         """,
         unsafe_allow_html=True,
     )
     with st.form(f"edit_task_form_{task['id']}", clear_on_submit=False):
-        e1, e2, e3, e_client = st.columns([2.2, .8, .8, .9])
-        with e1:
-            edit_title = st.text_input("Tarea", value=task["title"], key=f"title_{task['id']}")
-        with e2:
-            edit_owner = st.selectbox(
-                "Asignada a",
-                OWNERS,
-                index=OWNERS.index(task["owner"]) if task["owner"] in OWNERS else 0,
-                key=f"owner_{task['id']}",
+        edit_title = st.text_input("Tarea", value=task["title"], key=f"title_{task['id']}")
+
+        row1_a, row1_b = st.columns(2)
+        with row1_a:
+            edit_status = st.selectbox(
+                "Estado",
+                STATUSES,
+                index=STATUSES.index(task["status"]) if task["status"] in STATUSES else 0,
+                key=f"status_{task['id']}",
             )
-        with e3:
+        with row1_b:
             edit_priority = st.selectbox(
                 "Prioridad",
                 PRIORITIES,
                 index=PRIORITIES.index(task["priority"]) if task["priority"] in PRIORITIES else 1,
                 key=f"priority_{task['id']}",
             )
-        with e_client:
+
+        row2_a, row2_b = st.columns(2)
+        with row2_a:
             edit_client = st.selectbox(
                 "Cliente",
                 CLIENTS,
@@ -531,22 +573,22 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
                 index=CLIENTS.index(task["client"]) if task["client"] in CLIENTS else 0,
                 key=f"client_{task['id']}",
             )
-
-        e4, e5, e6 = st.columns([.9, .9, 2.3])
-        with e4:
-            edit_status = st.selectbox(
-                "Estado",
-                STATUSES,
-                index=STATUSES.index(task["status"]) if task["status"] in STATUSES else 0,
-                key=f"status_{task['id']}",
+        with row2_b:
+            edit_owner = st.selectbox(
+                "Asignada a",
+                OWNERS,
+                index=OWNERS.index(task["owner"]) if task["owner"] in OWNERS else 0,
+                key=f"owner_{task['id']}",
             )
-        with e5:
+
+        row3_a, row3_b = st.columns([.9, 1.4])
+        with row3_a:
             edit_due = st.date_input(
                 "Fecha limite",
                 value=_date_or_none(task.get("due_date")) or _today(),
                 key=f"due_{task['id']}",
             )
-        with e6:
+        with row3_b:
             edit_ref = st.text_input(
                 "Link / archivo",
                 value=task.get("reference_url", ""),
@@ -557,14 +599,14 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
         edit_description = st.text_area(
             "Detalle",
             value=task.get("description", ""),
-            height=70,
+            height=118,
             key=f"description_{task['id']}",
         )
         save_col, close_col = st.columns([1, 1])
         with save_col:
             saved = st.form_submit_button("Guardar cambios", use_container_width=True, type="primary")
         with close_col:
-            closed = st.form_submit_button("Cerrar edicion", use_container_width=True)
+            closed = st.form_submit_button("Cerrar", use_container_width=True)
 
         if saved:
             if not edit_title.strip():
@@ -665,6 +707,133 @@ st.markdown(
       .cp-section-head p { font-size:11px; color:var(--muted); margin:3px 0 0; }
       .cp-form-shell { padding:14px; background:#FAFAF8; border-radius:10px; }
       .compact-form { padding-bottom:10px; }
+      .drawer-card {
+        position: sticky;
+        top: 10px;
+        overflow:hidden;
+      }
+      .detail-band {
+        display:flex;
+        align-items:center;
+        gap:14px;
+        border:1px solid #FFE6A3;
+        background:#FFF7D0;
+        border-radius:8px;
+        padding:12px;
+        margin:12px 12px 14px;
+      }
+      .band-main {
+        flex:1;
+        min-width:0;
+        border-right:1px solid #F0D28D;
+        padding-right:12px;
+      }
+      .band-title b {
+        display:block;
+        color:var(--ink);
+        font-family:Saira,"IBM Plex Sans",sans-serif;
+        font-size:16px;
+        line-height:1.1;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+      }
+      .band-title span {
+        display:block;
+        color:var(--muted);
+        font-size:12px;
+        margin-top:4px;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+      }
+      .band-item {
+        min-width:86px;
+      }
+      .band-item small {
+        display:block;
+        color:var(--muted);
+        font-size:10px;
+        line-height:1.05;
+      }
+      .band-item b {
+        display:block;
+        color:var(--ink);
+        font-size:12px;
+        line-height:1.15;
+        margin-top:3px;
+      }
+      .summary-grid {
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:10px;
+        padding:0 12px 12px;
+      }
+      .sum-box {
+        background:#fff;
+        border:1px solid var(--line);
+        border-radius:8px;
+        min-width:0;
+        padding:10px;
+      }
+      .sum-box small {
+        color:var(--muted);
+        display:block;
+        font-size:10px;
+        font-weight:700;
+        margin-bottom:8px;
+        text-transform:uppercase;
+      }
+      .detail-chip {
+        align-items:center;
+        border:1px solid;
+        border-radius:6px;
+        display:inline-flex;
+        font-size:12px;
+        font-weight:700;
+        line-height:1.15;
+        padding:7px 9px;
+      }
+      .tabs-lite {
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        background:#F6F6F4;
+        border:1px solid var(--line);
+        border-radius:8px;
+        margin:0 12px 14px;
+        overflow:hidden;
+      }
+      .tabs-lite div {
+        color:var(--muted);
+        font-size:12px;
+        font-weight:700;
+        padding:12px 4px 11px;
+        text-align:center;
+      }
+      .tabs-lite .active {
+        background:#fff;
+        border-bottom:2px solid var(--gold);
+        color:var(--ink);
+      }
+      .editor-copy {
+        padding:0 18px 12px;
+      }
+      .editor-copy b {
+        color:var(--ink);
+        display:block;
+        font-family:Saira,"IBM Plex Sans",sans-serif;
+        font-size:18px;
+        line-height:1.2;
+      }
+      .editor-copy span {
+        color:var(--muted);
+        display:block;
+        font-size:13px;
+        margin-top:3px;
+      }
+      .drawer-form {
+        padding:0 18px 16px;
+      }
       .cp-toolbar {
         background:#FAFAF8;
         border:1px solid #D8D8D5;
