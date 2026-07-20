@@ -62,6 +62,50 @@ def reuniones_reales():
     return {"total": len(meetings), "validas": validas, "reagendar": reagendar, "no_validas": no_validas}
 
 
+_FINAL_LABEL = {
+    "valida": "Reunión válida", "reunion_valida": "Reunión válida",
+    "no_valida": "Reunión no válida", "reunion_no_valida": "Reunión no válida",
+    "cancelacion": "Reunión cancelada", "cancelada": "Reunión cancelada",
+    "reagendar": "Reagendar reunión", "reagendada": "Reagendar reunión",
+}
+_MES_ES = {1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo", 6: "Junio",
+           7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"}
+
+
+def mes_label(ym: str) -> str:
+    y, m = ym.split("-")
+    return f"{_MES_ES[int(m)]} {y}"
+
+
+@st.cache_data(ttl=45, show_spinner=False)
+def reuniones_agendadas():
+    """Reuniones agendadas de BambuTech: empresa + validación final + mes."""
+    meetings = requests.get(
+        f"{SB_URL}/rest/v1/reuniones?select=id,empresa,fecha_agendada"
+        "&cliente_slug=eq.bambutech&excluida=eq.false&order=fecha_agendada.desc",
+        headers=HEADERS, timeout=15,
+    ).json()
+    tracking = requests.get(
+        f"{SB_URL}/rest/v1/seguimiento_reuniones?select=reunion_id,val_estado_final"
+        "&cliente_slug=eq.bambutech",
+        headers=HEADERS, timeout=15,
+    ).json()
+    finals = {int(x["reunion_id"]): x.get("val_estado_final")
+              for x in tracking if x.get("reunion_id")}
+    rows = []
+    for m in meetings:
+        if not m.get("id"):
+            continue
+        fecha = pd.to_datetime(m.get("fecha_agendada"), errors="coerce")
+        final_raw = (finals.get(int(m["id"])) or "").lower()
+        rows.append({
+            "Empresa": str(m.get("empresa") or "—").strip().title() or "—",
+            "Validación final": _FINAL_LABEL.get(final_raw, "Pendiente"),
+            "_mes": fecha.strftime("%Y-%m") if not pd.isna(fecha) else None,
+        })
+    return pd.DataFrame(rows)
+
+
 @st.cache_data(ttl=120, show_spinner=False)
 def cargar_snapshot():
     p = DASHBOARD_DIR / "data" / "bambutech_intelligence.json"
@@ -318,16 +362,16 @@ st.markdown(
 valid_dates = REG["fecha"].dropna()
 data_min = valid_dates.min() if not valid_dates.empty else date(2026, 5, 18)
 data_max = valid_dates.max() if not valid_dates.empty else date.today()
-campaign_start = pd.to_datetime(SNAP["periodo"]["inicio"]).date()
-# Valores por defecto: el rango real de la campaña (desde el inicio hasta el
-# último dato del consolidado).
-min_date = max(data_min, campaign_start)
-max_date = data_max
-# Bordes SELECCIONABLES del calendario: desde el 1° del mes más antiguo hasta
-# hoy, para poder filtrar meses completos (mayo, junio, julio…) y ver el avance
-# mes a mes aunque el consolidado empiece a mitad de mes.
-picker_min = min(data_min, campaign_start).replace(day=1)
-picker_max = max(data_max, date.today())
+
+# Meses disponibles = unión de la actividad del consolidado y las reuniones
+# agendadas reales (así aparece julio aunque el consolidado aún no lo tenga).
+AGEN = reuniones_agendadas()
+_reg_meses = {f.strftime("%Y-%m") for f in pd.to_datetime(REG["fecha"], errors="coerce").dropna()}
+_ag_meses = set(AGEN["_mes"].dropna()) if not AGEN.empty else set()
+MESES_YM = sorted(_reg_meses | _ag_meses)
+MES_OPCIONES = ["Todos"] + [mes_label(ym) for ym in MESES_YM]
+_LABEL_A_YM = {mes_label(ym): ym for ym in MESES_YM}
+
 with st.container(border=True):
     st.markdown(
         '<div style="display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:5px">'
@@ -339,17 +383,15 @@ with st.container(border=True):
         unsafe_allow_html=True,
     )
     fc = st.columns([1.08, 1, 1.35, 1.25])
-    period = fc[0].date_input(
-        "Período",
-        value=(min_date, max_date),
-        min_value=picker_min,
-        max_value=picker_max,
-        format="DD/MM/YYYY",
-    )
-    start_date, end_date = (
-        period if isinstance(period, (tuple, list)) and len(period) == 2
-        else (min_date, max_date)
-    )
+    sel_mes = fc[0].selectbox("Mes", MES_OPCIONES)
+    if sel_mes == "Todos":
+        sel_ym = None
+        start_date, end_date = data_min, data_max
+    else:
+        sel_ym = _LABEL_A_YM[sel_mes]
+        _y, _m = int(sel_ym[:4]), int(sel_ym[5:7])
+        start_date = date(_y, _m, 1)
+        end_date = (pd.Timestamp(_y, _m, 1) + pd.offsets.MonthEnd(1)).date()
     date_base = REG[REG["fecha"].between(start_date, end_date, inclusive="both")]
     f_canal = fc[1].selectbox("Canal", ["Todos"] + sorted(date_base["canal"].dropna().unique()))
     base_ind = date_base if f_canal == "Todos" else date_base[date_base["canal"] == f_canal]
@@ -364,9 +406,19 @@ with st.container(border=True):
     )
     st.markdown(
         f'<div style="font-size:11px;color:#64748b;margin-top:2px">'
-        f'Vista activa: <b>{start_date:%d/%m/%Y}–{end_date:%d/%m/%Y}</b> · '
-        f'<b>{f_canal}</b> · <b>{f_ind}</b> · <b>{f_area}</b></div>',
+        f'Vista activa: <b>{sel_mes}</b> · <b>{f_canal}</b> · <b>{f_ind}</b> · <b>{f_area}</b></div>',
         unsafe_allow_html=True,
+    )
+
+# ===== Reuniones agendadas (arriba) — empresa + validación final por mes =====
+section("Reuniones agendadas", "Empresas con reunión agendada y su validación final, según el mes seleccionado")
+_agen_mes = AGEN if sel_ym is None else (AGEN[AGEN["_mes"] == sel_ym] if not AGEN.empty else AGEN)
+if _agen_mes is None or _agen_mes.empty:
+    st.info("No hay reuniones agendadas para el mes seleccionado.")
+else:
+    st.dataframe(
+        _agen_mes[["Empresa", "Validación final"]],
+        hide_index=True, use_container_width=True,
     )
 
 REGf = date_base.copy()
@@ -413,7 +465,7 @@ if channel_rows:
     )
     st.dataframe(activity_df, hide_index=True, use_container_width=True)
 if (
-    start_date == min_date and end_date == max_date
+    sel_ym is None
     and f_canal in {"Todos", "Correo"} and f_ind == "Todas" and f_area == "Todas"
 ):
     st.caption(
@@ -443,11 +495,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ===== Empresas que respondieron =====
-section(
-    "Empresas que respondieron",
-    "Cuentas con información adicional, coordinando reunión o reunión agendada",
-)
+# ===== (Sección "Empresas que respondieron" retirada del panel) =====
+# Se quitó de la vista a pedido; arriba está "Reuniones agendadas".
+# empresas_df se mantiene calculado solo para los informes descargables (HTML/PDF).
 if EMPRESAS_POSITIVAS:
     empresas_df = pd.DataFrame(EMPRESAS_POSITIVAS)
     empresas_df["fecha"] = pd.to_datetime(empresas_df["fecha"], errors="coerce").dt.date
@@ -458,23 +508,8 @@ if EMPRESAS_POSITIVAS:
         empresas_df = empresas_df[empresas_df["industria"] == f_ind]
     if f_area != "Todas":
         empresas_df = empresas_df[empresas_df["area"] == f_area]
-    if empresas_df.empty:
-        st.info("Primer mes de estrategia: este segmento todavía no registra empresas con respuesta positiva.")
-    else:
-        st.dataframe(
-            empresas_df.rename(columns={
-                "empresa": "Empresa",
-                "estado": "Estado",
-                "industria": "Macro-industria",
-                "area": "Macro-cargo (área)",
-                "canal": "Canal",
-            }),
-            hide_index=True,
-            use_container_width=True,
-            column_order=["Empresa", "Estado", "Macro-industria", "Macro-cargo (área)", "Canal"],
-        )
 else:
-    st.info("Primer mes de estrategia: el detalle de empresas se incorporará en el próximo consolidado.")
+    empresas_df = pd.DataFrame()
 
 # ===== ⑦ Respuesta por segmento =====
 section("Respuesta por segmento", "¿Dónde está respondiendo mejor el mercado?")
