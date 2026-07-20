@@ -95,9 +95,11 @@ body{margin:0;background:transparent;color:var(--ink);font-family:"IBM Plex Sans
 .task-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
 .task-topline{display:flex;gap:6px;flex-wrap:wrap;min-width:0;flex:1}
 .pill{border:1px solid;border-radius:6px;display:inline-flex;font-size:11px;font-weight:700;line-height:1;padding:5px 8px}
-.owner-badge{align-items:center;border:1px solid;border-radius:8px;display:flex;flex:0 0 auto;gap:6px;min-height:30px;padding:4px 7px 4px 5px}
+.owner-stack{align-items:flex-end;display:flex;flex:0 0 auto;flex-direction:column;gap:5px}
+.owner-badge{align-items:center;border:1px solid;border-radius:8px;display:flex;gap:6px;min-height:30px;padding:4px 7px 4px 5px}
 .owner-badge span{border-radius:6px;display:grid;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;height:21px;place-items:center;width:21px;background:#FFFFFFAA}
 .owner-badge b{font-size:12px;line-height:1}
+.late-badge{background:#FDECEC;border:1px solid #F1B7B7;border-radius:6px;color:var(--red);font-size:11px;font-weight:800;line-height:1;padding:5px 7px}
 .task-title{color:var(--ink);font-size:14px;font-weight:700;line-height:1.25;margin-bottom:7px}
 .task-desc{color:var(--muted);font-size:12px;line-height:1.35;white-space:pre-wrap;margin-bottom:8px;max-height:48px;overflow:hidden}
 .task-meta{color:var(--muted);display:grid;gap:4px;font-size:11px}
@@ -117,11 +119,15 @@ function pill(label,meta){return `<span class="pill" style="color:${meta.color};
 let dragId=null;
 function cardHtml(t){
   const ref=t.reference_url?`<span>Referencia: <b>${esc(t.reference_url)}</b></span>`:"";
+  const late=t.overdue?`<div class="late-badge">Atrasada</div>`:"";
   return `<div class="task-card ${t.selected?"selected-task":""}" draggable="true" data-id="${esc(t.id)}" role="button" tabindex="0">
     <div class="task-head">
       <div class="task-topline">${pill(t.client_label,t.client_meta)}${pill(t.priority,t.priority_meta)}${pill(t.status,t.status_meta)}</div>
-      <div class="owner-badge" style="color:${t.owner_meta.color};background:${t.owner_meta.bg};border-color:${t.owner_meta.border}">
-        <span>${esc(t.owner_meta.initial)}</span><b>${esc(t.owner)}</b>
+      <div class="owner-stack">
+        <div class="owner-badge" style="color:${t.owner_meta.color};background:${t.owner_meta.bg};border-color:${t.owner_meta.border}">
+          <span>${esc(t.owner_meta.initial)}</span><b>${esc(t.owner)}</b>
+        </div>
+        ${late}
       </div>
     </div>
     <div class="task-title">${esc(t.title)}</div>
@@ -450,7 +456,7 @@ def _apply_metric_filter(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return [
             task
             for task in tasks
-            if task["status"] != "Terminado"
+            if task["status"] == "Pendiente"
             and (due := _date_or_none(task.get("due_date")))
             and due < _today()
         ]
@@ -473,7 +479,7 @@ def _board_tasks_payload(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     payload = []
     for task in tasks:
         due = _date_or_none(task.get("due_date"))
-        overdue = bool(due and due < _today() and task["status"] != "Terminado")
+        overdue = bool(due and due < _today() and task["status"] == "Pendiente")
         payload.append(
             {
                 **task,
@@ -482,7 +488,7 @@ def _board_tasks_payload(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "priority_meta": PRIORITY_META.get(task["priority"], PRIORITY_META["Media"]),
                 "status_meta": STATUS_META.get(task["status"], STATUS_META["Pendiente"]),
                 "owner_meta": OWNER_META.get(task["owner"], OWNER_META["Yanina"]),
-                "due_text": "Vencida" if overdue else _fmt_date(task.get("due_date")),
+                "due_text": _fmt_date(task.get("due_date")),
                 "week_label": _task_week_label(task),
                 "overdue": overdue,
                 "selected": str(task.get("id")) == selected_id,
@@ -523,8 +529,8 @@ def _render_task_card(task: dict[str, Any], source: str) -> None:
     owner_meta = OWNER_META.get(task["owner"], OWNER_META["Yanina"])
     client_meta = CLIENT_META.get(task["client"], CLIENT_META["Interno"])
     due = _date_or_none(task.get("due_date"))
-    overdue = bool(due and due < _today() and task["status"] != "Terminado")
-    due_text = "Vencida" if overdue else _fmt_date(task.get("due_date"))
+    overdue = bool(due and due < _today() and task["status"] == "Pendiente")
+    due_text = _fmt_date(task.get("due_date"))
     selected = str(st.session_state.get("selected_task_id") or "") == str(task["id"])
     selected_cls = " selected-task" if selected else ""
     reference_html = f'<span>Referencia: <b>{_esc(task.get("reference_url"))}</b></span>' if task.get("reference_url") else ""
@@ -1235,7 +1241,7 @@ active_tasks = [task for task in visible_tasks if task["status"] != "Terminado"]
 overdue_tasks = [
     task
     for task in visible_tasks
-    if task["status"] != "Terminado"
+    if task["status"] == "Pendiente"
     and (due := _date_or_none(task.get("due_date")))
     and due < _today()
 ]
@@ -1251,11 +1257,11 @@ with m3:
     base_overdue = [
         task
         for task in base_visible_tasks
-        if task["status"] != "Terminado"
+        if task["status"] == "Pendiente"
         and (due := _date_or_none(task.get("due_date")))
         and due < _today()
     ]
-    _summary_card("Vencidas", len(base_overdue), "#A66A00", "overdue")
+    _summary_card("Atrasadas", len(base_overdue), "#C92B2B", "overdue")
 with m4:
     _summary_card("En revisión", sum(1 for task in base_visible_tasks if task["status"] == "Revisión"), "#6D28D9", "review")
 with m5:
