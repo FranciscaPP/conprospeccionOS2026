@@ -10,6 +10,7 @@ ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 
 sys.path.insert(0, str(ROOT))
 from shared.config import portal_passwords
+from shared.cp_design import CP_CARBON, CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_LINE, CP_ORANGE
 from shared.planes import plan_de
 
 
@@ -24,16 +25,16 @@ def img_b64(fname: str, h: int = 56) -> str:
 
 def render_bambutech_page_header(title: str, subtitle: str, meta_html: str = "") -> None:
     """Encabezado único para todos los módulos del portal BambuTech."""
-    logo = img_b64("bambutech_logo.png", 48)
+    logo = img_b64("cp_mark_dark.png", 40) or img_b64("conprospeccion_logo.png", 40)
     st.markdown(
         f'<div style="display:flex;align-items:center;justify-content:space-between;gap:24px;'
-        f'background:linear-gradient(135deg,#171a18,#2b302c);padding:18px 24px;'
+        f'background:{CP_CARBON};padding:18px 24px;'
         f'border-radius:14px;margin-bottom:16px;color:#fff">'
         f'<div><div style="font-size:22px;font-weight:850;line-height:1.15">{title}</div>'
-        f'<div style="font-size:11px;color:#d2d8d3;margin-top:7px">{subtitle}</div></div>'
+        f'<div style="font-size:11px;color:#C9C9C4;margin-top:7px">{subtitle}</div></div>'
         f'<div style="display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-shrink:0">'
-        f'{meta_html}<div style="display:inline-flex;align-items:center;background:#07110c;'
-        f'padding:8px 13px;border-radius:9px">{logo}</div></div></div>',
+        f'{meta_html}<div style="display:inline-flex;align-items:center;background:#fff;'
+        f'padding:8px 13px;border-radius:9px;border:1px solid {CP_LINE}">{logo}</div></div></div>',
         unsafe_allow_html=True,
     )
 
@@ -147,7 +148,7 @@ def render_client_nav(current: str, cliente: str) -> None:
 
         # Color de acento por cliente (GBS = morado de marca).
         if cliente == "bambutech":
-            nav_accent, nav_accent2 = "#38d430", "#208d25"
+            nav_accent, nav_accent2 = CP_GOLD, CP_ORANGE
         elif cliente == "demo":
             # Dorado oscuro de Conprospeccion: legible como fondo con texto blanco.
             nav_accent, nav_accent2 = "#A66A00", "#7A4F00"
@@ -216,8 +217,8 @@ def require_auth_client(cliente: str) -> bool:
         return True
 
     if cliente == "bambutech":
-        accent, accent2 = "#38d430", "#208d25"
-        login_bg = "linear-gradient(135deg,#f4f6f4 0%,#e8eee9 55%,#f8faf8 100%)"
+        accent, accent2 = CP_GOLD, CP_ORANGE
+        login_bg = f"linear-gradient(135deg,#FAFAF8 0%,{CP_GOLD_SOFT} 55%,#FAFAF8 100%)"
     elif cliente == "demo":
         accent, accent2 = "#A66A00", "#7A4F00"
         login_bg = "linear-gradient(135deg,#FAFAF8 0%,#FFF7BF 55%,#FAFAF8 100%)"
@@ -267,7 +268,7 @@ def require_auth_client(cliente: str) -> bool:
         if cliente == "bambutech" and img_b64(cfg["logo_file"], 64):
             logo_html = (
                 '<div style="display:inline-flex;align-items:center;'
-                'background:linear-gradient(135deg,#07110c,#0e1b15);'
+                f'background:{CP_INK};'
                 'padding:16px 30px;border-radius:16px">' + logo_html + '</div>'
             )
         st.markdown(

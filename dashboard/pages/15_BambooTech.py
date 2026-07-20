@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 
 from portal_auth import render_bambutech_page_header, render_client_nav, require_auth_client
-from shared.bambutech_brand import BAMBU_GREEN, BAMBU_GREEN_BG
+from shared.cp_design import CP_CARBON, CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_LINE, CP_MUTED, CP_MUTED_SURFACE, CP_ORANGE
 from shared.planes import plan_de
 
 
@@ -27,10 +27,10 @@ st.markdown(
 <style>
 .block-container{max-width:1180px;padding-top:1rem!important}
 .portal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:14px}
-.portal-card{background:#fff;border:1px solid #d9dfda;border-radius:12px;padding:18px;min-height:156px}
-.portal-card h3{margin:0 0 8px;color:#171918;font-size:16px}
-.portal-card p{margin:0;color:#475569;font-size:13px;line-height:1.52}
-.portal-pill{display:inline-flex;margin-top:14px;padding:5px 10px;border-radius:999px;background:#ecf9ec;border:1px solid #b8dfba;color:#208d25;font-size:11px;font-weight:850}
+.portal-card{background:#fff;border:1px solid #EDECEA;border-radius:8px;padding:18px;min-height:156px}
+.portal-card h3{margin:0 0 8px;color:#1A1A1A;font-size:16px}
+.portal-card p{margin:0;color:#6B6B6B;font-size:13px;line-height:1.52}
+.portal-pill{display:inline-flex;margin-top:14px;padding:5px 10px;border-radius:999px;background:#FFF7BF;border:1px solid #F0D28D;color:#1A1A1A;font-size:11px;font-weight:850}
 div[class*="st-key-bamboo_"] button{border-radius:9px!important;font-weight:800!important}
 @media(max-width:1050px){.portal-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:720px){.portal-grid{grid-template-columns:1fr}}
@@ -48,8 +48,8 @@ premium_note = "Habilitado" if plan_de("bambutech") == "premium" else "No dispon
 
 st.markdown(
     f"""
-<div style="background:{BAMBU_GREEN_BG};border:1px solid #b8dfba;border-left:5px solid {BAMBU_GREEN};
-border-radius:12px;padding:14px 18px;color:#36513b;font-size:13px;line-height:1.55">
+<div style="background:{CP_GOLD_SOFT};border:1px solid #F0D28D;border-left:5px solid {CP_GOLD};
+border-radius:8px;padding:14px 18px;color:{CP_INK};font-size:13px;line-height:1.55">
 Este es el punto de entrada publico del portal BambooTech. Desde aqui el cliente puede revisar
 sus reuniones, consultar el avance comercial y acceder al material operativo del proyecto.
 </div>
