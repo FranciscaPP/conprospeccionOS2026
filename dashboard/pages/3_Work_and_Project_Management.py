@@ -344,18 +344,45 @@ def _task_week_label(task: dict[str, Any]) -> str:
     return f"{start.strftime('%d/%m')} - {end.strftime('%d/%m')}"
 
 
+def _month_bounds(day: date) -> tuple[date, date]:
+    start = day.replace(day=1)
+    next_month = (start.replace(day=28) + timedelta(days=4)).replace(day=1)
+    return start, next_month - timedelta(days=1)
+
+
+def _period_bounds(period: str, today: date) -> tuple[date | None, date | None]:
+    if period == "Pendientes hoy":
+        return today, today
+    if period == "Pendientes semana actual":
+        return _week_bounds(today)
+    if period == "Pendientes mes actual":
+        return _month_bounds(today)
+    return None, None
+
+
+def _period_caption(period: str, start: date | None, end: date | None) -> str:
+    if period == "Todas las fechas" or not start or not end:
+        return "Todas las fechas"
+    if start == end:
+        return f"{period}: {start.strftime('%d/%m/%Y')}"
+    return f"{period}: {start.strftime('%d/%m/%Y')} - {end.strftime('%d/%m/%Y')}"
+
+
 def _filter_tasks(
     tasks: list[dict[str, Any]],
     owner: str,
     client: str,
     priority: str,
-    week_start: date,
+    date_from: date | None,
+    date_to: date | None,
     include_done: bool,
 ) -> list[dict[str, Any]]:
     filtered = []
     for task in tasks:
-        task_week = _date_or_none(task.get("week_start")) or _week_bounds(_today())[0]
-        if task_week != week_start:
+        due_date = _date_or_none(task.get("due_date"))
+        if date_from and (not due_date or due_date < date_from):
+            continue
+        if date_to and (not due_date or due_date > date_to):
             continue
         if owner != "Todas" and task.get("owner") != owner:
             continue
@@ -1165,10 +1192,33 @@ with f2:
 with f3:
     selected_priority = st.selectbox("Ver prioridad", ["Todas", *PRIORITIES])
 with f4:
-    selected_day = st.date_input("Semana a revisar", value=week_start, key="board_week")
-    selected_week_start, selected_week_end = _week_bounds(selected_day)
+    period_options = [
+        "Pendientes semana actual",
+        "Pendientes hoy",
+        "Pendientes mes actual",
+        "Rango manual",
+        "Todas las fechas",
+    ]
+    if st.session_state.get("board_period") not in [None, *period_options]:
+        st.session_state["board_period"] = period_options[0]
+    selected_period = st.selectbox(
+        "Periodo",
+        period_options,
+        key="board_period",
+    )
 with f5:
     include_done = st.toggle("Mostrar terminadas", value=True)
+
+date_from, date_to = _period_bounds(selected_period, _today())
+if selected_period == "Rango manual":
+    r1, r2, _ = st.columns([1, 1, 2.85])
+    with r1:
+        date_from = st.date_input("Desde", value=week_start, key="board_date_from")
+    with r2:
+        date_to = st.date_input("Hasta", value=week_start + timedelta(days=6), key="board_date_to")
+    if date_from > date_to:
+        st.warning("El rango de fechas esta invertido. Ajusta Desde y Hasta.")
+        date_from, date_to = date_to, date_from
 st.markdown("</div>", unsafe_allow_html=True)
 
 base_visible_tasks = _filter_tasks(
@@ -1176,7 +1226,8 @@ base_visible_tasks = _filter_tasks(
     selected_owner,
     selected_client,
     selected_priority,
-    selected_week_start,
+    date_from,
+    date_to,
     include_done,
 )
 visible_tasks = _apply_metric_filter(base_visible_tasks)
@@ -1212,15 +1263,13 @@ with m5:
 st.markdown("</section>", unsafe_allow_html=True)
 
 source_label = "Supabase" if source == "supabase" else "respaldo local"
-st.caption(
-    f"Semana {selected_week_start.strftime('%d/%m/%Y')} - {selected_week_end.strftime('%d/%m/%Y')} · Datos desde {source_label}"
-)
+st.caption(f"{_period_caption(selected_period, date_from, date_to)} · Datos desde {source_label}")
 
 st.markdown(
     """
     <section class="cp-card">
       <div class="cp-section-head">
-        <div><h2>Work and Project Management</h2><p>Avance semanal ordenado por estado.</p></div>
+        <div><h2>Work and Project Management</h2><p>Pendientes ordenados por estado y fecha limite.</p></div>
       </div>
     </section>
     """,
@@ -1234,7 +1283,7 @@ with layout_cols[0]:
     _write_board_component()
     board_payload = render_work_board_component(
         BOARD_COMPONENT_DIR,
-        key=f"work_board_{selected_week_start.isoformat()}_{selected_owner}_{selected_client}_{selected_priority}_{include_done}_{st.session_state.get('work_metric_filter','')}",
+        key=f"work_board_{selected_period}_{date_from}_{date_to}_{selected_owner}_{selected_client}_{selected_priority}_{include_done}_{st.session_state.get('work_metric_filter','')}",
         tasks=_board_tasks_payload(visible_tasks),
         statuses=STATUSES,
         status_meta=STATUS_META,
