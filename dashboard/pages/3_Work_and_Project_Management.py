@@ -117,6 +117,8 @@ function setValue(value){send("streamlit:setComponentValue",{value,dataType:"jso
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
 function pill(label,meta){return `<span class="pill" style="color:${meta.color};background:${meta.bg};border-color:${meta.border}">${esc(label)}</span>`}
 let dragId=null;
+let didDrag=false;
+let suppressClickUntil=0;
 function cardHtml(t){
   const ref=t.reference_url?`<span>Referencia: <b>${esc(t.reference_url)}</b></span>`:"";
   const late=t.overdue?`<div class="late-badge">Atrasada</div>`:"";
@@ -151,16 +153,26 @@ function render(args){
     </section>`;
   }).join("")}</div>`;
   document.querySelectorAll(".task-card").forEach(card=>{
-    card.addEventListener("click",()=>setValue({action:"open",task_id:card.dataset.id,nonce:String(Date.now())}));
+    card.addEventListener("click",event=>{
+      if(didDrag||Date.now()<suppressClickUntil){event.preventDefault();event.stopPropagation();return}
+      setValue({action:"open",task_id:card.dataset.id,nonce:String(Date.now())})
+    });
     card.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();setValue({action:"open",task_id:card.dataset.id,nonce:String(Date.now())})}});
-    card.addEventListener("dragstart",event=>{dragId=card.dataset.id;card.classList.add("dragging");event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",dragId)});
-    card.addEventListener("dragend",()=>{card.classList.remove("dragging");dragId=null;document.querySelectorAll(".column").forEach(c=>c.classList.remove("drag-over"))});
+    card.addEventListener("dragstart",event=>{
+      dragId=card.dataset.id;didDrag=true;suppressClickUntil=Date.now()+800;
+      card.classList.add("dragging");event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",dragId)
+    });
+    card.addEventListener("dragend",()=>{
+      card.classList.remove("dragging");dragId=null;suppressClickUntil=Date.now()+800;
+      document.querySelectorAll(".column").forEach(c=>c.classList.remove("drag-over"));
+      setTimeout(()=>{didDrag=false},250)
+    });
   });
   document.querySelectorAll(".column").forEach(col=>{
     col.addEventListener("dragover",event=>{event.preventDefault();col.classList.add("drag-over")});
     col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));
     col.addEventListener("drop",event=>{
-      event.preventDefault();col.classList.remove("drag-over");
+      event.preventDefault();event.stopPropagation();col.classList.remove("drag-over");didDrag=true;suppressClickUntil=Date.now()+800;
       const id=event.dataTransfer.getData("text/plain")||dragId;
       const status=col.dataset.status;
       if(id&&status)setValue({action:"move",task_id:id,status,nonce:String(Date.now())});
