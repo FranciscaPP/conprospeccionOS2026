@@ -4,6 +4,7 @@ from __future__ import annotations
 import html
 import json
 import sys
+import tempfile
 import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -12,6 +13,7 @@ from typing import Any
 import pandas as pd
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DASHBOARD_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +34,7 @@ SB_WRITE_HEADERS = {**SB_HEADERS, "Content-Type": "application/json", "Prefer": 
 
 LOCAL_STORE = ROOT / "dashboard" / "data" / "pendientes_semanales_local.json"
 CP_MARK_PATH = DASHBOARD_DIR / "assets" / "cp_mark_dark.png"
+TASK_COMPONENT_DIR = Path(tempfile.gettempdir()) / "cp_work_task_card_component"
 
 STATUSES = ["Pendiente", "En proceso", "Revisión", "Terminado"]
 OWNERS = ["Yanina", "Francisca"]
@@ -67,6 +70,93 @@ CLIENT_META = {
     "GBS": {"color": "#6D28D9", "bg": "#F1EDFF", "border": "#CDBDFF"},
     "BambuTech": {"color": "#15803D", "bg": "#EAF6EF", "border": "#BFE6CC"},
 }
+
+
+TASK_CARD_HTML = r"""
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{--gold:#FFD700;--ink:#1A1A1A;--line:#EDECEA;--muted:#6B6B6B;--surface:#FFFFFF;--red:#C92B2B}
+*{box-sizing:border-box}
+body{margin:0;background:transparent;color:var(--ink);font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:12px}
+.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 12px 10px;margin:0;box-shadow:none;cursor:pointer;transition:border-color .12s ease,background .12s ease}
+.task-card:hover{border-color:var(--gold);background:#FFFDF0}
+.task-card.selected-task{border-color:var(--gold);box-shadow:inset 3px 0 0 var(--gold);background:#FFFDF0}
+.task-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.task-topline{display:flex;gap:6px;flex-wrap:wrap;min-width:0;flex:1}
+.pill{border:1px solid;border-radius:6px;display:inline-flex;font-size:11px;font-weight:700;line-height:1;padding:5px 8px}
+.owner-badge{align-items:center;border:1px solid;border-radius:8px;display:flex;flex:0 0 auto;gap:6px;min-height:30px;padding:4px 7px 4px 5px}
+.owner-badge span{border-radius:6px;display:grid;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;height:21px;place-items:center;width:21px;background:#FFFFFFAA}
+.owner-badge b{font-size:12px;line-height:1}
+.task-title{color:var(--ink);font-size:14px;font-weight:700;line-height:1.25;margin-bottom:7px}
+.task-desc{color:var(--muted);font-size:12px;line-height:1.35;white-space:pre-wrap;margin-bottom:8px;max-height:48px;overflow:hidden}
+.task-meta{color:var(--muted);display:grid;gap:4px;font-size:11px}
+.overdue{color:var(--red)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+function send(type,data={}){window.parent.postMessage({isStreamlitMessage:true,type,...data},"*")}
+function ready(){send("streamlit:componentReady",{apiVersion:1})}
+function setHeight(){send("streamlit:setFrameHeight",{height:document.documentElement.scrollHeight})}
+function setValue(value){send("streamlit:setComponentValue",{value,dataType:"json"})}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function pill(label,meta){return `<span class="pill" style="color:${meta.color};background:${meta.bg};border-color:${meta.border}">${esc(label)}</span>`}
+function render(args){
+  const task=args.task||{}, selected=!!args.selected;
+  const priority=args.priority||{}, status=args.status||{}, owner=args.owner||{}, client=args.client||{};
+  const ref=task.reference_url?`<span>Referencia: <b>${esc(task.reference_url)}</b></span>`:"";
+  const overdue=!!args.overdue;
+  document.getElementById("root").innerHTML=`
+    <div class="task-card ${selected?"selected-task":""}" role="button" tabindex="0" aria-label="Editar ${esc(task.title)}">
+      <div class="task-head">
+        <div class="task-topline">
+          ${pill(args.client_label||task.client, client)}
+          ${pill(task.priority, priority)}
+          ${pill(task.status, status)}
+        </div>
+        <div class="owner-badge" style="color:${owner.color};background:${owner.bg};border-color:${owner.border}">
+          <span>${esc(owner.initial)}</span><b>${esc(task.owner)}</b>
+        </div>
+      </div>
+      <div class="task-title">${esc(task.title)}</div>
+      <div class="task-desc">${esc(task.description||"Sin detalle adicional.")}</div>
+      <div class="task-meta">
+        <span class="${overdue?"overdue":""}">Fecha limite: <b>${esc(args.due_text)}</b></span>
+        <span>Semana: <b>${esc(args.week_label)}</b></span>
+        ${ref}
+      </div>
+    </div>`;
+  const card=document.querySelector(".task-card");
+  const open=()=>setValue({task_id:String(task.id), nonce:String(Date.now())});
+  card.addEventListener("click",open);
+  card.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();open()}});
+  setTimeout(setHeight,0);
+}
+ready();
+window.addEventListener("message",event=>{
+  if(event.data && event.data.type==="streamlit:render"){render(event.data.args||{})}
+});
+</script>
+</body>
+</html>
+"""
+
+
+def _task_card_component():
+    TASK_COMPONENT_DIR.mkdir(parents=True, exist_ok=True)
+    index = TASK_COMPONENT_DIR / "index.html"
+    if not index.exists() or index.read_text(encoding="utf-8", errors="ignore") != TASK_CARD_HTML:
+        index.write_text(TASK_CARD_HTML, encoding="utf-8")
+    return components.declare_component("cp_work_task_card", path=str(TASK_COMPONENT_DIR))
+
+
+TASK_CARD_COMPONENT = _task_card_component()
 
 
 def _today() -> date:
@@ -294,21 +384,8 @@ def _open_editor(task_id: str) -> None:
     st.session_state["selected_task_id"] = task_id
 
 
-def _sync_selected_task_from_url() -> None:
-    try:
-        task_id = st.query_params.get("task")
-    except Exception:
-        task_id = None
-    if task_id:
-        st.session_state["selected_task_id"] = str(task_id)
-
-
 def _clear_selected_task() -> None:
     st.session_state["selected_task_id"] = ""
-    try:
-        st.query_params.clear()
-    except Exception:
-        pass
 
 
 def _selected_task(tasks: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -327,44 +404,24 @@ def _render_task_card(task: dict[str, Any], source: str) -> None:
     due = _date_or_none(task.get("due_date"))
     overdue = bool(due and due < _today() and task["status"] != "Terminado")
     due_text = "Vencida" if overdue else _fmt_date(task.get("due_date"))
-    ref = task.get("reference_url")
     selected = str(st.session_state.get("selected_task_id") or "") == str(task["id"])
-    selected_cls = " selected-task" if selected else ""
-    reference_html = f'<span>Referencia: <b>{_esc(ref)}</b></span>' if ref else ""
-    task_url = f"?task={_esc(task['id'])}"
-
-    st.markdown(
-        f"""
-        <a class="task-link" href="{task_url}">
-          <div class="task-card{selected_cls}">
-            <div class="task-head">
-              <div class="task-topline">
-                <span class="pill" style="color:{client_meta['color']};background:{client_meta['bg']};border-color:{client_meta['border']}">
-                  {_esc(CLIENT_LABELS.get(task['client'], task['client']))}
-                </span>
-                <span class="pill" style="color:{priority['color']};background:{priority['bg']};border-color:{priority['border']}">
-                  {_esc(task['priority'])}
-                </span>
-                <span class="pill" style="color:{status['color']};background:{status['bg']};border-color:{status['border']}">
-                  {_esc(task['status'])}
-                </span>
-              </div>
-              <div class="owner-badge" style="color:{owner_meta['color']};background:{owner_meta['bg']};border-color:{owner_meta['border']}">
-                <span>{_esc(owner_meta['initial'])}</span><b>{_esc(task['owner'])}</b>
-              </div>
-            </div>
-            <div class="task-title">{_esc(task['title'])}</div>
-            <div class="task-desc">{_esc(task.get('description') or 'Sin detalle adicional.')}</div>
-            <div class="task-meta">
-              <span class="{ 'overdue' if overdue else '' }">Fecha limite: <b>{_esc(due_text)}</b></span>
-              <span>Semana: <b>{_esc(_task_week_label(task))}</b></span>
-              {reference_html}
-            </div>
-          </div>
-        </a>
-        """,
-        unsafe_allow_html=True,
+    payload = TASK_CARD_COMPONENT(
+        task=task,
+        priority=priority,
+        status=status,
+        owner=owner_meta,
+        client=client_meta,
+        client_label=CLIENT_LABELS.get(task["client"], task["client"]),
+        due_text=due_text,
+        week_label=_task_week_label(task),
+        overdue=overdue,
+        selected=selected,
+        default=None,
+        key=f"task_card_{task['id']}",
     )
+    if isinstance(payload, dict) and str(payload.get("task_id")) == str(task["id"]):
+        _open_editor(task["id"])
+        st.rerun()
 
 
 def _render_editor(task: dict[str, Any], source: str) -> None:
@@ -639,15 +696,6 @@ st.markdown(
         box-shadow:none;
         transition:border-color .12s ease, background .12s ease;
       }
-      .task-link {
-        color:inherit;
-        display:block;
-        text-decoration:none;
-      }
-      .task-link:hover .task-card {
-        border-color:var(--gold);
-        background:#FFFDF0;
-      }
       .task-head {
         display:flex;
         align-items:flex-start;
@@ -757,7 +805,6 @@ st.markdown(
 )
 
 tasks, source = load_tasks()
-_sync_selected_task_from_url()
 current_user = get_current_user() or "Francisca"
 week_start, week_end = _week_bounds(_today())
 
