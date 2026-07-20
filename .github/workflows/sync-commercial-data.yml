@@ -96,3 +96,18 @@ jobs:
           # (p.ej. si GHL estuvo caido). Se enlaza por event_id = ghl_appointment_id,
           # asi no duplica. Nunca debe tumbar el sync -> se ignora su error.
           python sync/scripts/sync_calendar_ics.py || echo "::warning::Respaldo iCal fallo (no critico)"
+
+      - name: Sync SNOV email campaigns
+        if: steps.schedule.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SNOV_CLIENT_ID: ${{ secrets.SNOV_CLIENT_ID }}
+          SNOV_CLIENT_SECRET: ${{ secrets.SNOV_CLIENT_SECRET }}
+        run: |
+          # Campanias de correo Snov.io (campanas + metricas + eventos). La
+          # atribucion a cada cliente sale de snov_campaign_map. Es no critico:
+          # si faltan SNOV_CLIENT_ID/SECRET o la API falla, avisa en amarillo
+          # pero NO tumba el sync de reuniones.
+          python sync/scripts/sync_snov.py --include-events \
+            || echo "::warning::Sync SNOV fallo (revisa secrets SNOV_CLIENT_ID / SNOV_CLIENT_SECRET)"
