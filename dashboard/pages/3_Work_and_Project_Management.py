@@ -294,6 +294,23 @@ def _open_editor(task_id: str) -> None:
     st.session_state["selected_task_id"] = task_id
 
 
+def _sync_selected_task_from_url() -> None:
+    try:
+        task_id = st.query_params.get("task")
+    except Exception:
+        task_id = None
+    if task_id:
+        st.session_state["selected_task_id"] = str(task_id)
+
+
+def _clear_selected_task() -> None:
+    st.session_state["selected_task_id"] = ""
+    try:
+        st.query_params.clear()
+    except Exception:
+        pass
+
+
 def _selected_task(tasks: list[dict[str, Any]]) -> dict[str, Any] | None:
     selected_id = st.session_state.get("selected_task_id")
     for task in tasks:
@@ -314,49 +331,40 @@ def _render_task_card(task: dict[str, Any], source: str) -> None:
     selected = str(st.session_state.get("selected_task_id") or "") == str(task["id"])
     selected_cls = " selected-task" if selected else ""
     reference_html = f'<span>Referencia: <b>{_esc(ref)}</b></span>' if ref else ""
+    task_url = f"?task={_esc(task['id'])}"
 
     st.markdown(
         f"""
-        <div class="task-card{selected_cls}">
-          <div class="task-head">
-            <div class="task-topline">
-              <span class="pill" style="color:{client_meta['color']};background:{client_meta['bg']};border-color:{client_meta['border']}">
-                {_esc(CLIENT_LABELS.get(task['client'], task['client']))}
-              </span>
-              <span class="pill" style="color:{priority['color']};background:{priority['bg']};border-color:{priority['border']}">
-                {_esc(task['priority'])}
-              </span>
-              <span class="pill" style="color:{status['color']};background:{status['bg']};border-color:{status['border']}">
-                {_esc(task['status'])}
-              </span>
+        <a class="task-link" href="{task_url}">
+          <div class="task-card{selected_cls}">
+            <div class="task-head">
+              <div class="task-topline">
+                <span class="pill" style="color:{client_meta['color']};background:{client_meta['bg']};border-color:{client_meta['border']}">
+                  {_esc(CLIENT_LABELS.get(task['client'], task['client']))}
+                </span>
+                <span class="pill" style="color:{priority['color']};background:{priority['bg']};border-color:{priority['border']}">
+                  {_esc(task['priority'])}
+                </span>
+                <span class="pill" style="color:{status['color']};background:{status['bg']};border-color:{status['border']}">
+                  {_esc(task['status'])}
+                </span>
+              </div>
+              <div class="owner-badge" style="color:{owner_meta['color']};background:{owner_meta['bg']};border-color:{owner_meta['border']}">
+                <span>{_esc(owner_meta['initial'])}</span><b>{_esc(task['owner'])}</b>
+              </div>
             </div>
-            <div class="owner-badge" style="color:{owner_meta['color']};background:{owner_meta['bg']};border-color:{owner_meta['border']}">
-              <span>{_esc(owner_meta['initial'])}</span><b>{_esc(task['owner'])}</b>
+            <div class="task-title">{_esc(task['title'])}</div>
+            <div class="task-desc">{_esc(task.get('description') or 'Sin detalle adicional.')}</div>
+            <div class="task-meta">
+              <span class="{ 'overdue' if overdue else '' }">Fecha limite: <b>{_esc(due_text)}</b></span>
+              <span>Semana: <b>{_esc(_task_week_label(task))}</b></span>
+              {reference_html}
             </div>
           </div>
-          <div class="task-title">{_esc(task['title'])}</div>
-          <div class="task-desc">{_esc(task.get('description') or 'Sin detalle adicional.')}</div>
-          <div class="task-meta">
-            <span class="{ 'overdue' if overdue else '' }">Fecha limite: <b>{_esc(due_text)}</b></span>
-            <span>Semana: <b>{_esc(_task_week_label(task))}</b></span>
-            {reference_html}
-          </div>
-        </div>
+        </a>
         """,
         unsafe_allow_html=True,
     )
-
-    states = [state for state in STATUSES if state != task["status"]]
-    cols = st.columns([1.35, *([1] * len(states))])
-    with cols[0]:
-        if st.button("Abrir / editar", key=f"edit_{task['id']}", use_container_width=True):
-            _open_editor(task["id"])
-            st.rerun()
-    for index, next_state in enumerate(states):
-        with cols[index + 1]:
-            if st.button(next_state, key=f"move_{task['id']}_{next_state}", use_container_width=True):
-                update_task(task["id"], {"status": next_state}, source)
-                st.rerun()
 
 
 def _render_editor(task: dict[str, Any], source: str) -> None:
@@ -453,7 +461,7 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
                 st.success("Cambios guardados.")
                 st.rerun()
         if closed:
-            st.session_state["selected_task_id"] = ""
+            _clear_selected_task()
             st.rerun()
     st.markdown("</div></section>", unsafe_allow_html=True)
 
@@ -629,6 +637,16 @@ st.markdown(
         padding: 11px 12px 10px;
         margin: 8px 0 8px;
         box-shadow:none;
+        transition:border-color .12s ease, background .12s ease;
+      }
+      .task-link {
+        color:inherit;
+        display:block;
+        text-decoration:none;
+      }
+      .task-link:hover .task-card {
+        border-color:var(--gold);
+        background:#FFFDF0;
       }
       .task-head {
         display:flex;
@@ -739,6 +757,7 @@ st.markdown(
 )
 
 tasks, source = load_tasks()
+_sync_selected_task_from_url()
 current_user = get_current_user() or "Francisca"
 week_start, week_end = _week_bounds(_today())
 
