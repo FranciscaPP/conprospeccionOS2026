@@ -379,16 +379,59 @@ def _filter_tasks(
     )
 
 
-def _summary_card(label: str, value: int, color: str, bg: str) -> None:
+def _set_metric_filter(value: str) -> None:
+    current = st.session_state.get("work_metric_filter", "")
+    st.session_state["work_metric_filter"] = "" if current == value else value
+    st.session_state["selected_task_id"] = ""
+
+
+def _metric_active(value: str) -> bool:
+    return st.session_state.get("work_metric_filter", "") == value
+
+
+def _summary_card(label: str, value: int, color: str, filter_key: str) -> None:
+    active = _metric_active(filter_key)
+    border = color if active else f"{color}22"
+    bg = "#FFFDF0" if active else "#FFFFFF"
     st.markdown(
         f"""
-        <div class="cp-metric" style="background:{bg};border-color:{color}22">
+        <div class="cp-metric {'metric-active' if active else ''}" style="background:{bg};border-color:{border}">
           <div class="cp-metric-label">{_esc(label)}</div>
           <div class="cp-metric-value" style="color:{color}">{value}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    if st.button(
+        "Quitar filtro" if active else "Filtrar",
+        key=f"metric_filter_{filter_key}",
+        use_container_width=True,
+    ):
+        _set_metric_filter(filter_key)
+        st.rerun()
+
+
+def _apply_metric_filter(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    metric = st.session_state.get("work_metric_filter", "")
+    if not metric:
+        return tasks
+    if metric == "active":
+        return [task for task in tasks if task["status"] != "Terminado"]
+    if metric == "high":
+        return [task for task in tasks if task["status"] != "Terminado" and task["priority"] == "Alta"]
+    if metric == "overdue":
+        return [
+            task
+            for task in tasks
+            if task["status"] != "Terminado"
+            and (due := _date_or_none(task.get("due_date")))
+            and due < _today()
+        ]
+    if metric == "review":
+        return [task for task in tasks if task["status"] == "Revisión"]
+    if metric == "done":
+        return [task for task in tasks if task["status"] == "Terminado"]
+    return tasks
 
 
 def _write_board_component() -> None:
@@ -890,9 +933,12 @@ st.markdown(
       .cp-metric {
         border: 1px solid;
         border-radius: 0;
-        padding: 10px 12px;
-        min-height:74px;
+        padding: 9px 12px;
+        min-height:58px;
         background:#FFFFFF;
+      }
+      .metric-active {
+        box-shadow: inset 0 -3px 0 var(--gold);
       }
       .cp-metric-label {
         color: var(--muted);
@@ -901,14 +947,14 @@ st.markdown(
       }
       .cp-metric-value {
         font-family:"IBM Plex Mono",monospace;
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 700;
         line-height: 1.05;
-        margin-top: 4px;
+        margin-top: 2px;
       }
       .kpi-grid {
         display:grid;
-        grid-template-columns:repeat(4,1fr);
+        grid-template-columns:repeat(5,1fr);
         overflow:hidden;
       }
       .kpi-grid > div:not(:last-child) .cp-metric { border-right:0; }
@@ -1125,7 +1171,7 @@ with f5:
     include_done = st.toggle("Mostrar terminadas", value=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
-visible_tasks = _filter_tasks(
+base_visible_tasks = _filter_tasks(
     tasks,
     selected_owner,
     selected_client,
@@ -1133,6 +1179,7 @@ visible_tasks = _filter_tasks(
     selected_week_start,
     include_done,
 )
+visible_tasks = _apply_metric_filter(base_visible_tasks)
 active_tasks = [task for task in visible_tasks if task["status"] != "Terminado"]
 overdue_tasks = [
     task
@@ -1145,15 +1192,23 @@ overdue_tasks = [
 st.markdown('<section class="cp-card kpi-grid">', unsafe_allow_html=True)
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    _summary_card("Pendientes activos", len(active_tasks), "#333333", "#FFFFFF")
+    base_active = [task for task in base_visible_tasks if task["status"] != "Terminado"]
+    _summary_card("Pendientes activos", len(base_active), "#333333", "active")
 with m2:
-    _summary_card("Alta prioridad", sum(1 for task in active_tasks if task["priority"] == "Alta"), "#C92B2B", "#FFFFFF")
+    _summary_card("Alta prioridad", sum(1 for task in base_active if task["priority"] == "Alta"), "#C92B2B", "high")
 with m3:
-    _summary_card("Vencidas", len(overdue_tasks), "#A66A00", "#FFFFFF")
+    base_overdue = [
+        task
+        for task in base_visible_tasks
+        if task["status"] != "Terminado"
+        and (due := _date_or_none(task.get("due_date")))
+        and due < _today()
+    ]
+    _summary_card("Vencidas", len(base_overdue), "#A66A00", "overdue")
 with m4:
-    _summary_card("En revisión", sum(1 for task in active_tasks if task["status"] == "Revisión"), "#6D28D9", "#FFFFFF")
+    _summary_card("En revisión", sum(1 for task in base_visible_tasks if task["status"] == "Revisión"), "#6D28D9", "review")
 with m5:
-    _summary_card("Terminadas", sum(1 for task in visible_tasks if task["status"] == "Terminado"), "#15803D", "#FFFFFF")
+    _summary_card("Terminadas", sum(1 for task in base_visible_tasks if task["status"] == "Terminado"), "#15803D", "done")
 st.markdown("</section>", unsafe_allow_html=True)
 
 source_label = "Supabase" if source == "supabase" else "respaldo local"
@@ -1172,12 +1227,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-board_area, editor_area = st.columns([2.25, 1], gap="medium")
-with board_area:
+selected_task = _selected_task(visible_tasks)
+layout_cols = st.columns([2.25, 1], gap="medium") if selected_task else [st.container(), None]
+
+with layout_cols[0]:
     _write_board_component()
     board_payload = render_work_board_component(
         BOARD_COMPONENT_DIR,
-        key=f"work_board_{selected_week_start.isoformat()}_{selected_owner}_{selected_client}_{selected_priority}_{include_done}",
+        key=f"work_board_{selected_week_start.isoformat()}_{selected_owner}_{selected_client}_{selected_priority}_{include_done}_{st.session_state.get('work_metric_filter','')}",
         tasks=_board_tasks_payload(visible_tasks),
         statuses=STATUSES,
         status_meta=STATUS_META,
@@ -1197,28 +1254,9 @@ with board_area:
                 st.session_state["selected_task_id"] = task_id
                 st.rerun()
 
-with editor_area:
-    selected_task = _selected_task(visible_tasks)
-    if selected_task:
+if selected_task and layout_cols[1] is not None:
+    with layout_cols[1]:
         _render_editor(selected_task, source)
-    else:
-        st.markdown(
-            """
-            <section class="cp-card">
-              <div class="cp-section-head">
-                <div><h2>Editar tarea</h2><p>Selecciona una tarjeta del tablero.</p></div>
-              </div>
-              <div class="cp-form-shell">
-                <div style="color:#6B6B6B;font-size:13px;line-height:1.45">
-                  Haz click en una tarjeta para editar cliente, responsable, prioridad,
-                  estado, fecha limite, detalle y link/archivo. Tambien puedes arrastrarla
-                  entre columnas para cambiar su estado.
-                </div>
-              </div>
-            </section>
-            """,
-            unsafe_allow_html=True,
-        )
 
 
 with st.expander("Vista rápida en tabla"):
