@@ -33,13 +33,21 @@ SB_WRITE_HEADERS = {**SB_HEADERS, "Content-Type": "application/json", "Prefer": 
 LOCAL_STORE = ROOT / "dashboard" / "data" / "pendientes_semanales_local.json"
 CP_MARK_PATH = DASHBOARD_DIR / "assets" / "cp_mark_dark.png"
 
-STATUSES = ["Pendiente", "En proceso", "Terminado"]
+STATUSES = ["Pendiente", "En proceso", "Revisión", "Terminado"]
 OWNERS = ["Yanina", "Francisca"]
 PRIORITIES = ["Alta", "Media", "Baja"]
+CLIENTS = ["Interno", "GBS", "BambuTech"]
+
+CLIENT_LABELS = {
+    "Interno": "Interno",
+    "GBS": "GBS",
+    "BambuTech": "Bambu Tech",
+}
 
 STATUS_META = {
     "Pendiente": {"color": "#A66A00", "bg": "#FFF3D8", "border": "#F0D28D"},
     "En proceso": {"color": "#2563EB", "bg": "#EAF1FE", "border": "#BFD2FB"},
+    "Revisión": {"color": "#6D28D9", "bg": "#F1EDFF", "border": "#CDBDFF"},
     "Terminado": {"color": "#15803D", "bg": "#EAF6EF", "border": "#BFE6CC"},
 }
 
@@ -47,6 +55,17 @@ PRIORITY_META = {
     "Alta": {"color": "#C92B2B", "bg": "#FDECEA", "border": "#F3B7B3"},
     "Media": {"color": "#A66A00", "bg": "#FFF3D8", "border": "#F0D28D"},
     "Baja": {"color": "#15803D", "bg": "#EAF6EF", "border": "#BFE6CC"},
+}
+
+OWNER_META = {
+    "Yanina": {"initial": "Y", "color": "#2563EB", "bg": "#EAF1FE", "border": "#BFD2FB"},
+    "Francisca": {"initial": "F", "color": "#A66A00", "bg": "#FFF3D8", "border": "#F0D28D"},
+}
+
+CLIENT_META = {
+    "Interno": {"color": "#333333", "bg": "#F4F4F2", "border": "#D8D8D5"},
+    "GBS": {"color": "#6D28D9", "bg": "#F1EDFF", "border": "#CDBDFF"},
+    "BambuTech": {"color": "#15803D", "bg": "#EAF6EF", "border": "#BFE6CC"},
 }
 
 
@@ -122,6 +141,7 @@ def _normalize_task(task: dict[str, Any]) -> dict[str, Any]:
     clean["title"] = str(clean.get("title") or "").strip()
     clean["description"] = str(clean.get("description") or "").strip()
     clean["reference_url"] = str(clean.get("reference_url") or "").strip()
+    clean["client"] = clean.get("client") if clean.get("client") in CLIENTS else "Interno"
     clean["owner"] = clean.get("owner") if clean.get("owner") in OWNERS else "Yanina"
     clean["status"] = clean.get("status") if clean.get("status") in STATUSES else "Pendiente"
     clean["priority"] = clean.get("priority") if clean.get("priority") in PRIORITIES else "Media"
@@ -192,7 +212,7 @@ def update_task(task_id: str, changes: dict[str, Any], source: str) -> bool:
     clean_changes["updated_at"] = _now_iso()
     if clean_changes.get("status") == "Terminado":
         clean_changes["completed_at"] = _now_iso()
-    elif clean_changes.get("status") in {"Pendiente", "En proceso"}:
+    elif clean_changes.get("status") in {"Pendiente", "En proceso", "Revisión"}:
         clean_changes["completed_at"] = None
 
     if source == "supabase" and _sb_available():
@@ -223,7 +243,14 @@ def _task_week_label(task: dict[str, Any]) -> str:
     return f"{start.strftime('%d/%m')} - {end.strftime('%d/%m')}"
 
 
-def _filter_tasks(tasks: list[dict[str, Any]], owner: str, week_start: date, include_done: bool) -> list[dict[str, Any]]:
+def _filter_tasks(
+    tasks: list[dict[str, Any]],
+    owner: str,
+    client: str,
+    priority: str,
+    week_start: date,
+    include_done: bool,
+) -> list[dict[str, Any]]:
     filtered = []
     for task in tasks:
         task_week = _date_or_none(task.get("week_start")) or _week_bounds(_today())[0]
@@ -231,11 +258,15 @@ def _filter_tasks(tasks: list[dict[str, Any]], owner: str, week_start: date, inc
             continue
         if owner != "Todas" and task.get("owner") != owner:
             continue
+        if client != "Todos" and task.get("client") != client:
+            continue
+        if priority != "Todas" and task.get("priority") != priority:
+            continue
         if not include_done and task.get("status") == "Terminado":
             continue
         filtered.append(task)
     priority_order = {"Alta": 0, "Media": 1, "Baja": 2}
-    status_order = {"Pendiente": 0, "En proceso": 1, "Terminado": 2}
+    status_order = {"Pendiente": 0, "En proceso": 1, "Revisión": 2, "Terminado": 3}
     return sorted(
         filtered,
         key=lambda task: (
@@ -274,6 +305,8 @@ def _selected_task(tasks: list[dict[str, Any]]) -> dict[str, Any] | None:
 def _render_task_card(task: dict[str, Any], source: str) -> None:
     priority = PRIORITY_META.get(task["priority"], PRIORITY_META["Media"])
     status = STATUS_META.get(task["status"], STATUS_META["Pendiente"])
+    owner_meta = OWNER_META.get(task["owner"], OWNER_META["Yanina"])
+    client_meta = CLIENT_META.get(task["client"], CLIENT_META["Interno"])
     due = _date_or_none(task.get("due_date"))
     overdue = bool(due and due < _today() and task["status"] != "Terminado")
     due_text = "Vencida" if overdue else _fmt_date(task.get("due_date"))
@@ -285,18 +318,25 @@ def _render_task_card(task: dict[str, Any], source: str) -> None:
     st.markdown(
         f"""
         <div class="task-card{selected_cls}">
-          <div class="task-topline">
-            <span class="pill" style="color:{priority['color']};background:{priority['bg']};border-color:{priority['border']}">
-              {_esc(task['priority'])}
-            </span>
-            <span class="pill" style="color:{status['color']};background:{status['bg']};border-color:{status['border']}">
-              {_esc(task['status'])}
-            </span>
+          <div class="task-head">
+            <div class="task-topline">
+              <span class="pill" style="color:{client_meta['color']};background:{client_meta['bg']};border-color:{client_meta['border']}">
+                {_esc(CLIENT_LABELS.get(task['client'], task['client']))}
+              </span>
+              <span class="pill" style="color:{priority['color']};background:{priority['bg']};border-color:{priority['border']}">
+                {_esc(task['priority'])}
+              </span>
+              <span class="pill" style="color:{status['color']};background:{status['bg']};border-color:{status['border']}">
+                {_esc(task['status'])}
+              </span>
+            </div>
+            <div class="owner-badge" style="color:{owner_meta['color']};background:{owner_meta['bg']};border-color:{owner_meta['border']}">
+              <span>{_esc(owner_meta['initial'])}</span><b>{_esc(task['owner'])}</b>
+            </div>
           </div>
           <div class="task-title">{_esc(task['title'])}</div>
           <div class="task-desc">{_esc(task.get('description') or 'Sin detalle adicional.')}</div>
           <div class="task-meta">
-            <span>Responsable: <b>{_esc(task['owner'])}</b></span>
             <span class="{ 'overdue' if overdue else '' }">Fecha limite: <b>{_esc(due_text)}</b></span>
             <span>Semana: <b>{_esc(_task_week_label(task))}</b></span>
             {reference_html}
@@ -331,7 +371,7 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
         unsafe_allow_html=True,
     )
     with st.form(f"edit_task_form_{task['id']}", clear_on_submit=False):
-        e1, e2, e3 = st.columns([2.4, .85, .85])
+        e1, e2, e3, e_client = st.columns([2.2, .8, .8, .9])
         with e1:
             edit_title = st.text_input("Tarea", value=task["title"], key=f"title_{task['id']}")
         with e2:
@@ -347,6 +387,14 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
                 PRIORITIES,
                 index=PRIORITIES.index(task["priority"]) if task["priority"] in PRIORITIES else 1,
                 key=f"priority_{task['id']}",
+            )
+        with e_client:
+            edit_client = st.selectbox(
+                "Cliente",
+                CLIENTS,
+                format_func=lambda value: CLIENT_LABELS.get(value, value),
+                index=CLIENTS.index(task["client"]) if task["client"] in CLIENTS else 0,
+                key=f"client_{task['id']}",
             )
 
         e4, e5, e6 = st.columns([.9, .9, 2.3])
@@ -394,6 +442,7 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
                         "description": edit_description,
                         "owner": edit_owner,
                         "priority": edit_priority,
+                        "client": edit_client,
                         "status": edit_status,
                         "due_date": edit_due.isoformat(),
                         "reference_url": edit_ref,
@@ -581,6 +630,13 @@ st.markdown(
         margin: 8px 0 8px;
         box-shadow:none;
       }
+      .task-head {
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:8px;
+        margin-bottom:8px;
+      }
       .task-card.selected-task {
         border-color:var(--gold);
         box-shadow:inset 3px 0 0 var(--gold);
@@ -590,7 +646,34 @@ st.markdown(
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
-        margin-bottom: 8px;
+        margin-bottom: 0;
+        min-width:0;
+        flex:1;
+      }
+      .owner-badge {
+        align-items:center;
+        border:1px solid;
+        border-radius:8px;
+        display:flex;
+        flex:0 0 auto;
+        gap:6px;
+        min-height:30px;
+        padding:4px 7px 4px 5px;
+      }
+      .owner-badge span {
+        border-radius:6px;
+        display:grid;
+        font-family:"IBM Plex Mono",monospace;
+        font-size:12px;
+        font-weight:700;
+        height:21px;
+        place-items:center;
+        width:21px;
+        background:#FFFFFFAA;
+      }
+      .owner-badge b {
+        font-size:12px;
+        line-height:1;
       }
       .pill {
         border: 1px solid;
@@ -670,7 +753,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 with st.form("new_task_form", clear_on_submit=True):
-    n1, n2, n3, n4, n5 = st.columns([2.4, .85, .85, .9, .9])
+    n1, n2, n3, n4, n5, n6 = st.columns([2.2, .8, .8, .9, .85, .85])
     with n1:
         title = st.text_input("Tarea", placeholder="Ej: Revisar leads nuevos de la semana")
     with n2:
@@ -678,8 +761,10 @@ with st.form("new_task_form", clear_on_submit=True):
     with n3:
         priority = st.selectbox("Prioridad", PRIORITIES, index=1)
     with n4:
-        due_date = st.date_input("Fecha limite", value=_today())
+        client = st.selectbox("Cliente", CLIENTS, format_func=lambda value: CLIENT_LABELS.get(value, value), index=0)
     with n5:
+        due_date = st.date_input("Fecha limite", value=_today())
+    with n6:
         week_choice = st.date_input("Semana", value=week_start, help="Usa cualquier dia de la semana; se guardara como lunes.")
 
     d1, d2 = st.columns([2.2, 1])
@@ -700,6 +785,7 @@ with st.form("new_task_form", clear_on_submit=True):
                     "description": description,
                     "owner": owner,
                     "priority": priority,
+                    "client": client,
                     "status": "Pendiente",
                     "due_date": due_date.isoformat(),
                     "week_start": selected_week.isoformat(),
@@ -716,17 +802,32 @@ with st.form("new_task_form", clear_on_submit=True):
 st.markdown("</div></section>", unsafe_allow_html=True)
 
 st.markdown('<div class="cp-toolbar">', unsafe_allow_html=True)
-f1, f2, f3 = st.columns([1.1, 1.1, 1])
+f1, f2, f3, f4, f5 = st.columns([1, 1, 1, 1, .85])
 with f1:
     selected_owner = st.selectbox("Ver responsable", ["Todas", *OWNERS])
 with f2:
+    selected_client = st.selectbox(
+        "Ver cliente",
+        ["Todos", *CLIENTS],
+        format_func=lambda value: CLIENT_LABELS.get(value, value),
+    )
+with f3:
+    selected_priority = st.selectbox("Ver prioridad", ["Todas", *PRIORITIES])
+with f4:
     selected_day = st.date_input("Semana a revisar", value=week_start, key="board_week")
     selected_week_start, selected_week_end = _week_bounds(selected_day)
-with f3:
+with f5:
     include_done = st.toggle("Mostrar terminadas", value=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
-visible_tasks = _filter_tasks(tasks, selected_owner, selected_week_start, include_done)
+visible_tasks = _filter_tasks(
+    tasks,
+    selected_owner,
+    selected_client,
+    selected_priority,
+    selected_week_start,
+    include_done,
+)
 active_tasks = [task for task in visible_tasks if task["status"] != "Terminado"]
 overdue_tasks = [
     task
@@ -737,7 +838,7 @@ overdue_tasks = [
 ]
 
 st.markdown('<section class="cp-card kpi-grid">', unsafe_allow_html=True)
-m1, m2, m3, m4 = st.columns(4)
+m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
     _summary_card("Pendientes activos", len(active_tasks), "#333333", "#FFFFFF")
 with m2:
@@ -745,6 +846,8 @@ with m2:
 with m3:
     _summary_card("Vencidas", len(overdue_tasks), "#A66A00", "#FFFFFF")
 with m4:
+    _summary_card("En revisión", sum(1 for task in active_tasks if task["status"] == "Revisión"), "#6D28D9", "#FFFFFF")
+with m5:
     _summary_card("Terminadas", sum(1 for task in visible_tasks if task["status"] == "Terminado"), "#15803D", "#FFFFFF")
 st.markdown("</section>", unsafe_allow_html=True)
 
@@ -767,7 +870,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-board_cols = st.columns(3)
+board_cols = st.columns(4)
 for col, status in zip(board_cols, STATUSES):
     with col:
         status_tasks = [task for task in visible_tasks if task["status"] == status]
@@ -791,9 +894,10 @@ with st.expander("Vista rápida en tabla"):
     if visible_tasks:
         df = pd.DataFrame(visible_tasks)
         st.dataframe(
-            df[["title", "owner", "priority", "status", "due_date", "week_start"]].rename(
+            df[["title", "client", "owner", "priority", "status", "due_date", "week_start"]].rename(
                 columns={
                     "title": "Tarea",
+                    "client": "Cliente",
                     "owner": "Responsable",
                     "priority": "Prioridad",
                     "status": "Estado",
