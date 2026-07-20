@@ -316,10 +316,18 @@ st.markdown(
 
 # ===== ③ Panel maestro de filtros cruzados =====
 valid_dates = REG["fecha"].dropna()
-min_date = valid_dates.min() if not valid_dates.empty else date(2026, 5, 18)
-max_date = valid_dates.max() if not valid_dates.empty else date.today()
+data_min = valid_dates.min() if not valid_dates.empty else date(2026, 5, 18)
+data_max = valid_dates.max() if not valid_dates.empty else date.today()
 campaign_start = pd.to_datetime(SNAP["periodo"]["inicio"]).date()
-min_date = max(min_date, campaign_start)
+# Valores por defecto: el rango real de la campaña (desde el inicio hasta el
+# último dato del consolidado).
+min_date = max(data_min, campaign_start)
+max_date = data_max
+# Bordes SELECCIONABLES del calendario: desde el 1° del mes más antiguo hasta
+# hoy, para poder filtrar meses completos (mayo, junio, julio…) y ver el avance
+# mes a mes aunque el consolidado empiece a mitad de mes.
+picker_min = min(data_min, campaign_start).replace(day=1)
+picker_max = max(data_max, date.today())
 with st.container(border=True):
     st.markdown(
         '<div style="display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:5px">'
@@ -334,8 +342,8 @@ with st.container(border=True):
     period = fc[0].date_input(
         "Período",
         value=(min_date, max_date),
-        min_value=min_date,
-        max_value=max_date,
+        min_value=picker_min,
+        max_value=picker_max,
         format="DD/MM/YYYY",
     )
     start_date, end_date = (
