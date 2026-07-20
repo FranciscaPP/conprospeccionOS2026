@@ -4,6 +4,7 @@ from __future__ import annotations
 import html
 import json
 import sys
+import tempfile
 import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -20,6 +21,7 @@ sys.path.insert(0, str(DASHBOARD_DIR))
 
 from master_auth import get_current_user, render_master_user_sidebar, require_master_auth
 from shared.config import supabase_key, supabase_url
+from work_board_component import render_work_board_component
 
 st.set_page_config(page_title="Work and Project Management - ConprospeccionOS", layout="wide", page_icon="")
 if not require_master_auth():
@@ -32,6 +34,7 @@ SB_WRITE_HEADERS = {**SB_HEADERS, "Content-Type": "application/json", "Prefer": 
 
 LOCAL_STORE = ROOT / "dashboard" / "data" / "pendientes_semanales_local.json"
 CP_MARK_PATH = DASHBOARD_DIR / "assets" / "cp_mark_dark.png"
+BOARD_COMPONENT_DIR = Path(tempfile.gettempdir()) / "cp_work_board_component"
 
 STATUSES = ["Pendiente", "En proceso", "Revisión", "Terminado"]
 OWNERS = ["Yanina", "Francisca"]
@@ -67,6 +70,104 @@ CLIENT_META = {
     "GBS": {"color": "#6D28D9", "bg": "#F1EDFF", "border": "#CDBDFF"},
     "BambuTech": {"color": "#15803D", "bg": "#EAF6EF", "border": "#BFE6CC"},
 }
+
+BOARD_HTML = r"""
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{--gold:#FFD700;--ink:#1A1A1A;--line:#EDECEA;--muted:#6B6B6B;--surface:#FFFFFF;--red:#C92B2B}
+*{box-sizing:border-box}
+body{margin:0;background:transparent;color:var(--ink);font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:12px}
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:start}
+.column{background:#FAFAF8;border:1px solid #D8D8D5;border-radius:10px;min-height:220px;padding:10px}
+.column.drag-over{outline:2px solid var(--gold);outline-offset:2px;background:#FFFDF0}
+.board-title{background:white;border:1px solid #D8D8D5;border-radius:8px;color:var(--ink);font-family:Saira,"IBM Plex Sans",sans-serif;font-size:14px;font-weight:700;margin:0 0 10px;padding:10px 10px 10px 12px}
+.empty{background:#EAF1FE;border-radius:8px;color:#0B5CAD;font-size:13px;padding:14px}
+.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 12px 10px;margin:8px 0;box-shadow:none;cursor:grab;transition:border-color .12s ease,background .12s ease,opacity .12s ease}
+.task-card:active{cursor:grabbing}
+.task-card:hover{border-color:var(--gold);background:#FFFDF0}
+.task-card.selected-task{border-color:var(--gold);box-shadow:inset 3px 0 0 var(--gold);background:#FFFDF0}
+.task-card.dragging{opacity:.45}
+.task-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.task-topline{display:flex;gap:6px;flex-wrap:wrap;min-width:0;flex:1}
+.pill{border:1px solid;border-radius:6px;display:inline-flex;font-size:11px;font-weight:700;line-height:1;padding:5px 8px}
+.owner-badge{align-items:center;border:1px solid;border-radius:8px;display:flex;flex:0 0 auto;gap:6px;min-height:30px;padding:4px 7px 4px 5px}
+.owner-badge span{border-radius:6px;display:grid;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;height:21px;place-items:center;width:21px;background:#FFFFFFAA}
+.owner-badge b{font-size:12px;line-height:1}
+.task-title{color:var(--ink);font-size:14px;font-weight:700;line-height:1.25;margin-bottom:7px}
+.task-desc{color:var(--muted);font-size:12px;line-height:1.35;white-space:pre-wrap;margin-bottom:8px;max-height:48px;overflow:hidden}
+.task-meta{color:var(--muted);display:grid;gap:4px;font-size:11px}
+.overdue{color:var(--red)}
+@media(max-width:900px){.board{grid-template-columns:1fr}.column{min-height:120px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+function send(type,data={}){window.parent.postMessage({isStreamlitMessage:true,type,...data},"*")}
+function ready(){send("streamlit:componentReady",{apiVersion:1})}
+function setHeight(){send("streamlit:setFrameHeight",{height:Math.max(520,document.documentElement.scrollHeight)})}
+function setValue(value){send("streamlit:setComponentValue",{value,dataType:"json"})}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function pill(label,meta){return `<span class="pill" style="color:${meta.color};background:${meta.bg};border-color:${meta.border}">${esc(label)}</span>`}
+let dragId=null;
+function cardHtml(t){
+  const ref=t.reference_url?`<span>Referencia: <b>${esc(t.reference_url)}</b></span>`:"";
+  return `<div class="task-card ${t.selected?"selected-task":""}" draggable="true" data-id="${esc(t.id)}" role="button" tabindex="0">
+    <div class="task-head">
+      <div class="task-topline">${pill(t.client_label,t.client_meta)}${pill(t.priority,t.priority_meta)}${pill(t.status,t.status_meta)}</div>
+      <div class="owner-badge" style="color:${t.owner_meta.color};background:${t.owner_meta.bg};border-color:${t.owner_meta.border}">
+        <span>${esc(t.owner_meta.initial)}</span><b>${esc(t.owner)}</b>
+      </div>
+    </div>
+    <div class="task-title">${esc(t.title)}</div>
+    <div class="task-desc">${esc(t.description||"Sin detalle adicional.")}</div>
+    <div class="task-meta">
+      <span class="${t.overdue?"overdue":""}">Fecha limite: <b>${esc(t.due_text)}</b></span>
+      <span>Semana: <b>${esc(t.week_label)}</b></span>${ref}
+    </div>
+  </div>`
+}
+function render(args){
+  const statuses=args.statuses||[], meta=args.status_meta||{}, tasks=args.tasks||[];
+  const grouped=Object.fromEntries(statuses.map(s=>[s,[]]));
+  tasks.forEach(t=>{(grouped[t.status]||grouped[statuses[0]]||[]).push(t)});
+  document.getElementById("root").innerHTML=`<div class="board">${statuses.map(status=>{
+    const list=grouped[status]||[];
+    const color=(meta[status]||{}).color||"#333";
+    return `<section class="column" data-status="${esc(status)}">
+      <div class="board-title" style="border-left:4px solid ${color}">${esc(status)} · ${list.length}</div>
+      <div class="cards">${list.length?list.map(cardHtml).join(""):`<div class="empty">Sin tareas en esta columna.</div>`}</div>
+    </section>`;
+  }).join("")}</div>`;
+  document.querySelectorAll(".task-card").forEach(card=>{
+    card.addEventListener("click",()=>setValue({action:"open",task_id:card.dataset.id,nonce:String(Date.now())}));
+    card.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();setValue({action:"open",task_id:card.dataset.id,nonce:String(Date.now())})}});
+    card.addEventListener("dragstart",event=>{dragId=card.dataset.id;card.classList.add("dragging");event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",dragId)});
+    card.addEventListener("dragend",()=>{card.classList.remove("dragging");dragId=null;document.querySelectorAll(".column").forEach(c=>c.classList.remove("drag-over"))});
+  });
+  document.querySelectorAll(".column").forEach(col=>{
+    col.addEventListener("dragover",event=>{event.preventDefault();col.classList.add("drag-over")});
+    col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));
+    col.addEventListener("drop",event=>{
+      event.preventDefault();col.classList.remove("drag-over");
+      const id=event.dataTransfer.getData("text/plain")||dragId;
+      const status=col.dataset.status;
+      if(id&&status)setValue({action:"move",task_id:id,status,nonce:String(Date.now())});
+    });
+  });
+  setTimeout(setHeight,0);
+}
+ready();
+window.addEventListener("message",event=>{if(event.data&&event.data.type==="streamlit:render")render(event.data.args||{})});
+</script>
+</body>
+</html>
+"""
 
 
 def _today() -> date:
@@ -288,6 +389,36 @@ def _summary_card(label: str, value: int, color: str, bg: str) -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+def _write_board_component() -> None:
+    BOARD_COMPONENT_DIR.mkdir(parents=True, exist_ok=True)
+    target = BOARD_COMPONENT_DIR / "index.html"
+    if not target.exists() or target.read_text(encoding="utf-8", errors="ignore") != BOARD_HTML:
+        target.write_text(BOARD_HTML, encoding="utf-8")
+
+
+def _board_tasks_payload(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    selected_id = str(st.session_state.get("selected_task_id") or "")
+    payload = []
+    for task in tasks:
+        due = _date_or_none(task.get("due_date"))
+        overdue = bool(due and due < _today() and task["status"] != "Terminado")
+        payload.append(
+            {
+                **task,
+                "client_label": CLIENT_LABELS.get(task["client"], task["client"]),
+                "client_meta": CLIENT_META.get(task["client"], CLIENT_META["Interno"]),
+                "priority_meta": PRIORITY_META.get(task["priority"], PRIORITY_META["Media"]),
+                "status_meta": STATUS_META.get(task["status"], STATUS_META["Pendiente"]),
+                "owner_meta": OWNER_META.get(task["owner"], OWNER_META["Yanina"]),
+                "due_text": "Vencida" if overdue else _fmt_date(task.get("due_date")),
+                "week_label": _task_week_label(task),
+                "overdue": overdue,
+                "selected": str(task.get("id")) == selected_id,
+            }
+        )
+    return payload
 
 
 def _open_editor(task_id: str) -> None:
@@ -851,10 +982,6 @@ st.caption(
     f"Semana {selected_week_start.strftime('%d/%m/%Y')} - {selected_week_end.strftime('%d/%m/%Y')} · Datos desde {source_label}"
 )
 
-selected_task = _selected_task(visible_tasks)
-if selected_task:
-    _render_editor(selected_task, source)
-
 st.markdown(
     """
     <section class="cp-card">
@@ -865,25 +992,51 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-board_cols = st.columns(4)
-for col, status in zip(board_cols, STATUSES):
-    with col:
-        status_tasks = [task for task in visible_tasks if task["status"] == status]
-        meta = STATUS_META[status]
+
+board_area, editor_area = st.columns([2.25, 1], gap="medium")
+with board_area:
+    _write_board_component()
+    board_payload = render_work_board_component(
+        BOARD_COMPONENT_DIR,
+        key=f"work_board_{selected_week_start.isoformat()}_{selected_owner}_{selected_client}_{selected_priority}_{include_done}",
+        tasks=_board_tasks_payload(visible_tasks),
+        statuses=STATUSES,
+        status_meta=STATUS_META,
+    )
+    if isinstance(board_payload, dict):
+        action = board_payload.get("action")
+        task_id = str(board_payload.get("task_id") or "")
+        if action == "open" and task_id:
+            _open_editor(task_id)
+            st.rerun()
+        if action == "move" and task_id and board_payload.get("status") in STATUSES:
+            update_task(task_id, {"status": board_payload["status"]}, source)
+            st.session_state["selected_task_id"] = task_id
+            st.rerun()
+
+with editor_area:
+    selected_task = _selected_task(visible_tasks)
+    if selected_task:
+        _render_editor(selected_task, source)
+    else:
         st.markdown(
-            f"""
-            <div class="board-column">
-              <div class="board-title" style="border-left:4px solid {meta['color']};padding-left:8px">
-                {_esc(status)} · {len(status_tasks)}
+            """
+            <section class="cp-card">
+              <div class="cp-section-head">
+                <div><h2>Editar tarea</h2><p>Selecciona una tarjeta del tablero.</p></div>
               </div>
-            </div>
+              <div class="cp-form-shell">
+                <div style="color:#6B6B6B;font-size:13px;line-height:1.45">
+                  Haz click en una tarjeta para editar cliente, responsable, prioridad,
+                  estado, fecha limite, detalle y link/archivo. Tambien puedes arrastrarla
+                  entre columnas para cambiar su estado.
+                </div>
+              </div>
+            </section>
             """,
             unsafe_allow_html=True,
         )
-        if not status_tasks:
-            st.info("Sin tareas en esta columna.")
-        for task in status_tasks:
-            _render_task_card(task, source)
+
 
 with st.expander("Vista rápida en tabla"):
     if visible_tasks:
