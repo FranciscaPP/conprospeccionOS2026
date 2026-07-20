@@ -994,7 +994,7 @@ st.markdown(
       }
       .kpi-grid {
         display:grid;
-        grid-template-columns:repeat(5,1fr);
+        grid-template-columns:repeat(4,1fr);
         overflow:hidden;
       }
       .kpi-grid > div:not(:last-child) .cp-metric { border-right:0; }
@@ -1234,6 +1234,9 @@ if selected_period == "Rango manual":
         date_from, date_to = date_to, date_from
 st.markdown("</div>", unsafe_allow_html=True)
 
+if st.session_state.get("work_metric_filter") == "high":
+    st.session_state["work_metric_filter"] = ""
+
 base_visible_tasks = _filter_tasks(
     tasks,
     selected_owner,
@@ -1255,13 +1258,11 @@ overdue_tasks = [
 ]
 
 st.markdown('<section class="cp-card kpi-grid">', unsafe_allow_html=True)
-m1, m2, m3, m4, m5 = st.columns(5)
+m1, m2, m3, m4 = st.columns(4)
 with m1:
     base_active = [task for task in base_visible_tasks if task["status"] != "Terminado"]
     _summary_card("Pendientes activos", len(base_active), "#333333", "active")
 with m2:
-    _summary_card("Alta prioridad", sum(1 for task in base_active if task["priority"] == "Alta"), "#C92B2B", "high")
-with m3:
     base_overdue = [
         task
         for task in base_visible_tasks
@@ -1270,9 +1271,9 @@ with m3:
         and due < _today()
     ]
     _summary_card("Atrasadas", len(base_overdue), "#C92B2B", "overdue")
-with m4:
+with m3:
     _summary_card("En revisión", sum(1 for task in base_visible_tasks if task["status"] == "Revisión"), "#6D28D9", "review")
-with m5:
+with m4:
     _summary_card("Terminadas", sum(1 for task in base_visible_tasks if task["status"] == "Terminado"), "#15803D", "done")
 st.markdown("</section>", unsafe_allow_html=True)
 
