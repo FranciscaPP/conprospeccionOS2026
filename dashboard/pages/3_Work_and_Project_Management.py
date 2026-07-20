@@ -374,40 +374,29 @@ def _period_caption(period: str, start: date | None, end: date | None) -> str:
     return f"{period}: {start.strftime('%d/%m/%Y')} - {end.strftime('%d/%m/%Y')}"
 
 
-def _selected_period_bounds() -> tuple[date | None, date | None]:
-    period = st.session_state.get("board_period", "Pendientes semana actual")
-    if period == "Rango manual":
-        start = st.session_state.get("board_date_from")
-        end = st.session_state.get("board_date_to")
-        if isinstance(start, date) and isinstance(end, date):
-            return (start, end) if start <= end else (end, start)
-        return None, None
-    return _period_bounds(period, _today())
-
-
-def _date_visible_in_selected_period(day: date) -> bool:
-    start, end = _selected_period_bounds()
-    if not start or not end:
-        return True
-    return start <= day <= end
-
-
 def _filter_tasks(
     tasks: list[dict[str, Any]],
     owner: str,
     client: str,
     priority: str,
+    period: str,
     date_from: date | None,
     date_to: date | None,
     include_done: bool,
 ) -> list[dict[str, Any]]:
     filtered = []
+    current_week_start, _ = _week_bounds(_today())
     for task in tasks:
+        task_week = _date_or_none(task.get("week_start")) or current_week_start
         due_date = _date_or_none(task.get("due_date"))
-        if date_from and (not due_date or due_date < date_from):
-            continue
-        if date_to and (not due_date or due_date > date_to):
-            continue
+        if period == "Pendientes hoy":
+            if task_week != current_week_start:
+                continue
+            if not due_date or due_date > _today() or task.get("status") == "Terminado":
+                continue
+        elif date_from and date_to:
+            if task_week < date_from or task_week > date_to:
+                continue
         if owner != "Todas" and task.get("owner") != owner:
             continue
         if client != "Todos" and task.get("client") != client:
@@ -721,11 +710,6 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
                     source,
                 )
                 st.session_state["selected_task_id"] = task["id"]
-                if not _date_visible_in_selected_period(edit_due):
-                    st.session_state["board_period"] = "Todas las fechas"
-                    st.session_state["work_board_notice"] = (
-                        "La tarea quedo fuera del periodo que estabas viendo; cambie la vista a Todas las fechas para que no se esconda."
-                    )
                 st.success("Cambios guardados.")
                 st.rerun()
         if closed:
@@ -1250,14 +1234,12 @@ if selected_period == "Rango manual":
         date_from, date_to = date_to, date_from
 st.markdown("</div>", unsafe_allow_html=True)
 
-if notice := st.session_state.pop("work_board_notice", ""):
-    st.info(notice)
-
 base_visible_tasks = _filter_tasks(
     tasks,
     selected_owner,
     selected_client,
     selected_priority,
+    selected_period,
     date_from,
     date_to,
     include_done,
