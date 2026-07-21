@@ -298,9 +298,31 @@ def _fetch_supabase_tasks() -> tuple[list[dict[str, Any]], str]:
     return [], "local"
 
 
+def _restore_local_tasks_to_supabase(tasks: list[dict[str, Any]]) -> bool:
+    if not tasks or not _sb_available():
+        return False
+    try:
+        response = requests.post(
+            f"{SB_URL}/rest/v1/internal_tasks",
+            headers=SB_WRITE_HEADERS,
+            json=tasks,
+            timeout=15,
+        )
+        return response.ok
+    except Exception:
+        return False
+
+
 def load_tasks() -> tuple[list[dict[str, Any]], str]:
     tasks, source = _fetch_supabase_tasks()
     if source == "supabase":
+        if tasks:
+            return tasks, source
+        local_tasks = [_normalize_task(row) for row in _read_local_tasks()]
+        if local_tasks:
+            if _restore_local_tasks_to_supabase(local_tasks):
+                return local_tasks, "supabase"
+            return local_tasks, "local"
         return tasks, source
     return [_normalize_task(row) for row in _read_local_tasks()], "local"
 
