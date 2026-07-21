@@ -71,6 +71,14 @@ def ghl_location_ids() -> dict[str, str]:
     }
 
 
+def snov_credentials() -> dict[str, str]:
+    """Credenciales de la API de Snov.io (BBDD Maestras / sync)."""
+    return {
+        "client_id": _get("SNOV_CLIENT_ID"),
+        "client_secret": _get("SNOV_CLIENT_SECRET"),
+    }
+
+
 def anthropic_key() -> str:
     return _get("ANTHROPIC_API_KEY")
 

@@ -52,6 +52,38 @@ class SnovClient:
         response.raise_for_status()
         return response.json()
 
+    def add_prospect_to_list(
+        self,
+        list_id: str,
+        email: str,
+        full_name: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        position: str | None = None,
+        company: str | None = None,
+        country: str | None = None,
+    ) -> dict[str, Any]:
+        """Agrega un prospecto a una lista de Snov (usado por BBDD Maestras, Fase 2).
+
+        Escribe en Snov: usar solo tras confirmación explícita en la UI.
+        """
+        data: dict[str, Any] = {"listId": list_id, "email": email}
+        if full_name:
+            data["fullName"] = full_name
+        if first_name:
+            data["firstName"] = first_name
+        if last_name:
+            data["lastName"] = last_name
+        if position:
+            data["position"] = position
+        if company:
+            data["companyName"] = company
+        if country:
+            data["country"] = country
+        response = self.client.post("/v1/add-prospect-to-list", data=self._params(data))
+        response.raise_for_status()
+        return response.json()
+
     def prospect_by_id(self, prospect_id: str) -> dict[str, Any]:
         response = self.client.post("/v1/get-prospect-by-id", data=self._params({"id": prospect_id}))
         response.raise_for_status()
