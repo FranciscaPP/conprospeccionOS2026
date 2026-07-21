@@ -173,6 +173,24 @@ def _fmt(n: int) -> str:
     return f"{n:,}".replace(",", ".")
 
 
+# CSS del sidebar tipo MVP Setup (oscuro + botón activo).
+st.markdown(
+    """<style>
+[data-testid="stSidebar"] { background:#0f172a !important; }
+[data-testid="stSidebar"] p,[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] label,[data-testid="stSidebar"] div { color:#cbd5e1 !important; }
+[data-testid="stSidebar"] hr { border-color:#1e293b !important; }
+[data-testid="stSidebar"] .stButton > button {
+  background:transparent !important; border:none !important; color:#94a3b8 !important;
+  text-align:left !important; padding:8px 14px !important; border-radius:8px !important;
+  font-size:14px !important; width:100%; transition:all .15s; }
+[data-testid="stSidebar"] .stButton > button:hover { background:#1e293b !important; color:#f1f5f9 !important; }
+[data-testid="stSidebar"] .btn-activo > button { background:#1e3a5f !important; color:#93c5fd !important; font-weight:600 !important; }
+</style>""",
+    unsafe_allow_html=True,
+)
+
+
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(
     f"""<div style="background:linear-gradient(135deg,#111827 0%,#312e81 100%);
@@ -193,36 +211,38 @@ if not pool:
     st.warning("No se pudo cargar el pool maestro (revisa la conexión a Supabase).")
     st.stop()
 
-# ── Layout: izquierda "Bases de datos" · derecha panel del cliente ────────────
-nav, panel = st.columns([1, 3.2], gap="large")
+# ── Nav "Bases de datos" en el sidebar (estilo MVP Setup) ─────────────────────
+if "bbdd_cliente" not in st.session_state:
+    st.session_state["bbdd_cliente"] = PROSPECCION[0]["slug"]
 
-with nav:
-    st.markdown("#### 🗂️ Bases de datos")
-    st.caption("Clientes en prospección")
-    if "bbdd_cliente" not in st.session_state:
-        st.session_state["bbdd_cliente"] = PROSPECCION[0]["slug"]
+with st.sidebar:
+    st.markdown('<hr style="border-color:#1e293b;margin:10px 0 6px">', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:18px;font-weight:800;color:#f1f5f9;padding:0 8px">🗂️ Bases de datos</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;padding:6px 8px 4px">Clientes en prospección</div>', unsafe_allow_html=True)
     for c in PROSPECCION:
         activo = st.session_state["bbdd_cliente"] == c["slug"]
-        if st.button(
-            ("● " if activo else "○ ") + c["nombre"],
-            key=f"nav_{c['slug']}",
-            use_container_width=True,
-            type="primary" if activo else "secondary",
-        ):
+        st.markdown(f'<div class="{"btn-activo" if activo else ""}">', unsafe_allow_html=True)
+        if st.button(f"📁  {c['nombre']}", key=f"nav_{c['slug']}", use_container_width=True):
             st.session_state["bbdd_cliente"] = c["slug"]
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
     r = resumen_pool(pool)
-    st.markdown("##### Pool global")
-    st.metric("Prospectos únicos", _fmt(r["prospectos_unicos"]))
-    st.metric("⚠️ Correos duplicados", _fmt(r["duplicados"]), help="Mismo correo en más de un registro/fuente. Se marcan, no se borran.")
-    st.metric("Correo verificado", _fmt(r["correos_verificados"]))
-    st.metric("Con teléfono", _fmt(r["con_telefono"]))
+    st.markdown('<hr style="border-color:#1e293b;margin:10px 0 6px">', unsafe_allow_html=True)
+    st.markdown(
+        f"""<div style="padding:10px 12px;background:#0f2040;border-radius:8px;margin:4px">
+        <div style="font-size:10px;color:#64748b;letter-spacing:1px">POOL GLOBAL</div>
+        <div style="font-size:22px;font-weight:800;color:#93c5fd">{_fmt(r['prospectos_unicos'])}</div>
+        <div style="font-size:10px;color:#94a3b8">prospectos únicos · ⚠️ {_fmt(r['duplicados'])} duplicados</div>
+        <div style="font-size:10px;color:#94a3b8;margin-top:4px">{_fmt(r['correos_verificados'])} verif. (Snov) · {_fmt(r['con_telefono'])} con tel. (GHL)</div>
+        </div>""",
+        unsafe_allow_html=True,
+    )
 
 slug = st.session_state["bbdd_cliente"]
 nombre_cliente = next(c["nombre"] for c in PROSPECCION if c["slug"] == slug)
 
+panel = st.container()
 with panel:
     st.markdown(f"### {nombre_cliente}")
     tab_pool, tab_icp, tab_cand, tab_dup = st.tabs(
