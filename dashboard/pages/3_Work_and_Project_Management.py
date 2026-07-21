@@ -103,6 +103,8 @@ body{margin:0;background:transparent;color:var(--ink);font-family:"IBM Plex Sans
 .task-title{color:var(--ink);font-size:14px;font-weight:700;line-height:1.25;margin-bottom:7px}
 .task-desc{color:var(--muted);font-size:12px;line-height:1.35;white-space:pre-wrap;margin-bottom:8px;max-height:48px;overflow:hidden}
 .task-meta{color:var(--muted);display:grid;gap:4px;font-size:11px}
+.subtask-line{align-items:center;color:#4B4B49;display:flex;font-size:11px;font-weight:700;gap:6px;margin-top:8px}
+.subtask-dot{background:var(--gold);border-radius:999px;display:inline-block;height:7px;width:7px}
 .overdue{color:var(--red)}
 @media(max-width:900px){.board{grid-template-columns:1fr}.column{min-height:120px}}
 </style>
@@ -122,6 +124,7 @@ let suppressClickUntil=0;
 function cardHtml(t){
   const ref=t.reference_url?`<span>Referencia: <b>${esc(t.reference_url)}</b></span>`:"";
   const late=t.overdue?`<div class="late-badge">Atrasada</div>`:"";
+  const subtasks=t.subtask_total?`<div class="subtask-line"><span class="subtask-dot"></span><span>Subtareas: ${esc(t.subtask_done)}/${esc(t.subtask_total)}</span></div>`:"";
   return `<div class="task-card ${t.selected?"selected-task":""}" draggable="true" data-id="${esc(t.id)}" role="button" tabindex="0">
     <div class="task-head">
       <div class="task-topline">${pill(t.client_label,t.client_meta)}${pill(t.priority,t.priority_meta)}${pill(t.status,t.status_meta)}</div>
@@ -138,6 +141,7 @@ function cardHtml(t){
       <span class="${t.overdue?"overdue":""}">Fecha limite: <b>${esc(t.due_text)}</b></span>
       <span>Semana: <b>${esc(t.week_label)}</b></span>${ref}
     </div>
+    ${subtasks}
   </div>`
 }
 function render(args){
@@ -254,6 +258,41 @@ def _write_local_tasks(tasks: list[dict[str, Any]]) -> None:
     )
 
 
+def _normalize_subtasks(value: Any) -> list[dict[str, Any]]:
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except Exception:
+            value = []
+    if not isinstance(value, list):
+        return []
+
+    subtasks = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or "").strip()
+        if not title:
+            continue
+        done = bool(item.get("done", False))
+        subtasks.append(
+            {
+                "id": str(item.get("id") or uuid.uuid4()),
+                "title": title,
+                "done": done,
+                "created_at": str(item.get("created_at") or _now_iso()),
+                "completed_at": item.get("completed_at") if done else None,
+            }
+        )
+    return subtasks
+
+
+def _subtask_progress(subtasks: list[dict[str, Any]]) -> tuple[int, int]:
+    total = len(subtasks)
+    done = sum(1 for item in subtasks if item.get("done"))
+    return done, total
+
+
 def _normalize_task(task: dict[str, Any]) -> dict[str, Any]:
     clean = dict(task)
     clean["id"] = str(clean.get("id") or uuid.uuid4())
@@ -271,6 +310,7 @@ def _normalize_task(task: dict[str, Any]) -> dict[str, Any]:
     clean["updated_at"] = str(clean.get("updated_at") or clean["created_at"])
     clean["completed_at"] = clean.get("completed_at")
     clean["is_archived"] = bool(clean.get("is_archived", False))
+    clean["subtasks"] = _normalize_subtasks(clean.get("subtasks"))
     return clean
 
 
@@ -350,6 +390,8 @@ def create_task(payload: dict[str, Any], source: str) -> bool:
 
 def update_task(task_id: str, changes: dict[str, Any], source: str) -> bool:
     clean_changes = dict(changes)
+    if "subtasks" in clean_changes:
+        clean_changes["subtasks"] = _normalize_subtasks(clean_changes.get("subtasks"))
     clean_changes["updated_at"] = _now_iso()
     if clean_changes.get("status") == "Terminado":
         clean_changes["completed_at"] = _now_iso()
@@ -521,6 +563,7 @@ def _board_tasks_payload(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for task in tasks:
         due = _date_or_none(task.get("due_date"))
         overdue = bool(due and due < _today() and task["status"] == "Pendiente")
+        subtask_done, subtask_total = _subtask_progress(task.get("subtasks", []))
         payload.append(
             {
                 **task,
@@ -533,6 +576,8 @@ def _board_tasks_payload(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "week_label": _task_week_label(task),
                 "overdue": overdue,
                 "selected": str(task.get("id")) == selected_id,
+                "subtask_done": subtask_done,
+                "subtask_total": subtask_total,
             }
         )
     return payload
@@ -609,6 +654,69 @@ def _render_task_card(task: dict[str, Any], source: str) -> None:
     if st.button("Editar", key=f"edit_{task['id']}", use_container_width=True):
         _open_editor(task["id"])
         st.rerun()
+
+
+def _render_subtasks(task: dict[str, Any], source: str) -> None:
+    subtasks = _normalize_subtasks(task.get("subtasks"))
+    done_count, total_count = _subtask_progress(subtasks)
+    st.markdown(
+        f"""
+        <div class="subtasks-panel">
+          <div class="subtasks-head">
+            <b>Subtareas</b>
+            <span>{done_count}/{total_count} listas</span>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if not subtasks:
+        st.caption("Agrega subtareas para separar esta tarea en pasos chicos.")
+
+    for item in subtasks:
+        key = f"subtask_done_{task['id']}_{item['id']}"
+        current_value = bool(item.get("done"))
+        checked = st.checkbox(item["title"], value=current_value, key=key)
+        if checked != current_value:
+            next_subtasks = []
+            for existing in subtasks:
+                updated = dict(existing)
+                if existing["id"] == item["id"]:
+                    updated["done"] = checked
+                    updated["completed_at"] = _now_iso() if checked else None
+                next_subtasks.append(updated)
+            update_task(task["id"], {"subtasks": next_subtasks}, source)
+            st.rerun()
+
+    with st.form(f"new_subtask_form_{task['id']}", clear_on_submit=True):
+        new_title = st.text_input(
+            "Nueva subtarea",
+            placeholder="Ej: Plantilla coordinando reunion",
+            key=f"new_subtask_{task['id']}",
+        )
+        added = st.form_submit_button("Agregar subtarea", use_container_width=True)
+        if added:
+            if not new_title.strip():
+                st.warning("Escribe el nombre de la subtarea.")
+            else:
+                update_task(
+                    task["id"],
+                    {
+                        "subtasks": [
+                            *subtasks,
+                            {
+                                "id": str(uuid.uuid4()),
+                                "title": new_title.strip(),
+                                "done": False,
+                                "created_at": _now_iso(),
+                                "completed_at": None,
+                            },
+                        ]
+                    },
+                    source,
+                )
+                st.rerun()
 
 
 def _render_editor(task: dict[str, Any], source: str) -> None:
@@ -749,6 +857,7 @@ def _render_editor(task: dict[str, Any], source: str) -> None:
         if closed:
             _clear_selected_task()
             st.rerun()
+    _render_subtasks(task, source)
     st.markdown("</div></section>", unsafe_allow_html=True)
 
 
@@ -950,6 +1059,33 @@ st.markdown(
       }
       .drawer-form {
         padding:0 18px 16px;
+      }
+      .subtasks-panel {
+        background:#FFFFFF;
+        border:1px solid var(--line);
+        border-radius:8px;
+        margin:8px 0 10px;
+        padding:10px 12px;
+      }
+      .subtasks-head {
+        align-items:center;
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+      }
+      .subtasks-head b {
+        color:var(--ink);
+        font-family:Saira,"IBM Plex Sans",sans-serif;
+        font-size:14px;
+      }
+      .subtasks-head span {
+        background:#FFF7D0;
+        border:1px solid #FFE6A3;
+        border-radius:6px;
+        color:#A66A00;
+        font-size:11px;
+        font-weight:700;
+        padding:5px 7px;
       }
       .cp-toolbar {
         background:#FAFAF8;
