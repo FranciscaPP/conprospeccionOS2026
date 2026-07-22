@@ -97,6 +97,13 @@ MODULOS = [
     },
     {
         "icon": "",
+        "nombre": "BBDD Maestras",
+        "desc": "Pool único de prospectos (Apollo · Snov · GHL) deduplicado por correo. Reutiliza contactos según el ICP de cada cliente: correo verificado a Snov, con teléfono a GHL.",
+        "tag": "beta", "tag_label": "Prospección",
+        "color": "#6d28d9",
+    },
+    {
+        "icon": "",
         "nombre": "Seguimiento Reuniones",
         "desc": "Vista en vivo de todas las reuniones del mes por cliente. Filtros por SDR, día y cliente. Incluye estado de validación.",
         "tag": "live", "tag_label": "En vivo",
