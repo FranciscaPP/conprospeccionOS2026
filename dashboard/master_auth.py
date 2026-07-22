@@ -10,6 +10,7 @@ ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 
 sys.path.insert(0, str(ROOT))
 from shared.config import master_passwords
+from shared.responsive import inject_responsive_css
 
 SESSION_KEY = "master_logged_in"
 USER_KEY = "master_user"
@@ -132,6 +133,7 @@ def require_master_auth() -> bool:
     - Si ya está logueado: retorna True y setea admin_mode.
     - Si no: muestra el login y retorna False (la página debe hacer st.stop() después).
     """
+    inject_responsive_css()
     if st.session_state.get(SESSION_KEY):
         st.session_state["admin_mode"] = True
         return True

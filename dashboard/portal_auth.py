@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 from shared.config import portal_passwords
 from shared.cp_design import CP_CARBON, CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_LINE, CP_ORANGE
 from shared.planes import plan_de
+from shared.responsive import inject_responsive_css
 
 
 def img_b64(fname: str, h: int = 56) -> str:
@@ -206,6 +207,7 @@ def render_client_nav(current: str, cliente: str) -> None:
 
 def require_auth_client(cliente: str) -> bool:
     """Muestra login si no autenticado (retorna False). Si autenticado retorna True."""
+    inject_responsive_css()
     cfg = _CLIENTS[cliente]
     if st.session_state.get(cfg["session_key"]):
         return True
