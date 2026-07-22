@@ -222,6 +222,10 @@ def _iso_date(value: Any) -> str | None:
     return parsed.isoformat() if parsed else None
 
 
+def _created_date(task: dict[str, Any]) -> date | None:
+    return _date_or_none(task.get("created_at"))
+
+
 def _esc(value: Any) -> str:
     return html.escape(str(value or "").strip())
 
@@ -450,6 +454,27 @@ def _period_caption(period: str, start: date | None, end: date | None) -> str:
     return f"{period}: {start.strftime('%d/%m/%Y')} - {end.strftime('%d/%m/%Y')}"
 
 
+def _matches_search(task: dict[str, Any], query: str) -> bool:
+    needle = query.strip().lower()
+    if not needle:
+        return True
+    subtask_text = " ".join(str(item.get("title") or "") for item in task.get("subtasks", []))
+    haystack = " ".join(
+        [
+            str(task.get("title") or ""),
+            str(task.get("description") or ""),
+            str(task.get("reference_url") or ""),
+            str(task.get("client") or ""),
+            str(CLIENT_LABELS.get(task.get("client"), "")),
+            str(task.get("owner") or ""),
+            str(task.get("priority") or ""),
+            str(task.get("status") or ""),
+            subtask_text,
+        ]
+    ).lower()
+    return needle in haystack
+
+
 def _filter_tasks(
     tasks: list[dict[str, Any]],
     owner: str,
@@ -458,6 +483,9 @@ def _filter_tasks(
     period: str,
     date_from: date | None,
     date_to: date | None,
+    created_from: date | None,
+    created_to: date | None,
+    search_query: str,
     include_done: bool,
 ) -> list[dict[str, Any]]:
     filtered = []
@@ -478,6 +506,12 @@ def _filter_tasks(
         if client != "Todos" and task.get("client") != client:
             continue
         if priority != "Todas" and task.get("priority") != priority:
+            continue
+        if created_from and created_to:
+            created = _created_date(task)
+            if not created or created < created_from or created > created_to:
+                continue
+        if not _matches_search(task, search_query):
             continue
         if not include_done and task.get("status") == "Terminado":
             continue
@@ -1402,6 +1436,42 @@ if selected_period == "Rango manual":
     if date_from > date_to:
         st.warning("El rango de fechas esta invertido. Ajusta Desde y Hasta.")
         date_from, date_to = date_to, date_from
+
+s1, s2, s3, s4 = st.columns([1.1, .9, .9, 2])
+with s1:
+    created_filter = st.selectbox(
+        "Creación",
+        ["Todas", "Hoy", "Semana actual", "Mes actual", "Rango manual"],
+        key="created_filter",
+    )
+
+created_from, created_to = _period_bounds(
+    {
+        "Hoy": "Pendientes hoy",
+        "Semana actual": "Pendientes semana actual",
+        "Mes actual": "Pendientes mes actual",
+    }.get(created_filter, "Todas las fechas"),
+    _today(),
+)
+if created_filter == "Rango manual":
+    with s2:
+        created_from = st.date_input("Creada desde", value=week_start, key="created_from")
+    with s3:
+        created_to = st.date_input("Creada hasta", value=_today(), key="created_to")
+    if created_from > created_to:
+        st.warning("El rango de creación está invertido. Ajusta Desde y Hasta.")
+        created_from, created_to = created_to, created_from
+else:
+    with s2:
+        st.caption("Fecha creada")
+    with s3:
+        st.caption(_period_caption(created_filter, created_from, created_to))
+with s4:
+    search_query = st.text_input(
+        "Buscar",
+        placeholder="Buscar por tarea, detalle, cliente, responsable o subtarea",
+        key="task_search_query",
+    )
 st.markdown("</div>", unsafe_allow_html=True)
 
 if st.session_state.get("work_metric_filter") == "high":
@@ -1415,6 +1485,9 @@ base_visible_tasks = _filter_tasks(
     selected_period,
     date_from,
     date_to,
+    created_from,
+    created_to,
+    search_query,
     include_done,
 )
 visible_tasks = _apply_metric_filter(base_visible_tasks)
@@ -1468,7 +1541,7 @@ with layout_cols[0]:
     _write_board_component()
     board_payload = render_work_board_component(
         BOARD_COMPONENT_DIR,
-        key=f"work_board_{selected_period}_{date_from}_{date_to}_{selected_owner}_{selected_client}_{selected_priority}_{include_done}_{st.session_state.get('work_metric_filter','')}",
+        key=f"work_board_{selected_period}_{date_from}_{date_to}_{created_filter}_{created_from}_{created_to}_{search_query}_{selected_owner}_{selected_client}_{selected_priority}_{include_done}_{st.session_state.get('work_metric_filter','')}",
         tasks=_board_tasks_payload(visible_tasks),
         statuses=STATUSES,
         status_meta=STATUS_META,
@@ -1497,7 +1570,7 @@ with st.expander("Vista rápida en tabla"):
     if visible_tasks:
         df = pd.DataFrame(visible_tasks)
         st.dataframe(
-            df[["title", "client", "owner", "priority", "status", "due_date", "week_start"]].rename(
+            df[["title", "client", "owner", "priority", "status", "due_date", "week_start", "created_at"]].rename(
                 columns={
                     "title": "Tarea",
                     "client": "Cliente",
@@ -1506,6 +1579,7 @@ with st.expander("Vista rápida en tabla"):
                     "status": "Estado",
                     "due_date": "Fecha límite",
                     "week_start": "Semana",
+                    "created_at": "Creada",
                 }
             ),
             use_container_width=True,
