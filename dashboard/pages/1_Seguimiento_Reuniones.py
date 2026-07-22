@@ -20,6 +20,7 @@ import streamlit.components.v1 as components
 from shared.config import supabase_key, supabase_url
 from shared.meeting_scope import ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de
+from shared.responsive import inject_panel_mobile_css
 from meeting_component import render_meeting_component
 from meeting_shared import cargar_reuniones_reales_poc
 from master_auth import require_master_auth
@@ -705,6 +706,8 @@ POC_HTML = POC_HTML.replace(
     "const goal=clientGoals[code]||0;",
     "const goal=clientGoals[code]||((rows.find(m=>m.client===code)||meetings.find(m=>m.client===code)||{}).goal||0);",
 )
+
+POC_HTML = inject_panel_mobile_css(POC_HTML)
 
 COMPONENT_DIR = Path(tempfile.gettempdir()) / "cp_seguimiento_reuniones_component"
 COMPONENT_DIR.mkdir(parents=True, exist_ok=True)

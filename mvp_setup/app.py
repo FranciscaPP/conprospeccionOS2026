@@ -42,6 +42,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# CSS responsivo global (misma fuente que el dashboard: shared/responsive.py).
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from shared.responsive import inject_responsive_css
+
+    inject_responsive_css()
+except Exception:
+    pass
+
 PAISES_LA = [
     "Argentina", "Bolivia", "Brasil", "Chile", "Colombia",
     "Costa Rica", "Ecuador", "El Salvador", "España",

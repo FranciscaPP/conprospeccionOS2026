@@ -17,6 +17,7 @@ from meeting_component import render_meeting_component
 from meeting_shared import load_meetings, project_meeting_for_client
 from shared.config import supabase_key, supabase_url
 from shared.metas import meta_de
+from shared.responsive import inject_panel_mobile_css
 from shared.seguimiento import (
     cargar as cargar_seguimiento,
     payload_respuesta_cliente,
@@ -77,7 +78,7 @@ def _build_html(
     html = html.replace("__PORTAL_BRAND__", brand)
     html = html.replace("__PORTAL_USER__", user_label)
     html = html.replace("__PORTAL_SUBTITLE__", user_subtitle)
-    return html
+    return inject_panel_mobile_css(html)
 
 
 def _guardar_respuesta_cliente(
