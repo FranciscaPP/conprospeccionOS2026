@@ -65,6 +65,18 @@ entiende el repo sin explorar archivo por archivo):
   `planes.py`.
 - `sync/` — Sincronizacion de datos hacia Supabase (`scripts/`,
   `migrations/`, `queries/`) + CI.
+- `alicia/` — Servicio backend (no toca el dashboard) que gestiona **respuestas
+  de campanias Snov.io desde Telegram**. Detecta respuestas reales en las cuentas
+  de correo (Gmail API), las agrupa en una sola alerta por corrida a Telegram y
+  permite responder en el mismo hilo previa aprobacion. **Regla de costos:** la
+  deteccion/filtrado (rebotes, fuera de oficina, spam, duplicados) es 100%
+  deterministica, SIN IA; la IA (Anthropic) solo se invoca bajo peticion explicita
+  (resumen / clasificar / redactar) via el unico gateway `alicia/ai.py`, apagado
+  por defecto (`ALICIA_AI_ENABLED=false`). Interruptores: `ALICIA_ENABLED`,
+  `ALICIA_DRY_RUN` (true por defecto: no envia correos ni escribe en GHL),
+  `ALICIA_RUN_HOURS` (dos veces al dia, configurable). Escala a 25+ cuentas por
+  configuracion (tabla `alicia_accounts` o `ALICIA_ACCOUNTS_JSON`), sin codigo por
+  cuenta. Ver `alicia/README.md`. Secretos (refresh tokens Gmail) solo en Secrets.
 - `supabase/` — Base de datos: `migrations/` y `functions/` (edge functions).
 - `mvp_setup/` — Modulo de setup / onboarding de clientes (app propia).
 - `tests/` — Pruebas (pytest).

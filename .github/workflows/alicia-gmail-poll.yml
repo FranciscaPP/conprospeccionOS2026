@@ -1,0 +1,47 @@
+name: Alicia · poll respuestas Snov
+
+# Piloto: deshabilitado hasta configurar secretos. El job solo corre si la
+# variable de repositorio ALICIA_ENABLED == 'true'. El propio script se
+# auto-limita a ALICIA_RUN_HOURS (por defecto 8 y 20 America/Santiago), así que
+# el cron puede dispararse cada hora sin costo ni envíos indebidos.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    if: vars.ALICIA_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Alicia dependencies
+        run: pip install -r alicia/requirements.txt
+
+      - name: Run Alicia poller
+        env:
+          # Interruptores de seguridad
+          ALICIA_ENABLED: "true"
+          ALICIA_DRY_RUN: ${{ vars.ALICIA_DRY_RUN || 'true' }}
+          ALICIA_AI_ENABLED: "false"
+          ALICIA_RUN_HOURS: ${{ vars.ALICIA_RUN_HOURS || '8,20' }}
+          ALICIA_TIMEZONE: ${{ vars.ALICIA_TIMEZONE || 'America/Santiago' }}
+          ALICIA_LOOKBACK_HOURS: ${{ vars.ALICIA_LOOKBACK_HOURS || '14' }}
+          # Estado
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          # Gmail OAuth + refresh token del piloto (una cuenta)
+          GMAIL_OAUTH_CLIENT_ID: ${{ secrets.GMAIL_OAUTH_CLIENT_ID }}
+          GMAIL_OAUTH_CLIENT_SECRET: ${{ secrets.GMAIL_OAUTH_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN_CUENTA01: ${{ secrets.GMAIL_REFRESH_TOKEN_CUENTA01 }}
+          ALICIA_ACCOUNTS_JSON: ${{ vars.ALICIA_ACCOUNTS_JSON }}
+          # Telegram (salida)
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m alicia
