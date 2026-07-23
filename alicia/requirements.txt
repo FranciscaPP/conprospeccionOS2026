@@ -1,0 +1,8 @@
+# Dependencias del servicio Alicia (poller determinístico + webhook).
+# La detección NO requiere el SDK de Anthropic; 'anthropic' solo se usa si se
+# habilita la IA bajo petición (ALICIA_AI_ENABLED=true), por eso va marcado.
+httpx==0.27.2
+python-dotenv==1.0.1
+
+# Solo necesario si se habilita la IA (resúmenes/borradores bajo petición):
+# anthropic>=0.39.0
