@@ -109,6 +109,60 @@ def render_onboarding_form(cfg: dict[str, Any]) -> None:
     def val(name: str, fallback: Any = "") -> Any:
         return defaults.get(name, fallback)
 
+    def current(name: str, fallback: Any = "") -> Any:
+        return st.session_state.get(key(name), val(name, fallback))
+
+    def build_payload() -> dict[str, Any]:
+        return {
+            "cliente": slug,
+            "updated_at": "now()",
+            "icp_pais": ", ".join(current("icp_pais", []) or []),
+            "icp_cargos": "\n".join(current("icp_cargos", []) or []),
+            "icp_industrias": "\n".join(current("icp_industrias", []) or []),
+            "icp_tamano": ", ".join(current("icp_tamano", []) or []),
+            "icp_adicional": current("icp_adicional", ""),
+            "icp_descarte": "\n".join(current("icp_descarte", []) or []),
+            "web": current("web", ""),
+            "linkedin_empresa": current("linkedin_empresa", ""),
+            "propuesta_valor": current("propuesta_valor", ""),
+            "diferenciadores": current("diferenciadores", ""),
+            "presentacion_servicio": current("presentacion_servicio", ""),
+            "casos_exito": current("casos_exito", ""),
+            "tono_lenguaje": current("tono_lenguaje", ""),
+            "mensajes_funcionan": current("mensajes_funcionan", ""),
+            "mensajes_no_decir": current("mensajes_no_decir", ""),
+            "objeciones": current("objeciones", ""),
+            "nombre_ejecutivo": current("nombre_ejecutivo", ""),
+            "cargo_ejecutivo": current("cargo_ejecutivo", ""),
+            "email_ejecutivo": current("email_ejecutivo", ""),
+            "proceso_comercial": current("proceso_comercial", ""),
+            "duracion_reunion": current("duracion_reunion", ""),
+            "intervalo_reunion": current("intervalo_reunion", ""),
+            "anticipacion_agenda": current("anticipacion_agenda", ""),
+            "notificaciones": current("notificaciones", ""),
+            "tiempo_cierre": int(current("tiempo_cierre", 45)),
+            "ticket_promedio": current("ticket_promedio", ""),
+            "plan_contratado": current("plan_contratado", ""),
+            "preguntas_discovery": current("preguntas_discovery", ""),
+            "dolores_clientes": current("dolores_clientes", ""),
+            "gatillos_compra": current("gatillos_compra", ""),
+            "keywords_prospecto": current("keywords_prospecto", ""),
+            "notas_adicionales": current("notas_adicionales", ""),
+        }
+
+    def save_payload(success_text: str) -> dict[str, Any] | None:
+        payload = build_payload()
+        try:
+            create_client(supabase_url(), supabase_key()).table("gbs_onboarding").upsert(
+                payload, on_conflict="cliente"
+            ).execute()
+            st.toast(success_text)
+            st.success(success_text)
+            return payload
+        except Exception as exc:
+            st.error(f"Error al guardar el formulario: {exc}")
+            return None
+
     st.markdown(
         f"""
 <style>
@@ -144,15 +198,19 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
         unsafe_allow_html=True,
     )
 
-    def section(title: str) -> None:
+    def section(title: str, section_id: str) -> None:
         st.markdown(
             f'<div style="background:linear-gradient(135deg,{accent_2},{accent});color:{ink};'
-            f'border-radius:10px;padding:12px 20px;margin:24px 0 16px;font-size:15px;font-weight:850">'
+            f'border-radius:10px;padding:12px 20px;margin:24px 0 8px;font-size:15px;font-weight:850">'
             f'{title}</div>',
             unsafe_allow_html=True,
         )
+        save_col, _ = st.columns([1, 5])
+        with save_col:
+            if st.button("Guardar", use_container_width=True, key=f"{prefix}save_{section_id}"):
+                save_payload(f"{title} guardado.")
 
-    section("Definición del ICP (Perfil de Cliente Ideal)")
+    section("Definición del ICP (Perfil de Cliente Ideal)", "icp")
     st.markdown(
         f'<div style="background:{soft};border:1px solid {border};border-left:4px solid {accent};'
         f'border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:{ink}">'
@@ -176,7 +234,7 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
     with c4:
         st.file_uploader("Clientes actuales (CSV o XLSX)", type=["csv", "xlsx"], key=key("clientes_actuales"))
 
-    section("Empresa y Marca")
+    section("Empresa y Marca", "empresa")
     c5, c6 = st.columns(2)
     with c5:
         st.text_input("Página web", value=val("web", ""), key=key("web"))
@@ -192,7 +250,7 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
     with c8:
         st.text_area("Casos de éxito", value=val("casos_exito", ""), height=100, key=key("casos_exito"))
 
-    section("Mensajería y Tono de Comunicación")
+    section("Mensajería y Tono de Comunicación", "mensajeria")
     c9, c10 = st.columns(2)
     with c9:
         st.selectbox("Tipo de lenguaje a usar", cfg["tono_opts"], index=cfg.get("tono_index", 0), key=key("tono_lenguaje"))
@@ -201,7 +259,7 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
         st.text_area("Frases o mensajes a evitar", value=val("mensajes_no_decir", ""), height=100, key=key("mensajes_no_decir"))
         st.text_area("Principales objeciones recibidas", value=val("objeciones", ""), height=100, key=key("objeciones"))
 
-    section("Proceso Comercial y Configuración de Agenda")
+    section("Proceso Comercial y Configuración de Agenda", "proceso")
     c11, c12 = st.columns(2)
     with c11:
         st.text_input("Nombre del ejecutivo que toma las reuniones", value=val("nombre_ejecutivo", ""), key=key("nombre_ejecutivo"))
@@ -221,7 +279,7 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
         st.text_input("Costo promedio del servicio (ticket promedio)", value=val("ticket_promedio", ""), key=key("ticket_promedio"))
     st.radio("Plan contratado con Conprospección", ["Starter", "Growth"], horizontal=True, key=key("plan_contratado"), index=1 if val("plan_contratado", "Growth") == "Growth" else 0)
 
-    section("Inteligencia Comercial Adicional (Recomendado)")
+    section("Inteligencia Comercial Adicional (Recomendado)", "inteligencia")
     c15, c16 = st.columns(2)
     with c15:
         st.text_area("¿Qué preguntas de discovery funcionan mejor en las reuniones?", value=val("preguntas_discovery", ""), height=100, key=key("preguntas_discovery"))
@@ -271,9 +329,13 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
         + '</div>',
         unsafe_allow_html=True,
     )
+    summary_col, _ = st.columns([1, 5])
+    with summary_col:
+        if st.button("Guardar", use_container_width=True, key=f"{prefix}save_resumen"):
+            save_payload("Resumen ICP guardado.")
 
     if cfg.get("sources"):
-        section("Comprobantes y fuentes del ICP")
+        section("Comprobantes y fuentes del ICP", "fuentes")
         cols = st.columns(min(4, len(cfg["sources"])))
         for idx, source in enumerate(cfg["sources"]):
             with cols[idx % len(cols)]:
@@ -287,50 +349,9 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
     send_col, _ = st.columns([1, 3])
     with send_col:
         if st.button("Enviar formulario a Conprospección", type="primary", use_container_width=True, key=key("submit")):
-            payload = {
-                "cliente": slug,
-                "updated_at": "now()",
-                "icp_pais": ", ".join(st.session_state.get(key("icp_pais"), []) or []),
-                "icp_cargos": "\n".join(st.session_state.get(key("icp_cargos"), []) or []),
-                "icp_industrias": "\n".join(st.session_state.get(key("icp_industrias"), []) or []),
-                "icp_tamano": ", ".join(st.session_state.get(key("icp_tamano"), []) or []),
-                "icp_adicional": st.session_state.get(key("icp_adicional"), ""),
-                "icp_descarte": "\n".join(st.session_state.get(key("icp_descarte"), []) or []),
-                "web": st.session_state.get(key("web"), ""),
-                "linkedin_empresa": st.session_state.get(key("linkedin_empresa"), ""),
-                "propuesta_valor": st.session_state.get(key("propuesta_valor"), ""),
-                "diferenciadores": st.session_state.get(key("diferenciadores"), ""),
-                "presentacion_servicio": st.session_state.get(key("presentacion_servicio"), ""),
-                "casos_exito": st.session_state.get(key("casos_exito"), ""),
-                "tono_lenguaje": st.session_state.get(key("tono_lenguaje"), ""),
-                "mensajes_funcionan": st.session_state.get(key("mensajes_funcionan"), ""),
-                "mensajes_no_decir": st.session_state.get(key("mensajes_no_decir"), ""),
-                "objeciones": st.session_state.get(key("objeciones"), ""),
-                "nombre_ejecutivo": st.session_state.get(key("nombre_ejecutivo"), ""),
-                "cargo_ejecutivo": st.session_state.get(key("cargo_ejecutivo"), ""),
-                "email_ejecutivo": st.session_state.get(key("email_ejecutivo"), ""),
-                "proceso_comercial": st.session_state.get(key("proceso_comercial"), ""),
-                "duracion_reunion": st.session_state.get(key("duracion_reunion"), ""),
-                "intervalo_reunion": st.session_state.get(key("intervalo_reunion"), ""),
-                "anticipacion_agenda": st.session_state.get(key("anticipacion_agenda"), ""),
-                "notificaciones": st.session_state.get(key("notificaciones"), ""),
-                "tiempo_cierre": int(st.session_state.get(key("tiempo_cierre"), 45)),
-                "ticket_promedio": st.session_state.get(key("ticket_promedio"), ""),
-                "plan_contratado": st.session_state.get(key("plan_contratado"), ""),
-                "preguntas_discovery": st.session_state.get(key("preguntas_discovery"), ""),
-                "dolores_clientes": st.session_state.get(key("dolores_clientes"), ""),
-                "gatillos_compra": st.session_state.get(key("gatillos_compra"), ""),
-                "keywords_prospecto": st.session_state.get(key("keywords_prospecto"), ""),
-                "notas_adicionales": st.session_state.get(key("notas_adicionales"), ""),
-            }
-            try:
-                create_client(supabase_url(), supabase_key()).table("gbs_onboarding").upsert(
-                    payload, on_conflict="cliente"
-                ).execute()
+            payload = save_payload("Formulario enviado y guardado correctamente.")
+            if payload:
                 _notify_telegram(client_name, payload["nombre_ejecutivo"], payload["email_ejecutivo"])
-                st.success("Formulario enviado y guardado correctamente.")
-            except Exception as exc:
-                st.error(f"Error al guardar el formulario: {exc}")
 
     cp = img_b64("conprospeccion_logo.png", 18) or ""
     st.markdown(
