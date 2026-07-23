@@ -747,8 +747,16 @@ function cpTab(m) {
   const evidenceBlock = evidenceHtml
     ? `<span class="block-title" style="margin-top:10px">Evidencias y archivos</span>${evidenceHtml}`
     : "";
+  const meetingSummary = m.meetingSummary
+    ? `<div class="just-box"><b>Resumen de reunión</b><p style="margin:0">${esc(m.meetingSummary)}</p></div>`
+    : "";
+  const nextSteps = m.next
+    ? `<div class="just-box"><b>Próximos pasos</b><p style="margin:0">${esc(m.next)}</p></div>`
+    : "";
   return `<div class="grid">${readField("Evaluación CP", m.cp)}${readField("ICP", m.icp)}</div>
     <span class="block-title">BANT</span>${bant}
+    ${meetingSummary}
+    ${nextSteps}
     ${m.just ? `<div class="just-box"><b>Justificación</b><p style="margin:0">${esc(m.just)}</p></div>` : ""}
     ${evidenceBlock}
     <div class="read" style="margin-top:10px"><p>El cliente no edita Evaluación CP, BANT ni ICP.</p></div>`;

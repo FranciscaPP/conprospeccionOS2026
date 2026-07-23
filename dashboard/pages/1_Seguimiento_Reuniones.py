@@ -634,6 +634,7 @@ def _save_dashboard_payload(payload):
         "direccion_reunion": _txt(meeting.get("meet")) or None,
         "recording_url": _txt(meeting.get("recordingUrl")) or None,
         "transcript_url": _txt(meeting.get("transcriptUrl")) or None,
+        "ai_summary": _txt(meeting.get("meetingSummary")) or None,
     }
     if final_db:
         base_payload["estado_validacion"] = final_db
