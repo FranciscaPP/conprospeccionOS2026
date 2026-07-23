@@ -81,7 +81,7 @@ CLIENTES = [
         "bg": "#eff6ff",
         "border": "#bfdbfe",
         "pages": [
-            ("Indicadores", "pages/11_GBS.py"),
+            ("Indicadores", "pages/11_GBS_Indicadores.py"),
             ("Validación Reuniones", "pages/12_GBS.py"),
             ("Playbook SDR", "pages/13_GBS_Playbook_SDR.py"),
             ("Onboarding", "pages/14_GBS_Onboarding.py"),

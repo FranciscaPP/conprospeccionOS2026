@@ -1,4 +1,4 @@
-"""Portal cliente BambuTech - onboarding e ICP acordado."""
+"""Portal cliente BambuTech - onboarding comercial editable."""
 from __future__ import annotations
 
 import sys
@@ -11,9 +11,9 @@ DASHBOARD_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DASHBOARD_DIR))
 
-from portal_auth import render_bambutech_page_header, render_client_nav, require_auth_client
-from shared.bambutech_brand import ICP_DEFAULT
-from shared.cp_design import CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_LINE, CP_MUTED, CP_MUTED_SURFACE
+from onboarding_form import render_onboarding_form
+from portal_auth import render_client_nav, require_auth_client
+from shared.cp_design import CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_ORANGE
 
 
 st.set_page_config(page_title="BambuTech - Onboarding", layout="wide", page_icon="")
@@ -22,88 +22,125 @@ if not require_auth_client("bambutech"):
 
 render_client_nav("17_BambuTech_Onboarding", "bambutech")
 
-st.markdown(
-    """
-<style>
-.block-container{max-width:1180px;padding-top:1rem!important}
-.bambu-card{background:#fff;border:1px solid #EDECEA;border-radius:8px;padding:18px 20px;margin-bottom:14px}
-.bambu-card h3{margin:0 0 10px;color:#1A1A1A;font-size:16px}
-.bambu-card p,.bambu-card li{color:#6B6B6B;font-size:13px;line-height:1.55}
-.bambu-chip{display:inline-flex;margin:4px 5px 4px 0;padding:5px 9px;border-radius:999px;background:#FFF7BF;border:1px solid #F0D28D;color:#1A1A1A;font-size:11px;font-weight:800}
-.bambu-line{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid #EDECEA;padding:9px 0;font-size:13px}
-.bambu-line span:first-child{color:#6B6B6B}.bambu-line span:last-child{color:#1A1A1A;font-weight:800;text-align:right}
-</style>
-    """,
-    unsafe_allow_html=True,
-)
-
-render_bambutech_page_header(
-    "Onboarding",
-    "Resumen ICP acordado, alcance comercial y criterios de validacion del proyecto",
-)
-
-st.markdown(
-    f'<div class="bambu-card" style="border-left:5px solid {CP_GOLD}">'
-    f'<h3>Resumen ICP acordado</h3>'
-    f'<p>Esta es la referencia que usa Conprospeccion para evaluar fit comercial '
-    f'en reuniones, campanas y analisis. La definicion queda centralizada para que '
-    f'el equipo de BambuTech y Conprospeccion miren el mismo criterio.</p></div>',
-    unsafe_allow_html=True,
-)
-
-
-def _chips(value: str) -> str:
-    return "".join(
-        f'<span class="bambu-chip">{item.strip()}</span>'
-        for item in str(value or "").split(",")
-        if item.strip()
-    )
-
-
-cols = st.columns(2)
-with cols[0]:
-    st.markdown(
-        '<div class="bambu-card"><h3>Paises objetivo</h3>'
-        + _chips(ICP_DEFAULT["icp_pais"])
-        + "</div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div class="bambu-card"><h3>Tamano de empresa</h3>'
-        + _chips(ICP_DEFAULT["icp_tamano"])
-        + "</div>",
-        unsafe_allow_html=True,
-    )
-with cols[1]:
-    st.markdown(
-        '<div class="bambu-card"><h3>Cargos objetivo</h3>'
-        + _chips(ICP_DEFAULT["icp_cargos"])
-        + "</div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div class="bambu-card"><h3>Industrias objetivo</h3>'
-        + _chips(ICP_DEFAULT["icp_industrias"])
-        + "</div>",
-        unsafe_allow_html=True,
-    )
-
-st.markdown(
-    f"""
-<div class="bambu-card">
-  <h3>Oferta y criterios comerciales</h3>
-  <div class="bambu-line"><span>Propuesta de valor</span><span>{ICP_DEFAULT["propuesta_valor"]}</span></div>
-  <div class="bambu-line"><span>Dolores prioritarios</span><span>{ICP_DEFAULT["dolores_clientes"]}</span></div>
-  <div class="bambu-line"><span>Gatillos de compra</span><span>{ICP_DEFAULT["gatillos_compra"]}</span></div>
-  <div class="bambu-line"><span>Exclusiones</span><span>{ICP_DEFAULT["icp_descarte"]}</span></div>
-  <div class="bambu-line"><span>Keywords</span><span>{ICP_DEFAULT["keywords_prospecto"]}</span></div>
-</div>
-<div class="bambu-card" style="background:{CP_GOLD_SOFT};border-color:#F0D28D">
-  <h3>Uso en validacion</h3>
-  <p>El portal de reuniones muestra una sintesis del fit de cada prospecto. La
-  evaluacion final combina este ICP, la informacion disponible de la reunion y
-  la revision operativa de Conprospeccion.</p>
-</div>
-    """,
-    unsafe_allow_html=True,
+render_onboarding_form(
+    {
+        "slug": "bambutech",
+        "client_name": "BambuTech Services",
+        "logo_file": "bambutech_logo.png",
+        "accent": CP_GOLD,
+        "accent_2": CP_ORANGE,
+        "soft": CP_GOLD_SOFT,
+        "border": "#F0D28D",
+        "ink": CP_INK,
+        "cargo_opts": [
+            "CEO", "CIO", "CISO", "CFO", "CMO", "COO", "CTO",
+            "Director de Tecnología", "Director de Operaciones", "Director de Transformación Digital",
+            "Gerente General", "Gerente de Innovación", "Gerente de Sistemas",
+            "Gerente de Supply Chain", "Gerente de Logística", "Gerente de Retail",
+        ],
+        "industria_opts": [
+            "Abierto", "Retail y consumo", "Servicios financieros", "Alimentos y bebidas",
+            "Logística y transporte", "Seguros", "Automotriz", "Construcción",
+            "Salud y farmacéutica", "Manufactura", "Minería", "Energía",
+            "Telecomunicaciones", "Tecnología", "Gobierno / sector público",
+        ],
+        "descarte_opts": [
+            "Competidores de desarrollo de software", "Empresas sin necesidad tecnológica identificable",
+            "Empresas sin capacidad de inversión", "Empresas fuera de los mercados objetivo",
+            "Cuentas sin decisor C-Level accesible", "Microempresas sin presupuesto de transformación",
+        ],
+        "tono_opts": [
+            "Consultivo - preguntar antes de proponer",
+            "Directo y ejecutivo (C-Suite)",
+            "Profesional pero cercano",
+            "Formal y técnico (tecnología / transformación digital)",
+        ],
+        "defaults": {
+            "icp_pais": ["México", "Estados Unidos", "Panamá", "Colombia", "Chile"],
+            "icp_cargos": ["CEO", "CIO", "CISO", "CFO", "CMO", "COO"],
+            "icp_tamano": ["35-99 empleados", "100-999 empleados", "1000+ empleados"],
+            "icp_industrias": ["Abierto", "Retail y consumo", "Logística y transporte", "Salud y farmacéutica", "Manufactura"],
+            "icp_adicional": (
+                "Empresas que buscan ganar más, ser más rentables, gastar menos, concentrar proveedores, "
+                "optimizar inversiones, asegurar escalabilidad, reducir tiempos, ganar mercado, innovar, "
+                "crear productos o mejorar la experiencia de clientes y usuarios."
+            ),
+            "icp_descarte": [
+                "Competidores de desarrollo de software",
+                "Empresas sin necesidad tecnológica identificable",
+                "Empresas sin capacidad de inversión",
+                "Microempresas sin presupuesto de transformación",
+            ],
+            "web": "https://bambutech.com",
+            "propuesta_valor": (
+                "BambuTech diseña, desarrolla e integra soluciones digitales a la medida: software, "
+                "automatización, Data & AI, cloud, ciberseguridad, UX/UI, IoT e integración de APIs."
+            ),
+            "diferenciadores": (
+                "Horizonte integral de servicios: consultoría, diseño, desarrollo, testing, deployment y growth.\n"
+                "Capacidad de assessment, benchmarking, UX/UI, prototipado, RPA, integración de APIs, IA, cloud, QA, pentesting y mantenimiento Bambú Care.\n"
+                "Casos en C5/911, e-commerce, mCommerce, SAP Commerce Cloud, apps móviles y soluciones de operación crítica."
+            ),
+            "presentacion_servicio": (
+                "BambuTech ayuda a empresas a dar el salto digital mediante soluciones tecnológicas personalizadas, "
+                "modernización de sistemas, automatización e integración para mejorar eficiencia, escalabilidad y experiencia del cliente."
+            ),
+            "casos_exito": (
+                "Sistema de traducción para operadores 911/C5 del Estado de Baja California Sur.\n"
+                "Célula de soporte e implementación de mejoras para app de e-commerce/mCommerce con Kotlin, Swift, Angular, OAuth2, Firebase, Emarsys, Dynatrace y SAP Commerce Cloud."
+            ),
+            "mensajes_funcionan": (
+                "Mensajes orientados a eficiencia operativa, reducción de costos/tiempos, modernización tecnológica, "
+                "integración de sistemas, automatización y mejora de experiencia de cliente."
+            ),
+            "objeciones": (
+                "Ya tenemos proveedor tecnológico; no es prioridad ahora; tenemos equipo interno; falta presupuesto; "
+                "necesitamos validar alcance antes de avanzar."
+            ),
+            "proceso_comercial": "1. Reunión exploratoria\n2. Diagnóstico / assessment\n3. Propuesta de solución\n4. Cotización y alcance\n5. Cierre e inicio de proyecto",
+            "tiempo_cierre": 45,
+            "ticket_promedio": "A: $1,000,000 MXP · AA: $3,000,000 MXP · AAA: $5,000,000 MXP · One Off: $20,000,000 MXP",
+            "plan_contratado": "Growth",
+            "preguntas_discovery": (
+                "¿Qué proceso crítico quieren digitalizar o automatizar?\n"
+                "¿Qué sistemas hoy no conversan entre sí?\n"
+                "¿Qué impacto financiero u operativo tiene el problema?\n"
+                "¿Quién decide el proveedor tecnológico y quién usa la solución?"
+            ),
+            "dolores_clientes": (
+                "Fragmentación de la información, obsolescencia tecnológica, necesidad de middleware, "
+                "vulnerabilidad, riesgo operativo, procesos manuales, baja analítica y digitalización pendiente."
+            ),
+            "gatillos_compra": (
+                "Reducir costos y tiempos, concentrar proveedores, escalar, innovar, mejorar CX, lanzar nuevos productos, "
+                "resolver vulnerabilidades o integrar datos/sistemas críticos."
+            ),
+            "keywords_prospecto": (
+                "transformación digital, software a la medida, automatización, Data & AI, integración, middleware, "
+                "cloud, ciberseguridad, UX/UI, IoT, RPA, APIs, modernización tecnológica"
+            ),
+            "notas_adicionales": (
+                "ICP base extraído de Perfil de clientes y Master Comercial BambuTech. "
+                "Links de reuniones pendientes de transcripción completa en Granola/Fathom."
+            ),
+        },
+        "sources": [
+            {
+                "title": "Perfil de clientes",
+                "detail": "PDF: ICP con industria abierta, C-Level, ubicaciones CDMX/GDL/MTY/QRO/Chihuahua/Houston/Panamá/Colombia/Chile, pain points, tamaño y ticket.",
+            },
+            {
+                "title": "Master Comercial",
+                "detail": "PDF: horizonte de servicios, Bambú Care, casos de software/PaaS, C5/911, e-commerce y enfoque de salto digital.",
+            },
+            {
+                "title": "Granola",
+                "detail": "https://notes.granola.ai/t/f66d4a65-daaa-4495-b183-a1da51166b15-008umkv4",
+            },
+            {
+                "title": "Fathom",
+                "detail": "https://fathom.video/share/8qQ9ES9z8o-FHGYExrSrXdVcebT_ZPbv",
+            },
+        ],
+    }
 )

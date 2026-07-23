@@ -19,5 +19,13 @@ def render_meeting_component(
     nombre, la ultima pagina visitada se quedaria con el componente y la otra
     serviria el HTML equivocado.
     """
-    component = components.declare_component(name, path=str(component_dir))
-    return component(default=None, key=key)
+    try:
+        component = components.declare_component(name, path=str(component_dir))
+        return component(default=None, key=key)
+    except RuntimeError as exc:
+        if "module is None" not in str(exc):
+            raise
+        index_path = component_dir / "index.html"
+        if index_path.exists():
+            components.html(index_path.read_text(encoding="utf-8"), height=920, scrolling=True)
+        return None
