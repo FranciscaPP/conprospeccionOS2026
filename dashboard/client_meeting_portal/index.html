@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8" />
@@ -83,6 +83,45 @@ button,input,select,textarea{font:inherit}
 .kpi span{display:block;font-size:11px;font-weight:700}
 .kpi b{display:block;font-family:"IBM Plex Mono",monospace;font-size:24px;line-height:1.1;margin-top:2px}
 .kpi small{display:block;font-size:10.5px;color:var(--muted);margin-top:4px}
+.kpi-flow{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);background:#FAFAF8;padding:8px 12px}
+.flow-pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:700;color:var(--carbon)}
+.flow-pill b{font-family:"IBM Plex Mono",monospace;font-size:12px;margin-left:4px}
+.flow-note{font-size:10.5px;color:var(--muted);line-height:1.35}
+.op-card{padding:10px 12px;background:#FAFAF8}
+.op-card summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none}
+.op-card summary::-webkit-details-marker{display:none}
+.op-title{min-width:0;flex:1}
+.op-title b{display:block;font-family:Saira,"IBM Plex Sans",sans-serif;font-size:14px;line-height:1.15}
+.op-title span{display:block;color:var(--muted);font-size:11px;margin-top:2px;line-height:1.3}
+.op-badge{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 9px;font-size:10.5px;font-weight:800;color:var(--carbon);white-space:nowrap}
+.op-chevron{font-weight:800;color:var(--muted)}
+.op-body{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.9fr);gap:12px;margin-top:9px;align-items:start}
+.op-track{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;position:relative}
+.op-track:before{content:"";position:absolute;left:8%;right:8%;top:9px;height:2px;background:var(--line-strong)}
+.op-milestone{position:relative;z-index:1;min-width:0}
+.op-dot{width:18px;height:18px;border-radius:99px;background:#fff;border:2px solid var(--line-strong);margin-bottom:5px}
+.op-milestone b{display:block;font-size:11px;line-height:1.15}
+.op-milestone small{display:block;color:var(--muted);font-size:10px;line-height:1.25;margin-top:2px}
+.op-segments{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+.op-seg{border:1px solid var(--line);border-radius:8px;background:#fff;padding:7px 8px;min-width:0}
+.op-seg.active{border-color:#A7D9B8;background:var(--green-bg)}
+.op-seg.pause{border-color:#F1C977;background:var(--orange-bg)}
+.op-seg b{display:block;font-size:11px;line-height:1.15}
+.op-seg small{display:block;font-size:10px;color:var(--muted);line-height:1.25;margin-top:2px}
+.op-seg ul{list-style:none;margin:5px 0 0;padding:0;display:flex;gap:4px;flex-wrap:wrap}
+.op-seg li{font-size:10px;border:1px solid rgba(0,0,0,.08);background:rgba(255,255,255,.66);border-radius:999px;padding:2px 6px;line-height:1.2}
+.op-note{margin-top:5px;font-size:10px;line-height:1.3;color:#6F4A00}
+.op-side{display:grid;grid-template-columns:1fr;gap:7px}
+.op-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.op-mini{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 7px}
+.op-mini span{display:block;font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.1}
+.op-mini b{display:block;font-family:"IBM Plex Mono",monospace;font-size:15px;line-height:1.15;margin-top:2px}
+.op-rhythm{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 8px}
+.op-rhythm h3{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:12px;margin:0 0 5px;line-height:1.1}
+.op-rhythm dl{display:grid;grid-template-columns:1fr auto;gap:3px 8px;margin:0;font-size:10.5px}
+.op-rhythm dt{color:var(--muted);line-height:1.2}
+.op-rhythm dd{margin:0;font-weight:700;text-align:right;line-height:1.2}
+.tip{border:1px solid var(--line);background:#fff;border-radius:50%;width:16px;height:16px;display:inline-grid;place-items:center;font-size:10px;font-weight:800;color:var(--muted);margin-left:4px}
 .table-head{padding:11px 14px 7px}
 .table-head h2{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:14px;margin:0}
 .table-head p{font-size:11px;color:var(--muted);margin:3px 0 0}
@@ -175,6 +214,8 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .layout.open .kpis{grid-template-columns:repeat(3,1fr)}
 .layout.open .kpi{min-height:66px;padding:8px 10px}
 .layout.open .kpi b{font-size:21px}
+.layout.open .op-body{grid-template-columns:1fr}
+.layout.open .op-summary{grid-template-columns:repeat(5,minmax(0,1fr))}
 .layout.open table{font-size:10.6px}
 .layout.open thead th,.layout.open tbody td{padding:5px 5px}
 .layout.open .pill{min-width:0;width:100%;padding:4px 5px;font-size:10.2px}
@@ -189,7 +230,8 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .layout.open .field2 input,.layout.open .field2 textarea,.layout.open .field2 select{font-size:12px}
 .layout.open .co-head b{font-size:16px}
 .layout.open .co-title b{font-size:13px}
-@media(max-width:1100px){.layout.open{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1100px){.layout.open{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}.op-body{grid-template-columns:1fr}.op-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:760px){.top{height:auto;grid-template-columns:1fr;padding:12px 14px}.top-meta{justify-self:stretch;padding:0}.user{text-align:left}.filters,.extra{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}.kpi{border-right:0;border-bottom:1px solid var(--line)}.op-card summary{align-items:flex-start}.op-badge{white-space:normal}.op-track{grid-template-columns:1fr;gap:8px;padding-left:14px}.op-track:before{left:8px;right:auto;top:8px;bottom:8px;width:2px;height:auto}.op-dot{position:absolute;left:-14px;top:0}.op-milestone{padding-left:12px}.op-segments{grid-template-columns:1fr}.op-summary,.layout.open .op-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.op-rhythm dl{grid-template-columns:1fr}.op-rhythm dd{text-align:left}}
 </style>
 </head>
 <body>
@@ -236,6 +278,7 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
         <div class="active-filters" id="activeFilters"></div>
       </section>
       <section class="card kpis" id="kpis"></section>
+      <section class="card op-card" id="operationalTimeline" hidden></section>
       <section class="card">
         <div class="table-head"><h2>Seguimiento de reuniones</h2><p>Confirma o solicita revisión desde el panel lateral → pestaña Evaluación Cliente.</p></div>
         <div class="table-wrap"><table><thead id="thead"></thead><tbody id="rows"></tbody></table></div>
@@ -267,6 +310,7 @@ const clientVals = ["","Pendiente","Válida","No válida","Solicita revisión","
 const clientValsEditable = ["Pendiente","Válida","Solicita revisión"];
 const finalOptions = ["Pendiente","Reunión válida","Reunión no válida","Reunión cancelada","Reagendar reunión"];
 const EYE_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const OPERATIONAL_TIMELINE = __OPERATIONAL_TIMELINE_JSON__;
 
 let meetings = __MEETINGS_JSON__;
 
@@ -511,21 +555,88 @@ function renderQuickStatus() {
 }
 function pct(n, total) { return total ? `${((n/total)*100).toFixed(1)}% del total` : "0%"; }
 function kpiActive(label) {
-  return (label==="Válidas"&&filters.final==="Reunión válida")||(label==="No válidas"&&filters.final==="Reunión no válida")||(label==="Pendiente CP"&&filters.cp==="Pendiente")||(label==="Pendiente cliente"&&filters.clientVal==="Pendiente");
+  return (label==="Válidas"&&filters.final==="Reunión válida")||(label==="No válida"&&filters.final==="Reunión no válida")||(label==="Reagendar"&&filters.status==="Reagendar reunión");
+}
+function kpiCounts(rows) {
+  const valid = rows.filter(x=>finalStatus(x)==="Reunión válida").length;
+  const invalid = rows.filter(x=>finalStatus(x)==="Reunión no válida").length;
+  const reschedule = rows.filter(x=>x.status==="Reagendar reunión" || finalStatus(x)==="Reagendar reunión").length;
+  const future = rows.filter(x=>x.status==="Reunión futura").length;
+  const review = rows.filter(x=>x.clientVal==="Solicita revisión").length;
+  const open = future + review;
+  const pendingCp = rows.filter(x=>x.cp==="Pendiente").length;
+  const pendingClient = rows.filter(x=>x.clientVal==="Pendiente").length;
+  return { valid, invalid, reschedule, future, review, open, pendingCp, pendingClient };
 }
 function renderKpis(rows) {
   const total = rows.length || 1;
+  const counts = kpiCounts(rows);
   const cards = [
     ["Total reuniones", rows.length, "Todas las reuniones", "blue", "T", () => { filters.status=filters.cp=filters.clientVal=filters.final="Todos"; }],
-    ["Válidas", rows.filter(x=>finalStatus(x)==="Reunión válida").length, pct(rows.filter(x=>finalStatus(x)==="Reunión válida").length,total), "green", "V", () => toggleFilter("final","Reunión válida")],
-    ["No válidas", rows.filter(x=>finalStatus(x)==="Reunión no válida").length, pct(rows.filter(x=>finalStatus(x)==="Reunión no válida").length,total), "red", "X", () => toggleFilter("final","Reunión no válida")],
-    ["Pendiente CP", rows.filter(x=>x.cp==="Pendiente").length, pct(rows.filter(x=>x.cp==="Pendiente").length,total), "orange", "P", () => toggleFilter("cp","Pendiente")],
-    ["Pendiente cliente", rows.filter(x=>x.clientVal==="Pendiente").length, pct(rows.filter(x=>x.clientVal==="Pendiente").length,total), "orange", "PC", () => toggleFilter("clientVal","Pendiente")],
+    ["Válidas", counts.valid, pct(counts.valid,total), "green", "V", () => toggleFilter("final","Reunión válida")],
+    ["No válida", counts.invalid, pct(counts.invalid,total), "red", "X", () => toggleFilter("final","Reunión no válida")],
+    ["Abiertas", counts.open, `${counts.future} futura · ${counts.review} en revisión`, "purple", "A", () => {}],
+    ["Reagendar", counts.reschedule, pct(counts.reschedule,total), "orange", "R", () => toggleFilter("status","Reagendar reunión")],
   ];
   window.__kpiActions = cards.map(c => c[5]);
-  document.getElementById("kpis").innerHTML = cards.map((i,idx) =>
+  const primary = cards.map((i,idx) =>
     `<div class="kpi ${kpiActive(i[0])?"active":""}" onclick="__kpiActions[${idx}]();render()"><div class="ico ${i[3]}">${i[4]}</div><div><span>${i[0]}</span><b>${i[1]}</b><small>${i[2]}</small></div></div>`
   ).join("");
+  const flow = `<div class="kpi-flow">
+    <span class="flow-pill">Pendiente evaluación CP <b>${counts.pendingCp}</b></span>
+    <span class="flow-pill">Pendiente evaluación cliente <b>${counts.pendingClient}</b></span>
+    <span class="flow-note">Los indicadores de evaluación corresponden al flujo de validación y pueden superponerse con el estado final de la reunión.</span>
+  </div>`;
+  document.getElementById("kpis").innerHTML = primary + flow;
+}
+function renderOperationalTimeline() {
+  const el = document.getElementById("operationalTimeline");
+  if (!el) return;
+  if (!OPERATIONAL_TIMELINE) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  const t = OPERATIONAL_TIMELINE;
+  el.hidden = false;
+  const milestones = (t.milestones || []).map(m => `<div class="op-milestone"><div class="op-dot"></div><b>${esc(m.date)} · ${esc(m.title)}</b><small>${esc(m.subtitle)}</small></div>`).join("");
+  const segments = (t.segments || []).map(s => `<div class="op-seg ${s.type==="pause"?"pause":"active"}">
+    <b>${esc(s.label)}</b>
+    <small>${esc(s.calendarDays)} días calendario ${s.type==="pause"?"de pausa":"activos"} · ${esc(s.businessDays)} días hábiles</small>
+    <ul>${(s.metrics || []).map(metric => `<li>${esc(metric)}</li>`).join("")}</ul>
+    ${s.note ? `<div class="op-note">${esc(s.note)}</div>` : ""}
+  </div>`).join("");
+  const summary = [
+    ["Días activos totales", `${t.summary.activeCalendarDays}`],
+    ["Días de pausa", `${t.summary.pauseCalendarDays}`],
+    ["Reuniones acumuladas", `${t.summary.meetings}`],
+    ["Reuniones válidas", `${t.summary.validMeetings}`],
+    ["Validación confirmada", t.summary.validationRate],
+  ].map(i => `<div class="op-mini"><span>${i[0]}</span><b>${i[1]}</b></div>`).join("");
+  const r = t.rhythm || {};
+  el.innerHTML = `<details open>
+    <summary><span class="co-icon">T</span><span class="op-title"><b>${esc(t.title)}</b><span>${esc(t.subtitle)}</span></span><span class="op-badge">${esc(t.badge)}</span><span class="op-chevron">⌃</span></summary>
+    <div class="op-body">
+      <div>
+        <div class="op-track">${milestones}</div>
+        <div class="op-segments">${segments}</div>
+      </div>
+      <div class="op-side">
+        <div class="op-summary">${summary}</div>
+        <div class="op-rhythm">
+          <h3>${esc(r.title)}</h3>
+          <dl>
+            <dt>Referencia operativa mensual</dt><dd>${esc(r.monthlyReferenceMin)}-${esc(r.monthlyReferenceMax)} válidas</dd>
+            <dt>Período activo considerado</dt><dd>${esc(r.activeDays)} días</dd>
+            <dt>Referencia proporcional <span class="tip" title="${esc(r.tooltip)}">?</span></dt><dd>${esc(r.proportionalRange.min)}-${esc(r.proportionalRange.max)} válidas</dd>
+            <dt>Resultado confirmado desde la reactivación</dt><dd>${esc(r.confirmedSinceReactivation)} válidas</dd>
+            <dt>Oportunidades abiertas</dt><dd>${esc(r.openOpportunities)}</dd>
+            <dt>Pipeline potencial del período</dt><dd>${esc(r.potentialPipeline)}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </details>`;
 }
 function renderHead() {
   const cols = [["dateTime","Fecha y hora"],["company","Empresa"],["contact","Contacto"],["status","Etapa Agenda"],["cp","Evaluación CP"],["clientVal","Evaluación Cliente"],["final","Estado Final"],["actions","Acciones"]];
@@ -725,6 +836,7 @@ function render() {
   renderFilters(rows);
   renderQuickStatus();
   renderKpis(rows);
+  renderOperationalTimeline();
   renderMeta();
   renderHead();
   renderRows(rows);

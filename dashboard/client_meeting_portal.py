@@ -17,6 +17,7 @@ from meeting_component import render_meeting_component
 from meeting_shared import load_meetings, project_meeting_for_client
 from shared.config import supabase_key, supabase_url
 from shared.metas import meta_de
+from shared.prospecting_timeline import prospecting_timeline_for_client
 from shared.seguimiento import (
     cargar as cargar_seguimiento,
     payload_respuesta_cliente,
@@ -64,6 +65,7 @@ def _build_html(
     user_subtitle: str,
 ) -> str:
     goal = int((meta_de(client_slug) or {}).get("validas") or 0)
+    timeline = prospecting_timeline_for_client(client_slug)
     projected = [project_meeting_for_client(m) for m in meetings]
     for row in projected:
         row["clientSlug"] = client_slug
@@ -71,6 +73,10 @@ def _build_html(
     html = _TEMPLATE
     html = html.replace("__BRAND_MARK__", _asset_data_uri("cp_mark_dark.png"))
     html = html.replace("__MEETINGS_JSON__", meetings_json)
+    html = html.replace(
+        "__OPERATIONAL_TIMELINE_JSON__",
+        json.dumps(timeline, ensure_ascii=True).replace("</", "<\\/") if timeline else "null",
+    )
     html = html.replace("__CLIENT_GOAL__", str(goal))
     html = html.replace("__CLIENT_SLUG__", client_slug)
     html = html.replace("__PORTAL_TITLE__", title)
