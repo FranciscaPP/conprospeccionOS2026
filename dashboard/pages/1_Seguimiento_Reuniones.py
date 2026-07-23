@@ -2,9 +2,16 @@ import datetime
 import base64
 import json
 import re
+import sys
 import tempfile
 import unicodedata
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent.parent
+DASHBOARD_DIR = Path(__file__).resolve().parent.parent
+
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(DASHBOARD_DIR))
 
 try:
     from zoneinfo import ZoneInfo
