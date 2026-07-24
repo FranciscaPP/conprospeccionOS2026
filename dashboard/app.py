@@ -132,10 +132,10 @@ MODULOS = [
     },
     {
         "icon": "",
-        "nombre": "Pipeline comercial",
-        "desc": "Visualización del estado de oportunidades por cliente, directamente desde Supabase.",
-        "tag": "soon", "tag_label": "Próximamente",
-        "color": "#9a3412",
+        "nombre": "Comercial",
+        "desc": "Mini CRM interno para tus reuniones comerciales de Conprospeccion: oportunidades, presentacion, propuestas y seguimiento.",
+        "tag": "beta", "tag_label": "MVP visual",
+        "color": "#FFD700",
     },
     {
         "icon": "",
@@ -159,6 +159,12 @@ for i, m in enumerate(MODULOS):
         </div>
         """, unsafe_allow_html=True)
         st.markdown("")
+
+st.markdown("---")
+st.markdown("### Acceso rapido interno")
+
+if st.button("Abrir Comercial", use_container_width=True, type="primary", key="home_comercial"):
+    st.switch_page("pages/21_Comercial.py")
 
 st.markdown("---")
 st.markdown("### Accesos rápidos por cliente")
