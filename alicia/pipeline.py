@@ -66,6 +66,19 @@ def _header_value(headers: list[dict[str, str]], name: str) -> str:
     return ""
 
 
+def _format_fecha(date_header: str) -> str:
+    """Normaliza la cabecera Date a 'YYYY-MM-DD HH:MM'. Si no se puede, la deja igual."""
+    if not date_header:
+        return ""
+    try:
+        from email.utils import parsedate_to_datetime
+
+        dt = parsedate_to_datetime(date_header)
+        return dt.strftime("%Y-%m-%d %H:%M")
+    except (TypeError, ValueError):
+        return date_header
+
+
 def _process_account(account: accounts_mod.Account, deps: PipelineDeps, result: RunResult) -> None:
     gmail = deps.gmail_factory(account)
     message_ids = gmail.list_new_message_ids(deps.lookback_hours)
@@ -108,6 +121,7 @@ def _process_account(account: accounts_mod.Account, deps: PipelineDeps, result: 
         match = deps.snov.by_email(from_email)
         subject = _header_value(headers, "Subject")
         snippet = str(meta.get("snippet") or "")
+        fecha = _format_fecha(_header_value(headers, "Date"))
         internal_ref = accounts_mod.internal_ref(thread_id)
 
         deps.state.upsert_thread(
@@ -146,6 +160,7 @@ def _process_account(account: accounts_mod.Account, deps: PipelineDeps, result: 
                 subject=subject,
                 last_message=snippet,
                 snov_matched=match.matched,
+                fecha=fecha,
             )
         )
 

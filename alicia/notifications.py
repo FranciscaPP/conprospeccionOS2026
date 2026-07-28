@@ -23,6 +23,7 @@ class ReplyRecord:
     subject: str | None
     last_message: str | None
     snov_matched: bool = True
+    fecha: str | None = None
 
 
 def _clean(value: str | None, fallback: str = "—") -> str:
@@ -44,6 +45,7 @@ def format_reply(index: int, reply: ReplyRecord) -> str:
         f"{_clean(reply.prospect)} · {_clean(reply.empresa)}\n"
         f"   Cliente: {_clean(reply.cliente)} · Campaña: {campaign}\n"
         f"   Cuenta: {_clean(reply.account_email)}\n"
+        f"   Fecha respuesta: {_clean(reply.fecha)}\n"
         f"   Asunto: {_clean(reply.subject)}\n"
         f"   Último mensaje: {_truncate(reply.last_message)}"
     )
