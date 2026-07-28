@@ -10,7 +10,12 @@ Requisitos (solo en tu equipo, una vez):
     pip install google-auth-oauthlib
 
 Uso (repetir por cada casilla, iniciando sesión con la casilla correcta):
-    export GMAIL_OAUTH_CLIENT_ID=...        # de la credencial OAuth (Desktop app)
+
+    # Forma fácil: pasar el JSON del cliente OAuth que descargaste.
+    python alicia/tools/get_gmail_refresh_token.py --client-secrets client_secret_XXX.json
+
+    # Alternativa: variables de entorno.
+    export GMAIL_OAUTH_CLIENT_ID=...
     export GMAIL_OAUTH_CLIENT_SECRET=...
     python alicia/tools/get_gmail_refresh_token.py
 
@@ -20,6 +25,8 @@ Al terminar imprime:
 """
 from __future__ import annotations
 
+import argparse
+import json
 import os
 import sys
 
@@ -31,15 +38,41 @@ SCOPES = [
 ]
 
 
+def _load_client(args) -> tuple[str, str] | None:
+    if args.client_secrets:
+        try:
+            with open(args.client_secrets, encoding="utf-8") as fh:
+                data = json.load(fh)
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"No se pudo leer {args.client_secrets}: {exc}", file=sys.stderr)
+            return None
+        section = data.get("installed") or data.get("web") or {}
+        cid = str(section.get("client_id", "")).strip()
+        secret = str(section.get("client_secret", "")).strip()
+        if cid and secret:
+            return cid, secret
+        print("El JSON no tiene client_id/client_secret en 'installed'/'web'.", file=sys.stderr)
+        return None
+    cid = os.environ.get("GMAIL_OAUTH_CLIENT_ID", "").strip()
+    secret = os.environ.get("GMAIL_OAUTH_CLIENT_SECRET", "").strip()
+    if cid and secret:
+        return cid, secret
+    print(
+        "Pasa --client-secrets RUTA.json o define GMAIL_OAUTH_CLIENT_ID/SECRET.",
+        file=sys.stderr,
+    )
+    return None
+
+
 def main() -> int:
-    client_id = os.environ.get("GMAIL_OAUTH_CLIENT_ID", "").strip()
-    client_secret = os.environ.get("GMAIL_OAUTH_CLIENT_SECRET", "").strip()
-    if not client_id or not client_secret:
-        print(
-            "Falta GMAIL_OAUTH_CLIENT_ID / GMAIL_OAUTH_CLIENT_SECRET en el entorno.",
-            file=sys.stderr,
-        )
+    parser = argparse.ArgumentParser(description="Genera un refresh token de Gmail por casilla.")
+    parser.add_argument("--client-secrets", help="Ruta al JSON del cliente OAuth descargado.")
+    args = parser.parse_args()
+
+    client = _load_client(args)
+    if not client:
         return 1
+    client_id, client_secret = client
 
     try:
         from google_auth_oauthlib.flow import InstalledAppFlow
