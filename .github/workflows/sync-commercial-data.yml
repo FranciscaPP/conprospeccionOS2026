@@ -15,18 +15,67 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Check local schedule
+      - name: Check schedule (resiliente a los saltos de cron de GitHub)
         id: schedule
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         shell: python
         run: |
+          # GitHub Actions NO dispara los cron puntualmente: atrasa o saltea
+          # ticks. El gate viejo exigia local.hour in {8,13,20} exacto, asi que
+          # un tick saltado = una ventana de sync perdida (paso el 28-jul-2026:
+          # se salto la sincronizacion de las 08:00 Chile y las reuniones del
+          # dia no aparecieron en el portal).
+          #
+          # Gate nuevo, tolerante: corre si es horario diurno en Chile (7-22) y
+          # ya pasaron >=4.5h desde el ultimo sync exitoso. Asi cualquier tick
+          # dentro de la ventana "alcanza" el sync perdido. El sync es idempotente
+          # (upsert por ghl_appointment_id), asi que una corrida de mas no molesta.
+          import json
           import os
-          from datetime import datetime
+          import urllib.request
+          from datetime import datetime, timezone
           from zoneinfo import ZoneInfo
+
+          MIN_HORAS_ENTRE_SYNCS = 4.5
+
           local = datetime.now(ZoneInfo("America/Santiago"))
-          allowed = local.hour in {8, 13, 20}
+          en_ventana = 7 <= local.hour <= 22
+
+          run = False
+          motivo = f"fuera de ventana diurna (hora Chile={local.hour})"
+          if en_ventana:
+              url = (
+                  os.environ["SUPABASE_URL"].rstrip("/")
+                  + "/rest/v1/sync_runs?select=created_at"
+                  + "&entity=eq.reuniones&source=eq.ghl&status=eq.success"
+                  + "&order=created_at.desc&limit=1"
+              )
+              key = os.environ["SUPABASE_SECRET_KEY"]
+              req = urllib.request.Request(
+                  url, headers={"apikey": key, "Authorization": f"Bearer {key}"}
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=15) as resp:
+                      rows = json.load(resp)
+                  if rows:
+                      last = datetime.fromisoformat(
+                          rows[0]["created_at"].replace("Z", "+00:00")
+                      )
+                      horas = (datetime.now(timezone.utc) - last).total_seconds() / 3600
+                      run = horas >= MIN_HORAS_ENTRE_SYNCS
+                      motivo = f"ultimo sync hace {horas:.1f}h (umbral {MIN_HORAS_ENTRE_SYNCS}h)"
+                  else:
+                      run = True
+                      motivo = "no hay sync previo registrado"
+              except Exception as exc:  # ante la duda, sincronizar (es idempotente)
+                  run = True
+                  motivo = f"no se pudo leer sync_runs ({exc}); se corre por las dudas"
+
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
-              fh.write(f"run={'true' if allowed else 'false'}\n")
-          print(f"Local time: {local.isoformat()} · run={allowed}")
+              fh.write(f"run={'true' if run else 'false'}\n")
+          print(f"Hora Chile: {local.isoformat()} · run={run} · {motivo}")
 
       - name: Install sync dependencies
         if: steps.schedule.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
