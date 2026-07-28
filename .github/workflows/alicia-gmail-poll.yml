@@ -36,11 +36,15 @@ jobs:
           # Estado
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          # Gmail · service account con delegación domain-wide (modo recomendado).
-          GMAIL_SERVICE_ACCOUNT_JSON: ${{ secrets.GMAIL_SERVICE_ACCOUNT_JSON }}
-          # Gmail · modo alternativo (refresh token por cuenta), si no hay SA.
+          # Gmail · OAuth con refresh token por casilla (piloto GBS).
+          # Sin claves de service account (bloqueadas por política de la org).
           GMAIL_OAUTH_CLIENT_ID: ${{ secrets.GMAIL_OAUTH_CLIENT_ID }}
           GMAIL_OAUTH_CLIENT_SECRET: ${{ secrets.GMAIL_OAUTH_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN_GBS01: ${{ secrets.GMAIL_REFRESH_TOKEN_GBS01 }}
+          GMAIL_REFRESH_TOKEN_GBS02: ${{ secrets.GMAIL_REFRESH_TOKEN_GBS02 }}
+          GMAIL_REFRESH_TOKEN_GBS03: ${{ secrets.GMAIL_REFRESH_TOKEN_GBS03 }}
+          # Modo service account (opcional, si algún día se levanta la política).
+          GMAIL_SERVICE_ACCOUNT_JSON: ${{ secrets.GMAIL_SERVICE_ACCOUNT_JSON }}
           ALICIA_ACCOUNTS_JSON: ${{ vars.ALICIA_ACCOUNTS_JSON }}
           # Telegram (salida)
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}

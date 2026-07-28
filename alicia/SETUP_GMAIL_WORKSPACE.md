@@ -1,87 +1,92 @@
 # Alta de Gmail para Alicia · Google Workspace (dominio gbs-logistics.cl)
 
-Guía paso a paso para habilitar que Alicia lea y responda las respuestas de
-campañas Snov en las casillas del dominio, usando **una sola credencial**
-(cuenta de servicio con delegación en todo el dominio). No hay que autorizar
-casilla por casilla.
+La organización bloquea la descarga de claves de cuenta de servicio (política
+`iam.disableServiceAccountKeyCreation`). Por eso usamos el camino **sin claves**:
+**OAuth con un refresh token por casilla**. No crea ninguna clave descargable, así
+que respeta la política de seguridad tal cual está.
 
-**Quién lo hace:** un **super administrador** de Google Workspace de
-`gbs-logistics.cl` (los pasos de la Parte B requieren la consola de administración).
+**Casillas del piloto (GBS):**
+- `sam.miller@gbs-logistics.cl` → `gbs01`
+- `sammiller@gbs-logistics.cl` → `gbs02`
+- `sam@gbs-logistics.cl` → `gbs03`
 
-**Casillas del piloto:**
-- `sam.miller@gbs-logistics.cl`
-- `sammiller@gbs-logistics.cl`
-- `sam@gbs-logistics.cl`
-
-**Permisos (scopes) que se otorgarán:**
+**Permisos (scopes):**
 - `https://www.googleapis.com/auth/gmail.modify` (leer y marcar como leído)
 - `https://www.googleapis.com/auth/gmail.send` (responder en el mismo hilo)
 
----
-
-## Parte A · Google Cloud (crear la credencial)
-
-1. Entra a <https://console.cloud.google.com> con una cuenta del dominio.
-2. Arriba, crea o selecciona un proyecto (p. ej. **"Alicia GBS"**).
-3. Menú **APIs y servicios → Biblioteca** → busca **"Gmail API"** → **Habilitar**.
-4. Menú **APIs y servicios → Credenciales** → **Crear credenciales → Cuenta de
-   servicio**.
-   - Nombre: `alicia-gmail` (o el que prefieras) → **Crear y continuar** →
-     puedes omitir roles → **Listo**.
-5. Abre la cuenta de servicio recién creada → pestaña **Claves** → **Agregar
-   clave → Crear clave nueva → JSON** → se descarga un archivo `.json`.
-   **Ese archivo es la credencial: guárdalo seguro, no lo compartas por chat.**
-6. En la misma cuenta de servicio, copia el **"ID único"** (Unique ID): es un
-   número largo (p. ej. `1234567890...`). Es el **Client ID** que se usa en la
-   Parte B. También aparece dentro del JSON como `"client_id"`.
+Se hace una vez por casilla (3 veces). Puede hacerlo quien tenga acceso a cada
+casilla; no requiere super admin salvo el paso 1-2 de configurar la credencial.
 
 ---
 
-## Parte B · Consola de administración (autorizar el dominio)
+## Parte A · Crear la credencial OAuth (una sola vez)
 
-> Requiere super admin. <https://admin.google.com>
+1. Entra a <https://console.cloud.google.com> con una cuenta del dominio y crea o
+   elige un proyecto (p. ej. **"Alicia GBS"**). Habilita **Gmail API**
+   (APIs y servicios → Biblioteca → "Gmail API" → Habilitar).
+2. **APIs y servicios → Pantalla de consentimiento de OAuth**:
+   - Tipo de usuario: **Interno** (Internal) — solo cuentas de `gbs-logistics.cl`.
+     Así no requiere verificación de Google.
+   - Completa nombre de la app (p. ej. "Alicia") y correo de contacto → Guardar.
+3. **APIs y servicios → Credenciales → Crear credenciales → ID de cliente de
+   OAuth**:
+   - Tipo de aplicación: **Aplicación de escritorio** (Desktop app).
+   - Nombre: `alicia-desktop` → **Crear**.
+   - Copia el **ID de cliente** y el **secreto de cliente** (client_id / client_secret).
+     Esto NO es una clave de service account: es un cliente OAuth, permitido por la
+     política.
 
-1. **Seguridad → Controles de API → Delegación de todo el dominio**
-   (Security → API controls → Domain-wide delegation).
-2. **Agregar nuevo** (Add new).
-3. **ID de cliente** (Client ID): pega el **ID único** de la cuenta de servicio
-   (paso A.6).
-4. **Ámbitos de OAuth** (OAuth scopes): pega EXACTAMENTE, separados por coma:
-   ```
-   https://www.googleapis.com/auth/gmail.modify,https://www.googleapis.com/auth/gmail.send
-   ```
-5. **Autorizar** (Authorize).
+## Parte B · Generar un refresh token por casilla (3 veces)
 
-Con esto, la credencial queda habilitada para actuar sobre las casillas del
-dominio que Alicia tenga declaradas (solo esas tres del piloto).
+En un equipo con navegador y Python:
 
----
+```bash
+pip install google-auth-oauthlib
+export GMAIL_OAUTH_CLIENT_ID=...        # de la Parte A.3
+export GMAIL_OAUTH_CLIENT_SECRET=...
+python alicia/tools/get_gmail_refresh_token.py
+```
 
-## Parte C · Entregar a Conprospección (para conectar Alicia)
+- Se abre el navegador → **inicia sesión con la casilla objetivo** (la primera vez
+  `sam.miller@gbs-logistics.cl`) → acepta los permisos.
+- El script imprime la cuenta autorizada y su `GMAIL_REFRESH_TOKEN`.
+- Repite iniciando sesión con cada una de las otras dos casillas.
 
-Cargar como **secrets** (no en el repositorio ni por chat):
+> Consejo: hazlo en ventanas de incógnito distintas, o cierra sesión entre cada
+> una, para no autorizar la casilla equivocada. El script te dice qué cuenta
+> autorizaste, verifícalo.
 
-1. En **GitHub → repo `conprospeccionOS2026` → Settings → Secrets and variables
-   → Actions → New repository secret**:
-   - `GMAIL_SERVICE_ACCOUNT_JSON` = **el contenido completo del archivo JSON** de
-     la Parte A.5.
-   - `TELEGRAM_CHAT_ID` = el id del chat/grupo de Telegram donde llegan las alertas.
-2. Avísanos cuando estén cargados. Nosotros activamos el piloto en modo prueba
-   (`ALICIA_DRY_RUN=true`: detecta y alerta, todavía sin responder correos).
+## Parte C · Cargar como secrets (no en el repo ni por chat)
+
+En **GitHub → repo `conprospeccionOS2026` → Settings → Secrets and variables →
+Actions → New repository secret**:
+
+| Secret | Valor |
+|---|---|
+| `GMAIL_OAUTH_CLIENT_ID` | client_id de la Parte A.3 |
+| `GMAIL_OAUTH_CLIENT_SECRET` | client_secret de la Parte A.3 |
+| `GMAIL_REFRESH_TOKEN_GBS01` | refresh token de `sam.miller@gbs-logistics.cl` |
+| `GMAIL_REFRESH_TOKEN_GBS02` | refresh token de `sammiller@gbs-logistics.cl` |
+| `GMAIL_REFRESH_TOKEN_GBS03` | refresh token de `sam@gbs-logistics.cl` |
+| `TELEGRAM_CHAT_ID` | id del chat/grupo de Telegram para las alertas |
+
+Avísanos cuando estén cargados. Activamos el piloto en modo prueba
+(`ALICIA_DRY_RUN=true`: detecta y alerta, aún sin responder correos).
 
 ---
 
 ## Verificación (la hacemos nosotros)
 
-- Ejecución manual del poller → debe llegar **una alerta agrupada a Telegram**
-  con las respuestas reales de las 3 casillas (o "sin respuestas nuevas").
-- Si algo falla, el error más común es que la delegación (Parte B) tarde unos
-  minutos en propagarse, o que falte alguno de los dos scopes.
+- Ejecución manual del poller → **una alerta agrupada a Telegram** con las
+  respuestas reales de las 3 casillas (o "sin respuestas nuevas").
 
-## Notas de seguridad
+## Seguridad y revocación
 
-- El JSON de la cuenta de servicio es sensible: va solo a Secrets. Se puede
-  **revocar** en cualquier momento borrando la clave (Parte A.5) o la delegación
-  (Parte B).
-- Alicia solo actúa sobre las casillas declaradas explícitamente en su
-  configuración, no sobre todo el dominio.
+- Los refresh tokens son sensibles: van solo a Secrets. Se pueden **revocar** en
+  cualquier momento desde la cuenta de Google (Seguridad → Accesos de terceros) o
+  borrando el cliente OAuth.
+- Alicia solo actúa sobre las casillas declaradas en su configuración.
+
+> Si en el futuro se prefiere el modo service account (una sola credencial, sin
+> token por cuenta), requiere levantar la política `disableServiceAccountKeyCreation`
+> o usar Workload Identity Federation. El código ya soporta ambos modos.
