@@ -39,30 +39,40 @@ def within_schedule() -> bool:
     return now_local.hour in set(settings.run_hours())
 
 
+def _load_secrets(store: SupabaseStore) -> dict[str, str]:
+    """Lee alicia_secrets (credenciales) desde Supabase. Vacío si no hay tabla."""
+    try:
+        return {row["name"]: row["value"] for row in store.select("alicia_secrets", "name,value")}
+    except Exception:
+        return {}
+
+
 def build_deps() -> pipeline_mod.PipelineDeps:
     store = SupabaseStore(settings.supabase_url(), settings.supabase_key())
     state = AliciaState(store)
     snov = SnovLookup(store)
     accounts = accounts_mod.load_accounts(store, only_enabled=True)
+    secrets = _load_secrets(store)
 
     shared_http = httpx.Client(timeout=60)
-    client_id = settings.gmail_oauth_client_id()
-    client_secret = settings.gmail_oauth_client_secret()
+    client_id = secrets.get("GMAIL_OAUTH_CLIENT_ID") or settings.gmail_oauth_client_id()
+    client_secret = secrets.get("GMAIL_OAUTH_CLIENT_SECRET") or settings.gmail_oauth_client_secret()
     service_account_info = settings.gmail_service_account_info()
 
     def gmail_factory(account: accounts_mod.Account) -> GmailClient:
+        refresh_token = secrets.get(account.token_env) or account.refresh_token()
         auth = make_token_provider(
             account.email,
             service_account_info=service_account_info,
             client_id=client_id,
             client_secret=client_secret,
-            refresh_token=account.refresh_token(),
+            refresh_token=refresh_token,
         )
         return GmailClient(account.email, auth, http=shared_http)
 
-    telegram = None
-    if settings.telegram_token() and settings.telegram_chat_id():
-        telegram = TelegramClient(settings.telegram_token(), settings.telegram_chat_id())
+    tg_token = secrets.get("TELEGRAM_TOKEN") or settings.telegram_token()
+    tg_chat = secrets.get("TELEGRAM_CHAT_ID") or settings.telegram_chat_id()
+    telegram = TelegramClient(tg_token, tg_chat) if (tg_token and tg_chat) else None
 
     return pipeline_mod.PipelineDeps(
         accounts=accounts,

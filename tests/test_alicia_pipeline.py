@@ -157,7 +157,7 @@ def _deps(store, gmail, telegram=None, dry_run=True):
     )
 
 
-def test_pipeline_detects_only_snov_reply():
+def test_pipeline_detects_human_replies_and_filters_noise():
     store = FakeStore(
         snov_events={"ana@empresa.com": {"snov_campaign_id": "C1", "cliente_slug": "gbs",
                                          "prospect_name": "Ana Díaz", "company": "Empresa SA"}},
@@ -167,19 +167,26 @@ def test_pipeline_detects_only_snov_reply():
         "m1": meta("t1", "Ana Díaz <ana@empresa.com>", "Re: Propuesta", "Me interesa, conversemos"),
         "m2": meta("t2", "MAILER-DAEMON@x.com", "Undelivered Mail"),            # rebote
         "m3": meta("t3", "ceo@otra.com", "Automatic reply: out of office"),     # OOO
-        "m4": meta("t4", "extrano@ajeno.com", "Re: cualquier cosa"),            # no Snov
+        "m4": meta("t4", "diego@ajeno.com", "Re: comercio exterior"),          # humano, sin Snov
+        "m5": meta("t5", "no-reply@google.com", "Re: Security alert"),          # sistema → fuera
+        "m6": meta("t6", "juan@empresa.com", "Consulta nueva"),                 # no es respuesta → fuera
     })
     telegram = FakeTelegram()
     result = run(_deps(store, gmail, telegram))
 
-    assert result.replies_detected == 1
-    assert result.replies[0].prospect == "Ana Díaz"
+    # Ana (Snov) y diego (humano sin Snov) alertan; el resto se filtra.
+    assert result.replies_detected == 2
+    prospects = {r.prospect for r in result.replies}
+    assert "Ana Díaz" in prospects
     assert result.filtered_out["bounce"] == 1
     assert result.filtered_out["out_of_office"] == 1
-    assert result.filtered_out["unrelated"] == 1
-    # Una sola notificación agrupada, y se envió.
+    assert result.filtered_out["unrelated"] == 2   # no-reply de sistema + no-respuesta
     assert telegram.sent
-    assert "1 respuesta" in telegram.sent[0]
+    assert "2 respuesta" in telegram.sent[0]
+    # La respuesta sin match Snov se marca "por identificar".
+    diego = next(r for r in result.replies if r.prospect == "diego@ajeno.com")
+    assert diego.snov_matched is False
+    assert diego.cliente == "gbs"  # cae al cliente de la cuenta receptora
 
 
 def test_pipeline_dry_run_does_not_mark_read():

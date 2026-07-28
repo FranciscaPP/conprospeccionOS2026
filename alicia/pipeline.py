@@ -19,7 +19,14 @@ from typing import Any, Callable
 
 from alicia import accounts as accounts_mod
 from alicia.notifications import ReplyRecord, build_notification
-from alicia.reply_filters import Classification, classify, sender_email
+from alicia.reply_filters import (
+    Classification,
+    classify,
+    is_reply,
+    is_system_sender,
+    normalize_headers,
+    sender_email,
+)
 from alicia.snov_match import SnovLookup
 
 logger = logging.getLogger("alicia.pipeline")
@@ -84,16 +91,21 @@ def _process_account(account: accounts_mod.Account, deps: PipelineDeps, result: 
             deps.state.mark_processed(message_id, thread_id, account.account_id, classification.value)
             continue
 
-        # Respuesta genuina por cabeceras → confirmar contra Snov.
+        # Debe ser una respuesta real de una persona: encadenada o 'Re:', y no de
+        # un remitente de sistema (no-reply, DMARC, códigos...). Como estas casillas
+        # están dedicadas a campañas Snov, un humano que responde ES una respuesta
+        # de campaña. Snov se usa para ENRIQUECER (cliente/campaña/empresa), no como
+        # filtro rígido: así no se pierde una respuesta real si el dato Snov está viejo.
+        hdr = normalize_headers(headers)
         from_email = sender_email({"from": _header_value(headers, "From")})
-        match = deps.snov.by_email(from_email)
-        if not match.matched:
+        if is_system_sender(from_email) or not is_reply(hdr):
             result.filtered_out[Classification.UNRELATED.value] += 1
             deps.state.mark_processed(
                 message_id, thread_id, account.account_id, Classification.UNRELATED.value
             )
             continue
 
+        match = deps.snov.by_email(from_email)
         subject = _header_value(headers, "Subject")
         snippet = str(meta.get("snippet") or "")
         internal_ref = accounts_mod.internal_ref(thread_id)
@@ -133,6 +145,7 @@ def _process_account(account: accounts_mod.Account, deps: PipelineDeps, result: 
                 empresa=match.empresa,
                 subject=subject,
                 last_message=snippet,
+                snov_matched=match.matched,
             )
         )
 

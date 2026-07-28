@@ -22,6 +22,7 @@ class ReplyRecord:
     empresa: str | None
     subject: str | None
     last_message: str | None
+    snov_matched: bool = True
 
 
 def _clean(value: str | None, fallback: str = "—") -> str:
@@ -37,10 +38,11 @@ def _truncate(value: str | None, limit: int = 320) -> str:
 
 
 def format_reply(index: int, reply: ReplyRecord) -> str:
+    campaign = _clean(reply.campaign) if reply.snov_matched else f"{_clean(reply.campaign)} (por identificar)"
     return (
         f"{index}. [{reply.internal_ref}] "
         f"{_clean(reply.prospect)} · {_clean(reply.empresa)}\n"
-        f"   Cliente: {_clean(reply.cliente)} · Campaña: {_clean(reply.campaign)}\n"
+        f"   Cliente: {_clean(reply.cliente)} · Campaña: {campaign}\n"
         f"   Cuenta: {_clean(reply.account_email)}\n"
         f"   Asunto: {_clean(reply.subject)}\n"
         f"   Último mensaje: {_truncate(reply.last_message)}"

@@ -99,3 +99,24 @@ def test_bounce_takes_priority_over_genuine():
     headers = h(From="MAILER-DAEMON@x.com", Subject="Re: propuesta")
     classification, _ = classify(headers, ["INBOX", "UNREAD"])
     assert classification is Classification.BOUNCE
+
+
+def test_is_system_sender():
+    from alicia.reply_filters import is_system_sender
+    assert is_system_sender("no-reply@google.com")
+    assert is_system_sender("notify-noreply@google.com")
+    assert is_system_sender("dmarcreport@microsoft.com")
+    assert is_system_sender("postmaster@x.com")
+    assert is_system_sender("") is True
+    assert is_system_sender("diego@energuias.com") is False
+    assert is_system_sender("ctaladriz@factorynine.cl") is False
+
+
+def test_is_reply():
+    from alicia.reply_filters import is_reply
+    assert is_reply({"subject": "Re: Propuesta"})
+    assert is_reply({"subject": "RE: algo"})
+    assert is_reply({"in-reply-to": "<abc@x.com>"})
+    assert is_reply({"references": "<abc@x.com>"})
+    assert is_reply({"subject": "Consulta nueva"}) is False
+    assert is_reply({"subject": ""}) is False

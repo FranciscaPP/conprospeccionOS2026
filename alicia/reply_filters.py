@@ -145,6 +145,30 @@ def is_spam(label_ids: Iterable[str] | None) -> bool:
     return "SPAM" in labels
 
 
+# Remitentes automáticos/de sistema que no son prospectos aunque pasen las
+# cabeceras (notificaciones de Google, reportes DMARC, códigos de seguridad...).
+_SYSTEM_SENDER_TOKENS = (
+    "no-reply", "noreply", "no_reply", "donotreply", "do-not-reply", "do_not_reply",
+    "notify-noreply", "mailer-daemon", "postmaster", "dmarc", "abuse@",
+    "bounce@", "bounces@", "notifications@", "mailer@",
+)
+
+
+def is_system_sender(email: str) -> bool:
+    low = (email or "").lower()
+    if not low:
+        return True
+    return any(token in low for token in _SYSTEM_SENDER_TOKENS)
+
+
+def is_reply(headers: dict[str, str]) -> bool:
+    """True si el mensaje es una respuesta (encadenado o asunto 'Re:')."""
+    if headers.get("in-reply-to") or headers.get("references"):
+        return True
+    subject = headers.get("subject", "").strip().lower()
+    return subject.startswith("re:") or subject.startswith("re :")
+
+
 def sender_email(headers: dict[str, str]) -> str:
     raw = headers.get("from", "")
     match = re.search(r"[\w.\-+']+@[\w.\-]+\.\w+", raw)
