@@ -1,15 +1,15 @@
-"""Cliente Gmail sobre REST (httpx). Auth por refresh token OAuth por cuenta.
+"""Cliente Gmail sobre REST (httpx). Dos modos de autenticación, mismo cliente:
+
+  - Service account con delegación domain-wide (recomendado para Google
+    Workspace): UNA credencial impersona cada casilla por su email. Escala a
+    25+ cuentas sin token por cuenta.
+  - Refresh token OAuth por cuenta (para Gmail normal o sin admin de dominio).
 
 Solo lo necesario para el flujo determinístico:
   - listar mensajes nuevos (query acotada: no leídos + ventana temporal),
   - leer metadatos (cabeceras) y snippet,
   - responder DENTRO del mismo hilo (mismo threadId, In-Reply-To/References),
   - marcar como leído.
-
-No añade dependencias nuevas: usa httpx (ya en sync/requirements) y stdlib.
-La auth por refresh token funciona con cualquier Gmail. Para Google Workspace se
-puede sustituir el `AccessTokenProvider` por uno de service account con
-delegación domain-wide sin tocar el resto del cliente (punto de extensión).
 """
 from __future__ import annotations
 
@@ -23,9 +23,50 @@ import httpx
 _TOKEN_URL = "https://oauth2.googleapis.com/token"
 _API = "https://gmail.googleapis.com/gmail/v1"
 
+# gmail.modify permite leer y marcar como leído; gmail.send permite responder.
+DEFAULT_SCOPES = (
+    "https://www.googleapis.com/auth/gmail.modify",
+    "https://www.googleapis.com/auth/gmail.send",
+)
+
 
 class GmailAuthError(RuntimeError):
     pass
+
+
+class ServiceAccountTokenProvider:
+    """Mint de access token impersonando una casilla (delegación domain-wide).
+
+    Requiere `google-auth`. La credencial se construye de forma perezosa para que
+    el factory/los tests no necesiten una clave real ni tocar la red.
+    """
+
+    def __init__(self, service_account_info: dict, subject_email: str, scopes=DEFAULT_SCOPES):
+        self._info = service_account_info
+        self._subject = subject_email
+        self._scopes = list(scopes)
+        self._creds: Any = None
+
+    def _ensure(self) -> None:
+        if self._creds is not None:
+            return
+        try:
+            from google.oauth2 import service_account
+        except ImportError as exc:  # pragma: no cover
+            raise GmailAuthError(
+                "Falta google-auth (pip install google-auth) para service account."
+            ) from exc
+        self._creds = service_account.Credentials.from_service_account_info(
+            self._info, scopes=self._scopes, subject=self._subject
+        )
+
+    def token(self, http: httpx.Client) -> str:  # http se ignora: google-auth usa su transporte
+        self._ensure()
+        if not self._creds.valid:
+            from google.auth.transport.requests import Request
+
+            self._creds.refresh(Request())
+        return self._creds.token
 
 
 class AccessTokenProvider:
@@ -59,8 +100,26 @@ class AccessTokenProvider:
         return token
 
 
+def make_token_provider(
+    account_email: str,
+    *,
+    service_account_info: dict | None = None,
+    client_id: str = "",
+    client_secret: str = "",
+    refresh_token: str = "",
+    scopes=DEFAULT_SCOPES,
+):
+    """Elige el proveedor de token: service account (si hay JSON) o refresh token.
+
+    Determinístico y sin red: la credencial real se materializa al primer uso.
+    """
+    if service_account_info:
+        return ServiceAccountTokenProvider(service_account_info, account_email, scopes)
+    return AccessTokenProvider(client_id, client_secret, refresh_token)
+
+
 class GmailClient:
-    def __init__(self, email: str, auth: AccessTokenProvider, http: httpx.Client | None = None):
+    def __init__(self, email: str, auth: Any, http: httpx.Client | None = None):
         self.email = email
         self._auth = auth
         self._http = http or httpx.Client(timeout=60)

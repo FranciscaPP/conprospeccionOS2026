@@ -303,6 +303,31 @@ def test_internal_ref_stable():
     assert a == b and a.startswith("AL-") and len(a) == 11
 
 
+def test_token_provider_selects_service_account():
+    from alicia.gmail_client import (
+        AccessTokenProvider,
+        ServiceAccountTokenProvider,
+        make_token_provider,
+    )
+    sa = make_token_provider(
+        "gbs01@tudominio.com",
+        service_account_info={"type": "service_account", "client_email": "x@y.iam"},
+    )
+    assert isinstance(sa, ServiceAccountTokenProvider)
+    # Sin JSON de service account → cae al modo refresh token.
+    rt = make_token_provider(
+        "gbs01@tudominio.com", client_id="c", client_secret="s", refresh_token="r"
+    )
+    assert isinstance(rt, AccessTokenProvider)
+
+
+def test_accounts_from_json_without_token_env_defaults():
+    # Con service account no se declara token_env; se genera uno por convención.
+    parsed = accounts_mod.from_json('[{"account_id":"gbs01","email":"a@x.com","enabled":true}]')
+    assert len(parsed) == 1
+    assert parsed[0].token_env == "GMAIL_REFRESH_TOKEN_GBS01"
+
+
 def test_accounts_from_json_and_enabled_filter():
     raw = (
         '[{"account_id":"c1","email":"a@x.com","enabled":true,"token_env":"T1"},'

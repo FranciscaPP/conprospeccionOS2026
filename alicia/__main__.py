@@ -19,7 +19,7 @@ import httpx
 from alicia import accounts as accounts_mod
 from alicia import pipeline as pipeline_mod
 from alicia import settings
-from alicia.gmail_client import AccessTokenProvider, GmailClient
+from alicia.gmail_client import GmailClient, make_token_provider
 from alicia.snov_match import SnovLookup
 from alicia.store import AliciaState, SupabaseStore
 from alicia.telegram_io import TelegramClient
@@ -48,9 +48,16 @@ def build_deps() -> pipeline_mod.PipelineDeps:
     shared_http = httpx.Client(timeout=60)
     client_id = settings.gmail_oauth_client_id()
     client_secret = settings.gmail_oauth_client_secret()
+    service_account_info = settings.gmail_service_account_info()
 
     def gmail_factory(account: accounts_mod.Account) -> GmailClient:
-        auth = AccessTokenProvider(client_id, client_secret, account.refresh_token())
+        auth = make_token_provider(
+            account.email,
+            service_account_info=service_account_info,
+            client_id=client_id,
+            client_secret=client_secret,
+            refresh_token=account.refresh_token(),
+        )
         return GmailClient(account.email, auth, http=shared_http)
 
     telegram = None

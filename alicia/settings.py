@@ -101,6 +101,24 @@ def gmail_oauth_client_secret() -> str:
     return _get("GMAIL_OAUTH_CLIENT_SECRET")
 
 
+def gmail_service_account_info() -> dict | None:
+    """JSON de la service account (delegación domain-wide). None si no está.
+
+    Se pasa como una sola variable/secret `GMAIL_SERVICE_ACCOUNT_JSON` con el
+    contenido del archivo de clave. No hace falta un token por cuenta.
+    """
+    import json
+
+    raw = _get("GMAIL_SERVICE_ACCOUNT_JSON").strip()
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+        return data if isinstance(data, dict) else None
+    except json.JSONDecodeError:
+        return None
+
+
 def accounts_json() -> str:
     """Fallback de registro de cuentas cuando no se usa la tabla Supabase.
 

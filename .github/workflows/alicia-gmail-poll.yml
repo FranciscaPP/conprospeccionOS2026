@@ -36,10 +36,11 @@ jobs:
           # Estado
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          # Gmail OAuth + refresh token del piloto (una cuenta)
+          # Gmail · service account con delegación domain-wide (modo recomendado).
+          GMAIL_SERVICE_ACCOUNT_JSON: ${{ secrets.GMAIL_SERVICE_ACCOUNT_JSON }}
+          # Gmail · modo alternativo (refresh token por cuenta), si no hay SA.
           GMAIL_OAUTH_CLIENT_ID: ${{ secrets.GMAIL_OAUTH_CLIENT_ID }}
           GMAIL_OAUTH_CLIENT_SECRET: ${{ secrets.GMAIL_OAUTH_CLIENT_SECRET }}
-          GMAIL_REFRESH_TOKEN_CUENTA01: ${{ secrets.GMAIL_REFRESH_TOKEN_CUENTA01 }}
           ALICIA_ACCOUNTS_JSON: ${{ vars.ALICIA_ACCOUNTS_JSON }}
           # Telegram (salida)
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}

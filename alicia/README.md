@@ -40,6 +40,29 @@ No es tiempo real. El poller se auto-limita a `ALICIA_RUN_HOURS` (por defecto
 dispararse cada hora sin costo: solo corre de verdad en esas horas. `--force`
 ignora la ventana para pruebas.
 
+## Autenticación de Gmail (dos modos)
+
+- **Service account con delegación domain-wide (recomendado, Google Workspace).**
+  Una sola credencial impersona cada casilla por su email; **no hay token por
+  cuenta**. Es el modo que escala a 25+ cuentas. Se pasa como el secreto
+  `GMAIL_SERVICE_ACCOUNT_JSON` (el JSON de la clave). Pasos de alta:
+  1. Google Cloud → crea/usa un proyecto → **habilita Gmail API**.
+  2. Crea una **service account** y genera una **clave JSON**.
+  3. Copia el **Client ID** de esa service account.
+  4. Google **Admin** (admin.google.com, super admin) → Seguridad → Controles de
+     API → **Delegación de todo el dominio** → añade ese Client ID con los scopes:
+     `https://www.googleapis.com/auth/gmail.modify`,
+     `https://www.googleapis.com/auth/gmail.send`.
+  5. Guarda el JSON como secret `GMAIL_SERVICE_ACCOUNT_JSON` (GitHub/Supabase).
+  6. Declara las casillas en `ALICIA_ACCOUNTS_JSON` o en `alicia_accounts`
+     (solo email + cliente; sin token_env).
+- **Refresh token OAuth por cuenta (alternativo).** Para Gmail normal o sin admin
+  de dominio: app OAuth (`GMAIL_OAUTH_CLIENT_ID/SECRET`) + un refresh token por
+  casilla en Secrets. El código lo soporta como fallback automático.
+
+Los secretos (JSON de service account o refresh tokens) van **solo a Secrets**,
+nunca al repo ni a la tabla.
+
 ## Escalabilidad y piloto
 
 Las cuentas se declaran como configuración, sin código por cuenta:
