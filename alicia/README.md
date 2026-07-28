@@ -27,13 +27,17 @@ aprobación**, enviando el correo en el mismo hilo y actualizando **GoHighLevel*
 - [x] **GoHighLevel conectado** (token Private Integration validado: lectura y
       escritura de contactos, pipelines, calendario, campos personalizados).
 
-**Pendiente de construir (ver §6):**
-- [ ] Mostrar datos del contacto de GHL en la tarjeta.
-- [ ] Al aprobar: crear/actualizar contacto en GHL + guardar el campo *OBJETIVO
-      BREVE DE LA REUNIÓN*.
-- [ ] Mover de etapa **a pedido** (`mover a [etapa]`).
-- [ ] Proponer horarios del calendario cuando el prospecto pide reunión.
-- [ ] Activar el **envío real** de correos (hoy `ALICIA_DRY_RUN=true`).
+- [x] **Datos del contacto de GHL en la tarjeta** (correo, tel, cargo, empresa,
+      web, tamaño, LinkedIn persona/empresa, industria). Nombre del cliente
+      ("GBS") en negrita arriba.
+- [x] **Al aprobar**: crear/actualizar contacto en GHL + guardar el campo
+      *OBJETIVO BREVE DE LA REUNIÓN* (flujo con pregunta de objetivo).
+- [x] **Mover de etapa a pedido** (`mover a [etapa]`, 16 etapas mapeadas).
+- [x] **Proponer horarios del calendario** ("Sam Miller - Olivo") cuando el
+      mensaje del prospecto sugiere reunión.
+
+**Pendiente:**
+- [ ] Activar el **envío real** de correos y acciones GHL (hoy `ALICIA_DRY_RUN=true`).
 
 ---
 
