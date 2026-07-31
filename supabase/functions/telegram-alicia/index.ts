@@ -42,10 +42,10 @@ async function tgSend(token: string, chatId: number | string, text: string): Pro
 }
 
 // ---- Gmail ----
-async function gmailToken(s: Record<string, string>, tokenEnv: string): Promise<string> {
+async function gmailToken(clientId: string, clientSecret: string, refresh: string): Promise<string> {
   const body = new URLSearchParams({
-    client_id: s.GMAIL_OAUTH_CLIENT_ID, client_secret: s.GMAIL_OAUTH_CLIENT_SECRET,
-    refresh_token: s[tokenEnv], grant_type: "refresh_token",
+    client_id: clientId, client_secret: clientSecret,
+    refresh_token: refresh, grant_type: "refresh_token",
   });
   const r = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body,
@@ -158,7 +158,10 @@ serve(async (req) => {
   const s = await loadSecrets();
   const expected = s.TELEGRAM_WEBHOOK_SECRET ?? "";
   if (expected && req.headers.get("x-telegram-bot-api-secret-token") !== expected) return new Response("forbidden", { status: 401 });
-  const token = s.TELEGRAM_TOKEN;
+  const clientRows = await sbGet("alicia_clients?select=cliente_slug,telegram_token,telegram_chat_id,gmail_client_id,gmail_client_secret");
+  const clients: Record<string, any> = {}; for (const c of clientRows) clients[c.cliente_slug] = c;
+  const defaultCliente = new URL(req.url).searchParams.get("cliente") ?? "gbs";
+  let token = clients[defaultCliente]?.telegram_token ?? s.TELEGRAM_TOKEN;
   if (!token) return new Response("no token", { status: 200 });
 
   let update: any;
@@ -188,8 +191,14 @@ serve(async (req) => {
   const who = thread.prospect_name || thread.prospect_email;
   const sel = `alicia_email_threads?thread_id=eq.${encodeURIComponent(thread.thread_id)}`;
 
-  // --- Comando: mover a <etapa> (a pedido) ---
+  // Bot y credenciales del cliente de este hilo (aislamiento multi-cliente).
+  const cc = clients[thread.cliente_slug] ?? {};
+  if (cc.telegram_token) token = cc.telegram_token;
+  const tieneGhl = thread.cliente_slug === "gbs";
+
+  // --- Comando: mover a <etapa> (a pedido; solo clientes con GoHighLevel) ---
   if (low.startsWith("mover a ") || low.startsWith("mueve a ") || low.startsWith("mover ") || low.startsWith("etapa ")) {
+    if (!tieneGhl) { await tgSend(token, chatId, "Esta cuenta no tiene GoHighLevel conectado, así que no hay etapas que mover."); return new Response("ok"); }
     const query = cmd.replace(/^(mover a|mueve a|mover|etapa)/i, "").trim();
     const stage = matchStage(query);
     if (!stage) { await tgSend(token, chatId, `No reconocí la etapa "${query}". Ejemplos: información adicional, coordinando reunión, cotización…`); return new Response("ok"); }
@@ -224,7 +233,7 @@ serve(async (req) => {
     const objetivo = thread.pending_objetivo ?? "";
 
     if (dryRun) {
-      const extra = objetivo ? `\n\nEn GoHighLevel se guardaría el objetivo «${objetivo}» en el contacto ${thread.prospect_email}.` : `\n\n(Sin objetivo; en GoHighLevel solo se buscaría/crearía el contacto.)`;
+      const extra = tieneGhl ? (objetivo ? `\n\nEn GoHighLevel se guardaría el objetivo «${objetivo}» en el contacto ${thread.prospect_email}.` : `\n\n(Sin objetivo; en GoHighLevel solo se buscaría/crearía el contacto.)`) : "";
       await tgSend(token, chatId, `🧪 [PRUEBA] Así se enviaría (NO se envió):\n\nDe: ${acct.email}\nPara: ${thread.prospect_email}\nAsunto: Re: ${thread.subject ?? ""}\n\n${thread.pending_draft}${extra}\n\n(Activa el envío real cuando quieras.)`);
       await sbPatch(sel, { estado: "aprobada" });
       await sbInsert("alicia_actions_log", { thread_id: thread.thread_id, action: "email_sent", status: "skipped_dry_run", detail: { to: thread.prospect_email, objetivo }, dry_run: true });
@@ -234,7 +243,7 @@ serve(async (req) => {
     // Envío real
     let sentOk = false;
     try {
-      const access = await gmailToken(s, acct.token_env);
+      const access = await gmailToken(cc.gmail_client_id, cc.gmail_client_secret, s[acct.token_env]);
       const orig = thread.last_gmail_message_id ? await gmailOrig(access, thread.last_gmail_message_id) : { messageId: "", references: "", subject: thread.subject ?? "" };
       const raw = buildRaw({ from: acct.email, to: thread.prospect_email, subject: thread.subject || orig.subject || "", body: thread.pending_draft, inReplyTo: orig.messageId, references: orig.references });
       const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", { method: "POST", headers: { Authorization: `Bearer ${access}`, "Content-Type": "application/json" }, body: JSON.stringify({ raw, threadId: thread.thread_id }) });
@@ -246,19 +255,21 @@ serve(async (req) => {
     }
     if (!sentOk) { await tgSend(token, chatId, "❌ No se pudo enviar el correo. El borrador quedó guardado; reintenta con aprobar."); return new Response("ok"); }
 
-    // GoHighLevel: crear/actualizar contacto + objetivo
+    // GoHighLevel: crear/actualizar contacto + objetivo (solo clientes con GHL).
     let ghlMsg = "";
-    try {
-      const up = await ghlUpsertContact(s.GHL_TOKEN_GBS, s.GHL_LOCATION_GBS, thread, objetivo, s.GHL_FIELD_OBJETIVO);
-      if (up) {
-        await sbPatch(sel, { ghl_contact_id: up.id });
-        ghlMsg = up.created ? " Contacto creado en GoHighLevel." : " Contacto actualizado en GoHighLevel.";
-        if (objetivo) ghlMsg += " Objetivo guardado.";
-        await sbInsert("alicia_actions_log", { thread_id: thread.thread_id, action: "ghl_upserted", status: "ok", detail: { contact: up.id, created: up.created, objetivo }, dry_run: false });
+    if (tieneGhl) {
+      try {
+        const up = await ghlUpsertContact(s.GHL_TOKEN_GBS, s.GHL_LOCATION_GBS, thread, objetivo, s.GHL_FIELD_OBJETIVO);
+        if (up) {
+          await sbPatch(sel, { ghl_contact_id: up.id });
+          ghlMsg = up.created ? " Contacto creado en GoHighLevel." : " Contacto actualizado en GoHighLevel.";
+          if (objetivo) ghlMsg += " Objetivo guardado.";
+          await sbInsert("alicia_actions_log", { thread_id: thread.thread_id, action: "ghl_upserted", status: "ok", detail: { contact: up.id, created: up.created, objetivo }, dry_run: false });
+        }
+      } catch (e) {
+        ghlMsg = " (Correo enviado, pero hubo un problema al actualizar GoHighLevel.)";
+        await sbInsert("alicia_actions_log", { thread_id: thread.thread_id, action: "ghl_upserted", status: "error", detail: { err: String(e) }, dry_run: false });
       }
-    } catch (e) {
-      ghlMsg = " (Correo enviado, pero hubo un problema al actualizar GoHighLevel.)";
-      await sbInsert("alicia_actions_log", { thread_id: thread.thread_id, action: "ghl_upserted", status: "error", detail: { err: String(e) }, dry_run: false });
     }
     await sbPatch(sel, { estado: "enviada", pending_draft: null, pending_objetivo: null });
     await tgSend(token, chatId, `✅ Enviado a ${who} (${thread.prospect_email}), mismo hilo, desde ${acct.email}.${ghlMsg}`);

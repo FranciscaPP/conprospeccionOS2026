@@ -1,11 +1,10 @@
-// Alicia · poller automático (Supabase). Detección determinística SIN IA.
+// Alicia · poller automático (Supabase). Multi-cliente. Detección determinística SIN IA.
 //
-// Corre 2 veces al día (pg_cron). Lee las casillas GBS por Gmail API, clasifica
-// por código (rebote/OOO/auto/spam/sistema), se queda con respuestas humanas
-// reales, enriquece con Snov y con GoHighLevel (datos del contacto), propone
-// horarios del calendario si el prospecto pide reunión, y manda a Telegram una
-// tarjeta accionable por hilo. Idempotente a nivel de hilo (solo hilos nuevos o
-// con respuesta más nueva que la última avisada → capta la continuación).
+// Corre 2 veces al día (pg_cron). Por cada cuenta habilitada (alicia_accounts),
+// usa el permiso de Google de SU cliente (alicia_clients), lee su casilla, filtra
+// determinísticamente, enriquece (Snov + GoHighLevel solo si el cliente tiene GHL)
+// y envía las tarjetas al bot de Telegram de ESE cliente (aislado). Idempotente
+// a nivel de hilo.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
@@ -15,21 +14,16 @@ const H = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "
 const GHL = "https://services.leadconnectorhq.com";
 const GMAIL = "https://gmail.googleapis.com/gmail/v1";
 
-// IDs de campos personalizados de GBS (para mostrar en la tarjeta).
-const CF = {
-  cargo: "c60cJqsxNT5Srdiv7wV3", tamano: "3uQfRamZN2ruaNg367XL",
-  liPer: "iimkT4RjJWRONU2HcwbN", liEmp: "SnRP2tiJlYfQOHBM3adE", industria: "p2CZgSN3D0kvNPo9wBeq",
-};
-const MEETING = ["reunion", "reunión", "reunir", "meeting", "agendar", "agenda", "disponib",
-  "horario", "cuando podemos", "cuándo", "llamada", " call", "zoom", "teams", "meet", "conversar", "coordinar"];
+const CF = { cargo: "c60cJqsxNT5Srdiv7wV3", tamano: "3uQfRamZN2ruaNg367XL", liPer: "iimkT4RjJWRONU2HcwbN", liEmp: "SnRP2tiJlYfQOHBM3adE", industria: "p2CZgSN3D0kvNPo9wBeq" };
+const MEETING = ["reunion", "reunión", "reunir", "meeting", "agendar", "agenda", "disponib", "horario", "cuando podemos", "cuándo", "llamada", " call", "zoom", "teams", "meet", "conversar", "coordinar"];
 
 async function sbGet(p: string): Promise<any[]> { const r = await fetch(SB(p), { headers: H }); return r.ok ? await r.json() : []; }
 async function sbUpsert(t: string, b: unknown, c: string) { await fetch(SB(`${t}?on_conflict=${c}`), { method: "POST", headers: { ...H, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(b) }); }
 async function sbInsert(t: string, b: unknown) { await fetch(SB(t), { method: "POST", headers: { ...H, Prefer: "return=minimal" }, body: JSON.stringify(b) }); }
 async function loadSecrets(): Promise<Record<string, string>> { const rows = await sbGet("alicia_secrets?select=name,value"); const m: Record<string, string> = {}; for (const r of rows) m[r.name] = r.value; return m; }
 
-async function gmailToken(s: Record<string, string>, e: string): Promise<string> {
-  const body = new URLSearchParams({ client_id: s.GMAIL_OAUTH_CLIENT_ID, client_secret: s.GMAIL_OAUTH_CLIENT_SECRET, refresh_token: s[e], grant_type: "refresh_token" });
+async function gmailToken(clientId: string, clientSecret: string, refresh: string): Promise<string> {
+  const body = new URLSearchParams({ client_id: clientId, client_secret: clientSecret, refresh_token: refresh, grant_type: "refresh_token" });
   const r = await fetch("https://oauth2.googleapis.com/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
   const j = await r.json(); if (!j.access_token) throw new Error("no token"); return j.access_token;
 }
@@ -72,7 +66,7 @@ async function snovMatch(email: string): Promise<{ cliente?: string; campaign?: 
   return { cliente: ev[0].cliente_slug, campaign };
 }
 
-// ---- GoHighLevel ----
+// ---- GoHighLevel (solo clientes con GHL, hoy gbs) ----
 function ghlH(t: string) { return { Authorization: `Bearer ${t}`, Version: "2021-07-28", Accept: "application/json" }; }
 async function ghlContact(token: string, loc: string, email: string): Promise<any | null> {
   const r = await fetch(`${GHL}/contacts/?locationId=${loc}&query=${encodeURIComponent(email)}&limit=5`, { headers: ghlH(token) });
@@ -85,12 +79,7 @@ async function ghlSlots(token: string, calId: string): Promise<string[]> {
   const start = Date.now(), end = start + 7 * 864e5;
   const r = await fetch(`${GHL}/calendars/${calId}/free-slots?startDate=${start}&endDate=${end}&timezone=America/Santiago`, { headers: ghlH(token) });
   const d = await r.json().catch(() => ({})); const out: string[] = [];
-  for (const k of Object.keys(d)) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
-    const slots = d[k]?.slots ?? [];
-    for (const s of slots.slice(0, 2)) { const dt = new Date(s); if (!isNaN(dt.getTime())) out.push(new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago", weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(dt)); }
-    if (out.length >= 6) break;
-  }
+  for (const k of Object.keys(d)) { if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue; for (const sl of (d[k]?.slots ?? []).slice(0, 2)) { const dt = new Date(sl); if (!isNaN(dt.getTime())) out.push(new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago", weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(dt)); } if (out.length >= 6) break; }
   return out;
 }
 
@@ -99,17 +88,45 @@ async function tgSend(token: string, chatId: string, text: string): Promise<any>
   return await r.json().catch(() => ({}));
 }
 
+function cardText(c: any): string {
+  const cli = (c.cliente_slug || "").toUpperCase();
+  const camp = c.campaign ? esc(c.campaign) : "(por identificar)";
+  let txt = `<b>${esc(cli)}</b>\n\n`;
+  txt += `🟢 [${c.internal_ref}] ${esc(c.prospect_name)} · ${esc(c.empresa)}\n`;
+  txt += `Cuenta: ${esc(c.account_email)}\nCampaña: ${camp}\nFecha respuesta: ${esc(c.fecha)}\n`;
+  txt += `Asunto: ${esc(c.subject)}\nMensaje: ${esc(String(c.last_message_snippet).slice(0, 280))}\n`;
+  const ct = c.contact;
+  if (ct) {
+    txt += `\n<b>Contacto (GoHighLevel):</b>\n`;
+    txt += `Correo: ${esc(ct.email ?? c.prospect_email)} · Tel: ${esc(ct.phone ?? "—")}\n`;
+    txt += `Cargo: ${esc(cfVal(ct, CF.cargo) || ct.title || "—")} · Industria: ${esc(cfVal(ct, CF.industria) || "—")}\n`;
+    txt += `Empresa: ${esc(ct.companyName ?? c.empresa)} · Tamaño: ${esc(cfVal(ct, CF.tamano) || "—")}\n`;
+    txt += `Web: ${esc(ct.website ?? "—")}\n`;
+    txt += `LinkedIn persona: ${esc(cfVal(ct, CF.liPer) || "—")}\nLinkedIn empresa: ${esc(cfVal(ct, CF.liEmp) || "—")}\n`;
+  }
+  if (c.slots?.length) txt += `\n📅 <b>Horarios disponibles:</b> ${esc(c.slots.join(" · "))}\n`;
+  txt += `\n↩️ Para responder: responde a ESTE mensaje con el texto que quieres enviar.`;
+  return txt;
+}
+
 serve(async (req) => {
   const s = await loadSecrets();
   if ((s.ALICIA_POLL_SECRET ?? "") && req.headers.get("x-alicia-secret") !== s.ALICIA_POLL_SECRET) return new Response("forbidden", { status: 401 });
-  const token = s.TELEGRAM_TOKEN, chatId = s.TELEGRAM_CHAT_ID, lookback = parseInt(s.ALICIA_LOOKBACK_HOURS ?? "22", 10) || 22;
-  const ghlToken = s.GHL_TOKEN_GBS, loc = s.GHL_LOCATION_GBS, calId = s.GHL_CALENDAR_GBS;
+  const lookback = parseInt(s.ALICIA_LOOKBACK_HOURS ?? "22", 10) || 22;
+
+  // Config por cliente (bot + permiso Google).
+  const clientRows = await sbGet("alicia_clients?select=cliente_slug,telegram_token,telegram_chat_id,gmail_client_id,gmail_client_secret&activo=eq.true");
+  const clients: Record<string, any> = {}; for (const c of clientRows) clients[c.cliente_slug] = c;
+  const ghlToken = s.GHL_TOKEN_GBS, ghlLoc = s.GHL_LOCATION_GBS, ghlCal = s.GHL_CALENDAR_GBS;
+
   const accounts = await sbGet("alicia_accounts?select=account_id,email,token_env,cliente_slug&enabled=eq.true");
   const stats = { scanned: 0, nuevas: 0, filtradas: 0 };
-  const cards: any[] = [];
+  const cardsByClient: Record<string, any[]> = {};
 
   for (const acct of accounts) {
-    let access: string; try { access = await gmailToken(s, acct.token_env); } catch { continue; }
+    const cli = acct.cliente_slug; const cc = clients[cli];
+    if (!cc || !cc.gmail_client_id) continue;
+    let access: string; try { access = await gmailToken(cc.gmail_client_id, cc.gmail_client_secret, s[acct.token_env]); } catch { continue; }
     const ids = await gmailList(access, `in:inbox newer_than:${lookback}h`); const seen = new Set<string>();
     for (const id of ids) {
       const meta = await gmailMeta(access, id); const threadId = String(meta.threadId ?? id);
@@ -121,44 +138,27 @@ serve(async (req) => {
 
       const match = await snovMatch(from); const ref = await internalRef(threadId);
       const subject = hget(hs, "Subject").slice(0, 200); const snippet = String(meta.snippet ?? "").slice(0, 400);
-      const cliente = (match.cliente ?? acct.cliente_slug ?? "gbs");
+      const cliente = match.cliente ?? cli;
       const row = { thread_id: threadId, internal_ref: ref, account_id: acct.account_id, account_email: acct.email, prospect_email: from, prospect_name: dispName(hget(hs, "From")) || from, cliente_slug: cliente, subject, last_message_snippet: snippet, last_gmail_message_id: id, classification: "genuine", estado: "alertada", dry_run: true, last_seen_at: new Date().toISOString() };
       await sbUpsert("alicia_email_threads", row, "thread_id"); stats.nuevas++;
 
-      // Datos del contacto en GoHighLevel
-      let contact: any = null; if (ghlToken && loc) { try { contact = await ghlContact(ghlToken, loc, from); } catch { contact = null; } }
-      let slots: string[] = [];
-      if (calId && ghlToken && MEETING.some(k => (subject + " " + snippet).toLowerCase().includes(k))) { try { slots = await ghlSlots(ghlToken, calId); } catch { slots = []; } }
-
-      cards.push({ ...row, fecha: fmtFecha(hget(hs, "Date")), campaign: match.campaign, empresa: from.split("@")[1], contact, slots });
+      // GoHighLevel + calendario solo para clientes con GHL (hoy gbs).
+      let contact: any = null, slots: string[] = [];
+      if (cli === "gbs" && ghlToken && ghlLoc) {
+        try { contact = await ghlContact(ghlToken, ghlLoc, from); } catch { contact = null; }
+        if (ghlCal && MEETING.some(k => (subject + " " + snippet).toLowerCase().includes(k))) { try { slots = await ghlSlots(ghlToken, ghlCal); } catch { slots = []; } }
+      }
+      (cardsByClient[cli] ||= []).push({ ...row, fecha: fmtFecha(hget(hs, "Date")), campaign: match.campaign, empresa: from.split("@")[1], contact, slots });
     }
   }
 
-  if (token && chatId && cards.length > 0) {
-    await tgSend(token, chatId, `🔔 <b>Alicia</b> · ${cards.length} respuesta(s) nueva(s):`);
+  // Enviar cada cliente a SU bot (aislado).
+  for (const [cli, cards] of Object.entries(cardsByClient)) {
+    const cc = clients[cli]; if (!cc?.telegram_token || !cc?.telegram_chat_id || !cards.length) continue;
+    await tgSend(cc.telegram_token, cc.telegram_chat_id, `🔔 <b>Alicia</b> · ${cards.length} respuesta(s) nueva(s):`);
     for (const c of cards) {
-      const cli = (c.cliente_slug || "gbs").toUpperCase();
-      const camp = c.campaign ? esc(c.campaign) : "(por identificar)";
-      let txt = `<b>${esc(cli)}</b>\n\n`;
-      txt += `🟢 [${c.internal_ref}] ${esc(c.prospect_name)} · ${esc(c.empresa)}\n`;
-      txt += `Cuenta: ${esc(c.account_email)}\nCampaña: ${camp}\nFecha respuesta: ${esc(c.fecha)}\n`;
-      txt += `Asunto: ${esc(c.subject)}\nMensaje: ${esc(String(c.last_message_snippet).slice(0, 280))}\n`;
-      const ct = c.contact;
-      if (ct) {
-        const phone = ct.phone ?? "—", web = ct.website ?? "—";
-        txt += `\n<b>Contacto (GoHighLevel):</b>\n`;
-        txt += `Correo: ${esc(ct.email ?? c.prospect_email)} · Tel: ${esc(phone)}\n`;
-        txt += `Cargo: ${esc(cfVal(ct, CF.cargo) || ct.title || "—")} · Industria: ${esc(cfVal(ct, CF.industria) || "—")}\n`;
-        txt += `Empresa: ${esc(ct.companyName ?? c.empresa)} · Tamaño: ${esc(cfVal(ct, CF.tamano) || "—")}\n`;
-        txt += `Web: ${esc(web)}\n`;
-        txt += `LinkedIn persona: ${esc(cfVal(ct, CF.liPer) || "—")}\nLinkedIn empresa: ${esc(cfVal(ct, CF.liEmp) || "—")}\n`;
-      } else {
-        txt += `\n<i>Contacto no encontrado en GoHighLevel (se creará al responder).</i>\n`;
-      }
-      if (c.slots.length) txt += `\n📅 <b>Horarios disponibles:</b> ${esc(c.slots.join(" · "))}\n`;
-      txt += `\n↩️ Para responder: responde a ESTE mensaje con el texto que quieres enviar.`;
-      const sent = await tgSend(token, chatId, txt); const mid = sent?.result?.message_id;
-      if (mid) await sbInsert("alicia_telegram_links", { telegram_message_id: mid, telegram_chat_id: Number(chatId), thread_id: c.thread_id, account_id: c.account_id, kind: "alert" });
+      const sent = await tgSend(cc.telegram_token, cc.telegram_chat_id, cardText(c)); const mid = sent?.result?.message_id;
+      if (mid) await sbInsert("alicia_telegram_links", { telegram_message_id: mid, telegram_chat_id: Number(cc.telegram_chat_id), thread_id: c.thread_id, account_id: c.account_id, kind: "alert" });
     }
   }
 
