@@ -114,7 +114,8 @@ _CLIENTS: dict[str, dict] = {
     },
     "balia": {
         "session_key": "portal_auth_balia",
-        "logo_file": "balia_logo.png",
+        # Sin logo de cliente: usar la marca Conprospección en la entrada.
+        "logo_file": "conprospeccion_logo.png",
         "nav": [
             ("Onboarding", "pages/22_Balia_Onboarding.py", "base"),
         ],
@@ -157,7 +158,7 @@ def render_client_nav(current: str, cliente: str) -> None:
             st.markdown("---")
 
         # Color de acento por cliente (GBS = morado de marca).
-        if cliente == "bambutech":
+        if cliente in ("bambutech", "balia"):
             nav_accent, nav_accent2 = CP_GOLD, CP_ORANGE
         elif cliente == "demo":
             # Dorado oscuro de Conprospeccion: legible como fondo con texto blanco.
@@ -226,7 +227,7 @@ def require_auth_client(cliente: str) -> bool:
     if _restore_from_token(cliente, cfg["session_key"]):
         return True
 
-    if cliente == "bambutech":
+    if cliente in ("bambutech", "balia"):
         accent, accent2 = CP_GOLD, CP_ORANGE
         login_bg = f"linear-gradient(135deg,#FAFAF8 0%,{CP_GOLD_SOFT} 55%,#FAFAF8 100%)"
     elif cliente == "demo":

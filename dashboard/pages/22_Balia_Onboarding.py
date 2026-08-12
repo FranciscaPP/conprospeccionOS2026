@@ -13,6 +13,7 @@ sys.path.insert(0, str(DASHBOARD_DIR))
 
 from onboarding_form import render_onboarding_form
 from portal_auth import render_client_nav, require_auth_client
+from shared.cp_design import CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_ORANGE
 
 st.set_page_config(page_title="Balia - Onboarding", layout="wide", page_icon="")
 if not require_auth_client("balia"):
@@ -24,13 +25,13 @@ render_onboarding_form(
     {
         "slug": "balia",
         "client_name": "Balia",
-        "logo_file": "balia_logo.png",
-        # Acento azul (default del portal para clientes nuevos).
-        "accent": "#1e40af",
-        "accent_2": "#2563eb",
-        "soft": "#eff6ff",
-        "border": "#bfdbfe",
-        "ink": "#0f172a",
+        # Sin logo de cliente: marca y colores de Conprospección (igual que el resto).
+        "logo_file": "conprospeccion_logo.png",
+        "accent": CP_GOLD,
+        "accent_2": CP_ORANGE,
+        "soft": CP_GOLD_SOFT,
+        "border": "#F0D28D",
+        "ink": CP_INK,
         # Listas de opciones genéricas B2B LATAM. El cliente elige lo que aplique;
         # ajústalas cuando tengas su perfil comercial definido.
         "cargo_opts": [
