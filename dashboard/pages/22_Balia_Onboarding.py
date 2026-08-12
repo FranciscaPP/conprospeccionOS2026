@@ -13,7 +13,7 @@ sys.path.insert(0, str(DASHBOARD_DIR))
 
 from onboarding_form import render_onboarding_form
 from portal_auth import render_client_nav, require_auth_client
-from shared.cp_design import CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_ORANGE
+from shared.cp_design import CP_CARBON
 
 st.set_page_config(page_title="Balia - Onboarding", layout="wide", page_icon="")
 if not require_auth_client("balia"):
@@ -25,13 +25,19 @@ render_onboarding_form(
     {
         "slug": "balia",
         "client_name": "Balia",
-        # Sin logo de cliente: marca y colores de Conprospección (igual que el resto).
+        # Sin logo de cliente: marca Conprospección con paleta sobria (menos amarillo).
         "logo_file": "conprospeccion_logo.png",
-        "accent": CP_GOLD,
-        "accent_2": CP_ORANGE,
-        "soft": CP_GOLD_SOFT,
-        "border": "#F0D28D",
-        "ink": CP_INK,
+        # Dorado apagado para botones/chips/filos (no el #FFD700 fluorescente).
+        "accent": "#C9A227",
+        "accent_2": "#8A6D1F",
+        # Fondos casi neutros: apenas un matiz cálido, sin lavado amarillo.
+        "soft": "#FAF7EE",
+        "border": "#E7E1D2",
+        # Negro más sobrio (carbón) en textos y títulos.
+        "ink": CP_CARBON,
+        # Barras de sección sobrias: carbón sólido + texto blanco + filo dorado.
+        "section_bg": CP_CARBON,
+        "section_fg": "#FFFFFF",
         # Listas de opciones genéricas B2B LATAM. El cliente elige lo que aplique;
         # ajústalas cuando tengas su perfil comercial definido.
         "cargo_opts": [

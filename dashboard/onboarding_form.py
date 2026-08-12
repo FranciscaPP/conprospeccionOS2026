@@ -204,6 +204,10 @@ def render_onboarding_form(cfg: dict[str, Any]) -> None:
     soft = cfg.get("soft", CP_GOLD_SOFT)
     border = cfg.get("border", "#F0D28D")
     ink = cfg.get("ink", CP_INK)
+    # Barra de sección temable: por defecto conserva el degradado dorado (GBS/BambuTech).
+    # Un cliente puede pedir una variante sobria (fondo sólido carbón + texto claro).
+    section_bg = cfg.get("section_bg") or f"linear-gradient(135deg,{accent_2},{accent})"
+    section_fg = cfg.get("section_fg", ink)
     defaults = cfg.get("defaults", {})
 
     def key(name: str) -> str:
@@ -325,7 +329,7 @@ def render_onboarding_form(cfg: dict[str, Any]) -> None:
     st.markdown(
         f"""
 <style>
-.block-container{{max-width:1180px;padding-top:1rem!important}}
+.block-container{{max-width:1180px;padding-top:1.6rem!important}}
 div[class*="st-key-{prefix}submit"] button,
 div[class*="st-key-{prefix}save"] button{{
   background:{accent}!important;border:none!important;color:{ink}!important;font-weight:800!important
@@ -339,19 +343,21 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
         unsafe_allow_html=True,
     )
 
-    logo = img_b64(cfg.get("logo_file", ""), 56) or (
+    logo = img_b64(cfg.get("logo_file", ""), 52) or (
         f'<div style="background:{accent};color:{ink};padding:10px 22px;border-radius:8px;'
         f'font-size:18px;font-weight:850">{client_name}</div>'
     )
-    cp_logo = img_b64("conprospeccion_logo.png", 44) or ""
+    # Evita el logo Conprospección repetido cuando el cliente ya usa esa marca a la izquierda.
+    cp_logo = "" if cfg.get("logo_file") == "conprospeccion_logo.png" else (img_b64("conprospeccion_logo.png", 40) or "")
     st.markdown(
-        f'<div style="display:flex;align-items:center;justify-content:space-between;'
-        f'background:linear-gradient(135deg,{soft},#fff);padding:18px 28px;'
-        f'border-radius:14px;border:1px solid {border};margin-bottom:8px;'
-        f'box-shadow:0 2px 8px rgba(0,0,0,.06)">'
-        f'<div style="display:flex;align-items:center;gap:18px">{logo}'
-        f'<div><div style="font-size:22px;font-weight:850;color:{ink}">Formulario de Onboarding</div>'
-        f'<div style="font-size:13px;color:{CP_MUTED};margin-top:3px">'
+        f'<div style="display:flex;align-items:center;justify-content:space-between;gap:20px;'
+        f'background:linear-gradient(135deg,{soft},#fff);padding:22px 30px;'
+        f'border-radius:14px;border:1px solid {border};margin-bottom:20px;'
+        f'box-shadow:0 2px 10px rgba(0,0,0,.05)">'
+        f'<div style="display:flex;align-items:center;gap:20px">{logo}'
+        f'<div><div style="font-size:23px;font-weight:850;color:{ink};line-height:1.2;'
+        f'letter-spacing:.2px">Formulario de Onboarding</div>'
+        f'<div style="font-size:13px;color:{CP_MUTED};margin-top:6px;line-height:1.4">'
         f'Completar antes del inicio del proyecto. Esta información define ICP, mensajes y agenda.</div>'
         f'</div></div>{cp_logo}</div>',
         unsafe_allow_html=True,
@@ -359,8 +365,9 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
 
     def section(title: str, section_id: str) -> None:
         st.markdown(
-            f'<div style="background:linear-gradient(135deg,{accent_2},{accent});color:{ink};'
-            f'border-radius:10px;padding:12px 20px;margin:24px 0 8px;font-size:15px;font-weight:850">'
+            f'<div style="background:{section_bg};color:{section_fg};'
+            f'border-left:5px solid {accent};border-radius:10px;padding:13px 20px;'
+            f'margin:28px 0 10px;font-size:15px;font-weight:800;letter-spacing:.2px">'
             f'{title}</div>',
             unsafe_allow_html=True,
         )
