@@ -112,6 +112,13 @@ _CLIENTS: dict[str, dict] = {
             ("Playbook SDR", "pages/13_GBS_Playbook_SDR.py", "premium"),
         ],
     },
+    "balia": {
+        "session_key": "portal_auth_balia",
+        "logo_file": "balia_logo.png",
+        "nav": [
+            ("Onboarding", "pages/22_Balia_Onboarding.py", "base"),
+        ],
+    },
     # Portal demo para prospectos. Vive en la app aparte `demo/app.py`, no en
     # el panel interno: sus rutas son relativas a demo/, no a dashboard/.
     "demo": {

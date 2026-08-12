@@ -83,6 +83,27 @@ def telegram_chat_id() -> str:
     return _get("TELEGRAM_CHAT_ID")
 
 
+def smtp_config() -> dict[str, str]:
+    """Credenciales SMTP para el aviso de onboarding por correo.
+
+    Se leen de secrets/.env. Si `host`, `user` o `password` faltan, el envio de
+    correo se omite silenciosamente (igual que Telegram). Para Gmail / Google
+    Workspace usar una *App Password*, no la clave normal.
+    """
+    return {
+        "host": _get("SMTP_HOST"),
+        "port": _get("SMTP_PORT", "587"),
+        "user": _get("SMTP_USER"),
+        "password": _get("SMTP_PASSWORD"),
+        "from": _get("SMTP_FROM") or _get("SMTP_USER"),
+    }
+
+
+def onboarding_notify_to() -> str:
+    """Correo(s) que reciben el aviso de onboarding. Coma-separado para varios."""
+    return _get("ONBOARDING_NOTIFY_TO") or _get("SMTP_USER")
+
+
 def ghl_agency_token() -> str:
     return _get("GHL_AGENCY_TOKEN")
 
@@ -99,6 +120,7 @@ def portal_passwords() -> dict[str, str]:
         "clickie":  _get("PORTAL_PASSWORD_CLICKIE"),
         "gbs":      _get("PORTAL_PASSWORD_GBS"),
         "bambutech": _get("PORTAL_PASSWORD_BAMBUTECH"),
+        "balia":    _get("PORTAL_PASSWORD_BALIA"),
         "demo":     _get("PORTAL_PASSWORD_DEMO") or "DEMO2026",
     }
 

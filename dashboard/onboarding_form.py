@@ -2,7 +2,11 @@
 from __future__ import annotations
 
 import html
-from datetime import date
+import re
+import smtplib
+import unicodedata
+from datetime import date, datetime, timezone
+from email.message import EmailMessage
 from pathlib import Path
 from typing import Any
 
@@ -11,11 +15,47 @@ import streamlit as st
 from supabase import create_client
 
 from portal_auth import img_b64
-from shared.config import supabase_key, supabase_url, telegram_chat_id, telegram_token
+from shared.config import (
+    onboarding_notify_to,
+    smtp_config,
+    supabase_key,
+    supabase_url,
+    telegram_chat_id,
+    telegram_token,
+)
 from shared.cp_design import CP_GOLD, CP_GOLD_SOFT, CP_INK, CP_LINE, CP_MUTED, CP_MUTED_SURFACE, CP_ORANGE
 
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# Archivos de onboarding (logos, brochure, clientes actuales) van a Supabase Storage.
+ONBOARDING_BUCKET = "onboarding"
+SIGNED_URL_TTL = 60 * 60 * 24 * 30  # 30 dias
+
+# Campos de subida (key en el formulario -> etiqueta legible).
+UPLOAD_FIELDS = {
+    "clientes_actuales": "Clientes actuales",
+    "archivos_marca": "Archivos de marca",
+}
+
+
+def _safe_filename(name: str) -> str:
+    """Nombre de archivo seguro para una ruta de Storage (sin acentos ni espacios)."""
+    name = unicodedata.normalize("NFKD", str(name or "archivo")).encode("ascii", "ignore").decode()
+    name = re.sub(r"[^A-Za-z0-9._-]+", "_", name).strip("._") or "archivo"
+    return name[:120]
+
+
+def _signed_url(sb: Any, path: str) -> str:
+    """URL firmada (30 dias) para un objeto del bucket privado. '' si falla."""
+    try:
+        res = sb.storage.from_(ONBOARDING_BUCKET).create_signed_url(path, SIGNED_URL_TTL)
+        url = (res or {}).get("signedURL") or (res or {}).get("signedUrl") or ""
+        if url.startswith("/"):
+            url = supabase_url().rstrip("/") + url
+        return url
+    except Exception:
+        return ""
 
 PAISES_LATAM_ES = [
     "Argentina", "Bolivia", "Brasil", "Chile", "Colombia", "Costa Rica", "Cuba",
@@ -32,23 +72,86 @@ TAMANO_OPTS = [
 ]
 
 
-def _notify_telegram(client_name: str, nombre_ej: str, email_ej: str) -> None:
+def _files_text(archivos: list[dict[str, Any]]) -> str:
+    """Lista legible de archivos con su enlace de descarga (o nombre si no hay)."""
+    if not archivos:
+        return "Sin archivos adjuntos."
+    lines = []
+    for f in archivos:
+        nombre = f.get("nombre", "archivo")
+        campo = f.get("campo", "")
+        url = f.get("url", "")
+        etiqueta = f"{nombre}" + (f" ({campo})" if campo else "")
+        lines.append(f"- {etiqueta}: {url}" if url else f"- {etiqueta}")
+    return "\n".join(lines)
+
+
+def _notify_telegram(
+    client_name: str, nombre_ej: str, email_ej: str, archivos: list[dict[str, Any]] | None = None
+) -> None:
     token = telegram_token()
     chat_id = telegram_chat_id()
     if not token or not chat_id:
         return
+    archivos = archivos or []
     msg = (
         f"*Onboarding {client_name} recibido*\n\n"
         f"Ejecutivo: {nombre_ej or '(sin nombre)'}\n"
         f"Email: {email_ej or '(sin email)'}\n\n"
-        "El formulario quedó guardado en Supabase tabla `gbs\\_onboarding`."
+        f"Archivos ({len(archivos)}):\n{_files_text(archivos)}\n\n"
+        "Guardado en Supabase (tabla `gbs\\_onboarding`, archivos en bucket `onboarding`)."
     )
     try:
         requests.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"},
+            json={
+                "chat_id": chat_id,
+                "text": msg,
+                "parse_mode": "Markdown",
+                "disable_web_page_preview": True,
+            },
             timeout=8,
         )
+    except Exception:
+        pass
+
+
+def _notify_email(
+    client_name: str, nombre_ej: str, email_ej: str, archivos: list[dict[str, Any]] | None = None
+) -> None:
+    """Aviso por correo. No-op si faltan credenciales SMTP en secrets."""
+    cfg = smtp_config()
+    to_addr = onboarding_notify_to()
+    if not cfg.get("host") or not cfg.get("user") or not cfg.get("password") or not to_addr:
+        return
+    archivos = archivos or []
+    body = (
+        f"Se recibió el onboarding de {client_name}.\n\n"
+        f"Ejecutivo: {nombre_ej or '(sin nombre)'}\n"
+        f"Email: {email_ej or '(sin email)'}\n\n"
+        f"Archivos ({len(archivos)}):\n{_files_text(archivos)}\n\n"
+        "Los enlaces de descarga son válidos por 30 días. Los archivos quedan "
+        "guardados de forma permanente en Supabase Storage (bucket 'onboarding') "
+        "y los datos de texto en la tabla 'gbs_onboarding'."
+    )
+    msg = EmailMessage()
+    msg["Subject"] = f"Onboarding recibido — {client_name}"
+    msg["From"] = cfg.get("from") or cfg["user"]
+    msg["To"] = to_addr
+    if email_ej:
+        msg["Reply-To"] = email_ej
+    msg.set_content(body)
+    try:
+        port = int(cfg.get("port") or 587)
+        if port == 465:
+            with smtplib.SMTP_SSL(cfg["host"], port, timeout=15) as s:
+                s.login(cfg["user"], cfg["password"])
+                s.send_message(msg)
+        else:
+            with smtplib.SMTP(cfg["host"], port, timeout=15) as s:
+                s.starttls()
+                s.login(cfg["user"], cfg["password"])
+                s.send_message(msg)
     except Exception:
         pass
 
@@ -150,12 +253,68 @@ def render_onboarding_form(cfg: dict[str, Any]) -> None:
             "notas_adicionales": current("notas_adicionales", ""),
         }
 
+    def _gather_uploads() -> list[tuple[str, Any]]:
+        """Archivos actualmente cargados en los file_uploader del formulario."""
+        out: list[tuple[str, Any]] = []
+        single = st.session_state.get(key("clientes_actuales"))
+        if single is not None:
+            out.append(("clientes_actuales", single))
+        marca = st.session_state.get(key("archivos_marca")) or []
+        if not isinstance(marca, list):
+            marca = [marca]
+        for f in marca:
+            if f is not None:
+                out.append(("archivos_marca", f))
+        return out
+
+    def upload_files(sb: Any) -> list[dict[str, Any]]:
+        """Sube a Supabase Storage los archivos cargados y devuelve su metadata.
+
+        Acumula en session_state para no re-subir archivos idénticos entre
+        guardados parciales. Cada archivo se guarda en `{slug}/{campo}/{nombre}`.
+        """
+        saved: dict[str, dict[str, Any]] = st.session_state.get(key("_archivos_saved"), {})
+        for campo, f in _gather_uploads():
+            try:
+                data = f.getvalue()
+            except Exception:
+                continue
+            safe = _safe_filename(getattr(f, "name", "archivo"))
+            path = f"{slug}/{campo}/{safe}"
+            sig = [path, len(data)]
+            if saved.get(path, {}).get("_sig") == sig:
+                continue  # ya subido idéntico en esta sesión
+            try:
+                sb.storage.from_(ONBOARDING_BUCKET).upload(
+                    path,
+                    data,
+                    {
+                        "content-type": getattr(f, "type", "") or "application/octet-stream",
+                        "upsert": "true",
+                    },
+                )
+            except Exception as exc:
+                st.warning(f"No se pudo subir '{safe}': {exc}")
+                continue
+            saved[path] = {
+                "campo": UPLOAD_FIELDS.get(campo, campo),
+                "nombre": getattr(f, "name", safe),
+                "path": path,
+                "tamano": len(data),
+                "url": _signed_url(sb, path),
+                "subido_en": datetime.now(timezone.utc).isoformat(),
+                "_sig": sig,
+            }
+        st.session_state[key("_archivos_saved")] = saved
+        return [{k: v for k, v in meta.items() if k != "_sig"} for meta in saved.values()]
+
     def save_payload(success_text: str) -> dict[str, Any] | None:
+        sb = create_client(supabase_url(), supabase_key())
+        archivos = upload_files(sb)
         payload = build_payload()
+        payload["archivos"] = archivos
         try:
-            create_client(supabase_url(), supabase_key()).table("gbs_onboarding").upsert(
-                payload, on_conflict="cliente"
-            ).execute()
+            sb.table("gbs_onboarding").upsert(payload, on_conflict="cliente").execute()
             st.toast(success_text)
             st.success(success_text)
             return payload
@@ -351,7 +510,9 @@ span[data-baseweb="tag"] span{{color:{ink}!important}}
         if st.button("Enviar formulario a Conprospección", type="primary", use_container_width=True, key=key("submit")):
             payload = save_payload("Formulario enviado y guardado correctamente.")
             if payload:
-                _notify_telegram(client_name, payload["nombre_ejecutivo"], payload["email_ejecutivo"])
+                archivos = payload.get("archivos") or []
+                _notify_telegram(client_name, payload["nombre_ejecutivo"], payload["email_ejecutivo"], archivos)
+                _notify_email(client_name, payload["nombre_ejecutivo"], payload["email_ejecutivo"], archivos)
 
     cp = img_b64("conprospeccion_logo.png", 18) or ""
     st.markdown(
