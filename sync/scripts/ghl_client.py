@@ -54,6 +54,17 @@ class GHLClient:
         response.raise_for_status()
         return response.json()
 
+    def upsert_contact(self, location_id: str, contact: dict[str, Any]) -> dict[str, Any]:
+        """Crea o actualiza un contacto en GHL por email/teléfono (BBDD Maestras, Fase 2).
+
+        Escribe en GHL: usar solo tras confirmación explícita en la UI. GHL deduplica
+        por email/teléfono dentro de la location, así que es idempotente.
+        """
+        payload = {**contact, "locationId": location_id}
+        response = self.client.post("/contacts/upsert", json=payload)
+        response.raise_for_status()
+        return response.json()
+
     def list_custom_fields(self, location_id: str) -> dict[str, Any]:
         response = self.client.get(f"/locations/{location_id}/customFields")
         response.raise_for_status()

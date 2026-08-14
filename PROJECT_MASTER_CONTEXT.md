@@ -55,7 +55,8 @@ entiende el repo sin explorar archivo por archivo):
     `1_Seguimiento_Reuniones.py` (panel maestro interno). Tambien:
     `2_Clientes.py`, `3_Work_and_Project_Management.py`, `9_SDRs.py`, `16_Client_Setup_OS.py`,
     `19_BambuTech_Intelligence_Insight.py` (referencia),
-    `20_GBS_Intelligence_Insight.py`.
+    `20_GBS_Intelligence_Insight.py`, `21_BBDD_Maestras.py` (pool maestro de
+    prospectos + reutilizacion por ICP, ver seccion BBDD Maestras).
   - `master_auth.py`, `portal_auth.py` — Login / autenticacion.
   - `meeting_component.py`, `meeting_shared.py` — UI y logica de la tabla
     de reuniones.
@@ -123,6 +124,31 @@ de validacion e Intelligence Insight) para mostrar lo mismo:
 
 Solo cuentan reuniones de **calendario/agenda** (no oportunidades de pipeline) y
 no excluidas.
+
+## BBDD Maestras (pool unico de prospectos)
+
+Modulo de prospeccion: consolida el universo de prospectos en un **pool unico**
+y lo **reutiliza por cliente segun su ICP**. Pagina `dashboard/pages/21_BBDD_Maestras.py`
+(layout tipo MVP Setup: izquierda "Bases de datos" con los clientes en prospeccion,
+derecha el panel del cliente).
+
+- **Fuentes**: `contactos` (GHL) + `snov_prospects` (Snov), unificadas en la vista
+  `vw_prospectos_maestros`. Apollo se sumara cuando se importen sus bases.
+- **Dedup por correo = alerta, no borra**: la clave canonica es `email_norm`
+  (`lower(trim(email))`). Los correos repetidos se **marcan** (`es_duplicado`,
+  `veces`, `fuentes`, `clientes_origen`) y se listan para revision; nunca se eliminan.
+- **Limpieza uniforme**: `shared/bbdd_maestra.py` normaliza industria (p.ej. "mini"
+  -> "Mineria") y pais con diccionarios de sinonimos editables.
+- **ICP por cliente**: tabla `icp_clientes` (paises, industrias, cargos, tamanos,
+  keywords, exclusiones, umbral). Para GBS hay fallback a `gbs_onboarding`.
+- **Routing**: correo verificado (`email_status = current`) -> **Snov**; con
+  telefono -> **GHL**. El scoring ICP filtra candidatos y excluye los ya asignados.
+- **Ledger** `bbdd_maestra_asignaciones`: traza que prospecto se reutiliza/envia a
+  que cliente (idempotente por `(email_norm, cliente_slug)`).
+- **Escritura a Snov/GHL (Fase 2)**: metodos `SnovClient.add_prospect_to_list` y
+  `GHLClient.upsert_contact` estan preparados pero **desactivados** en la UI hasta
+  confirmacion; hoy la pagina solo lee, calcula candidatos y registra asignaciones.
+- Migracion: `supabase/migrations/008_bbdd_maestra.sql`.
 
 ## Acceso vigente
 
