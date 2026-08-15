@@ -188,6 +188,7 @@ marcados con (*).
 - `ACTIVE_WORKSPACE.md` (*): estado operativo actual del workspace.
 - `docs/SEGUIMIENTO_REUNIONES_RUNBOOK.md` (*): reglas funcionales, UI/UX, persistencia y deploy del panel de reuniones.
 - `CONPROSPECCION_OS_RULEBOOK.md` (*): reglas generales de autoridad de Conprospeccion y portal cliente.
+- `docs/SNOV_MCP.md`: como conectar y usar el MCP remoto de Snov.io (complementa el sync por API Pro; config versionada en `.mcp.json`).
 - `AGENTS.md`: puerta de entrada para Codex, Cursor y otras IA (apunta a este documento).
 - `CLAUDE.md`: puerta de entrada para Claude (apunta a este documento).
 - `AUDIT_REPORT.md`: informe historico de la auditoria 2026-07-03 (memoria, no reglas vigentes).
