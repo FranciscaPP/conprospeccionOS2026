@@ -65,6 +65,31 @@ entiende el repo sin explorar archivo por archivo):
   `planes.py`.
 - `sync/` — Sincronizacion de datos hacia Supabase (`scripts/`,
   `migrations/`, `queries/`) + CI.
+- `alicia/` — Servicio backend (no toca el dashboard) que gestiona **respuestas
+  de campanias Snov.io desde Telegram**. Detecta respuestas reales de prospectos
+  en las casillas (Gmail API), avisa a Telegram con una tarjeta por respuesta y
+  permite **responder desde Telegram con aprobacion**, enviando en el mismo hilo y
+  actualizando GoHighLevel. **Doc completa y AI-legible: `alicia/README.md`** (leer
+  ahi arquitectura, estado, tablas, secretos, IDs de GHL y pendientes).
+  - **Regla de costos:** deteccion/filtrado 100% deterministica, SIN IA. La IA
+    (Anthropic) esta apagada por defecto (`ALICIA_AI_ENABLED=false`); solo bajo
+    peticion explicita via `alicia/ai.py`. Si dictas el texto, se envia sin IA.
+  - **Runtime en produccion (Supabase):** Edge Functions `alicia-poll` (poller
+    2x/dia) y `telegram-alicia` (webhook de respuesta), en
+    `supabase/functions/`; agendadas con **pg_cron** (12:00 y 17:00 America/Santiago).
+    El modulo Python `alicia/` es la referencia + tests (`tests/test_alicia_*`).
+  - **Estado:** deteccion + alertas + responder (en `ALICIA_DRY_RUN=true`) y GHL
+    conectado ya funcionan. Pendiente: datos de contacto en la tarjeta,
+    crear/actualizar contacto + campo "objetivo breve", mover de etapa a pedido,
+    proponer horarios de calendario, y activar el envio real.
+  - **Tablas** (migracion `sync/supabase/migrations/025_*`): `alicia_accounts`,
+    `alicia_email_threads`, `alicia_processed_messages`, `alicia_telegram_links`,
+    `alicia_actions_log`, `alicia_runs`, `alicia_secrets` (almacen de secretos,
+    solo service_role). Escala a 25+ casillas por configuracion, sin codigo nuevo.
+  - **Secretos:** solo en `alicia_secrets` (Supabase) o Secrets; nunca en el repo.
+  - **GoHighLevel GBS:** location `u9b8KkJXhM8lqJfzxa7G`, pipeline Sales, calendario
+    "Sam Miller - Olivo". MCP de GHL en `.mcp.json` (token por env, no commiteado).
+  - **Contexto GBS** (para IA futura): `docs/gbs/`.
 - `supabase/` — Base de datos: `migrations/` y `functions/` (edge functions).
 - `mvp_setup/` — Modulo de setup / onboarding de clientes (app propia).
 - `tests/` — Pruebas (pytest).
