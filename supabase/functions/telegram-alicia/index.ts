@@ -287,9 +287,14 @@ serve(async (req) => {
     await tgSend(token, chatId, `Objetivo actualizado: «${cmd}». Responde *aprobar* para enviar, o *cancelar*.`);
     return new Response("ok");
   }
-  // Nuevo borrador
-  await sbPatch(sel, { estado: "esperando_objetivo", pending_draft: cmd, pending_draft_at: new Date().toISOString(), pending_objetivo: null });
-  const sent = await tgSend(token, chatId, `📝 Borrador para ${who} (${thread.account_email}):\n\n«${cmd}»\n\n¿*Objetivo breve de la reunión*? Escríbelo para guardarlo en GoHighLevel, o responde *aprobar* para enviar sin él.`);
+  // Nuevo borrador. Con GHL (gbs) se pide el objetivo; sin GHL (conprospeccion)
+  // se va directo a aprobar (ese paso no aplica).
+  const nextEstado = tieneGhl ? "esperando_objetivo" : "esperando_aprobacion";
+  await sbPatch(sel, { estado: nextEstado, pending_draft: cmd, pending_draft_at: new Date().toISOString(), pending_objetivo: null });
+  const prompt = tieneGhl
+    ? `📝 Borrador para ${who} (${thread.account_email}):\n\n«${cmd}»\n\n¿*Objetivo breve de la reunión*? Escríbelo para guardarlo en GoHighLevel, o responde *aprobar* para enviar sin él.`
+    : `📝 Borrador para ${who} (${thread.account_email}):\n\n«${cmd}»\n\nResponde *aprobar* para enviarlo, o *cancelar*.`;
+  const sent = await tgSend(token, chatId, prompt);
   const mid = sent?.result?.message_id;
   if (mid) await sbInsert("alicia_telegram_links", { telegram_message_id: mid, telegram_chat_id: chatId, thread_id: thread.thread_id, account_id: thread.account_id, kind: "draft" });
   return new Response(JSON.stringify({ ok: true }), { status: 200 });
