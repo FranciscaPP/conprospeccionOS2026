@@ -33,7 +33,7 @@ async function gmailList(a: string, q: string): Promise<string[]> {
     const r = await fetch(u, { headers: { Authorization: `Bearer ${a}` } }); const j = await r.json(); (j.messages ?? []).forEach((m: any) => ids.push(m.id)); pt = j.nextPageToken ?? "";
   } while (pt && ids.length < 150); return ids;
 }
-const MH = ["From", "Subject", "Date", "Return-Path", "Content-Type", "Auto-Submitted", "Precedence", "In-Reply-To", "References", "X-Autoreply", "X-Autorespond", "X-Auto-Response-Suppress"];
+const MH = ["From", "Subject", "Date", "Return-Path", "Content-Type", "Auto-Submitted", "Precedence", "In-Reply-To", "References", "X-Autoreply", "X-Autorespond", "X-Auto-Response-Suppress", "X-Warmup", "X-Mailwarm", "X-Warmup-Id", "X-TWZ-Warmup", "Feedback-ID"];
 async function gmailMeta(a: string, id: string): Promise<any> { const u = new URL(`${GMAIL}/users/me/messages/${id}`); u.searchParams.set("format", "metadata"); MH.forEach(h => u.searchParams.append("metadataHeaders", h)); const r = await fetch(u, { headers: { Authorization: `Bearer ${a}` } }); return await r.json(); }
 
 function hget(hs: any[], n: string): string { const f = (hs ?? []).find((h: any) => h.name.toLowerCase() === n.toLowerCase()); return f ? String(f.value) : ""; }
@@ -43,8 +43,18 @@ const BOUNCE_S = ["mailer-daemon", "postmaster", "mail delivery subsystem"];
 const BOUNCE_J = ["undelivered", "undeliverable", "delivery status notification", "returned mail", "failure notice", "no se pudo entregar", "correo no entregado", "mail delivery failed"];
 const OOO = ["out of office", "automatic reply", "auto-reply", "autoreply", "respuesta automática", "respuesta automatica", "fuera de la oficina", "fuera de oficina", "de vacaciones", "on vacation"];
 const SYS = ["no-reply", "noreply", "no_reply", "donotreply", "do-not-reply", "notify-noreply", "mailer-daemon", "postmaster", "dmarc", "abuse@", "bounce@", "bounces@", "notifications@", "mailer@"];
+// Correos de calentamiento de casilla (warmup / mailwarm): tráfico automático
+// entre casillas para subir reputación. NO son prospectos. Marca determinística:
+// el asunto lleva un token tipo "[WRM]" y/o cabeceras de la herramienta de warmup.
+export function isWarmup(hs: any[]): boolean {
+  const subj = hget(hs, "Subject").toLowerCase();
+  if (/\[\s*wrm\s*\]/i.test(subj) || /\bwarmup\b/i.test(subj) || /\bmailwarm\b/i.test(subj)) return true;
+  if (hget(hs, "X-Warmup") || hget(hs, "X-Mailwarm") || hget(hs, "X-Warmup-Id") || hget(hs, "X-TWZ-Warmup")) return true;
+  return false;
+}
 function classify(hs: any[], labels: string[]): string {
   if ((labels ?? []).map(x => String(x).toUpperCase()).includes("SPAM")) return "spam";
+  if (isWarmup(hs)) return "warmup";
   const from = hget(hs, "From").toLowerCase(), subj = hget(hs, "Subject").toLowerCase(), ct = hget(hs, "Content-Type").toLowerCase(), rp = hget(hs, "Return-Path").trim();
   if (BOUNCE_S.some(s => from.includes(s)) || BOUNCE_J.some(s => subj.includes(s)) || (ct.includes("multipart/report") && ct.includes("delivery-status")) || rp === "<>") return "bounce";
   if (OOO.some(s => subj.includes(s)) || hget(hs, "X-Auto-Response-Suppress")) return "out_of_office";

@@ -196,6 +196,16 @@ serve(async (req) => {
   if (cc.telegram_token) token = cc.telegram_token;
   const tieneGhl = thread.cliente_slug === "gbs";
 
+  // Seguridad: nunca responder a correos de calentamiento de casilla (warmup).
+  // Son tráfico automático entre casillas, no prospectos. Si un hilo así llegó a
+  // aparecer, se bloquea el envío y se descarta para que no vuelva a listarse.
+  const asuntoHilo = String(thread.subject ?? "");
+  if (/\[\s*wrm\s*\]/i.test(asuntoHilo) || /\bwarmup\b/i.test(asuntoHilo) || /\bmailwarm\b/i.test(asuntoHilo)) {
+    await sbPatch(sel, { estado: "descartada_warmup", pending_draft: null, pending_objetivo: null });
+    await tgSend(token, chatId, `⚠️ Ese mensaje es de calentamiento de casilla (warmup), no un prospecto real de una campaña. No envié nada y lo descarté para que no vuelva a aparecer.\n\nDestinatario: ${thread.prospect_email}`);
+    return new Response("ok");
+  }
+
   // --- Comando: mover a <etapa> (a pedido; solo clientes con GoHighLevel) ---
   if (low.startsWith("mover a ") || low.startsWith("mueve a ") || low.startsWith("mover ") || low.startsWith("etapa ")) {
     if (!tieneGhl) { await tgSend(token, chatId, "Esta cuenta no tiene GoHighLevel conectado, así que no hay etapas que mover."); return new Response("ok"); }
