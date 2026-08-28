@@ -182,7 +182,12 @@ def valor_custom_field(source, aliases):
 
 
 INFO_REUNION_ALIASES = (
-    "mwCPOKdikR3VfS7Xf9bm",
+    # IDs del custom field "Información para reunión" por subcuenta GHL. La API
+    # manda el custom field por ID (no por nombre), y cada location usa un ID
+    # distinto — mismo patrón que LinkedIn/cargo. Hay que listarlos todos.
+    "mwCPOKdikR3VfS7Xf9bm",   # gbs
+    "G7iqx0zfyyIY211r2td2",   # bambutech
+    "z9bT5vF9qi73g1uTFPsK",   # bambutech (variante del campo)
     "informacin_de_preparacin_para_la_reunin",
     "informacion_de_preparacion_para_la_reunion",
     "información de preparación para la reunión",

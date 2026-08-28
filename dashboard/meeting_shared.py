@@ -20,7 +20,7 @@ import requests
 from shared.config import supabase_key, supabase_url
 from shared.meeting_scope import ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de
-from shared.validacion import bant_desde_fuentes, informacion_reunion, texto_real, valor_custom_field
+from shared.validacion import bant_desde_fuentes, informacion_reunion, texto_real, valor_custom_field, INFO_REUNION_ALIASES
 
 SUPABASE_URL = supabase_url()
 SUPABASE_KEY = supabase_key()
@@ -391,7 +391,7 @@ def _contact_enrichment(contact):
         "companyInfo": _custom_field(fields, "x8bV5PXJ0MgJcmdMk9Bd", "uWCMW4RCrWDGlu02nMkp", "QfY4XP9fPVWKAidootqt"),
         "contactInfo": _custom_field(fields, "iZwhsMPoJZ5IgdcA3kYk", "Q6PFJIn4ETLXlgsKRwvx"),
         "contactInfoMeeting": _txt(contact.get("informacion_reunion")) or texto_real(
-            valor_custom_field(source, ("informacion para reunion", "preparacion_para_la_reunion"))
+            valor_custom_field(source, INFO_REUNION_ALIASES)
         ),
         "bantSdr": contact.get("bant_sdr"),
     }
