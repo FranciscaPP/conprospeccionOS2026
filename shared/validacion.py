@@ -188,6 +188,11 @@ INFO_REUNION_ALIASES = (
     "información de preparación para la reunión",
     "preparacion_para_la_reunion",
     "informacion para reunion",
+    # Nueva clave del custom field GHL: {{contact.informacin_para_reunin}}
+    "informacin_para_reunin",
+    "informacion_para_reunion",
+    "contact.informacin_para_reunin",
+    "información para reunión",
     "meetingInfo",
 )
 

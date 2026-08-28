@@ -541,21 +541,10 @@ def _create_dashboard_meeting(payload):
         appointment_at = datetime.datetime(y, mo, d, hh, mm, tzinfo=tz).isoformat()
     except Exception:
         return {"ok": False, "error": "fecha_u_hora_invalida"}
-    try:
-        last = requests.get(
-            f"{SUPABASE_URL}/rest/v1/reuniones?select=id&order=id.desc&limit=1",
-            headers=SUPABASE_HEADERS,
-            timeout=15,
-        )
-        rows = last.json() if last.ok else []
-        max_id = int(rows[0]["id"]) if rows else 0
-    except Exception:
-        max_id = 0
-    # reuniones.id no es autogenerado; usamos un rango alto para no chocar
-    # con los ids que la sincronización de GHL toma de la secuencia.
-    new_id = max(max_id, 900000000) + 1
+    # reuniones.id es columna IDENTITY (GENERATED ALWAYS): Postgres la genera
+    # sola y RECHAZA cualquier id explícito (por eso las reuniones manuales no se
+    # guardaban). No enviamos id; lo leemos de vuelta con return=representation.
     body = {
-        "id": new_id,
         "cliente_slug": cliente_slug,
         "empresa": _txt(meeting.get("company")) or None,
         "contacto": _txt(meeting.get("contact")) or None,
@@ -568,12 +557,18 @@ def _create_dashboard_meeting(payload):
     body = {key: value for key, value in body.items() if value is not None}
     response = requests.post(
         f"{SUPABASE_URL}/rest/v1/reuniones",
-        headers={**SUPABASE_WRITE_HEADERS, "Prefer": "return=minimal"},
+        headers={**SUPABASE_WRITE_HEADERS, "Prefer": "return=representation"},
         json=body,
         timeout=15,
     )
     if response.ok:
-        _insert_history(new_id, "Reunión creada", "Reunión creada manualmente desde panel interno")
+        try:
+            created = response.json()
+            new_id = int(created[0]["id"]) if created else None
+        except Exception:
+            new_id = None
+        if new_id:
+            _insert_history(new_id, "Reunión creada", "Reunión creada manualmente desde panel interno")
         return {"ok": True, "id": new_id}
     return {"ok": False, "status": response.status_code, "error": response.text[:300]}
 
