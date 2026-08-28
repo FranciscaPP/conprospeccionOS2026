@@ -75,9 +75,10 @@ No reemplaza Etapa Agenda, Evaluacion CP, Evaluacion Cliente ni Estado Final. No
 
 Panel interno:
 
-- Francisca y Yanina ven todas las reuniones.
-- Francisca y Yanina tienen las mismas capacidades.
-- No implementar roles internos, RBAC, perfiles de supervisor ni permisos diferenciados.
+- Francisca y Nora ven todas las reuniones.
+- Francisca y Nora tienen las mismas capacidades dentro de este panel.
+- Nora solo tiene acceso a Seguimiento Reuniones; Francisca al panel completo.
+- No implementar RBAC generico, perfiles de supervisor ni jerarquia de roles.
 
 Portales cliente:
 
@@ -125,7 +126,7 @@ Valor inicial:
 - usuario asignado al contacto en GoHighLevel, cuando exista;
 - vacio si GHL no trae asignacion confiable.
 
-Francisca o Yanina pueden corregirlo desde el panel interno. Si cambia, debe quedar en historial:
+Francisca o Nora pueden corregirlo desde el panel interno. Si cambia, debe quedar en historial:
 
 - valor anterior;
 - valor nuevo;
@@ -325,7 +326,7 @@ El cliente no puede editar historial, evidencia, BANT, ICP, Evaluacion CP ni Est
 
 Las politicas RLS futuras deben reforzar:
 
-- Francisca/Yanina: lectura y escritura de todas las reuniones.
+- Francisca/Nora: lectura y escritura de todas las reuniones.
 - Cliente GBS: lectura solo `cliente_slug = 'gbs'`.
 - Cliente Clickie: lectura solo `cliente_slug = 'clickie'`.
 - Cliente BambuTech: lectura solo `cliente_slug = 'bambutech'`.

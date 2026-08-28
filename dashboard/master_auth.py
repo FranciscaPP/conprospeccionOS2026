@@ -1,6 +1,10 @@
-"""Login master para el dashboard interno — Francisca y Yanina."""
+"""Login master para el dashboard interno — Francisca y Nora.
+
+Nora tiene acceso restringido: solo el panel de Seguimiento Reuniones.
+Francisca tiene acceso completo (sin restricción de páginas).
+"""
 from __future__ import annotations
-import sys, base64
+import sys, base64, inspect
 from pathlib import Path
 
 import streamlit as st
@@ -16,8 +20,17 @@ USER_KEY = "master_user"
 
 _DISPLAY_NAMES = {
     "francisca": "Francisca Polanco",
-    "yanina": "Yanina",
+    "nora": "Nora",
 }
+
+# Usuarios con acceso restringido -> conjunto de páginas que sí pueden abrir.
+# La clave de cada página es el `stem` del archivo en dashboard/pages/
+# (nombre sin extensión), p. ej. "1_Seguimiento_Reuniones".
+_RESTRICTED_PAGES = {
+    "nora": {"1_Seguimiento_Reuniones"},
+}
+# Página a la que se redirige a un usuario restringido si intenta abrir otra.
+_HOME_PAGE_FOR_RESTRICTED = "pages/1_Seguimiento_Reuniones.py"
 
 
 def _img_b64(fname: str, h: int = 56) -> str:
@@ -38,6 +51,40 @@ def _check(user: str, pwd: str) -> bool:
 def get_current_user() -> str:
     """Devuelve el nombre visible del usuario logueado, o cadena vacía."""
     return _DISPLAY_NAMES.get(st.session_state.get(USER_KEY, ""), "")
+
+
+def get_allowed_pages() -> set[str] | None:
+    """Páginas permitidas para el usuario actual.
+
+    Devuelve None si el usuario no tiene restricción (acceso completo),
+    o un conjunto de `stem`s de páginas permitidas si está restringido.
+    """
+    return _RESTRICTED_PAGES.get(st.session_state.get(USER_KEY, ""))
+
+
+def _hide_nonallowed_nav(allowed: set[str]) -> None:
+    """Oculta del menú lateral todas las páginas que no estén permitidas.
+
+    Streamlit lista automáticamente todas las páginas de `pages/`. Para un
+    usuario restringido dejamos visible solo el link permitido usando el
+    fragmento del nombre en el href (Streamlit deriva la URL del nombre de
+    archivo sin el prefijo numérico).
+    """
+    shows = ""
+    for stem in allowed:
+        # "1_Seguimiento_Reuniones" -> "Seguimiento_Reuniones"
+        url_part = stem.split("_", 1)[-1] if stem[:1].isdigit() else stem
+        shows += (
+            f'[data-testid="stSidebarNav"] ul li:has(a[href*="{url_part}"])'
+            "{display:list-item !important;}\n"
+        )
+    st.markdown(
+        "<style>"
+        '[data-testid="stSidebarNav"] ul li{display:none !important;}\n'
+        f"{shows}"
+        "</style>",
+        unsafe_allow_html=True,
+    )
 
 
 def logout() -> None:
@@ -95,7 +142,7 @@ def _show_login_page() -> None:
 
         with st.form("master_login_form", clear_on_submit=False):
             user = st.text_input(
-                "Usuario", placeholder="francisca · yanina",
+                "Usuario", placeholder="Usuario",
                 label_visibility="collapsed", key="ml_user",
             )
             pwd = st.text_input(
@@ -134,6 +181,15 @@ def require_master_auth() -> bool:
     """
     if st.session_state.get(SESSION_KEY):
         st.session_state["admin_mode"] = True
+        allowed = get_allowed_pages()
+        if allowed is not None:
+            # Usuario restringido: ocultar el resto del menú y bloquear el
+            # acceso directo (por URL) a páginas no permitidas.
+            _hide_nonallowed_nav(allowed)
+            caller = Path(inspect.stack()[1].filename).stem
+            if caller not in allowed:
+                st.switch_page(_HOME_PAGE_FOR_RESTRICTED)
+                st.stop()
         return True
     _show_login_page()
     return False

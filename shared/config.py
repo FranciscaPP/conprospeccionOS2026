@@ -126,8 +126,13 @@ def portal_passwords() -> dict[str, str]:
 
 
 def master_passwords() -> dict[str, str]:
-    """Devuelve {username: password} para el login master del dashboard interno."""
+    """Devuelve {username: password} para el login master del dashboard interno.
+
+    `nora` trae un fallback en código para que el acceso funcione de inmediato
+    sin tener que cargar un secret en Streamlit Cloud. Para rotarla basta con
+    definir MASTER_PASSWORD_NORA en secrets/.env (tiene prioridad).
+    """
     return {
         "francisca": _get("MASTER_PASSWORD_FRANCISCA"),
-        "yanina":    _get("MASTER_PASSWORD_YANINA"),
+        "nora":      _get("MASTER_PASSWORD_NORA") or "Nora2026#",
     }

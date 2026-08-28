@@ -35,7 +35,7 @@ st.markdown(
     'Estamos preparando el módulo de SDRs con métricas individuales, '
     'ranking de rendimiento, historial de actividad y comparativas por cliente.<br><br>'
     'SDRs activos: Florencia Ravizza, Mariana Figueroa, Mariela Tello, '
-    'Yanina, Zoe Olmedo, Eugenia Marañón, Luciana Acuña.'
+    'Zoe Olmedo, Eugenia Marañón, Luciana Acuña.'
     '</div>'
     '</div>',
     unsafe_allow_html=True,

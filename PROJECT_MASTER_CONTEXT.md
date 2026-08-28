@@ -126,9 +126,18 @@ no excluidas.
 
 ## Acceso vigente
 
-No existe un sistema de roles internos.
+Usuarios del panel interno (login master en `dashboard/master_auth.py`):
 
-Francisca y Yanina usan la misma interfaz interna y tienen las mismas capacidades:
+- **Francisca** — acceso completo a todos los modulos internos.
+- **Nora** — acceso restringido: solo el panel **Seguimiento Reuniones**
+  (`dashboard/pages/1_Seguimiento_Reuniones.py`). El resto de las paginas se
+  ocultan del menu y el acceso directo por URL redirige a Seguimiento.
+
+La restriccion por usuario se define en `_RESTRICTED_PAGES` dentro de
+`dashboard/master_auth.py`. La contraseña de Nora tiene fallback en codigo y se
+puede rotar con `MASTER_PASSWORD_NORA` en secrets/.env.
+
+Dentro de Seguimiento Reuniones, Francisca y Nora tienen las mismas capacidades:
 
 - ver todas las reuniones;
 - editar Etapa Agenda;

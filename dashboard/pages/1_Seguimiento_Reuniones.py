@@ -28,8 +28,12 @@ from shared.config import supabase_key, supabase_url
 from shared.meeting_scope import ACTIVE_MEETING_CLIENT_SLUGS
 from shared.metas import meta_de
 from meeting_component import render_meeting_component
-from meeting_shared import cargar_reuniones_reales_poc
-from master_auth import require_master_auth
+from meeting_shared import (
+    cargar_reuniones_reales_poc,
+    LINKEDIN_PERSONAL_IDS,
+    LINKEDIN_EMPRESA_IDS,
+)
+from master_auth import require_master_auth, get_allowed_pages, logout
 
 st.set_page_config(page_title="Seguimiento Reuniones", layout="wide")
 
@@ -326,8 +330,8 @@ def _contact_enrichment(contact):
     fields = contact.get("custom_fields") or raw.get("customFields") or []
     return {
         "website": _txt(raw.get("website")),
-        "linkedin": _custom_field(fields, "iimkT4RjJWRONU2HcwbN"),
-        "linkedinCompany": _custom_field(fields, "SnRP2tiJlYfQOHBM3adE"),
+        "linkedin": _custom_field(fields, *LINKEDIN_PERSONAL_IDS),
+        "linkedinCompany": _custom_field(fields, *LINKEDIN_EMPRESA_IDS),
         "companySize": _custom_field(fields, "3uQfRamZN2ruaNg367XL"),
         "sourceChannel": _custom_field(fields, "mipcTmLgax5URM1q3Mut") or _txt(raw.get("source")),
         "companyInfo": _custom_field(fields, "x8bV5PXJ0MgJcmdMk9Bd", "uWCMW4RCrWDGlu02nMkp"),
@@ -489,7 +493,7 @@ def _insert_history(reunion_id, section, text):
             "field_changed": section,
             "old_value": None,
             "new_value": text,
-            "changed_by": "Francisca / Yanina",
+            "changed_by": "Francisca / Nora",
             "changed_by_role": "panel_interno",
             "source_dashboard": "Seguimiento_Reuniones",
         },
@@ -681,10 +685,43 @@ st.markdown(
 [data-testid="stSidebar"], header, [data-testid="stToolbar"] { display:none !important; }
 .block-container { max-width:100% !important; padding:0 !important; }
 iframe { display:block; }
+/* Barra superior con acciones (Volver / Salir) */
+.st-key-seg_topbar {
+    background:#333333;
+    padding:8px 18px 6px;
+    display:flex;
+    justify-content:flex-end;
+}
+.st-key-seg_topbar [data-testid="stHorizontalBlock"] { gap:8px !important; width:auto !important; margin-left:auto; }
+.st-key-seg_topbar button {
+    background:#4b4b4b !important;
+    color:#ffffff !important;
+    border:1px solid #5a5a5a !important;
+    font-size:12.5px !important;
+    font-weight:700 !important;
+    padding:4px 14px !important;
+}
+.st-key-seg_topbar button:hover { background:#5a5a5a !important; border-color:#6d6d6d !important; }
 </style>
     """,
     unsafe_allow_html=True,
 )
+
+# ── Barra superior: Salir (todos) + Volver (solo acceso completo) ──────────────
+with st.container(key="seg_topbar"):
+    if get_allowed_pages() is None:
+        # Acceso completo (Francisca): puede volver al menú de dashboards.
+        _c_volver, _c_salir = st.columns(2)
+        with _c_volver:
+            if st.button("← Volver", key="seg_volver", use_container_width=True):
+                st.switch_page("app.py")
+        with _c_salir:
+            if st.button("Salir", key="seg_salir", use_container_width=True):
+                logout()
+    else:
+        # Acceso restringido (Nora): solo cerrar sesión.
+        if st.button("Salir", key="seg_salir", use_container_width=True):
+            logout()
 
 
 

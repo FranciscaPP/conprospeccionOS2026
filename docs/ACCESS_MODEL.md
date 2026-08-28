@@ -4,9 +4,15 @@ Fecha de referencia: 2026-06-27
 
 ## Principio
 
-No existe un sistema de multiples roles internos.
+El panel maestro interno lo usan dos usuarios con distinto alcance:
 
-El panel maestro interno lo usan Francisca y Yanina. Ambas tienen exactamente las mismas capacidades operativas.
+- **Francisca** — acceso completo a todos los modulos internos.
+- **Nora** — acceso restringido: solo el panel Seguimiento Reuniones. Dentro de
+  ese panel tiene las mismas capacidades operativas que Francisca.
+
+La lista de paginas permitidas por usuario restringido vive en
+`_RESTRICTED_PAGES` (`dashboard/master_auth.py`). Para Nora se ocultan del menu
+las demas paginas y el acceso directo por URL redirige a Seguimiento Reuniones.
 
 ## Panel interno
 
@@ -38,10 +44,11 @@ Capacidades internas:
 
 No crear:
 
-- roles internos;
-- permisos diferenciados entre Francisca y Yanina;
 - perfiles de administrador, supervisor o SDR;
-- logica RBAC interna.
+- logica RBAC generica ni jerarquia de roles.
+
+La unica diferenciacion soportada es la lista blanca de paginas por usuario
+(`_RESTRICTED_PAGES`), usada hoy para acotar a Nora a Seguimiento Reuniones.
 
 ## Portales cliente
 
@@ -63,7 +70,7 @@ La separacion por cliente ya existe en la aplicacion. Como mejora de seguridad, 
 
 Politicas futuras:
 
-- Francisca/Yanina: leer y escribir todo.
+- Francisca/Nora: leer y escribir todo (Nora solo desde Seguimiento Reuniones).
 - Cada cliente: leer solo su `cliente_slug`.
 - Cada cliente: escribir solo campos permitidos de Evaluacion Cliente, cuando corresponda.
 - Servicio de sincronizacion: escribir datos tecnicos sincronizados.

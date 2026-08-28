@@ -326,6 +326,28 @@ def _agenda_metadata_payload(meeting):
     return {key: _txt(meeting.get(key)) for key in keys if _txt(meeting.get(key))}
 
 
+# IDs de custom field de LinkedIn por subcuenta GHL. Cada cliente/location usa
+# IDs distintos para el mismo campo (igual que cargo/industria en el sync), por
+# eso hay que listarlos todos: cada contacto pertenece a una sola location, así
+# que solo uno de estos IDs estará presente en sus customFields (sin colisión).
+LINKEDIN_PERSONAL_IDS = (
+    "iimkT4RjJWRONU2HcwbN",  # gbs
+    "l26fnNBBEMXbhf5ZPlDk",  # bambutech
+    "jWVqQFEFBxsjQMuzofrh",  # clickie
+    "HwjK2PVcv3eCw2QTnlR2",  # ecosmart
+    "vwxKdDUH7REMgCN4aYPC",  # just4u
+    "vn5ZMe7otJLoGOQ1CFRo",  # tiresias
+)
+LINKEDIN_EMPRESA_IDS = (
+    "SnRP2tiJlYfQOHBM3adE",  # gbs
+    "l7TrO45QfiWHMVJEoxE0",  # bambutech
+    "6LKfmRcC83AQliUPlrsA",  # clickie
+    "DI6rjt0a8LxkmFJWXH0p",  # ecosmart
+    "Tnl3HtFpmgJCZ4lr6fio",  # just4u
+    "SMX4WWEQj0PAf97sU1zo",  # tiresias
+)
+
+
 def _custom_field(custom_fields, *ids):
     wanted = set(ids)
     for field in custom_fields or []:
@@ -354,10 +376,10 @@ def _contact_enrichment(contact):
     website = _txt(raw.get("website")) or texto_real(
         valor_custom_field(source, ("website", "sitio web", "sitio_web"))
     )
-    linkedin = _custom_field(fields, "iimkT4RjJWRONU2HcwbN") or texto_real(
+    linkedin = _custom_field(fields, *LINKEDIN_PERSONAL_IDS) or texto_real(
         valor_custom_field(source, ("linkedin_personal", "linkedin personal", "linkedin"))
     )
-    linkedin_company = _custom_field(fields, "SnRP2tiJlYfQOHBM3adE") or texto_real(
+    linkedin_company = _custom_field(fields, *LINKEDIN_EMPRESA_IDS) or texto_real(
         valor_custom_field(source, ("linkedin_empresa", "linkedin empresa", "linkedin company"))
     )
     return {

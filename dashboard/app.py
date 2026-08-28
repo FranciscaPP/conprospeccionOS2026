@@ -105,7 +105,7 @@ MODULOS = [
     {
         "icon": "",
         "nombre": "Work and Project Management",
-        "desc": "Tablero interno para asignar tareas a Yanina o Francisca, ordenar prioridades, fechas limite y avance semanal.",
+        "desc": "Tablero interno para asignar tareas del equipo, ordenar prioridades, fechas limite y avance semanal.",
         "tag": "beta", "tag_label": "Interno",
         "color": "#6d28d9",
     },

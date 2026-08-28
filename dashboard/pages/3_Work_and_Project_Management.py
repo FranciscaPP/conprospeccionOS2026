@@ -37,7 +37,7 @@ CP_MARK_PATH = DASHBOARD_DIR / "assets" / "cp_mark_dark.png"
 BOARD_COMPONENT_DIR = Path(tempfile.gettempdir()) / "cp_work_board_component"
 
 STATUSES = ["Pendiente", "En proceso", "Revisión", "Terminado"]
-OWNERS = ["Yanina", "Francisca"]
+OWNERS = ["Francisca"]
 PRIORITIES = ["Alta", "Media", "Baja"]
 CLIENTS = ["Interno", "GBS", "BambuTech"]
 
@@ -61,7 +61,6 @@ PRIORITY_META = {
 }
 
 OWNER_META = {
-    "Yanina": {"initial": "Y", "color": "#2563EB", "bg": "#EAF1FE", "border": "#BFD2FB"},
     "Francisca": {"initial": "F", "color": "#A66A00", "bg": "#FFF3D8", "border": "#F0D28D"},
 }
 
@@ -304,7 +303,7 @@ def _normalize_task(task: dict[str, Any]) -> dict[str, Any]:
     clean["description"] = str(clean.get("description") or "").strip()
     clean["reference_url"] = str(clean.get("reference_url") or "").strip()
     clean["client"] = clean.get("client") if clean.get("client") in CLIENTS else "Interno"
-    clean["owner"] = clean.get("owner") if clean.get("owner") in OWNERS else "Yanina"
+    clean["owner"] = clean.get("owner") if clean.get("owner") in OWNERS else "Francisca"
     clean["status"] = clean.get("status") if clean.get("status") in STATUSES else "Pendiente"
     clean["priority"] = clean.get("priority") if clean.get("priority") in PRIORITIES else "Media"
     clean["due_date"] = _iso_date(clean.get("due_date"))
@@ -605,7 +604,7 @@ def _board_tasks_payload(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "client_meta": CLIENT_META.get(task["client"], CLIENT_META["Interno"]),
                 "priority_meta": PRIORITY_META.get(task["priority"], PRIORITY_META["Media"]),
                 "status_meta": STATUS_META.get(task["status"], STATUS_META["Pendiente"]),
-                "owner_meta": OWNER_META.get(task["owner"], OWNER_META["Yanina"]),
+                "owner_meta": OWNER_META.get(task["owner"], OWNER_META["Francisca"]),
                 "due_text": _fmt_date(task.get("due_date")),
                 "week_label": _task_week_label(task),
                 "overdue": overdue,
@@ -646,7 +645,7 @@ def _selected_task(tasks: list[dict[str, Any]]) -> dict[str, Any] | None:
 def _render_task_card(task: dict[str, Any], source: str) -> None:
     priority = PRIORITY_META.get(task["priority"], PRIORITY_META["Media"])
     status = STATUS_META.get(task["status"], STATUS_META["Pendiente"])
-    owner_meta = OWNER_META.get(task["owner"], OWNER_META["Yanina"])
+    owner_meta = OWNER_META.get(task["owner"], OWNER_META["Francisca"])
     client_meta = CLIENT_META.get(task["client"], CLIENT_META["Interno"])
     due = _date_or_none(task.get("due_date"))
     overdue = bool(due and due < _today() and task["status"] == "Pendiente")
@@ -756,7 +755,7 @@ def _render_subtasks(task: dict[str, Any], source: str) -> None:
 def _render_editor(task: dict[str, Any], source: str) -> None:
     status = STATUS_META.get(task["status"], STATUS_META["Pendiente"])
     priority = PRIORITY_META.get(task["priority"], PRIORITY_META["Media"])
-    owner = OWNER_META.get(task["owner"], OWNER_META["Yanina"])
+    owner = OWNER_META.get(task["owner"], OWNER_META["Francisca"])
     client = CLIENT_META.get(task["client"], CLIENT_META["Interno"])
     client_label = CLIENT_LABELS.get(task["client"], task["client"])
 
@@ -1327,7 +1326,7 @@ st.markdown(
         {logo_html}
         <div class="cp-title"><h1>Work and Project Management</h1><p>Panel operativo</p></div>
       </div>
-      <div class="cp-user"><b>Francisca / Yanina</b>Panel interno</div>
+      <div class="cp-user"><b>Francisca</b>Panel interno</div>
     </div>
     """,
     unsafe_allow_html=True,
