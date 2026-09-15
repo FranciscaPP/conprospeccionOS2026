@@ -58,6 +58,33 @@ def _client_label(slug, raw):
     return labels.get(_txt(slug).lower(), _txt(raw, "Cliente"))
 
 
+# --- SDR asignada automatica -------------------------------------------------
+# Desde septiembre 2026 estas subcuentas (locations) de GHL las atiende Nora.
+# Se mapea por cliente (una location = un cliente) y se activa desde una fecha,
+# para NO re-etiquetar reuniones anteriores que eran de otra SDR (p. ej. Yanina).
+# Identidades GHL de referencia entregadas por el equipo:
+#   BambuTech  VtRhXhRCd8e7CMSKHbTq  michelle.hernandez@bambutech-services.com -> Nora
+#   GBS        oD4JP7w42qu7HirNnXEx  sam@gbs-logistics.cl                       -> Nora
+# Un override manual (seguimiento_reuniones.sdr_override) siempre tiene prioridad.
+_SDR_AUTO_DESDE = datetime.date(2026, 9, 1)
+_SDR_AUTO_POR_CLIENTE = {
+    "gbs": "Nora",
+    "bambutech": "Nora",
+}
+
+
+def _sdr_automatica(slug, fecha_iso):
+    """SDR por defecto para el cliente/fecha, o "" si no aplica."""
+    nombre = _SDR_AUTO_POR_CLIENTE.get(_txt(slug).lower())
+    if not nombre:
+        return ""
+    try:
+        fecha = datetime.date.fromisoformat(str(fecha_iso)[:10])
+    except Exception:
+        return ""
+    return nombre if fecha >= _SDR_AUTO_DESDE else ""
+
+
 def _date_es(value):
     try:
         d = datetime.date.fromisoformat(str(value)[:10])
@@ -568,6 +595,7 @@ def cargar_reuniones_reales_poc():
         cp, client_val, final = _normalize_cancelled_meeting(status, cp, client_val, final)
         assigned_sdr = (
             _txt(seg.get("sdr_override"))
+            or _sdr_automatica(slug, row.get("fecha"))
             or _sdr_display(contact_sdr.get(row.get("ghl_contact_id")), sdr_names)
             or _sdr_display(base_row.get("sdr_slug"), sdr_names)
             or _txt(row.get("sdr"), "Sin asignar")
