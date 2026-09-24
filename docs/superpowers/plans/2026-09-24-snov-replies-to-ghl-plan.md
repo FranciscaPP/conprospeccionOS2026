@@ -2727,3 +2727,201 @@ git commit -m "Agregar boton Agendar (BambuTech): horarios libres y crear cita e
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ```
+
+---
+
+## Parte 3: mover también el deal en el CRM de Snov (BambuTech y Balia)
+
+Agregado tras confirmar contra la API real de Snov (MCP `bc0f5f32-...`) que
+cada cliente tiene su propio funnel en el CRM de Snov, con etapas que calzan
+casi 1 a 1 con `STATUS PROSPECTO` de GHL:
+
+- **BambuTech Services**: `funnel_id 3210308` — Responde(16064440),
+  Información Adicional(16064441), Coordinando Reunión(16064442), Reunión
+  agendada(16064443), Reagendar reunión(16064444), Deriva/Refiere
+  seguimiento(16837086), No Interesado(16837090), No Califica(16837091),
+  Reunión Válida(16837102), Reunión no válida(16837103).
+- **BALIA**: `funnel_id 3347282` — RESPONDE(16750101), INFORMACIÓN
+  ADICIONAL(16750102), COORDINANDO REUNIÓN(16750103), RUNIÓN
+  AGENDADA(16750104) [sic, así está escrito en Snov], REUNIÓN
+  VÁLIDA(16750105), REUNIÓN NO VÁLIDA(16750119), NO INTERESADO(16750120),
+  NO CALIFICA(16750123).
+- **GBS Logistics**: `funnel_id 3215755` — le faltan varias etapas (no tiene
+  Reunión Válida/No válida, No Interesado, No Califica, Deriva). **Excluido**
+  de esta sincronización hasta que se complete a mano en Snov — decisión
+  explícita de la usuaria, no completar el funnel de GBS por código.
+
+**Limitación real de la API de deals de Snov:** no hay búsqueda de deal por
+email/contacto, solo por **nombre** (`crm_search_deals`, substring, 10
+resultados máx). Por eso, igual que con el choque de nombre en GHL (Task 2),
+si la búsqueda no da **exactamente un** resultado no se mueve nada — se
+avisa por Telegram para revisión manual en vez de arriesgar mover el deal
+equivocado.
+
+### Task 25: Mover el deal en el CRM de Snov al mover el estatus en GHL
+
+**Files:**
+- Create: `sync/scripts/snov_crm_sync.py`
+- Modify: `sync/scripts/telegram_ghl_bot.py`
+- Test: `tests/test_snov_crm_sync.py`
+
+- [ ] **Step 1: Escribir el test del mapeo de etiquetas (lógica pura)**
+
+```python
+"""Tests de sync/scripts/snov_crm_sync.py (logica pura de mapeo, sin red)."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
+
+from snov_crm_sync import CLIENT_FUNNELS, funnel_status_id_for
+
+
+def test_funnel_status_id_for_bambutech_coordinando_reunion():
+    assert funnel_status_id_for("bambutech", "Coordinando Reunión") == 16064442
+
+
+def test_funnel_status_id_for_balia_no_calza_mayusculas():
+    # Snov guarda BALIA en mayusculas; el match debe ser insensible a mayus/acentos
+    assert funnel_status_id_for("balia", "informacion adicional") == 16750102
+
+
+def test_funnel_status_id_for_gbs_no_soportado():
+    assert funnel_status_id_for("gbs", "Coordinando Reunión") is None
+
+
+def test_funnel_status_id_for_etiqueta_sin_match():
+    assert funnel_status_id_for("bambutech", "Etiqueta Que No Existe") is None
+```
+
+- [ ] **Step 2: Correr y verificar que falla**
+
+Run: `pytest tests/test_snov_crm_sync.py -v`
+Expected: FAIL con `ModuleNotFoundError`
+
+- [ ] **Step 3: Implementar el mapeo**
+
+```python
+from __future__ import annotations
+
+import unicodedata
+
+CLIENT_FUNNELS: dict[str, dict[str, int | dict[str, int]]] = {
+    "bambutech": {
+        "funnel_id": 3210308,
+        "statuses": {
+            "Responde": 16064440,
+            "Informacion Adicional": 16064441,
+            "Coordinando Reunion": 16064442,
+            "Reunion Agendada": 16064443,
+            "Reagendar Reunion": 16064444,
+            "Deriva Refiere Seguimiento": 16837086,
+            "No Interesado": 16837090,
+            "No Califica": 16837091,
+            "Reunion Valida": 16837102,
+            "Reunion No Valida": 16837103,
+        },
+    },
+    "balia": {
+        "funnel_id": 3347282,
+        "statuses": {
+            "Responde": 16750101,
+            "Informacion Adicional": 16750102,
+            "Coordinando Reunion": 16750103,
+            "Reunion Agendada": 16750104,
+            "Reunion Valida": 16750105,
+            "Reunion No Valida": 16750119,
+            "No Interesado": 16750120,
+            "No Califica": 16750123,
+        },
+    },
+    # gbs: excluido a proposito, su funnel en Snov todavia no tiene todas las etapas.
+}
+
+
+def _normalize(value: str) -> str:
+    return unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower().strip()
+
+
+def funnel_status_id_for(cliente_slug: str, status_prospecto_label: str) -> int | None:
+    client_funnel = CLIENT_FUNNELS.get(cliente_slug)
+    if not client_funnel:
+        return None
+    wanted = _normalize(status_prospecto_label)
+    for label, status_id in client_funnel["statuses"].items():
+        if _normalize(label) == wanted:
+            return status_id
+    return None
+
+
+def funnel_id_for(cliente_slug: str) -> int | None:
+    client_funnel = CLIENT_FUNNELS.get(cliente_slug)
+    return client_funnel["funnel_id"] if client_funnel else None
+```
+
+- [ ] **Step 4: Correr y verificar que pasa**
+
+Run: `pytest tests/test_snov_crm_sync.py -v`
+Expected: 4 tests PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add sync/scripts/snov_crm_sync.py tests/test_snov_crm_sync.py
+git commit -m "Agregar mapeo STATUS PROSPECTO -> etapa del funnel de Snov por cliente
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+```
+
+- [ ] **Step 6: Buscar el deal y moverlo (usa el MCP de Snov, no `SnovClient`)**
+
+Este paso usa las herramientas `crm_search_deals` / `crm_move_deals` del MCP
+de Snov.io ya conectado en esta sesión (servidor `bc0f5f32-...`), no la clase
+`SnovClient` (que es la API REST directa de Snov, sin CRM). Si el bot corre
+fuera de una sesión con ese MCP disponible, hay que llamar a la misma API REST
+subyacente (`GET /deals/search`, `PUT /deals/update-funnel-status`) con
+`httpx` en vez del MCP — confirmar cuál de las dos aplica al implementar,
+según cómo vaya a correr `telegram_ghl_bot.py` en producción (proceso propio
+vs. dentro de una sesión de Claude).
+
+Agregar a `sync/scripts/telegram_ghl_bot.py`, en `handle_callback`, después
+de mover el custom field en GHL (dentro del bloque `if parts[0] == "status"`,
+justo después de `ghl.update_custom_field(...)`):
+
+```python
+    from snov_crm_sync import funnel_id_for, funnel_status_id_for
+
+    funnel_id = funnel_id_for(slug)
+    target_status_id = funnel_status_id_for(slug, new_status)
+    if funnel_id and target_status_id:
+        # Buscar el deal por nombre; si no hay exactamente 1 resultado, avisar y no mover nada.
+        # Implementacion real: usar crm_search_deals(name=nombre) del MCP de Snov,
+        # y si len(resultados) == 1, crm_move_deals(deal_ids=[id], funnel_id=funnel_id, funnel_status_id=target_status_id).
+        # Si da 0 o >1 resultados, mandar por Telegram:
+        # f"⚠️ No pude mover el deal de {nombre} en el CRM de Snov (0 o mas de 1 coincidencia por nombre) — revisar a mano."
+        pass  # completar al implementar, siguiendo el comentario de arriba
+```
+
+(Se deja como comentario guía en vez de código final porque depende de si
+`telegram_ghl_bot.py` corre con el MCP de Snov disponible o hay que pegarle
+directo a la API REST — decidir esto es el primer sub-paso real de esta
+tarea, no una casilla más.)
+
+- [ ] **Step 7: Probar en vivo con un deal real de BambuTech**
+
+Mover el estatus de un contacto real de BambuTech a través del bot ->
+confirmar en la UI de Snov (CRM > BambuTech Services) que el deal
+correspondiente se movió a la misma etapa. Si el contacto no tiene deal
+creado todavía en Snov, confirmar qué debería pasar (¿se crea uno con
+`crm_create_deal`, o se deja como está y solo se avisa? — decidir con la
+usuaria antes de dar esto por terminado, no asumir).
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add sync/scripts/telegram_ghl_bot.py
+git commit -m "Mover el deal en el CRM de Snov al mover STATUS PROSPECTO (BambuTech/Balia)
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+```
