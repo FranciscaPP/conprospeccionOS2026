@@ -2925,3 +2925,128 @@ git commit -m "Mover el deal en el CRM de Snov al mover STATUS PROSPECTO (BambuT
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ```
+
+---
+
+## Parte 4: un color fijo por prospecto + el botón de correo pegado a la tarjeta
+
+Feedback tras el segundo demo (24-sept-2026): con varias tarjetas seguidas en
+el mismo chat, cuesta saber cuál mensaje es de cuál persona, y el botón
+"Responder correo" (mandado aparte) casi no se notaba.
+
+Telegram no permite poner fondo de color a un mensaje individual (lo define
+el tema del cliente de cada usuario, no el bot). El reemplazo funcional: un
+emoji de cuadrado de color, **fijo por `contact_id`** (siempre el mismo
+color para la misma persona, calculado, no aleatorio), puesto junto al
+nombre en cada mensaje relacionado a ese prospecto.
+
+### Task 26: Insignia de color por prospecto + botón de correo en la misma tarjeta
+
+**Files:**
+- Modify: `sync/scripts/telegram_ghl_cards.py`
+- Modify: `sync/scripts/sync_snov_replies_to_ghl.py`
+- Modify: `sync/scripts/telegram_ghl_bot.py`
+- Test: `tests/test_telegram_ghl_cards.py`
+
+- [ ] **Step 1: Agregar el test de la insignia**
+
+```python
+from telegram_ghl_cards import prospect_badge
+
+def test_prospect_badge_es_estable_para_el_mismo_contacto():
+    assert prospect_badge("abc123") == prospect_badge("abc123")
+
+def test_prospect_badge_suele_diferir_entre_contactos_distintos():
+    badges = {prospect_badge(f"contact{i}") for i in range(7)}
+    assert len(badges) > 1  # no todos caen en el mismo color
+
+def test_prospect_badge_es_uno_de_la_paleta():
+    from telegram_ghl_cards import PROSPECT_BADGE_PALETTE
+    assert prospect_badge("cualquiera") in PROSPECT_BADGE_PALETTE
+```
+
+- [ ] **Step 2: Correr y verificar que falla**
+
+Run: `pytest tests/test_telegram_ghl_cards.py -v -k prospect_badge`
+Expected: FAIL con `ImportError`
+
+- [ ] **Step 3: Implementar `prospect_badge` y actualizar los builders para incluirla**
+
+Agregar a `sync/scripts/telegram_ghl_cards.py`:
+
+```python
+PROSPECT_BADGE_PALETTE = ["🟥", "🟧", "🟨", "🟩", "🟦", "🟪", "🟫"]
+
+
+def prospect_badge(contact_id: str) -> str:
+    """Emoji de color fijo por contact_id (mismo id -> siempre el mismo
+    color). Con paleta de 7, se puede repetir si hay muchos prospectos
+    activos en simultaneo en el mismo chat — es una ayuda visual, no un
+    identificador unico."""
+    index = sum(ord(char) for char in contact_id) % len(PROSPECT_BADGE_PALETTE)
+    return PROSPECT_BADGE_PALETTE[index]
+```
+
+Actualizar las firmas y el primer renglón de estas funciones para recibir
+`contact_id` y anteponer `prospect_badge(contact_id)` al nombre (no al
+inicio del mensaje — junto al nombre es donde ella pidió verlo):
+
+```python
+def build_new_contact_card(
+    cliente_slug: str, cliente_nombre: str, campaign_name: str,
+    enrichment: dict[str, Any], email: str, contact_id: str, reply_snippet: str | None = None,
+) -> str:
+    badge = prospect_badge(contact_id)
+    nombre = enrichment.get("name") or "(sin nombre)"
+    lines = [
+        "🆕 *Nuevo contacto en el CRM*",
+        "",
+        f"*Cliente:* {cliente_nombre}",
+        f"*Campaña:* {campaign_name}",
+        "",
+        f"*Prospecto:* {badge} {nombre}",
+    ]
+    # ... el resto de las lineas (cargo, empresa, etc.) queda igual que en la Task 18
+```
+
+(el resto de `build_new_contact_card` no cambia; solo la línea de
+`*Prospecto:*` y la firma). Aplicar el mismo patrón — `badge = prospect_badge(contact_id)`,
+`f"{badge} {nombre}"` en vez de `nombre` solo — a `build_updated_contact_card`,
+`build_status_prompt`, `build_agendar_prompt`, `build_tarea_prompt`,
+`build_already_status_text` y `build_status_changed_text` (todas ya reciben o
+pueden recibir `contact_id`/`nombre`; agregar el parámetro donde falte).
+
+- [ ] **Step 4: Correr y verificar que pasa**
+
+Run: `pytest tests/test_telegram_ghl_cards.py -v`
+Expected: todos los tests PASS (ajustar los tests de la Task 18/19 que
+comparan texto literal del nombre, agregando el badge esperado)
+
+- [ ] **Step 5: Pegar el botón "Responder correo" a la tarjeta principal (no aparte)**
+
+En `sync/scripts/sync_snov_replies_to_ghl.py`, donde se manda la tarjeta de
+contacto nuevo/actualizado (función `notify`, Task 13), agregar el teclado en
+el mismo `send_message` en vez de mandarlo en un mensaje separado (Task 23):
+
+```python
+    reply_markup = build_reply_email_keyboard(ghl_contact_id) if cliente_slug == "bambutech" and ghl_contact_id else None
+    sent = client_bot.send_message(chat_id, text, reply_markup=reply_markup)
+```
+
+(Quitar el envío aparte que la Task 23 agregó para este botón.)
+
+- [ ] **Step 6: Probar en vivo — mandar 2 tarjetas de prospectos distintos seguidas**
+
+Expected: cada una muestra un cuadrado de color distinto junto al nombre, y
+se mantiene igual en los mensajes de estatus/agendar/tarea que salen después
+de responder esa tarjeta puntual. El botón "Responder correo" aparece pegado
+a la tarjeta (BambuTech), no como mensaje aparte.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add sync/scripts/telegram_ghl_cards.py sync/scripts/sync_snov_replies_to_ghl.py sync/scripts/telegram_ghl_bot.py tests/test_telegram_ghl_cards.py
+git commit -m "Agregar insignia de color fija por prospecto y pegar boton de correo a la tarjeta
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+```
