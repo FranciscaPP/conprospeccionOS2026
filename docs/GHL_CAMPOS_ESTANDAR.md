@@ -123,3 +123,31 @@ No se debe crear un endpoint por cliente. Se usa un endpoint universal y el camp
 - Otros clientes: usar su slug operativo.
 
 Si todas las subcuentas conservan los mismos campos, solo cambia `clientSlug`, location/subcuenta y reglas del workflow.
+
+## Automatización: respuesta de Snov -> contacto en GHL
+
+`sync/scripts/sync_snov_replies_to_ghl.py` crea/actualiza el contacto cuando
+un prospecto responde una campaña de Snov (Balia, GBS, BambuTech). Fuente de
+datos: `SnovClient.prospect_by_id(prospectId)` (no `snov_prospects`/
+`prospects_in_list`, que casi no trae estos campos en la práctica).
+
+| Dato Snov (`prospect_by_id`) | Campo GHL |
+| --- | --- |
+| `firstName` / `lastName` | `firstName` / `lastName` (estándar) |
+| `currentJob[0].companyName` | `companyName` (estándar) |
+| `currentJob[0].site` | `website` (estándar) |
+| `country` / `currentJob[0].country` | `country` (estándar) |
+| `currentJob[0].position` | Cargo (custom field) |
+| `currentJob[0].industry` / `industry` | Industria (custom field) |
+| `currentJob[0].size` | Tamaño Empresa (custom field) |
+| `social[].link` (linkedinProfile/linkedIn) | Linkedin Personal (custom field) |
+| `currentJob[0].socialLink` | Linkedin Empresa (custom field) |
+
+Todo contacto creado/actualizado por este job lleva tag `{cliente_slug}` y
+`source = snov-{cliente_slug}` (útil especialmente para Balia, que comparte
+`locationId` con la cuenta privada de Conprospección).
+
+El bot interactivo (`sync/scripts/telegram_ghl_bot.py`, uno por cliente) deja
+mover el custom field `STATUS PROSPECTO` con botones (respondiendo la tarjeta
+del contacto) y crear tareas (`tarea: <texto>`, respondiendo la misma
+tarjeta).
