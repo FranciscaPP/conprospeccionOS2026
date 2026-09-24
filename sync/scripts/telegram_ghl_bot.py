@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -131,29 +132,40 @@ def handle_callback(callback: dict[str, Any], ghl: GHLClient, telegram: Telegram
 
 
 def run_client_bot(slug: str) -> None:
-    settings = get_settings()
-    supabase = SupabaseRestClient(settings.supabase_url, settings.supabase_secret_key)
-    token = get_optional_env(f"TELEGRAM_BOT_{slug.upper()}_TOKEN")
-    if not token:
-        logging.warning("%s: sin TELEGRAM_BOT_%s_TOKEN, no arranca", slug, slug.upper())
-        return
+    try:
+        settings = get_settings()
+        supabase = SupabaseRestClient(settings.supabase_url, settings.supabase_secret_key)
+        token = get_optional_env(f"TELEGRAM_BOT_{slug.upper()}_TOKEN")
+        if not token:
+            logging.warning("%s: sin TELEGRAM_BOT_%s_TOKEN, no arranca", slug, slug.upper())
+            return
 
-    telegram = TelegramClient(token)
-    ghl = GHLClient(token_for_client(slug))
-    location_id = location_for_client(supabase, slug)
+        try:
+            telegram = TelegramClient(token)
+            ghl = GHLClient(token_for_client(slug))
+            location_id = location_for_client(supabase, slug)
+        except Exception:
+            logging.exception("%s: error en el arranque, no arranca", slug)
+            return
 
-    offset = None
-    logging.info("%s: bot escuchando", slug)
-    while True:
-        for update in telegram.get_updates(offset=offset, timeout=30):
-            offset = update["update_id"] + 1
+        offset = None
+        logging.info("%s: bot escuchando", slug)
+        while True:
             try:
-                if "callback_query" in update:
-                    handle_callback(update["callback_query"], ghl, telegram)
-                elif "message" in update:
-                    handle_message(update["message"], slug, telegram, ghl, supabase, location_id)
+                for update in telegram.get_updates(offset=offset, timeout=30):
+                    offset = update["update_id"] + 1
+                    try:
+                        if "callback_query" in update:
+                            handle_callback(update["callback_query"], ghl, telegram)
+                        elif "message" in update:
+                            handle_message(update["message"], slug, telegram, ghl, supabase, location_id)
+                    except Exception:
+                        logging.exception("%s: error procesando update %s", slug, update.get("update_id"))
             except Exception:
-                logging.exception("%s: error procesando update %s", slug, update.get("update_id"))
+                logging.exception("%s: error en el loop principal, reintentando en 10s", slug)
+                time.sleep(10)
+    except Exception:
+        logging.exception("%s: error inesperado no manejado, el bot se detiene", slug)
 
 
 def main() -> None:
