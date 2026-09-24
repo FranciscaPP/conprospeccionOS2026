@@ -121,10 +121,29 @@ Hoy el cliente es 100% lectura. Se agregan:
 - `update_custom_field(contact_id, field_id, value)` (mover estatus).
 - `create_task(contact_id, payload)` (crear tarea).
 
-### 4.4 Migración `sync/supabase/migrations/014_snov_prospects_website_size.sql`
-Agrega columnas `website` y `tamano_empresa` a `snov_prospects` (hoy solo viven
-sueltas dentro de `raw_data` jsonb). Se actualiza `normalize_prospect()` en
-`sync_snov_prospects.py` para poblarlas, igual que ya hace con `empresa`/`cargo`/etc.
+### 4.4 Enriquecimiento (corregido tras verificar con datos reales de Snov)
+Se descarta la migración a `snov_prospects` planteada originalmente: verificado
+contra la API real, `prospects_in_list()` (la fuente de `snov_prospects`) casi
+nunca trae empresa/cargo/sitio web/tamaño — la mayoría de esos campos vienen
+vacíos. La fuente confiable es `SnovClient.prospect_by_id(prospectId)`, y
+`replies()` ya entrega el `prospectId` de cada respuesta. Por eso el
+enriquecimiento para este flujo llama siempre a `prospect_by_id()` directo
+(no depende de `snov_prospects`). Forma real verificada de la respuesta:
+
+```json
+{"success": true, "data": {
+  "id": "...", "name": "...", "firstName": "...", "lastName": "...",
+  "country": "...", "locality": "...", "industry": "...",
+  "phones": [],
+  "social": [{"link": "https://linkedin.com/in/...", "type": "linkedinProfile"}],
+  "currentJob": [{"companyName": "...", "position": "...", "site": "...",
+                  "size": "11-50", "industry": "...", "country": "...",
+                  "city": "...", "socialLink": "https://linkedin.com/company/..."}]
+}}
+```
+Mapeo: `currentJob[0].companyName`→empresa, `.position`→cargo, `.site`→website,
+`.size`→tamaño empresa, `.socialLink`→linkedin_empresa, `social[].link`
+(type linkedinProfile/linkedIn)→linkedin_personal, `phones[0]`→teléfono (si hay).
 
 ## 5. Flujo
 
@@ -225,9 +244,14 @@ y `GHLClient`:
 
 ## 11. Riesgos / supuestos abiertos
 
-- Se asume que `snov_campaign_map` ya tiene mapeadas todas las campañas activas
-  de Balia y BambuTech a su `cliente_slug` (igual que GBS). Si falta alguna, el
-  script no falla pero no detecta esas respuestas — revisar esa tabla al implementar.
+- **Confirmado (no solo asumido): `snov_campaign_map` no tiene NINGUNA campaña
+  mapeada a `balia`** (0 filas). Hay campañas activas llamadas "CP CHILE/MEXICO/PERÚ
+  - ..." que podrían ser las de Balia (corren bajo la cuenta de Conprospección),
+  pero no se puede confirmar por nombre solo. Bloquea probar Fase 1 en vivo para
+  Balia hasta que la usuaria confirme qué `snov_campaign_id` son de Balia y se
+  agreguen a `snov_campaign_map`. El código no depende de esto para funcionar
+  (simplemente no encuentra campañas de balia y no hace nada), pero sin este
+  dato Balia no va a generar ningún contacto automático.
 - `SnovClient.replies()` no pagina explícitamente en el código actual más allá
   del parámetro `offset` — confirmar al implementar si con campañas grandes
   hace falta iterar por offset hasta vaciar resultados.
