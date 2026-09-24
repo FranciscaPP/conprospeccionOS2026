@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
@@ -68,6 +69,72 @@ def handle_task_command(
     telegram.send_message(chat_id, f"✅ Tarea creada para *{nombre}*: {task_text}")
 
 
+PENDING_MANUAL_TASK: dict[int, dict[str, Any]] = {}  # chat_id -> {contact_id, step, titulo, descripcion, fecha_hora}
+
+TASK_STEPS = ["titulo", "descripcion", "fecha_hora"]
+TASK_STEP_PROMPTS = {
+    "titulo": "¿Cuál es el título de la tarea?",
+    "descripcion": "¿Descripción?",
+    "fecha_hora": "¿Fecha y hora? (ej. \"mañana 11am\", \"viernes 3pm\")",
+}
+
+_WEEKDAY_NAMES = [
+    ("lunes", 0), ("martes", 1), ("miercoles", 2), ("miércoles", 2),
+    ("jueves", 3), ("viernes", 4), ("sabado", 5), ("sábado", 5), ("domingo", 6),
+]
+
+_TIME_PATTERN = re.compile(r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)?", re.IGNORECASE)
+
+
+def parse_fecha_hora(texto: str) -> str | None:
+    """Interpreta frases simples de fecha/hora ("mañana 11am", "viernes
+    3pm"). Devuelve un ISO datetime en UTC, o None si no reconoce el
+    formato — el llamador debe usar default_due_date() como respaldo."""
+    if not texto:
+        return None
+    lowered = texto.strip().lower()
+    now = datetime.now(timezone.utc)
+
+    if "hoy" in lowered:
+        target_date = (now).date()
+    elif "manana" in lowered or "mañana" in lowered:
+        target_date = (now + timedelta(days=1)).date()
+    else:
+        target_date = None
+        for name, weekday in _WEEKDAY_NAMES:
+            if name in lowered:
+                days_ahead = (weekday - now.weekday()) % 7 or 7
+                target_date = (now + timedelta(days=days_ahead)).date()
+                break
+        if target_date is None:
+            return None
+
+    match = _TIME_PATTERN.search(lowered)
+    if not match:
+        return None
+    hour = int(match.group(1))
+    minute = int(match.group(2) or 0)
+    meridiem = (match.group(3) or "").lower()
+    if meridiem == "pm" and hour < 12:
+        hour += 12
+    elif meridiem == "am" and hour == 12:
+        hour = 0
+    if not (0 <= hour <= 23) or not (0 <= minute <= 59):
+        return None
+
+    due = datetime(target_date.year, target_date.month, target_date.day, hour, minute, tzinfo=timezone.utc)
+    return due.isoformat()
+
+
+def handle_tarea_callback(parts: list[str], chat_id: int, telegram: TelegramClient) -> None:
+    _, contact_id, modo = parts
+    if modo == "auto":
+        telegram.send_message(chat_id, "⚙️ Listo, no se crea una tarea manual — queda a cargo de la automatización del estatus que le pongas.")
+        return
+    PENDING_MANUAL_TASK[chat_id] = {"contact_id": contact_id, "step": "titulo"}
+    telegram.send_message(chat_id, TASK_STEP_PROMPTS["titulo"])
+
+
 def send_status_options(
     chat_id: str, nombre: str, contact_id: str, location_id: str, ghl: GHLClient, telegram: TelegramClient,
 ) -> None:
@@ -85,9 +152,26 @@ def handle_message(
     message: dict[str, Any], slug: str, telegram: TelegramClient, ghl: GHLClient,
     supabase: SupabaseRestClient, location_id: str,
 ) -> None:
+    chat_id = message["chat"]["id"]
+    if chat_id in PENDING_MANUAL_TASK and message.get("text"):
+        pending = PENDING_MANUAL_TASK[chat_id]
+        pending[pending["step"]] = message["text"].strip()
+        current_index = TASK_STEPS.index(pending["step"])
+        if current_index + 1 < len(TASK_STEPS):
+            pending["step"] = TASK_STEPS[current_index + 1]
+            telegram.send_message(chat_id, TASK_STEP_PROMPTS[pending["step"]])
+        else:
+            PENDING_MANUAL_TASK.pop(chat_id)
+            due_iso = parse_fecha_hora(pending["fecha_hora"]) or default_due_date()
+            ghl.create_task(
+                pending["contact_id"], title=pending["titulo"][:100],
+                due_date_iso=due_iso, body=pending.get("descripcion", ""),
+            )
+            telegram.send_message(chat_id, f"✅ Tarea creada: *{pending['titulo']}*")
+        return
+
     if "reply_to_message" not in message:
         return
-    chat_id = message["chat"]["id"]
     reply_to_id = message["reply_to_message"]["message_id"]
     card = find_card(supabase, chat_id, reply_to_id)
     if not card:
@@ -104,12 +188,19 @@ def handle_message(
 def handle_callback(callback: dict[str, Any], ghl: GHLClient, telegram: TelegramClient) -> None:
     data = callback.get("data") or ""
     parts = data.split(":", 2)
-    if len(parts) != 3 or parts[0] != "status":
+    if len(parts) != 3:
         return
-    _, contact_id, idx_raw = parts
     chat_id = callback["message"]["chat"]["id"]
     telegram.answer_callback_query(callback["id"])
 
+    if parts[0] == "tarea":
+        handle_tarea_callback(parts, chat_id, telegram)
+        return
+
+    if parts[0] != "status":
+        return
+
+    _, contact_id, idx_raw = parts
     contact = ghl.get_contact(contact_id)["contact"]
     location_id = contact["locationId"]
     custom_field_ids = ghl.custom_field_id_map(location_id)
