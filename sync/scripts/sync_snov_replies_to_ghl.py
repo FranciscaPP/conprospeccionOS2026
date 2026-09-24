@@ -1,0 +1,190 @@
+from __future__ import annotations
+
+import argparse
+import logging
+from typing import Any
+
+from config import get_optional_env, get_settings
+from ghl_client import GHLClient
+from snov_client import SnovClient
+from snov_ghl_matching import (
+    GhlAction,
+    build_ghl_contact_payload,
+    build_update_payload,
+    decide_action,
+    extract_snov_enrichment,
+)
+from supabase_rest import SupabaseRestClient
+from telegram_client import TelegramClient
+from telegram_ghl_cards import build_mismatch_alert, build_new_contact_card, build_updated_contact_card
+
+
+def setup_logging() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+
+def token_for_client(slug: str) -> str:
+    env_key = {"gbs": "GHL_TOKEN_GBS_LOGISTICS"}.get(slug, f"GHL_TOKEN_{slug.upper()}")
+    token = get_optional_env(env_key)
+    if not token:
+        raise RuntimeError(f"Falta {env_key} en .env/.env.txt")
+    return token
+
+
+def telegram_for_client(slug: str) -> tuple[TelegramClient, list[str]] | None:
+    token = get_optional_env(f"TELEGRAM_BOT_{slug.upper()}_TOKEN")
+    chat_ids_raw = get_optional_env(f"TELEGRAM_BOT_{slug.upper()}_CHAT_IDS")
+    if not token or not chat_ids_raw:
+        return None
+    chat_ids = [c.strip() for c in chat_ids_raw.split(",") if c.strip()]
+    return (TelegramClient(token), chat_ids) if chat_ids else None
+
+
+def active_clients(supabase: SupabaseRestClient) -> list[dict[str, Any]]:
+    rows = supabase.select("clientes", "nombre,slug,ghl_location_id", order="nombre.asc")
+    return [row for row in rows if row.get("ghl_location_id")]
+
+
+def campaigns_by_client(supabase: SupabaseRestClient) -> dict[str, list[str]]:
+    rows = supabase.select_all("snov_campaign_map", "snov_campaign_id,cliente_slug")
+    result: dict[str, list[str]] = {}
+    for row in rows:
+        if row.get("cliente_slug") and row.get("snov_campaign_id"):
+            result.setdefault(row["cliente_slug"], []).append(row["snov_campaign_id"])
+    return result
+
+
+def notify(
+    telegram: tuple[TelegramClient, list[str]] | None,
+    supabase: SupabaseRestClient,
+    text: str,
+    *,
+    cliente_slug: str,
+    ghl_contact_id: str | None,
+    ghl_location_id: str,
+    prospect_name: str | None,
+    prospect_email: str | None,
+    dry_run: bool,
+) -> None:
+    if not telegram or dry_run:
+        return
+    client_bot, chat_ids = telegram
+    for chat_id in chat_ids:
+        sent = client_bot.send_message(chat_id, text)
+        if ghl_contact_id:
+            supabase.insert("telegram_ghl_cards", {
+                "cliente_slug": cliente_slug,
+                "chat_id": int(chat_id),
+                "telegram_message_id": sent["message_id"],
+                "ghl_contact_id": ghl_contact_id,
+                "ghl_location_id": ghl_location_id,
+                "prospect_name": prospect_name,
+                "prospect_email": prospect_email,
+            })
+
+
+def process_client(
+    client: dict[str, Any],
+    campaign_ids: list[str],
+    snov: SnovClient,
+    supabase: SupabaseRestClient,
+    stats: dict[str, int],
+    dry_run: bool,
+) -> None:
+    slug = client["slug"]
+    location_id = client["ghl_location_id"]
+    ghl = GHLClient(token_for_client(slug))
+    custom_field_ids = ghl.custom_field_id_map(location_id)
+    telegram = telegram_for_client(slug)
+
+    for campaign_id in campaign_ids:
+        for reply in snov.replies(campaign_id):
+            email = reply.get("prospectEmail")
+            prospect_id = reply.get("prospectId")
+            if not email or not prospect_id:
+                continue
+
+            detail = snov.prospect_by_id(prospect_id)
+            enrichment = extract_snov_enrichment(detail.get("data") or {})
+            if not enrichment.get("name"):
+                enrichment["name"] = reply.get("prospectName")
+
+            existing = ghl.find_contact_by_email(location_id, email)
+            action = decide_action(existing, enrichment, custom_field_ids)
+            nombre = enrichment.get("name") or email
+            campaign_name = reply.get("campaign") or campaign_id
+
+            if action == GhlAction.CREATE:
+                payload = build_ghl_contact_payload(enrichment, email, slug, custom_field_ids)
+                contact_id = None
+                if not dry_run:
+                    created = ghl.create_contact(location_id, payload)
+                    contact_id = created["contact"]["id"]
+                stats["created"] += 1
+                notify(
+                    telegram, supabase, build_new_contact_card(slug, client["nombre"], campaign_name, enrichment, email),
+                    cliente_slug=slug, ghl_contact_id=contact_id, ghl_location_id=location_id,
+                    prospect_name=nombre, prospect_email=email, dry_run=dry_run,
+                )
+
+            elif action == GhlAction.UPDATE:
+                payload = build_update_payload(existing, enrichment, custom_field_ids)
+                if payload and not dry_run:
+                    ghl.update_contact(existing["id"], payload)
+                stats["updated"] += 1
+                notify(
+                    telegram, supabase, build_updated_contact_card(slug, client["nombre"], nombre, email),
+                    cliente_slug=slug, ghl_contact_id=existing["id"], ghl_location_id=location_id,
+                    prospect_name=nombre, prospect_email=email, dry_run=dry_run,
+                )
+
+            elif action == GhlAction.SKIP_MISMATCH:
+                stats["mismatch"] += 1
+                ghl_name = f"{existing.get('firstName') or ''} {existing.get('lastName') or ''}".strip() or "(sin nombre)"
+                notify(
+                    telegram, supabase, build_mismatch_alert(client["nombre"], email, ghl_name, nombre),
+                    cliente_slug=slug, ghl_contact_id=None, ghl_location_id=location_id,
+                    prospect_name=nombre, prospect_email=email, dry_run=dry_run,
+                )
+            else:
+                stats["skipped"] += 1
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Detecta respuestas de Snov y crea/actualiza el contacto en GHL.")
+    parser.add_argument("--client", action="append", help="Limitar a estos cliente_slug")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    setup_logging()
+
+    snov_client_id = get_optional_env("SNOV_CLIENT_ID")
+    snov_client_secret = get_optional_env("SNOV_CLIENT_SECRET")
+    if not snov_client_id or not snov_client_secret:
+        raise RuntimeError("Faltan SNOV_CLIENT_ID y/o SNOV_CLIENT_SECRET en .env/.env.txt")
+    snov = SnovClient(snov_client_id, snov_client_secret)
+
+    settings = get_settings()
+    supabase = SupabaseRestClient(settings.supabase_url, settings.supabase_secret_key)
+
+    clients = active_clients(supabase)
+    if args.client:
+        wanted = set(args.client)
+        clients = [c for c in clients if c["slug"] in wanted]
+    by_client = campaigns_by_client(supabase)
+
+    stats: dict[str, int] = {"created": 0, "updated": 0, "mismatch": 0, "skipped": 0}
+    for client in clients:
+        campaign_ids = by_client.get(client["slug"], [])
+        if not campaign_ids:
+            logging.info("%s: sin campanas mapeadas en snov_campaign_map, se omite", client["slug"])
+            continue
+        process_client(client, campaign_ids, snov, supabase, stats, args.dry_run)
+
+    logging.info("Resumen: %s", stats)
+    if not args.dry_run:
+        supabase.insert("sync_runs", {"source": "snov_replies_ghl", "entity": "contacts", "status": "success", "stats": stats, "errors": []})
+
+
+if __name__ == "__main__":
+    main()
