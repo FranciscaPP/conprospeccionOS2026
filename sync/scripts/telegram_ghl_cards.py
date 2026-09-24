@@ -53,12 +53,12 @@ def build_status_keyboard(ordered_options: list[str], contact_id: str) -> dict[s
 
 def build_new_contact_card(
     cliente_slug: str, cliente_nombre: str, campaign_name: str,
-    enrichment: dict[str, Any], email: str,
+    enrichment: dict[str, Any], email: str, reply_snippet: str | None = None,
 ) -> str:
     accent = CLIENT_ACCENTS.get(cliente_slug, "🆕")
     nombre = enrichment.get("name") or "(sin nombre)"
     lines = [
-        f"{accent} *Nuevo contacto creado en GHL*",
+        f"{accent} *Nuevo contacto en el CRM*",
         "",
         f"*Cliente:* {cliente_nombre}",
         f"*Campaña:* {campaign_name}",
@@ -76,32 +76,33 @@ def build_new_contact_card(
     if enrichment.get("country"):
         lines.append(f"*País:* {enrichment['country']}")
     lines.append(f"*Correo:* {email}")
+    if enrichment.get("phone"):
+        lines.append(f"*Teléfono:* {enrichment['phone']}")
     if enrichment.get("linkedin_personal"):
         lines.append(f"*LinkedIn:* {enrichment['linkedin_personal']}")
-    lines += [
-        "",
-        "_Respondió la campaña — no existía en GHL, se creó con estos datos._",
-        "",
-        "Respondé este mensaje para mover el estatus o crear una tarea.",
-    ]
+    if reply_snippet:
+        preview = reply_snippet.strip().replace("\r\n", " ").replace("\n", " ")
+        if len(preview) > 300:
+            preview = preview[:300].rstrip() + "…"
+        lines += ["", f"*Respondió:* _{preview}_"]
+    lines += ["", "Esta tarjeta se creó porque respondió la campaña y no existía en el CRM."]
     return "\n".join(lines)
 
 
 def build_updated_contact_card(cliente_slug: str, cliente_nombre: str, nombre: str, email: str) -> str:
     accent = CLIENT_ACCENTS.get(cliente_slug, "🔄")
     return (
-        f"{accent} *Contacto actualizado en GHL*\n\n"
+        f"{accent} *Contacto actualizado en el CRM*\n\n"
         f"*Cliente:* {cliente_nombre}\n"
         f"*Prospecto:* {nombre} ({email})\n\n"
-        "_Respondió de nuevo la campaña — se completaron datos que faltaban._\n\n"
-        "Respondé este mensaje para mover el estatus o crear una tarea."
+        "Respondió de nuevo la campaña — se completaron datos que faltaban."
     )
 
 
 def build_mismatch_alert(cliente_nombre: str, email: str, ghl_name: str, snov_name: str) -> str:
     return (
         f"⚠️ *Revisar a mano* — {cliente_nombre}\n\n"
-        f"El correo `{email}` ya existe en GHL a nombre de *{ghl_name}*, "
+        f"El correo `{email}` ya existe en el CRM a nombre de *{ghl_name}*, "
         f"pero en Snov respondió *{snov_name}*.\n\n"
         "No se modificó el contacto ni el estatus — puede ser una casilla "
         "compartida o datos cruzados."
@@ -109,11 +110,11 @@ def build_mismatch_alert(cliente_nombre: str, email: str, ghl_name: str, snov_na
 
 
 def build_already_status_text(nombre: str, status: str) -> str:
-    return f"ℹ️ *{nombre}* ya está en *{status}* en GHL — no hay cambios."
+    return f"ℹ️ *{nombre}* ya está en *{status}* en el CRM — no hay cambios."
 
 
 def build_status_changed_text(nombre: str, status: str) -> str:
-    return f"✅ *{nombre}* ahora está en *{status}* en GHL."
+    return f"✅ *{nombre}* ahora está en *{status}* en el CRM."
 
 
 def parse_task_command(text: str) -> str | None:
