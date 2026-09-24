@@ -138,17 +138,3 @@ def build_tarea_keyboard(contact_id: str) -> dict[str, Any]:
         {"text": "✍️ Generar manual", "callback_data": f"tarea:{contact_id}:manual"},
         {"text": "⚙️ Generar automática", "callback_data": f"tarea:{contact_id}:auto"},
     ]]}
-
-
-def parse_task_command(text: str) -> str | None:
-    """Devuelve el texto de la tarea si el mensaje empieza con 'tarea' (con
-    o sin ':'), sino None."""
-    stripped = text.strip()
-    lowered = stripped.lower()
-    if lowered.startswith("tarea:"):
-        rest = stripped[len("tarea:"):].strip()
-    elif lowered.startswith("tarea "):
-        rest = stripped[len("tarea "):].strip()
-    else:
-        return None
-    return rest or None

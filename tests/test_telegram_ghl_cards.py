@@ -13,7 +13,6 @@ from telegram_ghl_cards import (
     build_status_changed_text,
     build_updated_contact_card,
 )
-from telegram_ghl_cards import parse_task_command
 from telegram_ghl_cards import build_agendar_prompt, build_status_prompt, build_tarea_prompt
 
 ENRICHMENT = {
@@ -107,26 +106,6 @@ def test_build_status_changed_text():
     text = build_status_changed_text("Caterina Cronoro", "Coordinando Reunión")
     assert "Caterina Cronoro" in text
     assert "Coordinando Reunión" in text
-
-
-def test_parse_task_command_con_dos_puntos():
-    assert parse_task_command("tarea: llamar mañana 10am") == "llamar mañana 10am"
-
-
-def test_parse_task_command_sin_dos_puntos():
-    assert parse_task_command("tarea llamar mañana 10am") == "llamar mañana 10am"
-
-
-def test_parse_task_command_mayusculas():
-    assert parse_task_command("TAREA: Llamar mañana") == "Llamar mañana"
-
-
-def test_parse_task_command_no_es_tarea():
-    assert parse_task_command("mover a coordinando reunion") is None
-
-
-def test_parse_task_command_vacio_da_none():
-    assert parse_task_command("tarea:") is None
 
 
 def test_build_status_prompt():

@@ -22,7 +22,6 @@ from telegram_ghl_cards import (
     build_tarea_keyboard,
     build_tarea_prompt,
     order_status_options,
-    parse_task_command,
 )
 
 CLIENTS = ["bambutech", "gbs", "balia"]
@@ -61,15 +60,7 @@ def default_due_date() -> str:
     return due.isoformat()
 
 
-def handle_task_command(
-    task_text: str, chat_id: str, card: dict[str, Any], ghl: GHLClient, telegram: TelegramClient,
-) -> None:
-    ghl.create_task(card["ghl_contact_id"], title=task_text[:100], due_date_iso=default_due_date(), body=task_text)
-    nombre = card.get("prospect_name") or card.get("prospect_email")
-    telegram.send_message(chat_id, f"✅ Tarea creada para *{nombre}*: {task_text}")
-
-
-PENDING_MANUAL_TASK: dict[int, dict[str, Any]] = {}  # chat_id -> {contact_id, step, titulo, descripcion, fecha_hora}
+PENDING_MANUAL_TASK: dict[tuple[str, int], dict[str, Any]] = {}  # (slug, chat_id) -> {contact_id, step, titulo, descripcion, fecha_hora}
 
 TASK_STEPS = ["titulo", "descripcion", "fecha_hora"]
 TASK_STEP_PROMPTS = {
@@ -83,38 +74,71 @@ _WEEKDAY_NAMES = [
     ("jueves", 3), ("viernes", 4), ("sabado", 5), ("sábado", 5), ("domingo", 6),
 ]
 
-_TIME_PATTERN = re.compile(r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)?", re.IGNORECASE)
+# Solo matchea numeros que claramente son una hora: pegados a am/pm, con
+# minutos separados por ":", o precedidos por "a las"/"las". Un numero suelto
+# (ej. el "20" de "20 de noviembre") no matchea ninguna de las 3 alternativas.
+_TIME_PATTERN = re.compile(
+    r"(?:a\s+las|las)\s+(?P<h1>\d{1,2})(?::(?P<m1>\d{2}))?\s*(?P<mer1>am|pm)?"
+    r"|(?P<h2>\d{1,2}):(?P<m2>\d{2})\s*(?P<mer2>am|pm)?"
+    r"|(?P<h3>\d{1,2})\s*(?P<mer3>am|pm)\b",
+    re.IGNORECASE,
+)
+
+
+def _extract_time(match: re.Match[str]) -> tuple[int, int, str] | None:
+    groups = match.groupdict()
+    for h_key, m_key, mer_key in (("h1", "m1", "mer1"), ("h2", "m2", "mer2"), ("h3", None, "mer3")):
+        if groups.get(h_key) is not None:
+            hour = int(groups[h_key])
+            minute = int(groups[m_key]) if m_key and groups.get(m_key) else 0
+            meridiem = (groups.get(mer_key) or "").lower()
+            return hour, minute, meridiem
+    return None
 
 
 def parse_fecha_hora(texto: str) -> str | None:
     """Interpreta frases simples de fecha/hora ("mañana 11am", "viernes
-    3pm"). Devuelve un ISO datetime en UTC, o None si no reconoce el
-    formato — el llamador debe usar default_due_date() como respaldo."""
+    3pm", "pasado mañana 10am"). Devuelve un ISO datetime en UTC, o None si
+    no reconoce el formato con confianza — el llamador debe usar
+    default_due_date() como respaldo en vez de arriesgar un valor mal
+    interpretado."""
     if not texto:
         return None
     lowered = texto.strip().lower()
     now = datetime.now(timezone.utc)
 
     if "hoy" in lowered:
-        target_date = (now).date()
+        target_date = now.date()
+    elif "pasado" in lowered and ("manana" in lowered or "mañana" in lowered):
+        # "pasado mañana" contiene la subcadena "mañana" — hay que
+        # descartarla explícitamente antes del chequeo de "mañana" sola,
+        # o quedaría mal interpretado como "mañana" (un día de menos).
+        target_date = (now + timedelta(days=2)).date()
     elif "manana" in lowered or "mañana" in lowered:
         target_date = (now + timedelta(days=1)).date()
     else:
-        target_date = None
+        # Si mencionan más de un día de la semana (ej. "no puedo el lunes,
+        # mejor el viernes"), nos quedamos con el que aparece más a la
+        # derecha en el texto — es el que la persona quiso decir al final.
+        last_pos = -1
+        last_weekday = None
         for name, weekday in _WEEKDAY_NAMES:
-            if name in lowered:
-                days_ahead = (weekday - now.weekday()) % 7 or 7
-                target_date = (now + timedelta(days=days_ahead)).date()
-                break
-        if target_date is None:
+            pos = lowered.rfind(name)
+            if pos > last_pos:
+                last_pos = pos
+                last_weekday = weekday
+        if last_weekday is None:
             return None
+        days_ahead = (last_weekday - now.weekday()) % 7 or 7
+        target_date = (now + timedelta(days=days_ahead)).date()
 
     match = _TIME_PATTERN.search(lowered)
     if not match:
         return None
-    hour = int(match.group(1))
-    minute = int(match.group(2) or 0)
-    meridiem = (match.group(3) or "").lower()
+    extracted = _extract_time(match)
+    if extracted is None:
+        return None
+    hour, minute, meridiem = extracted
     if meridiem == "pm" and hour < 12:
         hour += 12
     elif meridiem == "am" and hour == 12:
@@ -126,12 +150,16 @@ def parse_fecha_hora(texto: str) -> str | None:
     return due.isoformat()
 
 
-def handle_tarea_callback(parts: list[str], chat_id: int, telegram: TelegramClient) -> None:
+def handle_tarea_callback(parts: list[str], chat_id: int, slug: str, telegram: TelegramClient) -> None:
     _, contact_id, modo = parts
     if modo == "auto":
         telegram.send_message(chat_id, "⚙️ Listo, no se crea una tarea manual — queda a cargo de la automatización del estatus que le pongas.")
         return
-    PENDING_MANUAL_TASK[chat_id] = {"contact_id": contact_id, "step": "titulo"}
+    # Clave (slug, chat_id): el mismo chat_id de Telegram identifica a la
+    # misma persona en los 3 bots de cliente (bambutech/gbs/balia) — sin el
+    # slug, arrancar el flujo manual en un bot y responder en otro
+    # contaminaria la tarea del cliente equivocado.
+    PENDING_MANUAL_TASK[(slug, chat_id)] = {"contact_id": contact_id, "step": "titulo"}
     telegram.send_message(chat_id, TASK_STEP_PROMPTS["titulo"])
 
 
@@ -153,15 +181,16 @@ def handle_message(
     supabase: SupabaseRestClient, location_id: str,
 ) -> None:
     chat_id = message["chat"]["id"]
-    if chat_id in PENDING_MANUAL_TASK and message.get("text"):
-        pending = PENDING_MANUAL_TASK[chat_id]
+    pending_key = (slug, chat_id)
+    if pending_key in PENDING_MANUAL_TASK and message.get("text"):
+        pending = PENDING_MANUAL_TASK[pending_key]
         pending[pending["step"]] = message["text"].strip()
         current_index = TASK_STEPS.index(pending["step"])
         if current_index + 1 < len(TASK_STEPS):
             pending["step"] = TASK_STEPS[current_index + 1]
             telegram.send_message(chat_id, TASK_STEP_PROMPTS[pending["step"]])
         else:
-            PENDING_MANUAL_TASK.pop(chat_id)
+            PENDING_MANUAL_TASK.pop(pending_key)
             due_iso = parse_fecha_hora(pending["fecha_hora"]) or default_due_date()
             ghl.create_task(
                 pending["contact_id"], title=pending["titulo"][:100],
@@ -185,7 +214,7 @@ def handle_message(
     telegram.send_message(chat_id, build_tarea_prompt(nombre), reply_markup=build_tarea_keyboard(contact_id))
 
 
-def handle_callback(callback: dict[str, Any], ghl: GHLClient, telegram: TelegramClient) -> None:
+def handle_callback(callback: dict[str, Any], slug: str, ghl: GHLClient, telegram: TelegramClient) -> None:
     data = callback.get("data") or ""
     parts = data.split(":", 2)
     if len(parts) != 3:
@@ -194,7 +223,7 @@ def handle_callback(callback: dict[str, Any], ghl: GHLClient, telegram: Telegram
     telegram.answer_callback_query(callback["id"])
 
     if parts[0] == "tarea":
-        handle_tarea_callback(parts, chat_id, telegram)
+        handle_tarea_callback(parts, chat_id, slug, telegram)
         return
 
     if parts[0] != "status":
@@ -250,7 +279,7 @@ def run_client_bot(slug: str) -> None:
                     offset = update["update_id"] + 1
                     try:
                         if "callback_query" in update:
-                            handle_callback(update["callback_query"], ghl, telegram)
+                            handle_callback(update["callback_query"], slug, ghl, telegram)
                         elif "message" in update:
                             handle_message(update["message"], slug, telegram, ghl, supabase, location_id)
                     except Exception:

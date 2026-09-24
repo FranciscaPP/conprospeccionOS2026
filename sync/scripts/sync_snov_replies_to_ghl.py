@@ -139,7 +139,7 @@ def process_client(
                     created = ghl.create_contact(location_id, payload)
                     contact_id = created["contact"]["id"]
                 stats["created"] += 1
-                reply_snippet = reply.get("emails", [{}])[0].get("emailBody")
+                reply_snippet = (reply.get("emails") or [{}])[0].get("emailBody")
                 notify(
                     telegram, supabase, build_new_contact_card(
                         slug, client["nombre"], campaign_name, enrichment, email, reply_snippet=reply_snippet,
