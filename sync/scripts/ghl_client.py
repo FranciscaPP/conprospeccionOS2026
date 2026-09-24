@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time as _time
 from typing import Any
 
 import httpx
@@ -17,6 +18,30 @@ class GHLClient:
             },
             timeout=60,
         )
+        self._custom_fields_cache: dict[str, list[dict[str, Any]]] = {}
+
+    def _get(self, url: str, params: dict[str, Any] | None = None, retries: int = 3) -> httpx.Response:
+        """GET con reintentos ante cortes de red/timeout transitorios."""
+        last_exc: Exception | None = None
+        retryable_status = {401, 429, 500, 502, 503, 504}  # GHL a veces tira 401/5xx falsos bajo carga
+        for attempt in range(retries + 1):
+            try:
+                response = self.client.get(url, params=params)
+                response.raise_for_status()
+                return response
+            except (httpx.TransportError, httpx.RemoteProtocolError) as exc:
+                last_exc = exc
+                if attempt < retries:
+                    _time.sleep(1.5 * (attempt + 1))
+                    continue
+                raise
+            except httpx.HTTPStatusError as exc:
+                last_exc = exc
+                if exc.response.status_code in retryable_status and attempt < retries:
+                    _time.sleep(1.5 * (attempt + 1))
+                    continue
+                raise
+        raise last_exc  # pragma: no cover
 
     def get_location(self, location_id: str) -> dict[str, Any]:
         response = self.client.get(f"/locations/{location_id}")
@@ -48,6 +73,31 @@ class GHLClient:
         response = self.client.get("/contacts/", params=params)
         response.raise_for_status()
         return response.json()
+
+    def search_contacts_page(
+        self,
+        location_id: str,
+        search_after: list | None = None,
+        page_limit: int = 100,
+    ) -> dict[str, Any]:
+        """POST /contacts/search — paginacion robusta via searchAfter (trae customFields)."""
+        body: dict[str, Any] = {"locationId": location_id, "pageLimit": page_limit}
+        if search_after:
+            body["searchAfter"] = search_after
+        last_exc = None
+        for attempt in range(4):
+            try:
+                r = self.client.post("/contacts/search", json=body)
+                r.raise_for_status()
+                return r.json()
+            except (httpx.TransportError, httpx.RemoteProtocolError) as exc:
+                last_exc = exc
+                import time as _t; _t.sleep(1.5 * (attempt + 1))
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+                    import time as _t; _t.sleep(1.5 * (attempt + 1)); continue
+                raise
+        raise last_exc  # pragma: no cover
 
     def get_contact(self, contact_id: str) -> dict[str, Any]:
         response = self.client.get(f"/contacts/{contact_id}")
@@ -126,9 +176,7 @@ class GHLClient:
             params["startAfterDate"] = start_after_date
         if start_after_id:
             params["startAfterId"] = start_after_id
-        response = self.client.get("/conversations/search", params=params)
-        response.raise_for_status()
-        return response.json()
+        return self._get("/conversations/search", params=params).json()
 
     def list_conversation_messages(
         self,
@@ -139,6 +187,51 @@ class GHLClient:
         params: dict[str, Any] = {"limit": limit}
         if last_message_id:
             params["lastMessageId"] = last_message_id
-        response = self.client.get(f"/conversations/{conversation_id}/messages", params=params)
+        return self._get(f"/conversations/{conversation_id}/messages", params=params).json()
+
+    def find_contact_by_email(self, location_id: str, email: str) -> dict[str, Any] | None:
+        response = self.client.get("/contacts/", params={"locationId": location_id, "query": email, "limit": 5})
+        response.raise_for_status()
+        contacts = response.json().get("contacts") or []
+        email_norm = email.strip().lower()
+        for contact in contacts:
+            if (contact.get("email") or "").strip().lower() == email_norm:
+                return contact
+        return None
+
+    def _raw_custom_fields(self, location_id: str) -> list[dict[str, Any]]:
+        if location_id not in self._custom_fields_cache:
+            payload = self.list_custom_fields(location_id)
+            fields = payload.get("customFields", payload) if isinstance(payload, dict) else payload
+            self._custom_fields_cache[location_id] = fields
+        return self._custom_fields_cache[location_id]
+
+    def custom_field_id_map(self, location_id: str) -> dict[str, str]:
+        from snov_ghl_matching import resolve_custom_field_ids
+        return resolve_custom_field_ids(self._raw_custom_fields(location_id))
+
+    def custom_field_options(self, location_id: str, field_id: str) -> list[str]:
+        for field in self._raw_custom_fields(location_id):
+            if field.get("id") == field_id:
+                return field.get("picklistOptions") or []
+        return []
+
+    def create_contact(self, location_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        body = {"locationId": location_id, **payload}
+        response = self.client.post("/contacts/", json=body)
+        response.raise_for_status()
+        return response.json()
+
+    def update_contact(self, contact_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        response = self.client.put(f"/contacts/{contact_id}", json=payload)
+        response.raise_for_status()
+        return response.json()
+
+    def update_custom_field(self, contact_id: str, field_id: str, value: Any) -> dict[str, Any]:
+        return self.update_contact(contact_id, {"customFields": [{"id": field_id, "value": value}]})
+
+    def create_task(self, contact_id: str, title: str, due_date_iso: str, body: str = "") -> dict[str, Any]:
+        payload = {"title": title, "body": body, "dueDate": due_date_iso, "completed": False}
+        response = self.client.post(f"/contacts/{contact_id}/tasks", json=payload)
         response.raise_for_status()
         return response.json()
