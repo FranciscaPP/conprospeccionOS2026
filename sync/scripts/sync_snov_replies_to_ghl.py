@@ -4,6 +4,8 @@ import argparse
 import logging
 from typing import Any
 
+import httpx
+
 from config import get_optional_env, get_settings
 from ghl_client import GHLClient
 from snov_client import SnovClient
@@ -84,6 +86,21 @@ def notify(
             })
 
 
+REPLIES_PAGE_SIZE = 10000
+
+
+def all_replies(snov: SnovClient, campaign_id: str) -> list[dict[str, Any]]:
+    replies: list[dict[str, Any]] = []
+    offset = 0
+    while True:
+        batch = snov.replies(campaign_id, offset=offset)
+        replies.extend(batch)
+        if len(batch) < REPLIES_PAGE_SIZE:
+            break
+        offset += REPLIES_PAGE_SIZE
+    return replies
+
+
 def process_client(
     client: dict[str, Any],
     campaign_ids: list[str],
@@ -99,7 +116,7 @@ def process_client(
     telegram = telegram_for_client(slug)
 
     for campaign_id in campaign_ids:
-        for reply in snov.replies(campaign_id):
+        for reply in all_replies(snov, campaign_id):
             email = reply.get("prospectEmail")
             prospect_id = reply.get("prospectId")
             if not email or not prospect_id:
@@ -174,16 +191,24 @@ def main() -> None:
     by_client = campaigns_by_client(supabase)
 
     stats: dict[str, int] = {"created": 0, "updated": 0, "mismatch": 0, "skipped": 0}
+    errors: list[str] = []
     for client in clients:
         campaign_ids = by_client.get(client["slug"], [])
         if not campaign_ids:
             logging.info("%s: sin campanas mapeadas en snov_campaign_map, se omite", client["slug"])
             continue
-        process_client(client, campaign_ids, snov, supabase, stats, args.dry_run)
+        try:
+            process_client(client, campaign_ids, snov, supabase, stats, args.dry_run)
+        except httpx.HTTPStatusError as exc:
+            logging.error("%s fallo HTTP %s: %s", client["slug"], exc.response.status_code, exc.response.text[:300])
+            errors.append(f"{client['slug']}: HTTP {exc.response.status_code} {exc.response.text[:200]}")
+        except Exception as exc:
+            logging.error("%s fallo: %s", client["slug"], exc)
+            errors.append(f"{client['slug']}: {exc}")
 
     logging.info("Resumen: %s", stats)
     if not args.dry_run:
-        supabase.insert("sync_runs", {"source": "snov_replies_ghl", "entity": "contacts", "status": "success", "stats": stats, "errors": []})
+        supabase.insert("sync_runs", {"source": "snov_replies_ghl", "entity": "contacts", "status": "success" if not errors else "partial_error", "stats": stats, "errors": errors})
 
 
 if __name__ == "__main__":
