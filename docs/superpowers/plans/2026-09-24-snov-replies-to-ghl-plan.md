@@ -3050,3 +3050,118 @@ git commit -m "Agregar insignia de color fija por prospecto y pegar boton de cor
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ```
+
+---
+
+## Parte 5: si el estatus se mueve directo en GHL (sin pasar por Telegram), igual sincronizar a Snov
+
+Hoy el deal de Snov solo se mueve cuando el cambio de estatus sale del botón
+de Telegram (Task 25). Falta cubrir: alguien cambia `STATUS PROSPECTO` a mano
+dentro de GHL. Sin tocar nada en GHL (no hay un webhook de cambios de
+contacto, solo de citas — ver `supabase/functions/ghl-webhook`, que hoy solo
+escucha `AppointmentCreate/Update`), se resuelve con **revisión por polling**,
+en el mismo job que ya corre cada hora.
+
+### Task 27: Tabla de vínculo contacto↔deal + revisión horaria de cambios manuales
+
+**Files:**
+- Create: `sync/supabase/migrations/015_ghl_snov_deal_links.sql`
+- Modify: `sync/scripts/telegram_ghl_bot.py` (guardar el vínculo cuando se mueve desde Telegram)
+- Modify: `sync/scripts/sync_snov_replies_to_ghl.py` (revisar cambios manuales cada corrida)
+
+- [ ] **Step 1: Migración**
+
+```sql
+create table if not exists public.ghl_snov_deal_links (
+  ghl_contact_id text primary key,
+  cliente_slug text not null references public.clientes(slug) on update cascade,
+  snov_deal_id bigint not null,
+  last_status text not null,
+  updated_at timestamptz not null default now()
+);
+```
+
+Aplicar igual que la Task 1 (mismo mecanismo que las migraciones anteriores)
+y confirmar que existe.
+
+- [ ] **Step 2: Guardar el vínculo cada vez que Task 25 mueve un deal desde Telegram**
+
+En el bloque de la Task 25 (Step 6 de esa tarea, dentro de
+`handle_callback`), después de mover el deal con éxito, hacer upsert:
+
+```python
+    supabase.upsert("ghl_snov_deal_links", [{
+        "ghl_contact_id": contact_id,
+        "cliente_slug": slug,
+        "snov_deal_id": deal_id,  # el id encontrado por crm_search_deals
+        "last_status": new_status,
+    }], "ghl_contact_id")
+```
+
+(`telegram_ghl_bot.py` necesita una instancia de `SupabaseRestClient`, ya la
+tiene desde `run_client_bot`.)
+
+- [ ] **Step 3: En el job de cada hora, revisar contactos ya vinculados por si cambiaron a mano en GHL**
+
+Agregar a `sync/scripts/sync_snov_replies_to_ghl.py`, llamado al final de
+`main()` (después de procesar las respuestas nuevas), solo para `bambutech`
+y `balia`:
+
+```python
+def sync_manual_status_changes(supabase: SupabaseRestClient, slug: str, location_id: str) -> int:
+    from snov_crm_sync import funnel_id_for, funnel_status_id_for
+
+    funnel_id = funnel_id_for(slug)
+    if not funnel_id:
+        return 0
+
+    ghl = GHLClient(token_for_client(slug))
+    custom_field_ids = ghl.custom_field_id_map(location_id)
+    field_id = custom_field_ids.get("status_prospecto")
+    if not field_id:
+        return 0
+
+    links = supabase.select_all("ghl_snov_deal_links", "*", cliente_slug=f"eq.{slug}")
+    moved = 0
+    for link in links:
+        contact = ghl.get_contact(link["ghl_contact_id"])["contact"]
+        current_value = next(
+            (cf.get("value") for cf in contact.get("customFields") or [] if cf.get("id") == field_id), None,
+        )
+        if not current_value or current_value == link["last_status"]:
+            continue  # no cambio, o el que lo cambio fue el propio bot (Task 25 ya lo guardo)
+
+        target_status_id = funnel_status_id_for(slug, current_value)
+        if not target_status_id:
+            continue
+
+        # Mover el deal via MCP/API de Snov (mismo mecanismo que Task 25, Step 6).
+        # ... crm_move_deals(deal_ids=[link["snov_deal_id"]], funnel_id=funnel_id, funnel_status_id=target_status_id)
+
+        supabase.upsert("ghl_snov_deal_links", [{
+            **{k: link[k] for k in ("ghl_contact_id", "cliente_slug", "snov_deal_id")},
+            "last_status": current_value,
+        }], "ghl_contact_id")
+        moved += 1
+    return moved
+```
+
+Llamar `sync_manual_status_changes(supabase, "bambutech", bambutech_location_id)`
+y lo mismo para `"balia"` al final de `main()` (buscar el `location_id` de
+cada uno en `clients`, ya cargado ahí).
+
+- [ ] **Step 4: Probar en vivo**
+
+Cambiar `STATUS PROSPECTO` a mano en la UI de GHL para un contacto que ya
+tenga fila en `ghl_snov_deal_links`. Correr
+`python3 sync_snov_replies_to_ghl.py --client bambutech` manualmente y
+confirmar que el deal en Snov se movió a la etapa correspondiente.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add sync/supabase/migrations/015_ghl_snov_deal_links.sql sync/scripts/telegram_ghl_bot.py sync/scripts/sync_snov_replies_to_ghl.py
+git commit -m "Sincronizar a Snov los cambios de estatus hechos directo en GHL (polling horario)
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+```
