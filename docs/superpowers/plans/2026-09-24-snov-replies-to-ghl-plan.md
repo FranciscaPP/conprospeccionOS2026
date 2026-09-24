@@ -2313,38 +2313,77 @@ En `handle_callback`, después del bloque que maneja `status`:
         return
 ```
 
-- [ ] **Step 2: Capturar el siguiente mensaje como la tarea manual**
+- [ ] **Step 2: Preguntar título, descripción, fecha y hora por separado (no un mensaje libre)**
 
-En `handle_message`, antes de todo lo demás (incluso si no es un reply),
-agregar al principio:
+`PENDING_MANUAL_TASK` pasa a guardar en qué pregunta va cada chat, no solo el
+`contact_id`:
+
+```python
+PENDING_MANUAL_TASK: dict[int, dict[str, Any]] = {}  # chat_id -> {contact_id, step, titulo, descripcion, fecha_hora}
+
+TASK_STEPS = ["titulo", "descripcion", "fecha_hora"]
+TASK_STEP_PROMPTS = {
+    "titulo": "¿Cuál es el título de la tarea?",
+    "descripcion": "¿Descripción?",
+    "fecha_hora": "¿Fecha y hora? (ej. \"mañana 11am\", \"viernes 3pm\")",
+}
+```
+
+Reemplazar `handle_tarea_callback` (modo manual) para arrancar el primer paso:
+
+```python
+def handle_tarea_callback(parts: list[str], chat_id: int, telegram: TelegramClient) -> None:
+    _, contact_id, modo = parts
+    if modo == "auto":
+        telegram.send_message(chat_id, "⚙️ Listo, no se crea una tarea manual — queda a cargo de la automatización del estatus que le pongas.")
+        return
+    PENDING_MANUAL_TASK[chat_id] = {"contact_id": contact_id, "step": "titulo"}
+    telegram.send_message(chat_id, TASK_STEP_PROMPTS["titulo"])
+```
+
+- [ ] **Step 3: Capturar cada respuesta y avanzar al siguiente paso, o crear la tarea en el último**
+
+En `handle_message`, antes de todo lo demás (incluso si no es un reply):
 
 ```python
     chat_id = message["chat"]["id"]
     if chat_id in PENDING_MANUAL_TASK and message.get("text"):
-        contact_id = PENDING_MANUAL_TASK.pop(chat_id)
-        texto = message["text"].strip()
-        ghl.create_task(contact_id, title=texto[:100], due_date_iso=default_due_date(), body=texto)
-        telegram.send_message(chat_id, f"✅ Tarea creada: {texto}")
+        pending = PENDING_MANUAL_TASK[chat_id]
+        pending[pending["step"]] = message["text"].strip()
+        current_index = TASK_STEPS.index(pending["step"])
+        if current_index + 1 < len(TASK_STEPS):
+            pending["step"] = TASK_STEPS[current_index + 1]
+            telegram.send_message(chat_id, TASK_STEP_PROMPTS[pending["step"]])
+        else:
+            PENDING_MANUAL_TASK.pop(chat_id)
+            due_iso = parse_fecha_hora(pending["fecha_hora"]) or default_due_date()
+            ghl.create_task(
+                pending["contact_id"], title=pending["titulo"][:100],
+                due_date_iso=due_iso, body=pending.get("descripcion", ""),
+            )
+            telegram.send_message(chat_id, f"✅ Tarea creada: *{pending['titulo']}*")
         return
 ```
 
-(`default_due_date()` ya existe de la Task 14; para la versión manual sigue
-siendo un valor por defecto razonable ya que el texto libre no se parsea a
-fecha real — anotar como mejora futura si hace falta fecha exacta en el
-campo `dueDate`, no en la Fase actual.)
+`parse_fecha_hora(texto: str) -> str | None` es una función nueva y chica en
+`telegram_ghl_bot.py` que intenta interpretar frases simples ("mañana 11am",
+"viernes 3pm"); si no reconoce el formato, devuelve `None` y se usa
+`default_due_date()` como respaldo (no bloquear la creación de la tarea por
+no poder parsear la fecha exacta — mejor una fecha aproximada que ninguna
+tarea).
 
-- [ ] **Step 3: Probar en vivo**
+- [ ] **Step 4: Probar en vivo**
 
-Responder una tarjeta -> tocar "⚙️ Generar automática" en el mensaje de
-tarea -> confirmar el mensaje de "no se crea nada". Responder otra tarjeta ->
-tocar "✍️ Generar manual" -> escribir un texto libre -> confirmar que se creó
-la tarea en GHL (revisar en la UI).
+Responder una tarjeta -> tocar "⚙️ Generar automática" -> confirmar el
+mensaje de "no se crea nada". Responder otra tarjeta -> tocar "✍️ Generar
+manual" -> contestar título, descripción y fecha/hora en 3 mensajes seguidos
+-> confirmar que se creó la tarea en GHL con esos datos (revisar en la UI).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add sync/scripts/telegram_ghl_bot.py
-git commit -m "Agregar flujo de tarea manual/automatica desde los botones
+git commit -m "Agregar flujo de tarea manual/automatica desde los botones (titulo/descripcion/fecha/hora por separado)
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ```
