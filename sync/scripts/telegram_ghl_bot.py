@@ -12,9 +12,14 @@ from ghl_client import GHLClient
 from supabase_rest import SupabaseRestClient
 from telegram_client import TelegramClient
 from telegram_ghl_cards import (
+    build_agendar_keyboard,
+    build_agendar_prompt,
     build_already_status_text,
     build_status_changed_text,
     build_status_keyboard,
+    build_status_prompt,
+    build_tarea_keyboard,
+    build_tarea_prompt,
     order_status_options,
     parse_task_command,
 )
@@ -63,8 +68,8 @@ def handle_task_command(
     telegram.send_message(chat_id, f"✅ Tarea creada para *{nombre}*: {task_text}")
 
 
-def handle_status_prompt(
-    chat_id: str, card: dict[str, Any], location_id: str, ghl: GHLClient, telegram: TelegramClient,
+def send_status_options(
+    chat_id: str, nombre: str, contact_id: str, location_id: str, ghl: GHLClient, telegram: TelegramClient,
 ) -> None:
     custom_field_ids = ghl.custom_field_id_map(location_id)
     field_id = custom_field_ids.get("status_prospecto")
@@ -72,9 +77,8 @@ def handle_status_prompt(
         telegram.send_message(chat_id, "⚠️ No encontré el campo STATUS PROSPECTO en esta location.")
         return
     ordered = order_status_options(ghl.custom_field_options(location_id, field_id))
-    keyboard = build_status_keyboard(ordered, card["ghl_contact_id"])
-    nombre = card.get("prospect_name") or card.get("prospect_email")
-    telegram.send_message(chat_id, f"¿A qué estatus movemos a *{nombre}*?", reply_markup=keyboard)
+    keyboard = build_status_keyboard(ordered, contact_id)
+    telegram.send_message(chat_id, build_status_prompt(nombre), reply_markup=keyboard)
 
 
 def handle_message(
@@ -89,13 +93,12 @@ def handle_message(
     if not card:
         return
 
-    text = (message.get("text") or "").strip()
-    task_text = parse_task_command(text)
-    if task_text:
-        handle_task_command(task_text, chat_id, card, ghl, telegram)
-        return
+    nombre = card.get("prospect_name") or card.get("prospect_email")
+    contact_id = card["ghl_contact_id"]
 
-    handle_status_prompt(chat_id, card, location_id, ghl, telegram)
+    send_status_options(chat_id, nombre, contact_id, location_id, ghl, telegram)
+    telegram.send_message(chat_id, build_agendar_prompt(nombre), reply_markup=build_agendar_keyboard(contact_id))
+    telegram.send_message(chat_id, build_tarea_prompt(nombre), reply_markup=build_tarea_keyboard(contact_id))
 
 
 def handle_callback(callback: dict[str, Any], ghl: GHLClient, telegram: TelegramClient) -> None:

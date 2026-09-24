@@ -117,6 +117,29 @@ def build_status_changed_text(nombre: str, status: str) -> str:
     return f"✅ *{nombre}* ahora está en *{status}* en el CRM."
 
 
+def build_status_prompt(nombre: str) -> str:
+    return f"🔵 *¿A qué estatus movemos a {nombre}?*"
+
+
+def build_agendar_prompt(nombre: str) -> str:
+    return f"🟢 *Agendar con {nombre}*"
+
+
+def build_tarea_prompt(nombre: str) -> str:
+    return f"⚪ *Generar tarea para {nombre}*"
+
+
+def build_agendar_keyboard(contact_id: str) -> dict[str, Any]:
+    return {"inline_keyboard": [[{"text": "📅 Ver horarios disponibles", "callback_data": f"agendar:{contact_id}:0"}]]}
+
+
+def build_tarea_keyboard(contact_id: str) -> dict[str, Any]:
+    return {"inline_keyboard": [[
+        {"text": "✍️ Generar manual", "callback_data": f"tarea:{contact_id}:manual"},
+        {"text": "⚙️ Generar automática", "callback_data": f"tarea:{contact_id}:auto"},
+    ]]}
+
+
 def parse_task_command(text: str) -> str | None:
     """Devuelve el texto de la tarea si el mensaje empieza con 'tarea' (con
     o sin ':'), sino None."""

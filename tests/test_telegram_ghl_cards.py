@@ -14,6 +14,7 @@ from telegram_ghl_cards import (
     build_updated_contact_card,
 )
 from telegram_ghl_cards import parse_task_command
+from telegram_ghl_cards import build_agendar_prompt, build_status_prompt, build_tarea_prompt
 
 ENRICHMENT = {
     "first_name": "Caterina", "last_name": "Cronoro", "name": "Caterina Cronoro",
@@ -126,3 +127,21 @@ def test_parse_task_command_no_es_tarea():
 
 def test_parse_task_command_vacio_da_none():
     assert parse_task_command("tarea:") is None
+
+
+def test_build_status_prompt():
+    text = build_status_prompt("Caterina Cronoro")
+    assert text.startswith("🔵")
+    assert "Caterina Cronoro" in text
+
+
+def test_build_agendar_prompt():
+    text = build_agendar_prompt("Caterina Cronoro")
+    assert text.startswith("🟢")
+    assert "Caterina Cronoro" in text
+
+
+def test_build_tarea_prompt():
+    text = build_tarea_prompt("Caterina Cronoro")
+    assert text.startswith("⚪")
+    assert "Caterina Cronoro" in text
