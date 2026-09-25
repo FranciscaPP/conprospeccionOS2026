@@ -62,12 +62,15 @@ def build_status_keyboard(ordered_options: list[str], contact_id: str) -> dict[s
     return {"inline_keyboard": inline_keyboard}
 
 
-def _enrichment_detail_lines(enrichment: dict[str, Any], email: str, reply_snippet: str | None) -> list[str]:
+def _enrichment_detail_lines(
+    enrichment: dict[str, Any], email: str, reply_snippet: str | None, respondio_desde: str | None = None,
+) -> list[str]:
     """Lineas de detalle compartidas entre las tarjetas de contacto nuevo y
     actualizado: cargo/empresa/tamaño/web/pais/correo/telefono/linkedin y,
-    si vino, el extracto de la respuesta. Se usa `.get()` en todos los
-    campos para que un `enrichment` vacio no rompa nada (simplemente no
-    agrega esas lineas)."""
+    si vino, el extracto de la respuesta (y la casilla real donde llego, si
+    se pudo determinar via IMAP). Se usa `.get()` en todos los campos para
+    que un `enrichment` vacio no rompa nada (simplemente no agrega esas
+    lineas)."""
     lines: list[str] = []
     if enrichment.get("cargo"):
         lines.append(f"*Cargo:* {enrichment['cargo']}")
@@ -89,12 +92,15 @@ def _enrichment_detail_lines(enrichment: dict[str, Any], email: str, reply_snipp
         if len(preview) > 300:
             preview = preview[:300].rstrip() + "…"
         lines += ["", f"*Respondió:* _{preview}_"]
+        if respondio_desde:
+            lines.append(f"*Respondió desde:* {respondio_desde}")
     return lines
 
 
 def build_new_contact_card(
     cliente_slug: str, cliente_nombre: str, campaign_name: str,
     enrichment: dict[str, Any], email: str, contact_id: str, reply_snippet: str | None = None,
+    respondio_desde: str | None = None,
 ) -> str:
     accent = CLIENT_ACCENTS.get(cliente_slug, "🆕")
     badge = prospect_badge(contact_id)
@@ -107,7 +113,7 @@ def build_new_contact_card(
         "",
         f"*Prospecto:* {badge} {nombre}",
     ]
-    lines += _enrichment_detail_lines(enrichment, email, reply_snippet)
+    lines += _enrichment_detail_lines(enrichment, email, reply_snippet, respondio_desde)
     lines += ["", "Esta tarjeta se creó porque respondió la campaña y no existía en el CRM."]
     return "\n".join(lines)
 
@@ -115,6 +121,7 @@ def build_new_contact_card(
 def build_updated_contact_card(
     cliente_slug: str, cliente_nombre: str, nombre: str,
     enrichment: dict[str, Any], email: str, contact_id: str, reply_snippet: str | None = None,
+    respondio_desde: str | None = None,
 ) -> str:
     accent = CLIENT_ACCENTS.get(cliente_slug, "🔄")
     badge = prospect_badge(contact_id)
@@ -125,7 +132,7 @@ def build_updated_contact_card(
         "",
         f"*Prospecto:* {badge} {nombre}",
     ]
-    lines += _enrichment_detail_lines(enrichment, email, reply_snippet)
+    lines += _enrichment_detail_lines(enrichment, email, reply_snippet, respondio_desde)
     lines += ["", "Respondió de nuevo la campaña — se completaron datos que faltaban."]
     return "\n".join(lines)
 

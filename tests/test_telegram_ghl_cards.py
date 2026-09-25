@@ -121,6 +121,37 @@ def test_build_updated_contact_card_sin_datos_no_rompe():
     assert "x@y.cl" in text
 
 
+def test_build_new_contact_card_con_respondio_desde_lo_muestra():
+    text = build_new_contact_card(
+        "bambutech", "BAMBUTECH", "BambuTech 21 Julio", ENRICHMENT, "cate@transapp.cl", "contact123",
+        reply_snippet="Hola, gracias por tu correo.", respondio_desde="michelle@bambutech.com",
+    )
+    assert "*Respondió desde:* michelle@bambutech.com" in text
+
+
+def test_build_new_contact_card_sin_respondio_desde_no_lo_muestra():
+    text = build_new_contact_card(
+        "bambutech", "BAMBUTECH", "BambuTech 21 Julio", ENRICHMENT, "cate@transapp.cl", "contact123",
+        reply_snippet="Hola, gracias por tu correo.",
+    )
+    assert "Respondió desde" not in text
+
+
+def test_build_updated_contact_card_con_respondio_desde_lo_muestra():
+    text = build_updated_contact_card(
+        "gbs", "GBS LOGISTICS", "Caterina Cronoro", ENRICHMENT, "cate@transapp.cl", "contact123",
+        reply_snippet="Hola, gracias por tu correo.", respondio_desde="sam@gbs-logistics.cl",
+    )
+    assert "*Respondió desde:* sam@gbs-logistics.cl" in text
+
+
+def test_build_updated_contact_card_sin_respondio_desde_no_lo_muestra():
+    text = build_updated_contact_card(
+        "gbs", "GBS LOGISTICS", "Caterina Cronoro", {}, "x@y.cl", "contact456",
+    )
+    assert "Respondió desde" not in text
+
+
 def test_build_mismatch_alert():
     text = build_mismatch_alert("GBS LOGISTICS", "compartido@empresa.cl", "Juan Perez", "Jose Garcia")
     assert "compartido@empresa.cl" in text

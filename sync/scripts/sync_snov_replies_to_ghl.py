@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import html as html_module
 import logging
+import re
 from typing import Any
 
 import httpx
 
+import client_mailboxes
 from config import get_optional_env, get_settings
 from ghl_client import DuplicateContactError, GHLClient
 from snov_client import SnovClient
@@ -31,6 +34,53 @@ from telegram_ghl_cards import (
     build_updated_contact_card,
     order_status_options,
 )
+
+
+CLIENTES_CON_CASILLAS = ("bambutech", "gbs")
+
+_BLOCK_TAGS_RE = re.compile(r"</?(?:div|p|br|tr|td|li|h[1-6])[^>]*>", re.IGNORECASE)
+_TAG_RE = re.compile(r"<[^>]+>")
+_SPACE_RE = re.compile(r"[ \t]+")
+
+
+def _strip_html(value: str) -> str:
+    """Convierte un cuerpo de correo en HTML (p.ej. el emailBody que manda
+    Snov) en texto plano legible: los tags de bloque (div/p/br/etc.) se
+    convierten en saltos de linea, el resto de los tags se descarta, las
+    entidades HTML se decodifican y los espacios/lineas de mas se colapsan.
+    No es un parser HTML completo -- es a proposito simple, solo para que el
+    preview de la tarjeta de Telegram sea legible."""
+    if not value:
+        return value
+    text = _BLOCK_TAGS_RE.sub("\n", value)
+    text = _TAG_RE.sub("", text)
+    text = html_module.unescape(text)
+    text = _SPACE_RE.sub(" ", text)
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    return " ".join(lines)
+
+
+def _reply_snippet_and_source(slug: str, email: str, html_body: str | None) -> tuple[str | None, str | None]:
+    """Decide que texto mostrar como "Respondió:" y, si se pudo determinar,
+    desde que casilla real llego. Para bambutech/gbs (los unicos clientes
+    con casillas IMAP configuradas hoy, mismo gate que el boton "Responder
+    correo") se intenta primero encontrar el correo real via IMAP -- ya
+    viene en texto plano y trae la casilla que lo recibio. Si no se
+    encuentra ahi (casilla no configurada, correo no llegado todavia, o
+    algo fallo en la busqueda) se cae al cuerpo HTML de Snov, limpiado con
+    _strip_html. Para los demas clientes (ej. balia) no se busca por IMAP
+    en absoluto."""
+    if slug in CLIENTES_CON_CASILLAS:
+        try:
+            found = client_mailboxes.find_reply_thread(slug, email)
+        except Exception:
+            # Una busqueda IMAP lenta/rota para un prospecto no debe abortar
+            # el procesamiento de los demas prospectos en este mismo run.
+            logging.exception("Fallo la busqueda IMAP de la respuesta de %s, se usa el snippet de Snov", email)
+            found = None
+        if found and found.get("body"):
+            return found["body"], found.get("account_email")
+    return (_strip_html(html_body) if html_body else html_body), None
 
 
 def setup_logging() -> None:
@@ -131,7 +181,7 @@ def notify(
     # IMAP/SMTP configuradas (bambutech, gbs) y solo cuando la tarjeta tiene
     # un contacto real asociado — la tarjeta de mismatch (ghl_contact_id=None)
     # no lleva botón porque no hay a quién contestarle.
-    reply_markup = build_reply_email_keyboard(ghl_contact_id) if cliente_slug in ("bambutech", "gbs") and ghl_contact_id else None
+    reply_markup = build_reply_email_keyboard(ghl_contact_id) if cliente_slug in CLIENTES_CON_CASILLAS and ghl_contact_id else None
     for chat_id in chat_ids:
         sent = client_bot.send_message(chat_id, text, reply_markup=reply_markup)
         if ghl_contact_id:
@@ -148,7 +198,7 @@ def notify(
         # casillas configuradas hoy (mismo gate que el boton de email arriba)
         # y solo cuando hay un contacto real de GHL asociado — sin eso no hay
         # a quien mandarle status/agendar/tarea.
-        if cliente_slug in ("bambutech", "gbs") and ghl_contact_id:
+        if cliente_slug in CLIENTES_CON_CASILLAS and ghl_contact_id:
             send_followup_buttons(
                 client_bot, chat_id, ghl, ghl_location_id, ghl_contact_id, prospect_name or prospect_email or "(sin nombre)",
             )
@@ -218,7 +268,14 @@ def process_client(
             action = decide_action(existing, enrichment, custom_field_ids)
             nombre = enrichment.get("name") or email
             campaign_name = reply.get("campaign") or campaign_id
-            reply_snippet = (reply.get("emails") or [{}])[0].get("emailBody")
+            reply_snippet_html = (reply.get("emails") or [{}])[0].get("emailBody")
+            # La busqueda IMAP (cuando aplica) tarda unos segundos -- solo se
+            # hace si de verdad se va a mandar una tarjeta con el snippet
+            # (CREATE/UPDATE); SKIP_MISMATCH y skip no la usan.
+            if action in (GhlAction.CREATE, GhlAction.UPDATE):
+                reply_snippet, respondio_desde = _reply_snippet_and_source(slug, email, reply_snippet_html)
+            else:
+                reply_snippet, respondio_desde = reply_snippet_html, None
 
             if action == GhlAction.CREATE:
                 payload = build_ghl_contact_payload(enrichment, email, slug, custom_field_ids)
@@ -243,7 +300,7 @@ def process_client(
                         telegram, supabase,
                         build_updated_contact_card(
                             slug, client["nombre"], nombre, enrichment, email, recovered_existing["id"],
-                            reply_snippet=reply_snippet,
+                            reply_snippet=reply_snippet, respondio_desde=respondio_desde,
                         ),
                         cliente_slug=slug, ghl_contact_id=recovered_existing["id"], ghl_location_id=location_id,
                         prospect_name=nombre, prospect_email=email, dry_run=dry_run, ghl=ghl,
@@ -256,7 +313,7 @@ def process_client(
                     notify(
                         telegram, supabase, build_new_contact_card(
                             slug, client["nombre"], campaign_name, enrichment, email, contact_id or email,
-                            reply_snippet=reply_snippet,
+                            reply_snippet=reply_snippet, respondio_desde=respondio_desde,
                         ),
                         cliente_slug=slug, ghl_contact_id=contact_id, ghl_location_id=location_id,
                         prospect_name=nombre, prospect_email=email, dry_run=dry_run, ghl=ghl,
@@ -271,7 +328,7 @@ def process_client(
                     telegram, supabase,
                     build_updated_contact_card(
                         slug, client["nombre"], nombre, enrichment, email, existing["id"],
-                        reply_snippet=reply_snippet,
+                        reply_snippet=reply_snippet, respondio_desde=respondio_desde,
                     ),
                     cliente_slug=slug, ghl_contact_id=existing["id"], ghl_location_id=location_id,
                     prospect_name=nombre, prospect_email=email, dry_run=dry_run, ghl=ghl,
