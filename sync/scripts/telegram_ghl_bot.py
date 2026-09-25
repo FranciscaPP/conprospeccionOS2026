@@ -63,7 +63,32 @@ def default_due_date() -> str:
 PENDING_MANUAL_TASK: dict[tuple[str, int], dict[str, Any]] = {}  # (slug, chat_id) -> {contact_id, step, titulo, descripcion, fecha_hora}
 PENDING_EMAIL_REPLY: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {contact_id, account_email, to, subject, references}
 PENDING_AGENDAR_SLOTS: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {index_str: slot_iso}
-PENDING_AGENDAR_TITLE: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {contact_id, slot_iso}
+# (slug, chat_id) -> {contact_id, slot_iso, stage: "title"|"confirm", titulo?}
+# stage "title": el proximo texto se guarda como titulo y se pasa a "confirm".
+# stage "confirm": el proximo texto se evalua como si/no antes de agendar de verdad.
+PENDING_AGENDAR_TITLE: dict[tuple[str, int], dict[str, str]] = {}
+
+# Las 3 lineas de arriba (menos PENDING_AGENDAR_SLOTS, que se elige con botones,
+# no con texto libre) son "esperando la proxima respuesta de texto de este chat".
+# Solo una puede estar activa a la vez por (slug, chat_id) — si no se limpian
+# entre si, un texto sin relacion enviado despues de arrancar un segundo flujo
+# se cuela como respuesta del primero (ver incidente Task 25: colaba como
+# titulo de reunion y creaba una cita real sin confirmar).
+_PENDING_TEXT_DICTS = (PENDING_EMAIL_REPLY, PENDING_MANUAL_TASK, PENDING_AGENDAR_TITLE)
+
+_CONFIRMACIONES_AFIRMATIVAS = {"si", "sí", "yes", "confirmar"}
+
+
+def _clear_pending(slug: str, chat_id: int) -> None:
+    """Cancela cualquier otro flujo de 'esperando texto libre' pendiente
+    para este (slug, chat_id) antes de arrancar uno nuevo."""
+    key = (slug, chat_id)
+    for pending_dict in _PENDING_TEXT_DICTS:
+        pending_dict.pop(key, None)
+
+
+def _is_confirmacion_afirmativa(texto: str) -> bool:
+    return texto.strip().lower() in _CONFIRMACIONES_AFIRMATIVAS
 
 # Unico calendario configurado hasta ahora (Task 24) — Agenda BambuTech
 # Services Michelle N, calendario de trabajo de Norma. gbs/balia todavia no
@@ -174,6 +199,7 @@ def handle_tarea_callback(parts: list[str], chat_id: int, slug: str, telegram: T
     # misma persona en los 3 bots de cliente (bambutech/gbs/balia) — sin el
     # slug, arrancar el flujo manual en un bot y responder en otro
     # contaminaria la tarea del cliente equivocado.
+    _clear_pending(slug, chat_id)
     PENDING_MANUAL_TASK[(slug, chat_id)] = {"contact_id": contact_id, "step": "titulo"}
     telegram.send_message(chat_id, TASK_STEP_PROMPTS["titulo"])
 
@@ -195,6 +221,7 @@ def handle_email_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLClie
     # Clave (slug, chat_id): mismo motivo que PENDING_MANUAL_TASK — el mismo
     # chat_id de Telegram identifica a la misma persona en los 3 bots de
     # cliente, sin el slug un reply cruzaria clientes.
+    _clear_pending(slug, chat_id)
     PENDING_EMAIL_REPLY[(slug, chat_id)] = {
         "contact_id": contact_id,
         "account_email": thread["account_email"],
@@ -276,20 +303,39 @@ def handle_agendar_slot_callback(
         telegram.send_message(chat_id, "⚠️ Ese horario ya no está disponible, pedí la lista de nuevo.")
         return
 
-    # No se agenda todavia — falta el titulo. Se guarda el slot elegido y se
-    # espera el proximo mensaje de texto de este chat (mismo patron
-    # secuencial que PENDING_MANUAL_TASK: una pregunta, una respuesta).
+    # No se agenda todavia — falta el titulo (y despues la confirmacion). Se
+    # guarda el slot elegido y se espera el proximo mensaje de texto de este
+    # chat (mismo patron secuencial que PENDING_MANUAL_TASK: una pregunta,
+    # una respuesta). _clear_pending cancela cualquier otro flujo de texto
+    # libre que hubiera quedado pendiente (ej. una tarea manual a medio
+    # completar) para que no se mezcle con este.
     PENDING_AGENDAR_SLOTS.pop((slug, chat_id), None)
-    PENDING_AGENDAR_TITLE[(slug, chat_id)] = {"contact_id": contact_id, "slot_iso": slot_iso}
+    _clear_pending(slug, chat_id)
+    PENDING_AGENDAR_TITLE[(slug, chat_id)] = {"contact_id": contact_id, "slot_iso": slot_iso, "stage": "title"}
     telegram.send_message(chat_id, "¿Qué título le ponemos a la reunión?")
 
 
+def _nombre_contacto(contact: dict[str, Any]) -> str:
+    return f"{contact.get('firstName') or ''} {contact.get('lastName') or ''}".strip() or "(contacto)"
+
+
+def _build_agendar_confirmation_text(pending: dict[str, str], titulo: str, ghl: GHLClient) -> str:
+    contact = ghl.get_contact(pending["contact_id"])["contact"]
+    nombre = _nombre_contacto(contact)
+    fecha = _format_slot_long(pending["slot_iso"])
+    return f"¿Confirmás agendar con {nombre} el {fecha} con el título '{titulo}'? Respondé 'si' para confirmar."
+
+
 def _complete_agendar(pending: dict[str, str], titulo: str, chat_id: int, ghl: GHLClient, telegram: TelegramClient) -> None:
+    # Capa de seguridad #2: esta funcion solo se llama despues de que el SDR
+    # confirmo explicitamente (ver handle_message, stage "confirm") — nunca
+    # directo desde el texto del titulo, para que un mensaje sin relacion no
+    # pueda crear una cita real por si solo.
     contact_id = pending["contact_id"]
     slot_iso = pending["slot_iso"]
     contact = ghl.get_contact(contact_id)["contact"]
     location_id = contact["locationId"]
-    nombre = f"{contact.get('firstName') or ''} {contact.get('lastName') or ''}".strip() or "(contacto)"
+    nombre = _nombre_contacto(contact)
 
     ghl.create_appointment(BAMBUTECH_CALENDAR_ID, location_id, contact_id, slot_iso, titulo)
     telegram.send_message(
@@ -329,8 +375,20 @@ def handle_message(
         return
 
     if pending_key in PENDING_AGENDAR_TITLE and message.get("text"):
-        pending = PENDING_AGENDAR_TITLE.pop(pending_key)
-        _complete_agendar(pending, message["text"].strip(), chat_id, ghl, telegram)
+        pending = PENDING_AGENDAR_TITLE[pending_key]
+        texto = message["text"].strip()
+        if pending.get("stage") == "confirm":
+            PENDING_AGENDAR_TITLE.pop(pending_key, None)
+            if _is_confirmacion_afirmativa(texto):
+                _complete_agendar(pending, pending["titulo"], chat_id, ghl, telegram)
+            else:
+                telegram.send_message(chat_id, "❌ No se agendó nada. Si querés, elegí el horario de nuevo.")
+            return
+        # stage "title": todavia no se agenda nada — se guarda el titulo y se
+        # pide confirmacion explicita antes de tocar el calendario real.
+        pending["titulo"] = texto
+        pending["stage"] = "confirm"
+        telegram.send_message(chat_id, _build_agendar_confirmation_text(pending, texto, ghl))
         return
 
     if pending_key in PENDING_MANUAL_TASK and message.get("text"):
