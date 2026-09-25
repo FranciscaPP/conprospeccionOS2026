@@ -39,6 +39,25 @@ def test_find_contact_by_email_sin_match_da_none():
     assert client.find_contact_by_email("loc1", "nadie@x.cl") is None
 
 
+def test_find_contact_by_email_encuentra_match_en_additional_emails():
+    # GHL tambien deduplica por additionalEmails (no solo el email principal).
+    # Shape real confirmado en vivo: lista de dicts [{"email": "..."}].
+    client = GHLClient("token")
+    client.client.get = MagicMock(return_value=_mock_response({
+        "contacts": [
+            {
+                "id": "n8RE3BmeUWuurdIflRHK",
+                "email": "carleth.torres@genommalab.com",
+                "additionalEmails": [{"email": "alejandra@conexioncomercial.mx"}],
+            },
+        ],
+    }))
+
+    result = client.find_contact_by_email("loc1", "Alejandra@ConexionComercial.mx")
+
+    assert result["id"] == "n8RE3BmeUWuurdIflRHK"
+
+
 def test_custom_field_id_map_usa_cache_por_location():
     client = GHLClient("token")
     client.client.get = MagicMock(return_value=_mock_response({

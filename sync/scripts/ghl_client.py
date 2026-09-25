@@ -197,6 +197,15 @@ class GHLClient:
         for contact in contacts:
             if (contact.get("email") or "").strip().lower() == email_norm:
                 return contact
+            # GHL tambien deduplica contra additionalEmails (no solo el email
+            # principal) — confirmado en vivo (GET /contacts/{id}, solo lectura)
+            # que el shape real es una lista de dicts: [{"email": "..."}].
+            # Si no matcheamos esto, create_contact() tira 400
+            # "duplicated contacts" con matchingField=additionalEmail.
+            for additional in contact.get("additionalEmails") or []:
+                additional_email = additional.get("email") if isinstance(additional, dict) else additional
+                if (additional_email or "").strip().lower() == email_norm:
+                    return contact
         return None
 
     def _raw_custom_fields(self, location_id: str) -> list[dict[str, Any]]:
