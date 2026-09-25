@@ -6,6 +6,21 @@ from typing import Any
 import httpx
 
 
+class DuplicateContactError(Exception):
+    """GHL rechazo un POST /contacts/ porque ya existe un contacto que
+    matchea por algun campo que GHL considera duplicado (email,
+    additionalEmail, telefono, etc). GHL no dice de antemano cuales de esos
+    campos va a chequear, pero el 400 que devuelve ya trae el contactId real
+    en meta.contactId — este error lo transporta para que el caller pueda
+    recuperarse tratando ese contacto como "existente" en vez de perder el
+    intento de creacion."""
+
+    def __init__(self, contact_id: str, error_body: dict[str, Any]):
+        super().__init__(f"Contacto duplicado, ya existe como {contact_id}")
+        self.contact_id = contact_id
+        self.error_body = error_body
+
+
 class GHLClient:
     def __init__(self, token: str, version: str = "2021-07-28"):
         self.client = httpx.Client(
@@ -228,6 +243,11 @@ class GHLClient:
     def create_contact(self, location_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         body = {"locationId": location_id, **payload}
         response = self.client.post("/contacts/", json=body)
+        if response.status_code == 400:
+            error_body = response.json()
+            duplicate_id = (error_body.get("meta") or {}).get("contactId")
+            if duplicate_id and "duplicat" in str(error_body.get("message", "")).lower():
+                raise DuplicateContactError(duplicate_id, error_body)
         response.raise_for_status()
         return response.json()
 

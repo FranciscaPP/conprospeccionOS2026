@@ -7,7 +7,7 @@ from typing import Any
 import httpx
 
 from config import get_optional_env, get_settings
-from ghl_client import GHLClient
+from ghl_client import DuplicateContactError, GHLClient
 from snov_client import SnovClient
 from snov_ghl_matching import (
     GhlAction,
@@ -111,6 +111,25 @@ def all_replies(snov: SnovClient, campaign_id: str) -> list[dict[str, Any]]:
     return replies
 
 
+def _recover_from_duplicate_create(
+    ghl: GHLClient,
+    exc: DuplicateContactError,
+    enrichment: dict[str, Any],
+    custom_field_ids: dict[str, str],
+) -> dict[str, Any]:
+    """El POST /contacts/ fallo con 400 "duplicated contacts" porque GHL
+    considera que el contacto ya existe (por email, additionalEmail,
+    telefono u otro criterio interno que no controlamos). En vez de intentar
+    adivinar de antemano todos esos criterios, GHL ya nos dio el contactId
+    real en el error (exc.contact_id) — lo recuperamos trayendo ese contacto
+    y tratandolo exactamente como el camino de UPDATE."""
+    existing = ghl.get_contact(exc.contact_id)["contact"]
+    payload = build_update_payload(existing, enrichment, custom_field_ids)
+    if payload:
+        ghl.update_contact(existing["id"], payload)
+    return existing
+
+
 def process_client(
     client: dict[str, Any],
     campaign_ids: list[str],
@@ -145,22 +164,42 @@ def process_client(
             if action == GhlAction.CREATE:
                 payload = build_ghl_contact_payload(enrichment, email, slug, custom_field_ids)
                 contact_id = None
+                recovered_existing = None
                 if not dry_run:
-                    created = ghl.create_contact(location_id, payload)
-                    contact_id = created["contact"]["id"]
-                stats["created"] += 1
-                reply_snippet = (reply.get("emails") or [{}])[0].get("emailBody")
-                # En dry-run no hay contact_id real todavia (no se crea el
-                # contacto) — se usa el email como identificador estable para
-                # la insignia, es solo una ayuda visual, no un id real.
-                notify(
-                    telegram, supabase, build_new_contact_card(
-                        slug, client["nombre"], campaign_name, enrichment, email, contact_id or email,
-                        reply_snippet=reply_snippet,
-                    ),
-                    cliente_slug=slug, ghl_contact_id=contact_id, ghl_location_id=location_id,
-                    prospect_name=nombre, prospect_email=email, dry_run=dry_run,
-                )
+                    try:
+                        created = ghl.create_contact(location_id, payload)
+                        contact_id = created["contact"]["id"]
+                    except DuplicateContactError as exc:
+                        # GHL considera el contacto duplicado (por email,
+                        # additionalEmail u otro criterio propio) y ya nos dio
+                        # el contactId real — nos recuperamos como si hubiera
+                        # sido un UPDATE en vez de perder este prospecto.
+                        recovered_existing = _recover_from_duplicate_create(
+                            ghl, exc, enrichment, custom_field_ids,
+                        )
+
+                if recovered_existing is not None:
+                    stats["updated"] += 1
+                    notify(
+                        telegram, supabase,
+                        build_updated_contact_card(slug, client["nombre"], nombre, email, recovered_existing["id"]),
+                        cliente_slug=slug, ghl_contact_id=recovered_existing["id"], ghl_location_id=location_id,
+                        prospect_name=nombre, prospect_email=email, dry_run=dry_run,
+                    )
+                else:
+                    stats["created"] += 1
+                    reply_snippet = (reply.get("emails") or [{}])[0].get("emailBody")
+                    # En dry-run no hay contact_id real todavia (no se crea el
+                    # contacto) — se usa el email como identificador estable para
+                    # la insignia, es solo una ayuda visual, no un id real.
+                    notify(
+                        telegram, supabase, build_new_contact_card(
+                            slug, client["nombre"], campaign_name, enrichment, email, contact_id or email,
+                            reply_snippet=reply_snippet,
+                        ),
+                        cliente_slug=slug, ghl_contact_id=contact_id, ghl_location_id=location_id,
+                        prospect_name=nombre, prospect_email=email, dry_run=dry_run,
+                    )
 
             elif action == GhlAction.UPDATE:
                 payload = build_update_payload(existing, enrichment, custom_field_ids)
