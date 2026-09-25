@@ -294,7 +294,7 @@ def send_status_options(
         return
     ordered = order_status_options(ghl.custom_field_options(location_id, field_id))
     keyboard = build_status_keyboard(ordered, contact_id)
-    telegram.send_message(chat_id, build_status_prompt(nombre), reply_markup=keyboard)
+    telegram.send_message(chat_id, build_status_prompt(nombre, contact_id), reply_markup=keyboard)
 
 
 def handle_message(
@@ -342,8 +342,8 @@ def handle_message(
     contact_id = card["ghl_contact_id"]
 
     send_status_options(chat_id, nombre, contact_id, location_id, ghl, telegram)
-    telegram.send_message(chat_id, build_agendar_prompt(nombre), reply_markup=build_agendar_keyboard(contact_id))
-    telegram.send_message(chat_id, build_tarea_prompt(nombre), reply_markup=build_tarea_keyboard(contact_id))
+    telegram.send_message(chat_id, build_agendar_prompt(nombre, contact_id), reply_markup=build_agendar_keyboard(contact_id))
+    telegram.send_message(chat_id, build_tarea_prompt(nombre, contact_id), reply_markup=build_tarea_keyboard(contact_id))
 
 
 def handle_callback(callback: dict[str, Any], slug: str, ghl: GHLClient, telegram: TelegramClient) -> None:
@@ -397,11 +397,11 @@ def handle_callback(callback: dict[str, Any], slug: str, ghl: GHLClient, telegra
         (cf.get("value") for cf in contact.get("customFields") or [] if cf.get("id") == field_id), None,
     )
     if current_value == new_status:
-        telegram.send_message(chat_id, build_already_status_text(nombre, new_status))
+        telegram.send_message(chat_id, build_already_status_text(nombre, new_status, contact_id))
         return
 
     ghl.update_custom_field(contact_id, field_id, new_status)
-    telegram.send_message(chat_id, build_status_changed_text(nombre, new_status))
+    telegram.send_message(chat_id, build_status_changed_text(nombre, new_status, contact_id))
 
 
 def run_client_bot(slug: str) -> None:

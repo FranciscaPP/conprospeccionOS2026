@@ -18,6 +18,17 @@ STATUS_PROSPECTO_ORDER = [
 
 CLIENT_ACCENTS = {"bambutech": "🟢", "gbs": "🔵", "balia": "🟠"}
 
+PROSPECT_BADGE_PALETTE = ["🟥", "🟧", "🟨", "🟩", "🟦", "🟪", "🟫"]
+
+
+def prospect_badge(contact_id: str) -> str:
+    """Emoji de color fijo por contact_id (mismo id -> siempre el mismo
+    color). Con paleta de 7, se puede repetir si hay muchos prospectos
+    activos en simultaneo en el mismo chat — es una ayuda visual, no un
+    identificador unico."""
+    index = sum(ord(char) for char in contact_id) % len(PROSPECT_BADGE_PALETTE)
+    return PROSPECT_BADGE_PALETTE[index]
+
 
 def _strip_accents(value: str) -> str:
     return unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
@@ -53,9 +64,10 @@ def build_status_keyboard(ordered_options: list[str], contact_id: str) -> dict[s
 
 def build_new_contact_card(
     cliente_slug: str, cliente_nombre: str, campaign_name: str,
-    enrichment: dict[str, Any], email: str, reply_snippet: str | None = None,
+    enrichment: dict[str, Any], email: str, contact_id: str, reply_snippet: str | None = None,
 ) -> str:
     accent = CLIENT_ACCENTS.get(cliente_slug, "🆕")
+    badge = prospect_badge(contact_id)
     nombre = enrichment.get("name") or "(sin nombre)"
     lines = [
         f"{accent} *Nuevo contacto en el CRM*",
@@ -63,7 +75,7 @@ def build_new_contact_card(
         f"*Cliente:* {cliente_nombre}",
         f"*Campaña:* {campaign_name}",
         "",
-        f"*Prospecto:* {nombre}",
+        f"*Prospecto:* {badge} {nombre}",
     ]
     if enrichment.get("cargo"):
         lines.append(f"*Cargo:* {enrichment['cargo']}")
@@ -89,12 +101,13 @@ def build_new_contact_card(
     return "\n".join(lines)
 
 
-def build_updated_contact_card(cliente_slug: str, cliente_nombre: str, nombre: str, email: str) -> str:
+def build_updated_contact_card(cliente_slug: str, cliente_nombre: str, nombre: str, email: str, contact_id: str) -> str:
     accent = CLIENT_ACCENTS.get(cliente_slug, "🔄")
+    badge = prospect_badge(contact_id)
     return (
         f"{accent} *Contacto actualizado en el CRM*\n\n"
         f"*Cliente:* {cliente_nombre}\n"
-        f"*Prospecto:* {nombre} ({email})\n\n"
+        f"*Prospecto:* {badge} {nombre} ({email})\n\n"
         "Respondió de nuevo la campaña — se completaron datos que faltaban."
     )
 
@@ -109,24 +122,29 @@ def build_mismatch_alert(cliente_nombre: str, email: str, ghl_name: str, snov_na
     )
 
 
-def build_already_status_text(nombre: str, status: str) -> str:
-    return f"ℹ️ *{nombre}* ya está en *{status}* en el CRM — no hay cambios."
+def build_already_status_text(nombre: str, status: str, contact_id: str) -> str:
+    badge = prospect_badge(contact_id)
+    return f"ℹ️ *{badge} {nombre}* ya está en *{status}* en el CRM — no hay cambios."
 
 
-def build_status_changed_text(nombre: str, status: str) -> str:
-    return f"✅ *{nombre}* ahora está en *{status}* en el CRM."
+def build_status_changed_text(nombre: str, status: str, contact_id: str) -> str:
+    badge = prospect_badge(contact_id)
+    return f"✅ *{badge} {nombre}* ahora está en *{status}* en el CRM."
 
 
-def build_status_prompt(nombre: str) -> str:
-    return f"🔵 *¿A qué estatus movemos a {nombre}?*"
+def build_status_prompt(nombre: str, contact_id: str) -> str:
+    badge = prospect_badge(contact_id)
+    return f"🔵 *¿A qué estatus movemos a {badge} {nombre}?*"
 
 
-def build_agendar_prompt(nombre: str) -> str:
-    return f"🟢 *Agendar con {nombre}*"
+def build_agendar_prompt(nombre: str, contact_id: str) -> str:
+    badge = prospect_badge(contact_id)
+    return f"🟢 *Agendar con {badge} {nombre}*"
 
 
-def build_tarea_prompt(nombre: str) -> str:
-    return f"⚪ *Generar tarea para {nombre}*"
+def build_tarea_prompt(nombre: str, contact_id: str) -> str:
+    badge = prospect_badge(contact_id)
+    return f"⚪ *Generar tarea para {badge} {nombre}*"
 
 
 def build_agendar_keyboard(contact_id: str) -> dict[str, Any]:

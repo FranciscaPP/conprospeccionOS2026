@@ -14,6 +14,7 @@ from telegram_ghl_cards import (
     build_updated_contact_card,
 )
 from telegram_ghl_cards import build_agendar_prompt, build_status_prompt, build_tarea_prompt
+from telegram_ghl_cards import prospect_badge
 
 ENRICHMENT = {
     "first_name": "Caterina", "last_name": "Cronoro", "name": "Caterina Cronoro",
@@ -63,10 +64,11 @@ def test_build_status_keyboard_callback_data_tiene_indice_no_texto():
 def test_build_new_contact_card_incluye_los_datos_clave():
     enrichment = dict(ENRICHMENT, phone="+52 55 1234 5678")
     text = build_new_contact_card(
-        "bambutech", "BAMBUTECH", "BambuTech 21 Julio", enrichment, "cate@transapp.cl",
+        "bambutech", "BAMBUTECH", "BambuTech 21 Julio", enrichment, "cate@transapp.cl", "contact123",
         reply_snippet="Hola, gracias por tu correo, me interesa saber más.",
     )
     assert "🟢" in text
+    assert prospect_badge("contact123") in text
     assert "CRM" in text
     assert "GHL" not in text
     assert "GoHighLevel" not in text
@@ -76,15 +78,16 @@ def test_build_new_contact_card_incluye_los_datos_clave():
 
 
 def test_build_new_contact_card_sin_telefono_ni_respuesta_no_rompe():
-    text = build_new_contact_card("gbs", "GBS LOGISTICS", "GBS 20 julio", {}, "x@y.cl")
+    text = build_new_contact_card("gbs", "GBS LOGISTICS", "GBS 20 julio", {}, "x@y.cl", "contact456")
     assert "(sin nombre)" in text
 
 
 def test_build_updated_contact_card_dice_crm_no_ghl():
-    text = build_updated_contact_card("gbs", "GBS LOGISTICS", "Caterina Cronoro", "cate@transapp.cl")
+    text = build_updated_contact_card("gbs", "GBS LOGISTICS", "Caterina Cronoro", "cate@transapp.cl", "contact123")
     assert "actualizado" in text.lower()
     assert "CRM" in text
     assert "GHL" not in text
+    assert prospect_badge("contact123") in text
 
 
 def test_build_mismatch_alert():
@@ -96,31 +99,50 @@ def test_build_mismatch_alert():
 
 
 def test_build_already_status_text():
-    text = build_already_status_text("Caterina Cronoro", "Coordinando Reunión")
+    text = build_already_status_text("Caterina Cronoro", "Coordinando Reunión", "contact123")
     assert "Caterina Cronoro" in text
     assert "Coordinando Reunión" in text
     assert "ya está" in text
+    assert prospect_badge("contact123") in text
 
 
 def test_build_status_changed_text():
-    text = build_status_changed_text("Caterina Cronoro", "Coordinando Reunión")
+    text = build_status_changed_text("Caterina Cronoro", "Coordinando Reunión", "contact123")
     assert "Caterina Cronoro" in text
     assert "Coordinando Reunión" in text
+    assert prospect_badge("contact123") in text
 
 
 def test_build_status_prompt():
-    text = build_status_prompt("Caterina Cronoro")
+    text = build_status_prompt("Caterina Cronoro", "contact123")
     assert text.startswith("🔵")
     assert "Caterina Cronoro" in text
+    assert prospect_badge("contact123") in text
 
 
 def test_build_agendar_prompt():
-    text = build_agendar_prompt("Caterina Cronoro")
+    text = build_agendar_prompt("Caterina Cronoro", "contact123")
     assert text.startswith("🟢")
     assert "Caterina Cronoro" in text
+    assert prospect_badge("contact123") in text
 
 
 def test_build_tarea_prompt():
-    text = build_tarea_prompt("Caterina Cronoro")
+    text = build_tarea_prompt("Caterina Cronoro", "contact123")
     assert text.startswith("⚪")
     assert "Caterina Cronoro" in text
+    assert prospect_badge("contact123") in text
+
+
+def test_prospect_badge_es_estable_para_el_mismo_contacto():
+    assert prospect_badge("abc123") == prospect_badge("abc123")
+
+
+def test_prospect_badge_suele_diferir_entre_contactos_distintos():
+    badges = {prospect_badge(f"contact{i}") for i in range(7)}
+    assert len(badges) > 1  # no todos caen en el mismo color
+
+
+def test_prospect_badge_es_uno_de_la_paleta():
+    from telegram_ghl_cards import PROSPECT_BADGE_PALETTE
+    assert prospect_badge("cualquiera") in PROSPECT_BADGE_PALETTE

@@ -150,9 +150,13 @@ def process_client(
                     contact_id = created["contact"]["id"]
                 stats["created"] += 1
                 reply_snippet = (reply.get("emails") or [{}])[0].get("emailBody")
+                # En dry-run no hay contact_id real todavia (no se crea el
+                # contacto) — se usa el email como identificador estable para
+                # la insignia, es solo una ayuda visual, no un id real.
                 notify(
                     telegram, supabase, build_new_contact_card(
-                        slug, client["nombre"], campaign_name, enrichment, email, reply_snippet=reply_snippet,
+                        slug, client["nombre"], campaign_name, enrichment, email, contact_id or email,
+                        reply_snippet=reply_snippet,
                     ),
                     cliente_slug=slug, ghl_contact_id=contact_id, ghl_location_id=location_id,
                     prospect_name=nombre, prospect_email=email, dry_run=dry_run,
@@ -164,7 +168,8 @@ def process_client(
                     ghl.update_contact(existing["id"], payload)
                 stats["updated"] += 1
                 notify(
-                    telegram, supabase, build_updated_contact_card(slug, client["nombre"], nombre, email),
+                    telegram, supabase,
+                    build_updated_contact_card(slug, client["nombre"], nombre, email, existing["id"]),
                     cliente_slug=slug, ghl_contact_id=existing["id"], ghl_location_id=location_id,
                     prospect_name=nombre, prospect_email=email, dry_run=dry_run,
                 )
