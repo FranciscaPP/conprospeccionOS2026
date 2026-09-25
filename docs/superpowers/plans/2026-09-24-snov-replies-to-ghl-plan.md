@@ -25,14 +25,14 @@
 Guarda qué contacto de GHL corresponde a cada tarjeta mandada por Telegram, para poder identificar el contacto cuando la SDR responde (reply) a esa tarjeta.
 
 **Files:**
-- Create: `sync/supabase/migrations/014_telegram_ghl_cards.sql`
+- Create: `sync/supabase/migrations/027_telegram_ghl_cards.sql`
 
 - [ ] **Step 1: Escribir la migración**
 
 ```sql
 create table if not exists public.telegram_ghl_cards (
   id bigint generated always as identity primary key,
-  cliente_slug text not null references public.clientes(slug) on update cascade,
+  cliente_slug text not null references public.clientes(slug) on update cascade on delete cascade,
   chat_id bigint not null,
   telegram_message_id bigint not null,
   ghl_contact_id text not null,
@@ -45,6 +45,8 @@ create table if not exists public.telegram_ghl_cards (
 
 create index if not exists telegram_ghl_cards_contact_idx
   on public.telegram_ghl_cards(ghl_contact_id);
+create index if not exists telegram_ghl_cards_cliente_idx
+  on public.telegram_ghl_cards(cliente_slug);
 ```
 
 - [ ] **Step 2: Aplicar la migración contra Supabase**
@@ -58,7 +60,7 @@ from supabase_rest import SupabaseRestClient
 import httpx
 
 s = get_settings()
-sql = open("../supabase/migrations/014_telegram_ghl_cards.sql", encoding="utf-8").read()
+sql = open("../supabase/migrations/027_telegram_ghl_cards.sql", encoding="utf-8").read()
 # Ejecutar via Supabase REST no soporta DDL crudo; usar el MCP de Supabase
 # (apply_migration) o psql/Supabase Studio con este archivo, segun como se
 # aplican las demas migraciones numeradas en este repo.
@@ -85,7 +87,7 @@ Expected: `[]` (tabla vacía pero existe, sin error 404/42P01).
 - [ ] **Step 4: Commit**
 
 ```bash
-git add sync/supabase/migrations/014_telegram_ghl_cards.sql
+git add sync/supabase/migrations/027_telegram_ghl_cards.sql
 git commit -m "Agregar tabla telegram_ghl_cards para mapear tarjetas de Telegram a contactos GHL
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
@@ -2797,7 +2799,22 @@ si la búsqueda no da **exactamente un** resultado no se mueve nada — se
 avisa por Telegram para revisión manual en vez de arriesgar mover el deal
 equivocado.
 
-### Task 25: Mover el deal en el CRM de Snov al mover el estatus en GHL
+### Task 25 (DIFERIDA — no implementada): Mover el deal en el CRM de Snov al mover el estatus en GHL
+
+> **Bloqueada, confirmado 24-sept-2026:** la API pública de Snov (las credenciales
+> `SNOV_CLIENT_ID`/`SNOV_CLIENT_SECRET` que ya tenemos) solo expone
+> `get-pipelines`/`get-pipeline-stages` de solo lectura — no hay endpoint público
+> para buscar/mover/crear deals. Las herramientas `crm_search_deals`/
+> `crm_move_deals` usadas en esta sesión son del MCP de Snov conectado a esta
+> sesión de Claude, no de la API pública, y un script standalone (Task
+> Scheduler / proceso de fondo) no puede usarlas. Se evaluó correrlo como
+> rutina programada de Claude en la nube (`/schedule`), pero esas rutinas solo
+> pueden usar conectores de claude.ai (no el MCP de Snov de esta sesión) y no
+> tienen acceso a `.env.local` ni al repo local — se decidió posponer esta
+> tarea en vez de armar esa infraestructura ahora. Retomar cuando haya una
+> forma real de escribir en el CRM de Snov desde fuera de una sesión de Claude
+> (API oficial con soporte de deals, o una rutina en la nube con conector
+> confirmado).
 
 **Files:**
 - Create: `sync/scripts/snov_crm_sync.py`
@@ -3101,10 +3118,10 @@ contacto, solo de citas — ver `supabase/functions/ghl-webhook`, que hoy solo
 escucha `AppointmentCreate/Update`), se resuelve con **revisión por polling**,
 en el mismo job que ya corre cada hora.
 
-### Task 27: Tabla de vínculo contacto↔deal + revisión horaria de cambios manuales
+### Task 27 (DIFERIDA — no implementada, depende de la Task 25): Tabla de vínculo contacto↔deal + revisión horaria de cambios manuales
 
 **Files:**
-- Create: `sync/supabase/migrations/015_ghl_snov_deal_links.sql`
+- Create: `sync/supabase/migrations/028_ghl_snov_deal_links.sql`
 - Modify: `sync/scripts/telegram_ghl_bot.py` (guardar el vínculo cuando se mueve desde Telegram)
 - Modify: `sync/scripts/sync_snov_replies_to_ghl.py` (revisar cambios manuales cada corrida)
 
@@ -3113,11 +3130,14 @@ en el mismo job que ya corre cada hora.
 ```sql
 create table if not exists public.ghl_snov_deal_links (
   ghl_contact_id text primary key,
-  cliente_slug text not null references public.clientes(slug) on update cascade,
+  cliente_slug text not null references public.clientes(slug) on update cascade on delete cascade,
   snov_deal_id bigint not null,
   last_status text not null,
   updated_at timestamptz not null default now()
 );
+
+create index if not exists ghl_snov_deal_links_cliente_idx
+  on public.ghl_snov_deal_links(cliente_slug);
 ```
 
 Aplicar igual que la Task 1 (mismo mecanismo que las migraciones anteriores)
@@ -3199,7 +3219,7 @@ confirmar que el deal en Snov se movió a la etapa correspondiente.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add sync/supabase/migrations/015_ghl_snov_deal_links.sql sync/scripts/telegram_ghl_bot.py sync/scripts/sync_snov_replies_to_ghl.py
+git add sync/supabase/migrations/028_ghl_snov_deal_links.sql sync/scripts/telegram_ghl_bot.py sync/scripts/sync_snov_replies_to_ghl.py
 git commit -m "Sincronizar a Snov los cambios de estatus hechos directo en GHL (polling horario)
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
