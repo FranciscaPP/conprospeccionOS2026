@@ -15,6 +15,12 @@ class TelegramClient:
         if reply_markup:
             body["reply_markup"] = reply_markup
         response = self.client.post(f"{self.base_url}/sendMessage", json=body)
+        if response.status_code == 400 and "can't parse" in response.text.lower():
+            # Telegram rechazo el Markdown por caracteres especiales sin escapar
+            # (nombre de prospecto/empresa, etc.). Reintentar una vez como texto
+            # plano para no perder la notificacion.
+            body.pop("parse_mode", None)
+            response = self.client.post(f"{self.base_url}/sendMessage", json=body)
         response.raise_for_status()
         return response.json()["result"]
 
