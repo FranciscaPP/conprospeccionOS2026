@@ -18,7 +18,12 @@ from snov_ghl_matching import (
 )
 from supabase_rest import SupabaseRestClient
 from telegram_client import TelegramClient
-from telegram_ghl_cards import build_mismatch_alert, build_new_contact_card, build_updated_contact_card
+from telegram_ghl_cards import (
+    build_mismatch_alert,
+    build_new_contact_card,
+    build_reply_email_keyboard,
+    build_updated_contact_card,
+)
 
 
 def setup_logging() -> None:
@@ -72,8 +77,13 @@ def notify(
     if not telegram or dry_run:
         return
     client_bot, chat_ids = telegram
+    # El botón "Responder correo" solo existe para BambuTech (únicas
+    # casillas IMAP/SMTP configuradas hoy) y solo cuando la tarjeta tiene un
+    # contacto real asociado — la tarjeta de mismatch (ghl_contact_id=None)
+    # no lleva botón porque no hay a quién contestarle.
+    reply_markup = build_reply_email_keyboard(ghl_contact_id) if cliente_slug == "bambutech" and ghl_contact_id else None
     for chat_id in chat_ids:
-        sent = client_bot.send_message(chat_id, text)
+        sent = client_bot.send_message(chat_id, text, reply_markup=reply_markup)
         if ghl_contact_id:
             supabase.insert("telegram_ghl_cards", {
                 "cliente_slug": cliente_slug,

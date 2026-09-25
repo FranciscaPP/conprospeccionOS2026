@@ -61,6 +61,7 @@ def default_due_date() -> str:
 
 
 PENDING_MANUAL_TASK: dict[tuple[str, int], dict[str, Any]] = {}  # (slug, chat_id) -> {contact_id, step, titulo, descripcion, fecha_hora}
+PENDING_EMAIL_REPLY: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {contact_id, account_email, to, subject, references}
 
 TASK_STEPS = ["titulo", "descripcion", "fecha_hora"]
 TASK_STEP_PROMPTS = {
@@ -163,6 +164,38 @@ def handle_tarea_callback(parts: list[str], chat_id: int, slug: str, telegram: T
     telegram.send_message(chat_id, TASK_STEP_PROMPTS["titulo"])
 
 
+def handle_email_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLClient, telegram: TelegramClient) -> None:
+    from bambutech_mailboxes import find_reply_thread
+
+    contact = ghl.get_contact(contact_id)["contact"]
+    prospect_email = contact.get("email")
+    if not prospect_email:
+        telegram.send_message(chat_id, "⚠️ Este contacto no tiene correo cargado.")
+        return
+
+    thread = find_reply_thread(prospect_email)
+    if not thread:
+        telegram.send_message(chat_id, "⚠️ No encontré el correo real de este prospecto en las casillas de BambuTech.")
+        return
+
+    # Clave (slug, chat_id): mismo motivo que PENDING_MANUAL_TASK — el mismo
+    # chat_id de Telegram identifica a la misma persona en los 3 bots de
+    # cliente, sin el slug un reply cruzaria clientes.
+    PENDING_EMAIL_REPLY[(slug, chat_id)] = {
+        "contact_id": contact_id,
+        "account_email": thread["account_email"],
+        "to": prospect_email,
+        "subject": thread["subject"],
+        "references": thread["references"] or "",
+    }
+    preview = thread["body"].strip().replace("\r\n", " ").replace("\n", " ")[:500]
+    telegram.send_message(
+        chat_id,
+        f"📨 Esto escribió el prospecto (desde `{thread['account_email']}`):\n\n_{preview}_\n\n"
+        "Escribime la respuesta que quieras mandar.",
+    )
+
+
 def send_status_options(
     chat_id: str, nombre: str, contact_id: str, location_id: str, ghl: GHLClient, telegram: TelegramClient,
 ) -> None:
@@ -182,6 +215,17 @@ def handle_message(
 ) -> None:
     chat_id = message["chat"]["id"]
     pending_key = (slug, chat_id)
+
+    if pending_key in PENDING_EMAIL_REPLY and message.get("text"):
+        from bambutech_mailboxes import send_reply
+        pending = PENDING_EMAIL_REPLY.pop(pending_key)
+        send_reply(
+            pending["account_email"], pending["to"], pending["subject"],
+            message["text"].strip(), pending["references"] or None,
+        )
+        telegram.send_message(chat_id, f"✅ Correo enviado desde `{pending['account_email']}`.")
+        return
+
     if pending_key in PENDING_MANUAL_TASK and message.get("text"):
         pending = PENDING_MANUAL_TASK[pending_key]
         pending[pending["step"]] = message["text"].strip()
@@ -217,10 +261,20 @@ def handle_message(
 def handle_callback(callback: dict[str, Any], slug: str, ghl: GHLClient, telegram: TelegramClient) -> None:
     data = callback.get("data") or ""
     parts = data.split(":", 2)
-    if len(parts) != 3:
+    if len(parts) < 2:
         return
     chat_id = callback["message"]["chat"]["id"]
     telegram.answer_callback_query(callback["id"])
+
+    # callback_data "email:{contact_id}" trae solo 2 partes (a diferencia de
+    # "tarea"/"status"/"agendar" que son type:id:extra), por eso se rutea
+    # antes del chequeo de 3 partes.
+    if parts[0] == "email" and len(parts) >= 2:
+        handle_email_callback(parts[1], chat_id, slug, ghl, telegram)
+        return
+
+    if len(parts) != 3:
+        return
 
     if parts[0] == "tarea":
         handle_tarea_callback(parts, chat_id, slug, telegram)

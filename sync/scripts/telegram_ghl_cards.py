@@ -138,3 +138,7 @@ def build_tarea_keyboard(contact_id: str) -> dict[str, Any]:
         {"text": "✍️ Generar manual", "callback_data": f"tarea:{contact_id}:manual"},
         {"text": "⚙️ Generar automática", "callback_data": f"tarea:{contact_id}:auto"},
     ]]}
+
+
+def build_reply_email_keyboard(contact_id: str) -> dict[str, Any]:
+    return {"inline_keyboard": [[{"text": "✉️ Responder correo", "callback_data": f"email:{contact_id}"}]]}
