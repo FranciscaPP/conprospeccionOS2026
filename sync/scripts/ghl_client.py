@@ -235,3 +235,28 @@ class GHLClient:
         response = self.client.post(f"/contacts/{contact_id}/tasks", json=payload)
         response.raise_for_status()
         return response.json()
+
+    def free_slots(self, calendar_id: str, start_ms: int, end_ms: int, timezone: str) -> dict[str, Any]:
+        response = self.client.get(
+            f"/calendars/{calendar_id}/free-slots",
+            params={"startDate": start_ms, "endDate": end_ms, "timezone": timezone},
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def create_appointment(self, calendar_id: str, location_id: str, contact_id: str, start_iso: str) -> dict[str, Any]:
+        # NUNCA verificado en vivo (crearia una cita real) — ver Task 24 del
+        # plan 2026-09-24-snov-replies-to-ghl-plan.md. Forma tomada de la
+        # documentacion publica de GHL v2 (POST /calendars/events/appointments),
+        # pero no confirmada contra la API real. Probar con cuidado antes de
+        # confiar en esto, avisando a Norma primero (crea una cita real en su
+        # calendario de trabajo).
+        body = {
+            "calendarId": calendar_id,
+            "locationId": location_id,
+            "contactId": contact_id,
+            "startTime": start_iso,
+        }
+        response = self.client.post("/calendars/events/appointments", json=body)
+        response.raise_for_status()
+        return response.json()

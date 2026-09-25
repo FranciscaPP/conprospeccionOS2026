@@ -62,6 +62,19 @@ def default_due_date() -> str:
 
 PENDING_MANUAL_TASK: dict[tuple[str, int], dict[str, Any]] = {}  # (slug, chat_id) -> {contact_id, step, titulo, descripcion, fecha_hora}
 PENDING_EMAIL_REPLY: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {contact_id, account_email, to, subject, references}
+PENDING_AGENDAR_SLOTS: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {index_str: slot_iso}
+
+# Unico calendario configurado hasta ahora (Task 24) — Agenda BambuTech
+# Services Michelle N, calendario de trabajo de Norma. gbs/balia todavia no
+# tienen calendario cableado.
+BAMBUTECH_CALENDAR_ID = "uB5sjspYMHvb42qeYVrj"
+BAMBUTECH_AGENDAR_TIMEZONE = "America/Mexico_City"
+
+_DIAS_CORTOS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
+_MESES_CORTOS = ["", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+_DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+_MESES = ["", "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+          "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
 TASK_STEPS = ["titulo", "descripcion", "fecha_hora"]
 TASK_STEP_PROMPTS = {
@@ -196,6 +209,81 @@ def handle_email_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLClie
     )
 
 
+def _format_slot_short(slot_iso: str) -> str:
+    """Etiqueta corta para el boton (ej. 'lun 28-sep 10:00')."""
+    dt = datetime.fromisoformat(slot_iso)
+    return f"{_DIAS_CORTOS[dt.weekday()]} {dt.day}-{_MESES_CORTOS[dt.month]} {dt.strftime('%H:%M')}"
+
+
+def _format_slot_long(slot_iso: str) -> str:
+    """Fecha legible para el mensaje de confirmacion (ej. 'lunes 28 de septiembre a las 10:00')."""
+    dt = datetime.fromisoformat(slot_iso)
+    return f"{_DIAS[dt.weekday()]} {dt.day} de {_MESES[dt.month]} a las {dt.strftime('%H:%M')}"
+
+
+def handle_agendar_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLClient, telegram: TelegramClient) -> None:
+    # Solo BambuTech tiene calendario cableado (Task 24) — gbs/balia no
+    # tienen la Agenda de GHL configurada todavia.
+    if slug != "bambutech":
+        telegram.send_message(chat_id, "⚠️ Todavía no está configurado el calendario de este cliente")
+        return
+
+    now_ms = int(time.time() * 1000)
+    week_ms = now_ms + 7 * 24 * 3600 * 1000
+    try:
+        raw = ghl.free_slots(BAMBUTECH_CALENDAR_ID, now_ms, week_ms, BAMBUTECH_AGENDAR_TIMEZONE)
+    except Exception:
+        logging.exception("%s: error consultando horarios libres para %s", slug, contact_id)
+        telegram.send_message(chat_id, "⚠️ No pude traer los horarios disponibles del calendario. Probá de nuevo en un rato.")
+        return
+
+    # La respuesta de GHL viene como {"YYYY-MM-DD": {"slots": [iso, ...]}, ...,
+    # "traceId": "..."} — hay que aplanar los dias y descartar el traceId.
+    slots: list[str] = []
+    for key, value in raw.items():
+        if key == "traceId" or not isinstance(value, dict):
+            continue
+        slots.extend(value.get("slots") or [])
+    slots.sort()
+    slots = slots[:6]
+
+    if not slots:
+        telegram.send_message(chat_id, "⚠️ No hay horarios libres en los próximos 7 días en este calendario.")
+        return
+
+    # Clave (slug, chat_id): mismo motivo que PENDING_MANUAL_TASK/PENDING_EMAIL_REPLY.
+    # Se guardan los ISO completos indexados por posicion en vez de mandarlos
+    # en el callback_data — un ISO + el contact_id de GHL puede superar el
+    # limite de 64 bytes de Telegram.
+    PENDING_AGENDAR_SLOTS[(slug, chat_id)] = {str(i): slot for i, slot in enumerate(slots)}
+
+    keyboard = {
+        "inline_keyboard": [
+            [{"text": _format_slot_short(slot), "callback_data": f"agendar_slot:{contact_id}:{i}"}]
+            for i, slot in enumerate(slots)
+        ]
+    }
+    telegram.send_message(chat_id, "🕒 Horarios disponibles (hora México):", reply_markup=keyboard)
+
+
+def handle_agendar_slot_callback(
+    contact_id: str, idx_raw: str, chat_id: int, slug: str, ghl: GHLClient, telegram: TelegramClient,
+) -> None:
+    pending = PENDING_AGENDAR_SLOTS.get((slug, chat_id))
+    slot_iso = pending.get(idx_raw) if pending else None
+    if not slot_iso:
+        telegram.send_message(chat_id, "⚠️ Ese horario ya no está disponible, pedí la lista de nuevo.")
+        return
+
+    contact = ghl.get_contact(contact_id)["contact"]
+    location_id = contact["locationId"]
+    nombre = f"{contact.get('firstName') or ''} {contact.get('lastName') or ''}".strip() or "(contacto)"
+
+    ghl.create_appointment(BAMBUTECH_CALENDAR_ID, location_id, contact_id, slot_iso)
+    PENDING_AGENDAR_SLOTS.pop((slug, chat_id), None)
+    telegram.send_message(chat_id, f"✅ Reunión agendada con {nombre} para {_format_slot_long(slot_iso)}.")
+
+
 def send_status_options(
     chat_id: str, nombre: str, contact_id: str, location_id: str, ghl: GHLClient, telegram: TelegramClient,
 ) -> None:
@@ -278,6 +366,14 @@ def handle_callback(callback: dict[str, Any], slug: str, ghl: GHLClient, telegra
 
     if parts[0] == "tarea":
         handle_tarea_callback(parts, chat_id, slug, telegram)
+        return
+
+    if parts[0] == "agendar":
+        handle_agendar_callback(parts[1], chat_id, slug, ghl, telegram)
+        return
+
+    if parts[0] == "agendar_slot":
+        handle_agendar_slot_callback(parts[1], parts[2], chat_id, slug, ghl, telegram)
         return
 
     if parts[0] != "status":
