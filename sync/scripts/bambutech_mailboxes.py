@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import email
 import imaplib
+import logging
 from email.header import decode_header
 from typing import Any
 
 from config import get_optional_env
+
+logger = logging.getLogger(__name__)
 
 BAMBUTECH_ACCOUNTS = ["BAMBUTECH01", "BAMBUTECH02"]  # michelle@ y michelle.hernandez@
 
@@ -43,17 +46,71 @@ def find_reply_thread(prospect_email: str) -> dict[str, Any] | None:
     return None
 
 
+def _find_all_mail_folder(conn: imaplib.IMAP4_SSL) -> str | None:
+    """Busca en el LIST de carpetas IMAP la que tiene el atributo especial
+    \\All (la carpeta "Todos" / "All Mail" de Gmail, que incluye mensajes de
+    cualquier label/carpeta, p.ej. el label "snovio"). El nombre exacto varia
+    segun el idioma de la cuenta ("[Gmail]/All Mail", "[Gmail]/Todos", etc.),
+    por eso no se hardcodea sino que se descubre via LIST."""
+    status, folders = conn.list()
+    if status != "OK" or not folders:
+        return None
+    for raw_line in folders:
+        if raw_line is None:
+            continue
+        line = raw_line.decode("utf-8", errors="replace") if isinstance(raw_line, bytes) else raw_line
+        if "\\All" not in line:
+            continue
+        # Formato tipico: b'(\\HasNoChildren \\All) "/" "[Gmail]/All Mail"'
+        # El nombre de la carpeta es el ultimo token entre comillas.
+        parts = line.split('"')
+        if len(parts) >= 2:
+            return parts[-2]
+    return None
+
+
+def _quote_mailbox(name: str) -> str:
+    if name.startswith('"') and name.endswith('"'):
+        return name
+    return f'"{name}"'
+
+
 def _search_mailbox(account_email: str, password: str, prospect_email: str) -> dict[str, Any] | None:
     conn = imaplib.IMAP4_SSL("imap.gmail.com", 993)
     try:
         conn.login(account_email, password)
-        conn.select("INBOX")
+
+        all_mail_folder = _find_all_mail_folder(conn)
+        selected = False
+        if all_mail_folder:
+            status, _ = conn.select(_quote_mailbox(all_mail_folder), readonly=True)
+            selected = status == "OK"
+            if not selected:
+                logger.warning(
+                    "No se pudo seleccionar la carpeta All Mail (%s) en %s, se usara solo INBOX",
+                    all_mail_folder,
+                    account_email,
+                )
+        else:
+            logger.warning(
+                "No se encontro carpeta All Mail (atributo \\All) en %s, se usara solo INBOX",
+                account_email,
+            )
+
+        if not selected:
+            status, _ = conn.select("INBOX", readonly=True)
+            if status != "OK":
+                return None
+
         status, data = conn.search(None, f'(FROM "{prospect_email}")')
         if status != "OK" or not data or not data[0]:
             return None
         message_ids = data[0].split()
         latest_id = message_ids[-1]
-        status, msg_data = conn.fetch(latest_id, "(RFC822)")
+        # BODY.PEEK[] es el equivalente de solo-lectura de RFC822: trae el
+        # mensaje completo (headers + cuerpo) sin marcar \Seen, a diferencia
+        # de RFC822/BODY[] que en modo lectura-escritura si lo marca.
+        status, msg_data = conn.fetch(latest_id, "(BODY.PEEK[])")
         if status != "OK" or not msg_data or not msg_data[0]:
             return None
         raw = msg_data[0][1]
