@@ -127,11 +127,11 @@ def notify(
     if not telegram or dry_run:
         return
     client_bot, chat_ids = telegram
-    # El botón "Responder correo" solo existe para BambuTech (únicas
-    # casillas IMAP/SMTP configuradas hoy) y solo cuando la tarjeta tiene un
-    # contacto real asociado — la tarjeta de mismatch (ghl_contact_id=None)
+    # El botón "Responder correo" solo existe para los clientes con casillas
+    # IMAP/SMTP configuradas (bambutech, gbs) y solo cuando la tarjeta tiene
+    # un contacto real asociado — la tarjeta de mismatch (ghl_contact_id=None)
     # no lleva botón porque no hay a quién contestarle.
-    reply_markup = build_reply_email_keyboard(ghl_contact_id) if cliente_slug == "bambutech" and ghl_contact_id else None
+    reply_markup = build_reply_email_keyboard(ghl_contact_id) if cliente_slug in ("bambutech", "gbs") and ghl_contact_id else None
     for chat_id in chat_ids:
         sent = client_bot.send_message(chat_id, text, reply_markup=reply_markup)
         if ghl_contact_id:
@@ -144,11 +144,11 @@ def notify(
                 "prospect_name": prospect_name,
                 "prospect_email": prospect_email,
             })
-        # Solo BambuTech tiene bot de Telegram interactivo configurado hoy
-        # (mismo gate que el boton de email arriba) y solo cuando hay un
-        # contacto real de GHL asociado — sin eso no hay a quien mandarle
-        # status/agendar/tarea.
-        if cliente_slug == "bambutech" and ghl_contact_id:
+        # Solo bambutech y gbs tienen bot de Telegram interactivo con estas
+        # casillas configuradas hoy (mismo gate que el boton de email arriba)
+        # y solo cuando hay un contacto real de GHL asociado — sin eso no hay
+        # a quien mandarle status/agendar/tarea.
+        if cliente_slug in ("bambutech", "gbs") and ghl_contact_id:
             send_followup_buttons(
                 client_bot, chat_id, ghl, ghl_location_id, ghl_contact_id, prospect_name or prospect_email or "(sin nombre)",
             )

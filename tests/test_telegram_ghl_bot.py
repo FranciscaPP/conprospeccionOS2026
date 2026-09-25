@@ -8,11 +8,12 @@ from unittest.mock import MagicMock
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
 from telegram_ghl_bot import (
-    BAMBUTECH_CALENDAR_ID,
+    CLIENT_CALENDAR_CONFIG,
     PENDING_AGENDAR_SLOTS,
     PENDING_AGENDAR_TITLE,
     PENDING_EMAIL_REPLY,
     PENDING_MANUAL_TASK,
+    handle_agendar_callback,
     handle_agendar_slot_callback,
     handle_email_callback,
     handle_message,
@@ -201,7 +202,7 @@ def test_handle_message_confirmacion_afirmativa_agenda_de_verdad():
     handle_message(message, "bambutech", telegram, ghl, supabase, "loc1")
 
     ghl.create_appointment.assert_called_once_with(
-        BAMBUTECH_CALENDAR_ID, "loc1", "contact-1", "2026-09-28T10:00:00-06:00", "Demo de producto",
+        CLIENT_CALENDAR_CONFIG["bambutech"]["calendar_id"], "loc1", "contact-1", "2026-09-28T10:00:00-06:00", "Demo de producto",
     )
     assert ("bambutech", 111) not in PENDING_AGENDAR_TITLE
     confirmation = telegram.send_message.call_args[0][1]
@@ -293,7 +294,7 @@ def test_handle_email_callback_cancela_agendar_pendiente(monkeypatch):
         "account_email": "bambutech@buzon.com", "subject": "Consulta",
         "references": "", "body": "hola",
     }
-    monkeypatch.setitem(sys.modules, "bambutech_mailboxes", fake_module)
+    monkeypatch.setitem(sys.modules, "client_mailboxes", fake_module)
 
     handle_email_callback("contact-1", 111, "bambutech", ghl, telegram)
 
@@ -325,3 +326,61 @@ def test_handle_message_texto_suelto_con_agendar_pendiente_no_consume_tarea_viej
     ghl.create_appointment.assert_not_called()
     ghl.create_task.assert_not_called()
     assert PENDING_AGENDAR_TITLE[("bambutech", 111)]["stage"] == "confirm"
+
+
+def test_client_calendar_config_tiene_bambutech_y_gbs_pero_no_balia():
+    # bambutech y gbs tienen calendario cableado; balia todavia no.
+    assert "bambutech" in CLIENT_CALENDAR_CONFIG
+    assert "gbs" in CLIENT_CALENDAR_CONFIG
+    assert "balia" not in CLIENT_CALENDAR_CONFIG
+
+
+def test_handle_agendar_callback_gbs_ahora_funciona():
+    # Antes del cambio, gbs caia en el gate de "no configurado" igual que
+    # balia -- ahora debe consultar el calendario de GBS como bambutech.
+    _clear_all_pending()
+    ghl = MagicMock()
+    ghl.free_slots.return_value = {"2026-09-28": {"slots": ["2026-09-28T10:00:00-03:00"]}}
+    telegram = MagicMock()
+
+    handle_agendar_callback("contact-1", 111, "gbs", ghl, telegram)
+
+    ghl.free_slots.assert_called_once()
+    called_calendar_id = ghl.free_slots.call_args[0][0]
+    called_timezone = ghl.free_slots.call_args[0][3]
+    assert called_calendar_id == CLIENT_CALENDAR_CONFIG["gbs"]["calendar_id"]
+    assert called_timezone == "America/Santiago"
+    telegram.send_message.assert_called_once()
+    assert "no está configurado" not in telegram.send_message.call_args[0][1]
+
+
+def test_handle_agendar_callback_balia_sigue_sin_configurar():
+    _clear_all_pending()
+    ghl = MagicMock()
+    telegram = MagicMock()
+
+    handle_agendar_callback("contact-1", 111, "balia", ghl, telegram)
+
+    ghl.free_slots.assert_not_called()
+    telegram.send_message.assert_called_once_with(111, "⚠️ Todavía no está configurado el calendario de este cliente")
+
+
+def test_handle_email_callback_busca_en_casillas_del_cliente(monkeypatch):
+    # find_reply_thread ahora recibe el slug -- el mock debe verificar que se
+    # le pasa "gbs" y no queda hardcodeado a bambutech.
+    _clear_all_pending()
+    ghl = MagicMock()
+    ghl.get_contact.return_value = {"contact": {"email": "prospecto@ejemplo.com"}}
+    telegram = MagicMock()
+
+    fake_module = MagicMock()
+    fake_module.find_reply_thread.return_value = {
+        "account_email": "sammiller@gbs-logistics.cl", "subject": "Consulta",
+        "references": "", "body": "hola",
+    }
+    monkeypatch.setitem(sys.modules, "client_mailboxes", fake_module)
+
+    handle_email_callback("contact-1", 111, "gbs", ghl, telegram)
+
+    fake_module.find_reply_thread.assert_called_once_with("gbs", "prospecto@ejemplo.com")
+    assert ("gbs", 111) in PENDING_EMAIL_REPLY

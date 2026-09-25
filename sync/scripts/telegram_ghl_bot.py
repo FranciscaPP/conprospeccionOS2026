@@ -93,8 +93,10 @@ def _is_confirmacion_afirmativa(texto: str) -> bool:
 # Unico calendario configurado hasta ahora (Task 24) — Agenda BambuTech
 # Services Michelle N, calendario de trabajo de Norma. gbs/balia todavia no
 # tienen calendario cableado.
-BAMBUTECH_CALENDAR_ID = "uB5sjspYMHvb42qeYVrj"
-BAMBUTECH_AGENDAR_TIMEZONE = "America/Mexico_City"
+CLIENT_CALENDAR_CONFIG: dict[str, dict[str, str]] = {
+    "bambutech": {"calendar_id": "uB5sjspYMHvb42qeYVrj", "timezone": "America/Mexico_City", "tz_label": "hora México"},
+    "gbs": {"calendar_id": "qi4ODVbGG8DefNBM4OvH", "timezone": "America/Santiago", "tz_label": "hora Chile"},
+}
 
 _DIAS_CORTOS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
 _MESES_CORTOS = ["", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
@@ -205,7 +207,7 @@ def handle_tarea_callback(parts: list[str], chat_id: int, slug: str, telegram: T
 
 
 def handle_email_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLClient, telegram: TelegramClient) -> None:
-    from bambutech_mailboxes import find_reply_thread
+    from client_mailboxes import find_reply_thread
 
     contact = ghl.get_contact(contact_id)["contact"]
     prospect_email = contact.get("email")
@@ -213,9 +215,9 @@ def handle_email_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLClie
         telegram.send_message(chat_id, "⚠️ Este contacto no tiene correo cargado.")
         return
 
-    thread = find_reply_thread(prospect_email)
+    thread = find_reply_thread(slug, prospect_email)
     if not thread:
-        telegram.send_message(chat_id, "⚠️ No encontré el correo real de este prospecto en las casillas de BambuTech.")
+        telegram.send_message(chat_id, "⚠️ No encontré el correo real de este prospecto en las casillas de este cliente.")
         return
 
     # Clave (slug, chat_id): mismo motivo que PENDING_MANUAL_TASK — el mismo
@@ -250,16 +252,21 @@ def _format_slot_long(slot_iso: str) -> str:
 
 
 def handle_agendar_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLClient, telegram: TelegramClient) -> None:
-    # Solo BambuTech tiene calendario cableado (Task 24) — gbs/balia no
-    # tienen la Agenda de GHL configurada todavia.
-    if slug != "bambutech":
+    # Solo los clientes en CLIENT_CALENDAR_CONFIG tienen calendario cableado
+    # (bambutech: Task 24, gbs: agregado despues) — balia todavia no tiene la
+    # Agenda de GHL configurada.
+    calendar_config = CLIENT_CALENDAR_CONFIG.get(slug)
+    if not calendar_config:
         telegram.send_message(chat_id, "⚠️ Todavía no está configurado el calendario de este cliente")
         return
+    calendar_id = calendar_config["calendar_id"]
+    agendar_timezone = calendar_config["timezone"]
+    tz_label = calendar_config.get("tz_label", "hora local")
 
     now_ms = int(time.time() * 1000)
     week_ms = now_ms + 7 * 24 * 3600 * 1000
     try:
-        raw = ghl.free_slots(BAMBUTECH_CALENDAR_ID, now_ms, week_ms, BAMBUTECH_AGENDAR_TIMEZONE)
+        raw = ghl.free_slots(calendar_id, now_ms, week_ms, agendar_timezone)
     except Exception:
         logging.exception("%s: error consultando horarios libres para %s", slug, contact_id)
         telegram.send_message(chat_id, "⚠️ No pude traer los horarios disponibles del calendario. Probá de nuevo en un rato.")
@@ -291,7 +298,7 @@ def handle_agendar_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLCl
             for i, slot in enumerate(slots)
         ]
     }
-    telegram.send_message(chat_id, "🕒 Horarios disponibles (hora México):", reply_markup=keyboard)
+    telegram.send_message(chat_id, f"🕒 Horarios disponibles ({tz_label}):", reply_markup=keyboard)
 
 
 def handle_agendar_slot_callback(
@@ -326,7 +333,9 @@ def _build_agendar_confirmation_text(pending: dict[str, str], titulo: str, ghl: 
     return f"¿Confirmás agendar con {nombre} el {fecha} con el título '{titulo}'? Respondé 'si' para confirmar."
 
 
-def _complete_agendar(pending: dict[str, str], titulo: str, chat_id: int, ghl: GHLClient, telegram: TelegramClient) -> None:
+def _complete_agendar(
+    pending: dict[str, str], titulo: str, chat_id: int, slug: str, ghl: GHLClient, telegram: TelegramClient,
+) -> None:
     # Capa de seguridad #2: esta funcion solo se llama despues de que el SDR
     # confirmo explicitamente (ver handle_message, stage "confirm") — nunca
     # directo desde el texto del titulo, para que un mensaje sin relacion no
@@ -337,7 +346,8 @@ def _complete_agendar(pending: dict[str, str], titulo: str, chat_id: int, ghl: G
     location_id = contact["locationId"]
     nombre = _nombre_contacto(contact)
 
-    ghl.create_appointment(BAMBUTECH_CALENDAR_ID, location_id, contact_id, slot_iso, titulo)
+    calendar_id = CLIENT_CALENDAR_CONFIG[slug]["calendar_id"]
+    ghl.create_appointment(calendar_id, location_id, contact_id, slot_iso, titulo)
     telegram.send_message(
         chat_id,
         f"✅ Reunión agendada con {nombre} para {_format_slot_long(slot_iso)} — *{titulo}*.",
@@ -365,7 +375,7 @@ def handle_message(
     pending_key = (slug, chat_id)
 
     if pending_key in PENDING_EMAIL_REPLY and message.get("text"):
-        from bambutech_mailboxes import send_reply
+        from client_mailboxes import send_reply
         pending = PENDING_EMAIL_REPLY.pop(pending_key)
         send_reply(
             pending["account_email"], pending["to"], pending["subject"],
@@ -380,7 +390,7 @@ def handle_message(
         if pending.get("stage") == "confirm":
             PENDING_AGENDAR_TITLE.pop(pending_key, None)
             if _is_confirmacion_afirmativa(texto):
-                _complete_agendar(pending, pending["titulo"], chat_id, ghl, telegram)
+                _complete_agendar(pending, pending["titulo"], chat_id, slug, ghl, telegram)
             else:
                 telegram.send_message(chat_id, "❌ No se agendó nada. Si querés, elegí el horario de nuevo.")
             return

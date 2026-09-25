@@ -44,10 +44,9 @@ def test_notify_bambutech_con_contact_id_manda_los_4_bloques():
     assert "Generar tarea" in texts[3]
 
 
-def test_notify_gbs_con_contact_id_no_manda_botones_extra_ni_rompe():
-    # gbs no tiene bot interactivo configurado hoy, pero si notify() alguna
-    # vez se llamara con un telegram valido para gbs, no debe ni crashear ni
-    # mandar los 3 bloques extra (son solo para bambutech).
+def test_notify_gbs_con_contact_id_manda_los_4_bloques():
+    # gbs ahora tiene las mismas casillas/bot interactivo que bambutech --
+    # debe mandar tarjeta + status + agendar + tarea igual que bambutech.
     client_bot, chat_ids = _make_telegram()
     ghl = _make_ghl()
     supabase = MagicMock()
@@ -56,6 +55,24 @@ def test_notify_gbs_con_contact_id_no_manda_botones_extra_ni_rompe():
         (client_bot, chat_ids), supabase, "🔵 *Nuevo contacto en el CRM*",
         cliente_slug="gbs", ghl_contact_id="contact-2", ghl_location_id="loc2",
         prospect_name="Juan", prospect_email="juan@gbs.cl", dry_run=False, ghl=ghl,
+    )
+
+    assert client_bot.send_message.call_count == 4
+    ghl.custom_field_id_map.assert_called_once()
+
+
+def test_notify_balia_con_contact_id_no_manda_botones_extra_ni_rompe():
+    # balia no tiene casillas de correo ni calendario configurados todavia --
+    # no debe crashear ni mandar los 3 bloques extra (siguen siendo solo
+    # para bambutech/gbs).
+    client_bot, chat_ids = _make_telegram()
+    ghl = _make_ghl()
+    supabase = MagicMock()
+
+    notify(
+        (client_bot, chat_ids), supabase, "🟣 *Nuevo contacto en el CRM*",
+        cliente_slug="balia", ghl_contact_id="contact-3", ghl_location_id="loc3",
+        prospect_name="Ana", prospect_email="ana@balia.cl", dry_run=False, ghl=ghl,
     )
 
     assert client_bot.send_message.call_count == 1

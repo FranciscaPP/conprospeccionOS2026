@@ -13,7 +13,10 @@ from config import get_optional_env
 
 logger = logging.getLogger(__name__)
 
-BAMBUTECH_ACCOUNTS = ["BAMBUTECH01", "BAMBUTECH02"]  # michelle@ y michelle.hernandez@
+CLIENT_ACCOUNTS: dict[str, list[str]] = {
+    "bambutech": ["BAMBUTECH01", "BAMBUTECH02"],  # michelle@ y michelle.hernandez@
+    "gbs": ["GBS01", "GBS02", "GBS03"],  # sam@ (agendar), sammiller@, sam.miller@
+}
 
 
 def _decode(value: str | None) -> str:
@@ -34,16 +37,28 @@ def _account_credentials(account_key: str) -> tuple[str, str] | None:
     return email_addr, password
 
 
-def find_reply_thread(prospect_email: str) -> dict[str, Any] | None:
-    """Busca en las casillas de BambuTech el ultimo correo REAL recibido de
-    prospect_email. Devuelve {account_email, message_id, subject, body,
-    references} o None si no se encuentra en ninguna."""
-    for account_key in BAMBUTECH_ACCOUNTS:
+def find_reply_thread(cliente_slug: str, prospect_email: str) -> dict[str, Any] | None:
+    """Busca en las casillas del cliente (cliente_slug) el ultimo correo REAL
+    recibido de prospect_email. Devuelve {account_email, message_id, subject,
+    body, references} o None si no se encuentra en ninguna (o si cliente_slug
+    no tiene casillas configuradas)."""
+    account_keys = CLIENT_ACCOUNTS.get(cliente_slug)
+    if not account_keys:
+        logger.warning("No hay casillas de correo configuradas para %s", cliente_slug)
+        return None
+    for account_key in account_keys:
         creds = _account_credentials(account_key)
         if not creds:
             continue
         account_email, password = creds
-        result = _search_mailbox(account_email, password, prospect_email)
+        try:
+            result = _search_mailbox(account_email, password, prospect_email)
+        except Exception:
+            # Una casilla con credenciales invalidas (ej. login IMAP fallido)
+            # no debe abortar la busqueda para las demas casillas del mismo
+            # cliente -- se loguea y se sigue con la siguiente cuenta.
+            logger.warning("Fallo la busqueda en la casilla %s, se sigue con la siguiente", account_email, exc_info=True)
+            continue
         if result:
             return {**result, "account_email": account_email}
     return None
@@ -142,8 +157,9 @@ def _extract_plain_text(message: email.message.Message) -> str:
 
 
 def send_reply(account_email: str, to_email: str, subject: str, body: str, references: str | None) -> None:
+    all_account_keys = [key for keys in CLIENT_ACCOUNTS.values() for key in keys]
     account_key = next(
-        (key for key in BAMBUTECH_ACCOUNTS if (get_optional_env(f"SMTP_{key}_EMAIL") or "").lower() == account_email.lower()),
+        (key for key in all_account_keys if (get_optional_env(f"SMTP_{key}_EMAIL") or "").lower() == account_email.lower()),
         None,
     )
     if not account_key:
