@@ -257,3 +257,23 @@ def test_create_task_manda_titulo_y_fecha():
     assert kwargs["json"]["title"] == "Llamar"
     assert kwargs["json"]["dueDate"] == "2026-09-25T13:00:00+00:00"
     assert kwargs["json"]["body"] == "Llamar mañana"
+
+
+def test_create_appointment_manda_el_titulo_en_el_body():
+    # Nunca se llama en vivo (crearia una cita real) — este test solo
+    # verifica que el body armado incluye "title" ahora que el flujo de
+    # Telegram pide el titulo antes de agendar.
+    client = GHLClient("token")
+    client.client.post = MagicMock(return_value=_mock_response({"id": "appt1"}))
+
+    client.create_appointment("cal1", "loc1", "c1", "2026-09-28T10:00:00-06:00", "Llamada de seguimiento")
+
+    args, kwargs = client.client.post.call_args
+    assert args[0] == "/calendars/events/appointments"
+    assert kwargs["json"] == {
+        "calendarId": "cal1",
+        "locationId": "loc1",
+        "contactId": "c1",
+        "startTime": "2026-09-28T10:00:00-06:00",
+        "title": "Llamada de seguimiento",
+    }

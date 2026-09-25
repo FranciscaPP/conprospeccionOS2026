@@ -273,7 +273,9 @@ class GHLClient:
         response.raise_for_status()
         return response.json()
 
-    def create_appointment(self, calendar_id: str, location_id: str, contact_id: str, start_iso: str) -> dict[str, Any]:
+    def create_appointment(
+        self, calendar_id: str, location_id: str, contact_id: str, start_iso: str, title: str,
+    ) -> dict[str, Any]:
         # NUNCA verificado en vivo (crearia una cita real) — ver Task 24 del
         # plan 2026-09-24-snov-replies-to-ghl-plan.md. Forma tomada de la
         # documentacion publica de GHL v2 (POST /calendars/events/appointments),
@@ -285,6 +287,7 @@ class GHLClient:
             "locationId": location_id,
             "contactId": contact_id,
             "startTime": start_iso,
+            "title": title,
         }
         response = self.client.post("/calendars/events/appointments", json=body)
         response.raise_for_status()

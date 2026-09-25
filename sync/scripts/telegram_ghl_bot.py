@@ -63,6 +63,7 @@ def default_due_date() -> str:
 PENDING_MANUAL_TASK: dict[tuple[str, int], dict[str, Any]] = {}  # (slug, chat_id) -> {contact_id, step, titulo, descripcion, fecha_hora}
 PENDING_EMAIL_REPLY: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {contact_id, account_email, to, subject, references}
 PENDING_AGENDAR_SLOTS: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {index_str: slot_iso}
+PENDING_AGENDAR_TITLE: dict[tuple[str, int], dict[str, str]] = {}  # (slug, chat_id) -> {contact_id, slot_iso}
 
 # Unico calendario configurado hasta ahora (Task 24) — Agenda BambuTech
 # Services Michelle N, calendario de trabajo de Norma. gbs/balia todavia no
@@ -275,13 +276,26 @@ def handle_agendar_slot_callback(
         telegram.send_message(chat_id, "⚠️ Ese horario ya no está disponible, pedí la lista de nuevo.")
         return
 
+    # No se agenda todavia — falta el titulo. Se guarda el slot elegido y se
+    # espera el proximo mensaje de texto de este chat (mismo patron
+    # secuencial que PENDING_MANUAL_TASK: una pregunta, una respuesta).
+    PENDING_AGENDAR_SLOTS.pop((slug, chat_id), None)
+    PENDING_AGENDAR_TITLE[(slug, chat_id)] = {"contact_id": contact_id, "slot_iso": slot_iso}
+    telegram.send_message(chat_id, "¿Qué título le ponemos a la reunión?")
+
+
+def _complete_agendar(pending: dict[str, str], titulo: str, chat_id: int, ghl: GHLClient, telegram: TelegramClient) -> None:
+    contact_id = pending["contact_id"]
+    slot_iso = pending["slot_iso"]
     contact = ghl.get_contact(contact_id)["contact"]
     location_id = contact["locationId"]
     nombre = f"{contact.get('firstName') or ''} {contact.get('lastName') or ''}".strip() or "(contacto)"
 
-    ghl.create_appointment(BAMBUTECH_CALENDAR_ID, location_id, contact_id, slot_iso)
-    PENDING_AGENDAR_SLOTS.pop((slug, chat_id), None)
-    telegram.send_message(chat_id, f"✅ Reunión agendada con {nombre} para {_format_slot_long(slot_iso)}.")
+    ghl.create_appointment(BAMBUTECH_CALENDAR_ID, location_id, contact_id, slot_iso, titulo)
+    telegram.send_message(
+        chat_id,
+        f"✅ Reunión agendada con {nombre} para {_format_slot_long(slot_iso)} — *{titulo}*.",
+    )
 
 
 def send_status_options(
@@ -312,6 +326,11 @@ def handle_message(
             message["text"].strip(), pending["references"] or None,
         )
         telegram.send_message(chat_id, f"✅ Correo enviado desde `{pending['account_email']}`.")
+        return
+
+    if pending_key in PENDING_AGENDAR_TITLE and message.get("text"):
+        pending = PENDING_AGENDAR_TITLE.pop(pending_key)
+        _complete_agendar(pending, message["text"].strip(), chat_id, ghl, telegram)
         return
 
     if pending_key in PENDING_MANUAL_TASK and message.get("text"):
