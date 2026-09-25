@@ -62,21 +62,13 @@ def build_status_keyboard(ordered_options: list[str], contact_id: str) -> dict[s
     return {"inline_keyboard": inline_keyboard}
 
 
-def build_new_contact_card(
-    cliente_slug: str, cliente_nombre: str, campaign_name: str,
-    enrichment: dict[str, Any], email: str, contact_id: str, reply_snippet: str | None = None,
-) -> str:
-    accent = CLIENT_ACCENTS.get(cliente_slug, "🆕")
-    badge = prospect_badge(contact_id)
-    nombre = enrichment.get("name") or "(sin nombre)"
-    lines = [
-        f"{accent} *Nuevo contacto en el CRM*",
-        "",
-        f"*Cliente:* {cliente_nombre}",
-        f"*Campaña:* {campaign_name}",
-        "",
-        f"*Prospecto:* {badge} {nombre}",
-    ]
+def _enrichment_detail_lines(enrichment: dict[str, Any], email: str, reply_snippet: str | None) -> list[str]:
+    """Lineas de detalle compartidas entre las tarjetas de contacto nuevo y
+    actualizado: cargo/empresa/tamaño/web/pais/correo/telefono/linkedin y,
+    si vino, el extracto de la respuesta. Se usa `.get()` en todos los
+    campos para que un `enrichment` vacio no rompa nada (simplemente no
+    agrega esas lineas)."""
+    lines: list[str] = []
     if enrichment.get("cargo"):
         lines.append(f"*Cargo:* {enrichment['cargo']}")
     if enrichment.get("company_name"):
@@ -97,19 +89,45 @@ def build_new_contact_card(
         if len(preview) > 300:
             preview = preview[:300].rstrip() + "…"
         lines += ["", f"*Respondió:* _{preview}_"]
+    return lines
+
+
+def build_new_contact_card(
+    cliente_slug: str, cliente_nombre: str, campaign_name: str,
+    enrichment: dict[str, Any], email: str, contact_id: str, reply_snippet: str | None = None,
+) -> str:
+    accent = CLIENT_ACCENTS.get(cliente_slug, "🆕")
+    badge = prospect_badge(contact_id)
+    nombre = enrichment.get("name") or "(sin nombre)"
+    lines = [
+        f"{accent} *Nuevo contacto en el CRM*",
+        "",
+        f"*Cliente:* {cliente_nombre}",
+        f"*Campaña:* {campaign_name}",
+        "",
+        f"*Prospecto:* {badge} {nombre}",
+    ]
+    lines += _enrichment_detail_lines(enrichment, email, reply_snippet)
     lines += ["", "Esta tarjeta se creó porque respondió la campaña y no existía en el CRM."]
     return "\n".join(lines)
 
 
-def build_updated_contact_card(cliente_slug: str, cliente_nombre: str, nombre: str, email: str, contact_id: str) -> str:
+def build_updated_contact_card(
+    cliente_slug: str, cliente_nombre: str, nombre: str,
+    enrichment: dict[str, Any], email: str, contact_id: str, reply_snippet: str | None = None,
+) -> str:
     accent = CLIENT_ACCENTS.get(cliente_slug, "🔄")
     badge = prospect_badge(contact_id)
-    return (
-        f"{accent} *Contacto actualizado en el CRM*\n\n"
-        f"*Cliente:* {cliente_nombre}\n"
-        f"*Prospecto:* {badge} {nombre} ({email})\n\n"
-        "Respondió de nuevo la campaña — se completaron datos que faltaban."
-    )
+    lines = [
+        f"{accent} *Contacto actualizado en el CRM*",
+        "",
+        f"*Cliente:* {cliente_nombre}",
+        "",
+        f"*Prospecto:* {badge} {nombre}",
+    ]
+    lines += _enrichment_detail_lines(enrichment, email, reply_snippet)
+    lines += ["", "Respondió de nuevo la campaña — se completaron datos que faltaban."]
+    return "\n".join(lines)
 
 
 def build_mismatch_alert(cliente_nombre: str, email: str, ghl_name: str, snov_name: str) -> str:

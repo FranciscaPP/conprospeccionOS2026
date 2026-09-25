@@ -218,6 +218,7 @@ def process_client(
             action = decide_action(existing, enrichment, custom_field_ids)
             nombre = enrichment.get("name") or email
             campaign_name = reply.get("campaign") or campaign_id
+            reply_snippet = (reply.get("emails") or [{}])[0].get("emailBody")
 
             if action == GhlAction.CREATE:
                 payload = build_ghl_contact_payload(enrichment, email, slug, custom_field_ids)
@@ -240,13 +241,15 @@ def process_client(
                     stats["updated"] += 1
                     notify(
                         telegram, supabase,
-                        build_updated_contact_card(slug, client["nombre"], nombre, email, recovered_existing["id"]),
+                        build_updated_contact_card(
+                            slug, client["nombre"], nombre, enrichment, email, recovered_existing["id"],
+                            reply_snippet=reply_snippet,
+                        ),
                         cliente_slug=slug, ghl_contact_id=recovered_existing["id"], ghl_location_id=location_id,
                         prospect_name=nombre, prospect_email=email, dry_run=dry_run, ghl=ghl,
                     )
                 else:
                     stats["created"] += 1
-                    reply_snippet = (reply.get("emails") or [{}])[0].get("emailBody")
                     # En dry-run no hay contact_id real todavia (no se crea el
                     # contacto) — se usa el email como identificador estable para
                     # la insignia, es solo una ayuda visual, no un id real.
@@ -266,7 +269,10 @@ def process_client(
                 stats["updated"] += 1
                 notify(
                     telegram, supabase,
-                    build_updated_contact_card(slug, client["nombre"], nombre, email, existing["id"]),
+                    build_updated_contact_card(
+                        slug, client["nombre"], nombre, enrichment, email, existing["id"],
+                        reply_snippet=reply_snippet,
+                    ),
                     cliente_slug=slug, ghl_contact_id=existing["id"], ghl_location_id=location_id,
                     prospect_name=nombre, prospect_email=email, dry_run=dry_run, ghl=ghl,
                 )

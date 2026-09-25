@@ -83,11 +83,42 @@ def test_build_new_contact_card_sin_telefono_ni_respuesta_no_rompe():
 
 
 def test_build_updated_contact_card_dice_crm_no_ghl():
-    text = build_updated_contact_card("gbs", "GBS LOGISTICS", "Caterina Cronoro", "cate@transapp.cl", "contact123")
+    text = build_updated_contact_card(
+        "gbs", "GBS LOGISTICS", "Caterina Cronoro", {}, "cate@transapp.cl", "contact123",
+    )
     assert "actualizado" in text.lower()
     assert "CRM" in text
     assert "GHL" not in text
     assert prospect_badge("contact123") in text
+
+
+def test_build_updated_contact_card_incluye_los_datos_clave():
+    enrichment = dict(ENRICHMENT, phone="+52 55 1234 5678")
+    text = build_updated_contact_card(
+        "gbs", "GBS LOGISTICS", "Caterina Cronoro", enrichment, "cate@transapp.cl", "contact123",
+        reply_snippet="Hola, gracias por tu correo, me interesa saber más.",
+    )
+    assert "🔵" in text
+    assert prospect_badge("contact123") in text
+    assert "CRM" in text
+    assert "GHL" not in text
+    assert "Respondé" not in text  # sin voseo
+    assert "Commercial Manager" in text
+    assert "TranSapp" in text
+    assert "11-50" in text
+    assert "transapp.cl" in text
+    assert "Chile" in text
+    assert "+52 55 1234 5678" in text
+    assert "linkedin.com/in/cate" in text
+    assert "gracias por tu correo" in text
+
+
+def test_build_updated_contact_card_sin_datos_no_rompe():
+    text = build_updated_contact_card(
+        "gbs", "GBS LOGISTICS", "Caterina Cronoro", {}, "x@y.cl", "contact456",
+    )
+    assert "Caterina Cronoro" in text
+    assert "x@y.cl" in text
 
 
 def test_build_mismatch_alert():
