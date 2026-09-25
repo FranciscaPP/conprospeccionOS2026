@@ -148,7 +148,10 @@ def send_reply(account_email: str, to_email: str, subject: str, body: str, refer
     )
     if not account_key:
         raise RuntimeError(f"No hay credenciales SMTP guardadas para {account_email}")
-    _, password = _account_credentials(account_key)
+    creds = _account_credentials(account_key)
+    if creds is None:
+        raise RuntimeError(f"Falta la contrasena SMTP para {account_email}")
+    _, password = creds
 
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject if subject.lower().startswith("re:") else f"Re: {subject}"
