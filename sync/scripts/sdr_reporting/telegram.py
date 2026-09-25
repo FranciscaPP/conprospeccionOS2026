@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from pathlib import Path
 
 import httpx
 
@@ -54,3 +55,14 @@ class EquipoAliciaTelegram:
         response.raise_for_status()
         return response.json().get("result") or {}
 
+    def send_photo(self, path: str | Path, caption: str = "") -> dict[str, Any]:
+        if not self._verified:
+            self.verify_identity()
+        with Path(path).open("rb") as photo:
+            response = self.transport.post(
+                f"{self.base_url}/sendPhoto",
+                data={"chat_id": self.chat_id, "caption": caption, "parse_mode": "HTML"},
+                files={"photo": (Path(path).name, photo, "image/png")},
+            )
+        response.raise_for_status()
+        return response.json().get("result") or {}

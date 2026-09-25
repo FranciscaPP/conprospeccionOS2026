@@ -177,6 +177,17 @@ Regla practica:
 
 No desarrollar directamente en `master`.
 
+## Bot operativo Equipo Alicia
+
+- Unico bot autorizado para seguimiento SDR: `@equipo_alicia_bot`, validado por
+  `getMe`; salida exclusiva a `TELEGRAM_SDR_CHAT_ID`.
+- SDR operativa: Nora. Clientes: BAMBU TECH, GBS y BALIA.
+- `sync/scripts/report_sdr_telegram.py --operational` genera el reporte horario;
+  a las 20:00 agrega cierre y grafico, y el viernes agrega resumen semanal.
+- `SDR_Telegram_Meeting_Monitor` revisa citas nuevas cada 5 minutos dentro de la
+  ventana laboral y usa el mismo bot/chat. No modificar ni reutilizar los bots
+  de clientes ni el bot separado de reuniones.
+
 Estado 2026-07-03: la app antigua `conprospeccion-os.streamlit.app` fue
 eliminada. Los repos historicos y los proyectos de Vercel quedaron
 marcados para eliminacion manual por Francisca.

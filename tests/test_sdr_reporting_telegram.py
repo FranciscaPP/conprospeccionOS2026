@@ -59,3 +59,13 @@ def test_sender_rejects_empty_credentials():
     with pytest.raises(RuntimeError, match="TELEGRAM_SDR_CHAT_ID"):
         EquipoAliciaTelegram("token", "")
 
+
+def test_send_photo_uses_same_verified_bot_and_chat(tmp_path):
+    photo = tmp_path / "close.png"
+    photo.write_bytes(b"png")
+    transport = FakeTransport()
+    sender = EquipoAliciaTelegram("token", "123", transport=transport)
+    sender.send_photo(photo, "Cierre")
+    url, kwargs = transport.posts[0]
+    assert url.endswith("/sendPhoto")
+    assert kwargs["data"]["chat_id"] == "123"

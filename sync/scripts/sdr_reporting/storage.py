@@ -45,3 +45,28 @@ class SnapshotStore:
         )
         return rows[0]["payload"] if rows else None
 
+    def load_closes(self, start: date, end: date) -> list[dict]:
+        rows = self.supabase.select_all(
+            "sdr_hourly_snapshots", "snapshot_date,cut_at,payload",
+            **{"snapshot_date": f"gte.{start.isoformat()}",
+               "and": f"(snapshot_date.lte.{end.isoformat()})",
+               "scope": "eq.total", "order": "snapshot_date.asc,cut_at.desc"},
+        )
+        latest = {}
+        for row in rows:
+            latest.setdefault(row["snapshot_date"], row["payload"])
+        return list(latest.values())
+
+    def known_meeting_ids(self) -> set[tuple[str, str]]:
+        rows = self.supabase.select_all(
+            "sdr_activity_events", "cliente_slug,source_id", source="eq.ghl_appointment"
+        )
+        return {(row["cliente_slug"], row["source_id"]) for row in rows}
+
+    def mark_meeting(self, slug: str, event_id: str, event: dict) -> None:
+        occurred = event.get("dateAdded") or event.get("createdAt") or datetime.now().isoformat()
+        self.supabase.upsert("sdr_activity_events", [{
+            "source": "ghl_appointment", "source_id": event_id, "cliente_slug": slug,
+            "contact_id": event.get("contactId"), "event_type": "meeting_scheduled",
+            "occurred_at": occurred, "metadata": _jsonable(event),
+        }], conflict="source,source_id,cliente_slug")
