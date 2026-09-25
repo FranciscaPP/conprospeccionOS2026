@@ -3,7 +3,10 @@ from __future__ import annotations
 import email
 import imaplib
 import logging
+import smtplib
 from email.header import decode_header
+from email.mime.text import MIMEText
+from email.utils import make_msgid
 from typing import Any
 
 from config import get_optional_env
@@ -136,3 +139,26 @@ def _extract_plain_text(message: email.message.Message) -> str:
     charset = message.get_content_charset() or "utf-8"
     payload = message.get_payload(decode=True)
     return payload.decode(charset, errors="replace") if payload else ""
+
+
+def send_reply(account_email: str, to_email: str, subject: str, body: str, references: str | None) -> None:
+    account_key = next(
+        (key for key in BAMBUTECH_ACCOUNTS if (get_optional_env(f"SMTP_{key}_EMAIL") or "").lower() == account_email.lower()),
+        None,
+    )
+    if not account_key:
+        raise RuntimeError(f"No hay credenciales SMTP guardadas para {account_email}")
+    _, password = _account_credentials(account_key)
+
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = subject if subject.lower().startswith("re:") else f"Re: {subject}"
+    msg["From"] = account_email
+    msg["To"] = to_email
+    msg["Message-ID"] = make_msgid()
+    if references:
+        msg["In-Reply-To"] = references
+        msg["References"] = references
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(account_email, password)
+        server.send_message(msg)
