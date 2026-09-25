@@ -147,6 +147,44 @@ def test_handle_message_con_titulo_pendiente_pide_confirmacion_sin_agendar():
     assert "confirm" in prompt.lower() or "'si'" in prompt.lower()
 
 
+def test_handle_message_falla_get_contact_al_confirmar_no_deja_armado_para_si_suelto():
+    # Hallazgo del revisor: si _build_agendar_confirmation_text explota (ej.
+    # GHL 5xx/timeout en get_contact) DESPUES de que el titulo llega, el SDR
+    # nunca ve el prompt de confirmacion. Si el codigo igual dejara
+    # stage="confirm" armado, un "si" suelto y sin relacion mandado despues
+    # agendaria una cita real sin confirmacion genuina. Verificamos que el
+    # pending no quede armado en "confirm" y que ese "si" posterior no
+    # agende nada.
+    _clear_all_pending()
+    PENDING_AGENDAR_TITLE[("bambutech", 111)] = {
+        "contact_id": "contact-1", "slot_iso": "2026-09-28T10:00:00-06:00", "stage": "title",
+    }
+    ghl = MagicMock()
+    ghl.get_contact.side_effect = RuntimeError("GHL 503")
+    telegram = MagicMock()
+    supabase = MagicMock()
+    message = {"chat": {"id": 111}, "text": "Demo de producto"}
+
+    handle_message(message, "bambutech", telegram, ghl, supabase, "loc1")
+
+    ghl.create_appointment.assert_not_called()
+    pending = PENDING_AGENDAR_TITLE.get(("bambutech", 111))
+    assert pending is None or pending.get("stage") != "confirm"
+    # Se aviso el fallo por Telegram en vez de quedar en silencio.
+    aviso = telegram.send_message.call_args[0][1]
+    assert "no pude" in aviso.lower() or "⚠️" in aviso
+
+    # Un "si" suelto y sin relacion, mandado despues del fallo, NO debe
+    # agendar de verdad -- es exactamente el escenario que el revisor
+    # reprodujo.
+    telegram.reset_mock()
+    ghl.create_appointment.reset_mock()
+    message_si = {"chat": {"id": 111}, "text": "si"}
+    handle_message(message_si, "bambutech", telegram, ghl, supabase, "loc1")
+
+    ghl.create_appointment.assert_not_called()
+
+
 def test_handle_message_confirmacion_afirmativa_agenda_de_verdad():
     # Segundo paso: con el titulo ya guardado y stage "confirm", una
     # respuesta afirmativa ("si") es lo unico que dispara create_appointment.

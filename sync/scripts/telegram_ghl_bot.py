@@ -384,11 +384,28 @@ def handle_message(
             else:
                 telegram.send_message(chat_id, "❌ No se agendó nada. Si querés, elegí el horario de nuevo.")
             return
-        # stage "title": todavia no se agenda nada — se guarda el titulo y se
-        # pide confirmacion explicita antes de tocar el calendario real.
+        # stage "title": todavia no se agenda nada. Se arma y manda la
+        # confirmacion PRIMERO; el titulo y el stage "confirm" solo se
+        # guardan si esa confirmacion se entrego con exito. Si
+        # _build_agendar_confirmation_text/send_message explota a mitad de
+        # camino (ej. GHL 5xx/timeout al pedir el contacto), el SDR nunca vio
+        # el prompt de confirmacion — dejar el pending armado en "confirm" en
+        # ese caso haria que un "si" suelto y sin relacion, mandado despues,
+        # agendara una cita real sin confirmacion genuina (hallazgo de
+        # revisor sobre este flujo).
+        try:
+            confirmation_text = _build_agendar_confirmation_text(pending, texto, ghl)
+            telegram.send_message(chat_id, confirmation_text)
+        except Exception:
+            logging.exception("%s: error armando/mandando la confirmacion de agendar", slug)
+            PENDING_AGENDAR_TITLE.pop(pending_key, None)
+            try:
+                telegram.send_message(chat_id, "⚠️ No pude armar la confirmación, intentá elegir el horario de nuevo.")
+            except Exception:
+                logging.exception("%s: error mandando el aviso de fallo de confirmacion", slug)
+            return
         pending["titulo"] = texto
         pending["stage"] = "confirm"
-        telegram.send_message(chat_id, _build_agendar_confirmation_text(pending, texto, ghl))
         return
 
     if pending_key in PENDING_MANUAL_TASK and message.get("text"):
