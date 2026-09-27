@@ -224,6 +224,65 @@ def test_process_client_recupera_de_contacto_duplicado_como_update(monkeypatch):
     assert stats["created"] == 0
 
 
+def test_process_client_duplicado_ya_completo_no_avisa_de_nuevo(monkeypatch):
+    # Bug real de produccion: un contacto que SIEMPRE falla el create por
+    # duplicado (ej. email guardado como additionalEmail) pero que ya tiene
+    # todos los datos cargados no debe sumar a stats["updated"] ni mandar
+    # notificacion en cada corrida -- solo la primera vez que de verdad hay
+    # algo que completar.
+    import sync_snov_replies_to_ghl as sync_mod
+
+    monkeypatch.setenv("GHL_TOKEN_TESTCLIENT", "tok")
+
+    ghl_mock = MagicMock()
+    ghl_mock.custom_field_id_map.return_value = {}
+    ghl_mock.find_contact_by_email.return_value = None
+    ghl_mock.create_contact.side_effect = DuplicateContactError(
+        "n8RE3BmeUWuurdIflRHK",
+        {
+            "message": "This location does not allow duplicated contacts.",
+            "meta": {"contactId": "n8RE3BmeUWuurdIflRHK", "matchingField": "additionalEmail"},
+        },
+    )
+    ghl_mock.get_contact.return_value = {
+        "contact": {
+            "id": "n8RE3BmeUWuurdIflRHK",
+            "companyName": "Acme",
+            "website": "https://acme.com",
+            "phone": "+123",
+            "customFields": [],
+        },
+    }
+    monkeypatch.setattr(sync_mod, "GHLClient", MagicMock(return_value=ghl_mock))
+
+    snov_mock = MagicMock()
+    snov_mock.replies.return_value = [
+        {"prospectEmail": "alejandra@conexioncomercial.mx", "prospectId": "p1", "campaign": "camp1"},
+    ]
+    snov_mock.prospect_by_id.return_value = {
+        "data": {
+            "firstName": "Alejandra",
+            "lastName": "Torres",
+            "name": "Alejandra Torres",
+            "currentJob": [{"companyName": "Acme", "site": "https://acme.com"}],
+            "social": [],
+            "phones": [],
+        },
+    }
+
+    supabase_mock = MagicMock()
+    client = {"slug": "testclient", "ghl_location_id": "loc1", "nombre": "Test Client"}
+    stats = {"created": 0, "updated": 0, "mismatch": 0, "skipped": 0}
+
+    sync_mod.process_client(client, ["camp1"], snov_mock, supabase_mock, stats, dry_run=False)
+
+    ghl_mock.update_contact.assert_not_called()
+    supabase_mock.insert.assert_not_called()
+    assert stats["updated"] == 0
+    assert stats["skipped"] == 1
+    assert stats["created"] == 0
+
+
 def test_update_contact_llama_put_con_el_id():
     client = GHLClient("token")
     client.client.put = MagicMock(return_value=_mock_response({"contact": {"id": "c1"}}))

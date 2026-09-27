@@ -224,18 +224,25 @@ def _recover_from_duplicate_create(
     exc: DuplicateContactError,
     enrichment: dict[str, Any],
     custom_field_ids: dict[str, str],
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], bool]:
     """El POST /contacts/ fallo con 400 "duplicated contacts" porque GHL
     considera que el contacto ya existe (por email, additionalEmail,
     telefono u otro criterio interno que no controlamos). En vez de intentar
     adivinar de antemano todos esos criterios, GHL ya nos dio el contactId
     real en el error (exc.contact_id) — lo recuperamos trayendo ese contacto
-    y tratandolo exactamente como el camino de UPDATE."""
+    y tratandolo exactamente como el camino de UPDATE.
+
+    Devuelve (contacto_existente, hubo_cambios). hubo_cambios en False
+    significa que el contacto ya tenia todos los datos disponibles y esto
+    se repitio sin nada nuevo que llenar — el llamador NO debe avisar por
+    Telegram en ese caso, para no mandar la misma notificacion cada vez que
+    corre el job (esto pasaba antes con contactos que siempre fallan la
+    creacion por duplicado, ej. email guardado como additionalEmail)."""
     existing = ghl.get_contact(exc.contact_id)["contact"]
     payload = build_update_payload(existing, enrichment, custom_field_ids)
     if payload:
         ghl.update_contact(existing["id"], payload)
-    return existing
+    return existing, bool(payload)
 
 
 def process_client(
@@ -281,6 +288,7 @@ def process_client(
                 payload = build_ghl_contact_payload(enrichment, email, slug, custom_field_ids)
                 contact_id = None
                 recovered_existing = None
+                recovered_had_changes = False
                 if not dry_run:
                     try:
                         created = ghl.create_contact(location_id, payload)
@@ -290,11 +298,11 @@ def process_client(
                         # additionalEmail u otro criterio propio) y ya nos dio
                         # el contactId real — nos recuperamos como si hubiera
                         # sido un UPDATE en vez de perder este prospecto.
-                        recovered_existing = _recover_from_duplicate_create(
+                        recovered_existing, recovered_had_changes = _recover_from_duplicate_create(
                             ghl, exc, enrichment, custom_field_ids,
                         )
 
-                if recovered_existing is not None:
+                if recovered_existing is not None and recovered_had_changes:
                     stats["updated"] += 1
                     notify(
                         telegram, supabase,
@@ -305,6 +313,12 @@ def process_client(
                         cliente_slug=slug, ghl_contact_id=recovered_existing["id"], ghl_location_id=location_id,
                         prospect_name=nombre, prospect_email=email, dry_run=dry_run, ghl=ghl,
                     )
+                elif recovered_existing is not None:
+                    # Ya estaba completo -- se repite cada corrida mientras el
+                    # create original siga fallando por duplicado, pero sin
+                    # nada nuevo no hay que avisar de nuevo (evita mandar la
+                    # misma notificacion cada hora).
+                    stats["skipped"] += 1
                 else:
                     stats["created"] += 1
                     # En dry-run no hay contact_id real todavia (no se crea el
