@@ -2,6 +2,42 @@
 
 Fecha: 2026-09-27
 
+## Revisión visual aprobada el 2026-09-28
+
+La maqueta vertical `report-vertical-v2.html` fue aprobada por la usuaria y
+reemplaza cualquier regla posterior de esta especificación que la contradiga.
+
+Orden fijo del reporte:
+
+1. reuniones del día por cliente, con hora Chile y Perú;
+2. tareas de hoy, avance de tareas registrado en cada corte horario, tareas de
+   ayer que continúan abiertas y suma de ambos universos;
+3. llamadas por cliente y total: llamadas, contactos, contestadas `>20s`, no
+   contestadas/cortas, minutos hablando, minutos sin contestar y teléfono total;
+4. correos recibidos por cliente y total: respondidos, pendientes y cinco
+   minutos acreditados por cada respuesta exitosa;
+5. tiempo trabajado por cliente y total;
+6. adherencia a bloques, mostrando actividad en cliente correcto y otros.
+
+El formato usa tarjetas verticales estables para BAMBU TECH, GBS, BALIA y TOTAL.
+No usa tablas anchas ni el gráfico horario apilado que resultó confuso. Conserva
+solo una barra sencilla `Trabajado / Sin actividad registrada`.
+
+Definición aprobada de tiempo:
+
+`trabajado = minutos totales de teléfono + 5 minutos por correo recibido que fue respondido exitosamente`
+
+`sin actividad registrada = minutos laborales transcurridos - minutos trabajados`
+
+Las tareas y los movimientos de funnel se informan como producción, pero no
+acreditan minutos. El total se limita al tiempo laboral transcurrido y se evita
+duplicar una respuesta SMTP por reintentos. Para BALIA, email aparece `N/D`
+mientras no exista una casilla verificable.
+
+La categoría "atrasadas" de este formato significa exclusivamente tareas cuyo
+vencimiento fue el día laboral anterior y que continúan abiertas. No es el
+acumulado histórico completo.
+
 ## Objetivo
 
 Convertir `@equipo_alicia_bot` en la única interfaz operativa para consultar y

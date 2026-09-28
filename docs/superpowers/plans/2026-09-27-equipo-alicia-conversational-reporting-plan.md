@@ -8,6 +8,27 @@
 
 **Tech Stack:** Python 3.14, pytest, httpx, Pillow, IMAP/SMTP, GoHighLevel API, Snov API, Supabase/PostgREST, Telegram Bot API HTML.
 
+## Revisión aprobada del plan (2026-09-28)
+
+La maqueta vertical aprobada simplifica el cálculo y reemplaza los pasos del
+plan que hablen de acreditar tareas, actualizaciones o funnel como tiempo:
+
+- `worked_seconds = min(elapsed_work_seconds, phone_seconds + responded_email_count * 300)`;
+- `unregistered_seconds = elapsed_work_seconds - worked_seconds`;
+- por cliente se muestran minutos de teléfono, respuestas acreditadas y su suma;
+- las tareas atrasadas son solo las vencidas el día laboral anterior que siguen
+  abiertas;
+- el PNG horario apilado se reemplaza por tarjetas verticales estables y una
+  barra simple `Trabajado / Sin actividad registrada`;
+- el orden del renderer es reuniones, tareas, llamadas, correos, tiempo y
+  adherencia;
+- `answered + unanswered == calls` porque la clasificación `>20s` / `<=20s`
+  es exhaustiva.
+
+Las pruebas de Tasks 1, 2, 3 y 6 deben afirmar estas reglas. La infraestructura
+de eventos se conserva para trazabilidad de correo y consultas, no para sumar
+cinco minutos por tareas u otros movimientos.
+
 ---
 
 ## Estructura de archivos
