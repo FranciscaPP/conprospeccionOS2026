@@ -40,17 +40,20 @@ class EquipoAliciaTelegram:
         self._verified = True
         return result
 
-    def send_message(self, text: str) -> dict[str, Any]:
+    def send_message(self, text: str, reply_markup: dict[str, Any] | None = None) -> dict[str, Any]:
         if not self._verified:
             self.verify_identity()
+        payload: dict[str, Any] = {
+            "chat_id": self.chat_id,
+            "text": text,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+        }
+        if reply_markup is not None:
+            payload["reply_markup"] = reply_markup
         response = self.transport.post(
             f"{self.base_url}/sendMessage",
-            json={
-                "chat_id": self.chat_id,
-                "text": text,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": True,
-            },
+            json=payload,
         )
         response.raise_for_status()
         return response.json().get("result") or {}

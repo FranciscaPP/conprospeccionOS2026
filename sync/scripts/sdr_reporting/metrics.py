@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import date
+from datetime import date, timedelta
 from typing import Iterable
 
 from .models import CallMetrics, OperationalGap, TaskBaseline, TaskProgress
@@ -20,7 +20,7 @@ def build_task_baseline(client: str, tasks: Iterable[dict], day: date) -> TaskBa
         task_types[task_id] = task.get("task_type") or "otro"
         if due_at.date() == day:
             due_today.add(task_id)
-        elif due_at.date() < day:
+        elif due_at.date() == day - timedelta(days=1):
             completed_at = task.get("completed_at")
             if not task.get("completed") or (completed_at and completed_at.date() >= day):
                 overdue.add(task_id)
@@ -29,13 +29,12 @@ def build_task_baseline(client: str, tasks: Iterable[dict], day: date) -> TaskBa
 
 def task_progress(baseline: TaskBaseline, completed_ids: Iterable[str]) -> TaskProgress:
     completed = set(completed_ids)
-    scope = baseline.due_today_ids | baseline.overdue_ids
-    done = scope & completed
+    done_today = baseline.due_today_ids & completed
     return TaskProgress(
-        completed=len(done),
-        total=len(scope),
-        pending_today=len(baseline.due_today_ids - done),
-        pending_overdue=len(baseline.overdue_ids - done),
+        today_done=len(done_today),
+        today_total=len(baseline.due_today_ids),
+        pending_today=len(baseline.due_today_ids - done_today),
+        pending_overdue=len(baseline.overdue_ids - completed),
     )
 
 
@@ -58,19 +57,47 @@ def largest_task_backlogs(rows: Iterable[dict]) -> tuple[dict | None, dict | Non
 def call_metrics(calls: Iterable[dict], min_talk_seconds: int = 20) -> CallMetrics:
     calls = list(calls)
     contacts = Counter(c.get("contact_id") for c in calls if c.get("contact_id"))
-    answered_calls = [c for c in calls if (c.get("status") or "").lower() == "completed"]
-    relevant = [c for c in answered_calls if int(c.get("duration_seconds") or 0) >= min_talk_seconds]
-    unanswered = [c for c in calls if (c.get("status") or "").lower() in {"no-answer", "busy"}]
+    answered_calls = [c for c in calls if int(c.get("duration_seconds") or 0) > min_talk_seconds]
+    unanswered = [c for c in calls if int(c.get("duration_seconds") or 0) <= min_talk_seconds]
+    retry_calls = sum(max(0, count - 1) for count in contacts.values())
+    seen: Counter[str] = Counter()
+    retry_seconds = 0
+    for call in calls:
+        contact_id = call.get("contact_id")
+        if contact_id:
+            seen[contact_id] += 1
+            if seen[contact_id] > 1:
+                retry_seconds += int(call.get("phone_seconds") or call.get("duration_seconds") or 0)
     return CallMetrics(
         calls=len(calls),
         unique_contacts=len(contacts),
-        repeated_contacts=sum(1 for count in contacts.values() if count > 1),
         answered=len(answered_calls),
         unanswered=len(unanswered),
-        relevant_conversations=len(relevant),
-        conversation_seconds=sum(int(c.get("duration_seconds") or 0) for c in answered_calls),
+        retry_calls=retry_calls,
+        answered_seconds=sum(int(c.get("duration_seconds") or 0) for c in answered_calls),
+        unanswered_phone_seconds=sum(int(c.get("phone_seconds") or c.get("duration_seconds") or 0) for c in unanswered),
+        retry_phone_seconds=retry_seconds,
         phone_seconds=sum(int(c.get("phone_seconds") or c.get("duration_seconds") or 0) for c in calls),
     )
+
+
+def worked_time(elapsed_seconds: int, phone_seconds: int, responded_emails: int) -> dict[str, int]:
+    worked = min(max(0, int(elapsed_seconds)), max(0, int(phone_seconds)) + max(0, int(responded_emails)) * 300)
+    return {
+        "worked_seconds": worked,
+        "unregistered_seconds": max(0, int(elapsed_seconds) - worked),
+    }
+
+
+def elapsed_work_seconds(blocks: Iterable[WorkBlock], now, client: str | None = None) -> int:
+    total = 0
+    for block in blocks:
+        if client is not None and block.client != client:
+            continue
+        end = min(block.end, now)
+        if end > block.start:
+            total += round((end - block.start).total_seconds())
+    return total
 
 
 def operational_gaps(

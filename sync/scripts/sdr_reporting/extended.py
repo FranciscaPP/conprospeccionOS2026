@@ -6,15 +6,20 @@ from pathlib import Path
 
 from report_calls_live import GHLClient, LOCATION, token_for, to_chile
 
-from .config import BACKGROUND_COLOR, CHILE, CLIENTS, TEXT_COLOR, TOTAL_COLOR
+from .config import (BACKGROUND_COLOR, CHILE, CLIENTS, SECONDARY_TEXT_COLOR,
+                     TEXT_COLOR, TOTAL_COLOR)
 
 ORDER = ("bambutech", "gbs", "balia")
 SUM_KEYS = ("tasks_done", "tasks_total", "overdue_pending", "calls", "contacts",
             "answered", "unanswered", "conversation_seconds", "phone_seconds", "meetings")
 
 
+def _number(value) -> int:
+    return len(value) if isinstance(value, list) else int(value or 0)
+
+
 def _totals(report: dict) -> dict:
-    return {key: sum(int(report["clients"][slug].get(key) or 0) for slug in ORDER) for key in SUM_KEYS}
+    return {key: sum(_number(report["clients"][slug].get(key)) for slug in ORDER) for key in SUM_KEYS}
 
 
 def render_daily_close(report: dict) -> str:
@@ -32,12 +37,15 @@ def render_daily_close(report: dict) -> str:
         email = data.get("email") or {}
         lines.append(
             f"{cfg.emoji} <b>{cfg.name}</b> · tareas {data.get('tasks_done', 0)}/{data.get('tasks_total', 0)}"
-            f" · llamadas {data.get('calls', 0)} · correos manuales {email.get('new_manual', 0)}"
+            f" · llamadas {data.get('calls', 0)} · correos respondidos {email.get('responded', 'N/D')}"
         )
+    work = report.get("work_time") or {}
     lines.extend([
         "", "⚠️ <b>BRECHA DEL DÍA</b>",
-        f"Pendientes de la meta GHL: {pending}",
-        f"Arrastre vencido pendiente: {total['overdue_pending']}",
+        f"Pendientes de hoy: {pending}",
+        f"Atrasadas de ayer: {total['overdue_pending']}",
+        f"Trabajado: {round(int(work.get('worked_seconds') or 0) / 60)} min",
+        f"Sin trabajar: {round(int(work.get('unregistered_seconds') or 0) / 60)} min",
         "La brecha telefónica se informa por actividad observada; no se inventa una meta de llamadas.",
     ])
     return "\n".join(lines)
@@ -49,7 +57,7 @@ def aggregate_week(reports: list[dict]) -> dict:
     for report in reports:
         for slug in ORDER:
             for key in SUM_KEYS:
-                result["clients"][slug][key] += int(report.get("clients", {}).get(slug, {}).get(key) or 0)
+                result["clients"][slug][key] += _number(report.get("clients", {}).get(slug, {}).get(key))
         for dimension in ("industries", "roles", "negative_states"):
             for label, count in (report.get("weekly_dimensions", {}).get(dimension, {}) or {}).items():
                 result[dimension][label] = result[dimension].get(label, 0) + int(count or 0)
@@ -126,21 +134,33 @@ def fetch_calendar_meetings(now: datetime | None = None) -> list[dict]:
 def render_chart(report: dict, destination: Path, title: str = "Cierre operativo") -> Path:
     from PIL import Image, ImageDraw, ImageFont
     image = Image.new("RGB", (1200, 700), BACKGROUND_COLOR)
-    draw, font = ImageDraw.Draw(image), ImageFont.load_default(size=30)
-    draw.text((60, 45), title, fill=TEXT_COLOR, font=font)
-    for col, slug in enumerate(ORDER):
-        draw.text((300 + col * 285, 105), CLIENTS[slug].short, fill=CLIENTS[slug].color, font=font)
-    metrics = (("Tareas", "tasks_done"), ("Llamadas", "calls"), ("Reuniones", "meetings"))
-    max_value = max(1, *(int(report["clients"][s].get(k) or 0) for s in ORDER for _, k in metrics))
-    for row, (label, key) in enumerate(metrics):
-        y = 160 + row * 160
-        draw.text((60, y), label, fill=TOTAL_COLOR, font=font)
-        for col, slug in enumerate(ORDER):
-            value = int(report["clients"][slug].get(key) or 0)
-            x = 300 + col * 285
-            height = max(3, int(105 * value / max_value))
-            draw.rectangle((x, y + 115 - height, x + 120, y + 115), fill=CLIENTS[slug].color)
-            draw.text((x + 130, y + 75), str(value), fill=TEXT_COLOR, font=font)
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default(size=28)
+    small = ImageFont.load_default(size=22)
+    draw.text((60, 42), f"{title} · tiempo trabajado", fill=TEXT_COLOR, font=font)
+    draw.rectangle((60, 95, 90, 120), fill="#2563EB")
+    draw.text((102, 93), "Trabajado", fill=TEXT_COLOR, font=small)
+    draw.rectangle((285, 95, 315, 120), fill="#CBD5E1")
+    draw.text((327, 93), "Sin trabajar", fill=TEXT_COLOR, font=small)
+    rows = []
+    for slug in ORDER:
+        work = report["clients"][slug].get("work_time") or {}
+        rows.append((CLIENTS[slug].name, CLIENTS[slug].color,
+                     int(work.get("worked_seconds") or 0), int(work.get("unregistered_seconds") or 0)))
+    total = report.get("work_time") or {}
+    rows.append(("TOTAL", TOTAL_COLOR, int(total.get("worked_seconds") or 0), int(total.get("unregistered_seconds") or 0)))
+    for index, (label, color, worked, unregistered) in enumerate(rows):
+        y = 160 + index * 125
+        elapsed = max(1, worked + unregistered)
+        bar_x, bar_y, bar_width, bar_height = 285, y, 790, 55
+        worked_width = round(bar_width * worked / elapsed)
+        draw.text((60, y + 10), label, fill=color, font=small)
+        draw.rectangle((bar_x, bar_y, bar_x + bar_width, bar_y + bar_height), fill="#CBD5E1")
+        if worked_width:
+            draw.rectangle((bar_x, bar_y, bar_x + worked_width, bar_y + bar_height), fill=color)
+        draw.text((bar_x, y + 64),
+                  f"Trabajado {round(worked / 60)} min · Sin trabajar {round(unregistered / 60)} min",
+                  fill=SECONDARY_TEXT_COLOR, font=small)
     destination.parent.mkdir(parents=True, exist_ok=True)
     image.save(destination)
     return destination

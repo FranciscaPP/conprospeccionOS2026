@@ -25,9 +25,21 @@ def test_calls_count_unique_contacts_separately():
     assert metrics.calls == 3
     assert metrics.unique_contacts == 2
     assert metrics.repeated_contacts == 1
-    assert metrics.answered == 2
-    assert metrics.relevant_conversations == 1
-    assert metrics.conversation_seconds == 38
+    assert metrics.answered == 1
+    assert metrics.unanswered == 2
+    assert metrics.answered_seconds == 30
+    assert metrics.retry_calls == 1
+
+
+def test_twenty_seconds_is_not_answered_and_groups_are_exhaustive():
+    metrics = call_metrics([
+        {"contact_id": "a", "duration_seconds": 20, "phone_seconds": 25},
+        {"contact_id": "b", "duration_seconds": 21, "phone_seconds": 30},
+    ])
+    assert metrics.answered == 1
+    assert metrics.unanswered == 1
+    assert metrics.answered + metrics.unanswered == metrics.calls
+    assert metrics.unanswered_phone_seconds == 25
 
 
 def test_gap_detection_only_inside_block_and_at_least_twenty_minutes():

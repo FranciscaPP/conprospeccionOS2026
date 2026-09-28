@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
-from sdr_reporting.extended import aggregate_week, new_meeting_alert, render_daily_close
+from sdr_reporting.extended import aggregate_week, new_meeting_alert, render_chart, render_daily_close
 
 CHILE = ZoneInfo("America/Santiago")
 
@@ -19,14 +19,18 @@ def _report(day=date(2026, 9, 24), calls=10, tasks=4):
             "unanswered": calls - 3, "conversation_seconds": 120,
             "phone_seconds": 300, "meetings": 1,
             "email": {"received": 2, "responded": 1, "pending": 1, "new_manual": 3},
+            "work_time": {"worked_seconds": 600, "unregistered_seconds": 1200},
         }
-    return {"day": day, "cut": datetime(2026, 9, 24, 20, tzinfo=CHILE), "clients": clients}
+    return {"day": day, "cut": datetime(2026, 9, 24, 20, tzinfo=CHILE), "clients": clients,
+            "work_time": {"worked_seconds": 1800, "unregistered_seconds": 3600}}
 
 
 def test_daily_close_exposes_real_gap_without_inventing_target():
     text = render_daily_close(_report())
     assert "BRECHA DEL DÍA" in text
-    assert "Pendientes de la meta GHL: 18" in text
+    assert "Pendientes de hoy: 18" in text
+    assert "Atrasadas de ayer: 6" in text
+    assert "Trabajado: 30 min" in text and "Sin trabajar: 60 min" in text
     assert "BAMBU TECH" in text and "GBS" in text and "BALIA" in text
 
 
@@ -45,4 +49,9 @@ def test_meeting_alert_omits_missing_fields_and_names_nora():
     assert "NUEVA REUNIÓN" in text
     assert "Ana Pérez" in text and "Nora" in text
     assert "Teléfono" not in text
+
+
+def test_close_chart_shows_worked_and_unregistered_time(tmp_path):
+    path = render_chart(_report(), tmp_path / "tiempo.png")
+    assert path.exists() and path.stat().st_size > 0
 

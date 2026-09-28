@@ -10,8 +10,8 @@ from supabase_rest import SupabaseRestClient
 
 from .config import CHILE
 from .render import render_hourly
-from .extended import (aggregate_week, fetch_calendar_meetings, new_meeting_alert,
-                       render_chart, render_daily_close, render_weekly, render_weekly_charts)
+from .extended import (aggregate_week, render_chart, render_daily_close,
+                       render_weekly, render_weekly_charts)
 from .service import build_live_report
 from .storage import SnapshotStore
 from .telegram import EquipoAliciaTelegram
@@ -30,8 +30,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--close", action="store_true", help="Generar cierre diario y gráfico")
     parser.add_argument("--close-only", action="store_true", help="Enviar solo cierre y gráfico")
     parser.add_argument("--weekly", action="store_true", help="Generar resumen semanal y tres gráficos")
-    parser.add_argument("--monitor-meetings", action="store_true", help="Alertar citas nuevas ya inicializado")
-    parser.add_argument("--seed-meetings", action="store_true", help="Registrar citas existentes sin alertarlas")
     args = parser.parse_args(argv)
     if args.close_only:
         args.close = True
@@ -53,20 +51,6 @@ def main(argv: list[str] | None = None) -> int:
 
     settings = get_settings()
     store = SnapshotStore(SupabaseRestClient(settings.supabase_url, settings.supabase_secret_key))
-    if args.monitor_meetings or args.seed_meetings:
-        known = store.known_meeting_ids()
-        sent = 0
-        for item in fetch_calendar_meetings():
-            key = (item["slug"], item["id"])
-            if key in known:
-                continue
-            store.mark_meeting(item["slug"], item["id"], item["event"])
-            if args.monitor_meetings and args.send:
-                sender.send_message(new_meeting_alert(item["slug"], item["event"]))
-                sent += 1
-        print(f"reuniones nuevas alertadas: {sent}" if args.monitor_meetings else "citas existentes inicializadas")
-        return 0
-
     local_now = datetime.now(CHILE)
     if args.scheduled and local_now.hour >= 20:
         args.close = True

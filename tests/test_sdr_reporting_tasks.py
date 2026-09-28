@@ -20,8 +20,8 @@ def test_baseline_separates_overdue_from_due_today():
     tasks = [
         task("today-open", "2026-09-24T12:00:00"),
         task("today-done", "2026-09-24T13:00:00", True),
-        task("old-open", "2026-09-22T12:00:00"),
-        task("old-done", "2026-09-22T12:00:00", True),
+        task("old-open", "2026-09-23T12:00:00"),
+        task("old-done", "2026-09-23T12:00:00", True),
         task("future", "2026-09-25T12:00:00"),
     ]
     baseline = build_task_baseline("gbs", tasks, DAY)
@@ -30,11 +30,11 @@ def test_baseline_separates_overdue_from_due_today():
     assert baseline.total == 3
 
 
-def test_baseline_reconstructs_overdue_task_resolved_during_day():
+def test_older_task_is_not_part_of_previous_day_late_count():
     resolved = task("old-resolved", "2026-09-22T12:00:00", True)
     resolved["completed_at"] = datetime(2026, 9, 24, 14, 0, tzinfo=CHILE)
     baseline = build_task_baseline("gbs", [resolved], DAY)
-    assert baseline.overdue_ids == frozenset({"old-resolved"})
+    assert baseline.overdue_ids == frozenset()
 
 
 def test_progress_keeps_original_denominator_and_separates_pending():
@@ -44,10 +44,18 @@ def test_progress_keeps_original_denominator_and_separates_pending():
         task("old-open", "2026-09-22T12:00:00", kind="coordinando"),
     ], DAY)
     progress = task_progress(baseline, {"old-open", "today-done"})
-    assert progress.completed == 2
-    assert progress.total == 3
+    assert progress.today_done == 1
+    assert progress.today_total == 2
     assert progress.pending_today == 1
     assert progress.pending_overdue == 0
+
+
+def test_only_previous_day_open_tasks_are_reported_as_late():
+    baseline = build_task_baseline("gbs", [
+        task("yesterday", "2026-09-23T12:00:00"),
+        task("older", "2026-09-22T12:00:00"),
+    ], DAY)
+    assert baseline.overdue_ids == frozenset({"yesterday"})
 
 
 def test_largest_percentage_backlog_requires_three_tasks():

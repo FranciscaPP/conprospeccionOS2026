@@ -2,13 +2,21 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 from report_calls_live import GHLClient, LOCATION, token_for, to_chile
 from report_tareas import ETIQUETA, fetch_tasks, tipo_de
 from report_actividad import stage_moves
 
 from .config import CHILE, CLIENTS, work_blocks_for
-from .metrics import build_task_baseline, call_metrics, operational_gaps, task_progress
+from .metrics import (
+    build_task_baseline,
+    call_metrics,
+    elapsed_work_seconds,
+    operational_gaps,
+    task_progress,
+    worked_time,
+)
 from .sources import fetch_activity_messages, summarize_email_messages
 
 
@@ -31,11 +39,12 @@ def _task_adapter(task: dict) -> dict:
     }
 
 
-def _meetings_created_today(ghl: GHLClient, location_id: str, day: date) -> int:
-    start = datetime.combine(day - timedelta(days=1), time.min, tzinfo=CHILE)
-    end = start + timedelta(days=181)
+def _meetings_today(ghl: GHLClient, location_id: str, day: date) -> list[dict]:
+    start = datetime.combine(day, time.min, tzinfo=CHILE)
+    end = start + timedelta(days=1)
     seen: set[str] = set()
-    count = 0
+    meetings: list[dict] = []
+    lima = ZoneInfo("America/Lima")
     calendars = ghl.list_calendars(location_id).get("calendars") or []
     for calendar in calendars:
         payload = ghl.list_calendar_events(
@@ -50,11 +59,16 @@ def _meetings_created_today(ghl: GHLClient, location_id: str, day: date) -> int:
             if not event_id or event_id in seen:
                 continue
             seen.add(event_id)
-            created = to_chile(event.get("dateAdded") or event.get("createdAt"))
             status = (event.get("appointmentStatus") or event.get("status") or "").lower()
-            if created and created.date() == day and status not in {"cancelled", "canceled", "noshow"}:
-                count += 1
-    return count
+            starts_at = to_chile(event.get("startTime") or event.get("start") or event.get("startDate"))
+            if starts_at and starts_at.date() == day and status not in {"cancelled", "canceled", "noshow"}:
+                meetings.append({
+                    "id": event_id,
+                    "title": event.get("title") or event.get("contactName") or "Reunión",
+                    "chile": starts_at.strftime("%H:%M"),
+                    "peru": starts_at.astimezone(lima).strftime("%H:%M"),
+                })
+    return sorted(meetings, key=lambda item: (item["chile"], item["title"]))
 
 
 def build_live_report(day: date | None = None, now: datetime | None = None) -> dict:
@@ -109,7 +123,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         )
         calls = call_metrics(normalized_calls)
         try:
-            email = summarize_email_messages(activity_messages)
+            email = None if slug == "balia" else summarize_email_messages(activity_messages)
             movements = stage_moves(
                 ghl, location_id, w0, min(w0 + timedelta(days=1), now + timedelta(seconds=1))
             )
@@ -128,7 +142,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             alerts.append(f"{CLIENTS[slug].name} · movimientos no disponibles ({type(exc).__name__}).")
 
         by_type: dict[str, list[int]] = defaultdict(lambda: [0, 0])
-        scope = baseline.due_today_ids | baseline.overdue_ids
+        scope = baseline.due_today_ids
         for task in tasks:
             if task["id"] not in scope:
                 continue
@@ -174,21 +188,39 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
 
         if progress.total and progress.percent < 60:
             alerts.append(f"{CLIENTS[slug].name} · tareas en {progress.percent}%.")
+        hour_start = now.replace(minute=0, second=0, microsecond=0)
+        tasks_done_last_hour = sum(
+            1 for task in tasks
+            if task["id"] in baseline.due_today_ids
+            and task.get("completed_at")
+            and hour_start <= task["completed_at"] <= now
+        )
+        elapsed_seconds = elapsed_work_seconds(work_blocks_for(day), now, slug)
+        client_work = worked_time(
+            elapsed_seconds,
+            calls.phone_seconds,
+            int((email or {}).get("responded") or 0),
+        )
         clients[slug] = {
             "tasks_done": progress.completed,
             "tasks_total": progress.total,
+            "pending_today": progress.pending_today,
             "overdue_pending": progress.pending_overdue,
+            "tasks_done_last_hour": tasks_done_last_hour,
             "task_types": {key: tuple(value) for key, value in by_type.items()},
             "calls": calls.calls,
             "contacts": calls.unique_contacts,
             "repeated_contacts": calls.repeated_contacts,
             "answered": calls.answered,
             "unanswered": calls.unanswered,
+            "answered_seconds": calls.answered_seconds,
+            "unanswered_phone_seconds": calls.unanswered_phone_seconds,
             "conversation_seconds": calls.conversation_seconds,
             "phone_seconds": calls.phone_seconds,
             "gaps": gap_labels,
-            "meetings": _meetings_created_today(ghl, location_id, day),
+            "meetings": _meetings_today(ghl, location_id, day),
             "email": email,
+            "work_time": client_work,
             "movements": movements,
             "overdue_contacts": overdue_contacts,
         }
@@ -240,11 +272,23 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             operational_alerts.append(
                 f"{cfg.name} {block['start']}–{block['end']} · hueco de {longest_gap} min sin actividad registrada."
             )
+    elapsed_seconds = elapsed_work_seconds(work_blocks_for(day), now)
+    total_phone_seconds = sum(int(clients[slug].get("phone_seconds") or 0) for slug in CLIENTS)
+    responded_emails = sum(
+        int((clients[slug].get("email") or {}).get("responded") or 0)
+        for slug in CLIENTS
+    )
+    total_work = worked_time(elapsed_seconds, total_phone_seconds, responded_emails)
     return {
         "day": day,
         "cut": now,
         "sdr": "Nora",
         "clients": clients,
+        "work_time": {
+            "elapsed_seconds": elapsed_seconds,
+            "email_seconds": responded_emails * 300,
+            **total_work,
+        },
         "comparison": None,
         "email_available": all(clients[slug].get("email") is not None for slug in CLIENTS),
         "baseline_available": False,

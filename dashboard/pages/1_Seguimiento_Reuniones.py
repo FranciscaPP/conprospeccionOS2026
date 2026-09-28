@@ -339,6 +339,33 @@ def _contact_enrichment(contact):
     }
 
 
+# <<DEDUP-PURO>>
+def deduplicar_reuniones(df):
+    """Conserva la reunión más reciente de cada oportunidad/contacto y cliente."""
+    if df.empty:
+        return df.copy()
+    result = df.copy()
+
+    def dedup_key(row):
+        client = str(row.get("cliente_slug") or "").strip().lower()
+        opportunity = str(row.get("opportunity_id") or "").strip().lower()
+        if opportunity:
+            return client, "opportunity", opportunity
+        return (
+            client,
+            "contact",
+            str(row.get("email") or "").strip().lower(),
+            str(row.get("contacto") or "").strip().lower(),
+            str(row.get("empresa") or "").strip().lower(),
+        )
+
+    result["_dedup_key"] = result.apply(dedup_key, axis=1)
+    result["_dedup_date"] = pd.to_datetime(result.get("fecha"), errors="coerce")
+    result = result.sort_values("_dedup_date", kind="stable").drop_duplicates("_dedup_key", keep="last")
+    return result.drop(columns=["_dedup_key", "_dedup_date"])
+# <<DEDUP-PURO-FIN>>
+
+
 def _dt_sort_key(row):
     date_part = _date_db(row.get("date")) or ""
     time_part = _time_db(row.get("time")) or ""

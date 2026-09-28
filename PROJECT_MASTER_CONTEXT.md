@@ -184,9 +184,14 @@ No desarrollar directamente en `master`.
 - SDR operativa: Nora. Clientes: BAMBU TECH, GBS y BALIA.
 - `sync/scripts/report_sdr_telegram.py --operational` genera el reporte horario;
   a las 20:00 agrega cierre y grafico, y el viernes agrega resumen semanal.
-- `SDR_Telegram_Meeting_Monitor` revisa citas nuevas cada 5 minutos dentro de la
-  ventana laboral y usa el mismo bot/chat. No modificar ni reutilizar los bots
-  de clientes ni el bot separado de reuniones.
+- El monitor de reuniones cada 5 minutos fue eliminado. No recrearlo.
+- El reporte usa tarjetas verticales para BAMBU TECH, GBS, BALIA y TOTAL. Separa
+  tareas de hoy de las atrasadas de ayer; una llamada contestada dura mas de 20
+  segundos; el tiempo trabajado suma telefono + 5 minutos por correo recibido
+  y respondido. BALIA muestra correo N/D mientras no exista fuente verificable.
+- `sync/scripts/report_sdr_bot.py` responde consultas solo en
+  `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
+- No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.
 
 Estado 2026-07-03: la app antigua `conprospeccion-os.streamlit.app` fue
 eliminada. Los repos historicos y los proyectos de Vercel quedaron
