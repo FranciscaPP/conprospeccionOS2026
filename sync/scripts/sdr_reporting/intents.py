@@ -37,6 +37,8 @@ def parse_query(text: str, now: datetime | None = None) -> QueryRequest:
         add("email_summary")
         if any(word in value for word in ("falta", "pendiente", "cuales")):
             add("email_pending")
+    if any(word in value for word in ("whatsapp", "whats app", "wsp")):
+        add("whatsapp")
     if "llamada" in value:
         add("call_counts")
     if any(word in value for word in ("minuto", "tiempo al telefono", "hablando")) and "no ha trabajado" not in value:

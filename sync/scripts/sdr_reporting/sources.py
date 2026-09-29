@@ -9,6 +9,7 @@ from report_calls_live import call_duration, call_status, fetch_messages, to_chi
 
 
 MANUAL_EMAIL_SOURCES = {"app", "bulk_actions"}
+MANUAL_WHATSAPP_SOURCES = {"app", "bulk_actions"}
 
 
 def summarize_email_messages(messages: Iterable[dict]) -> dict[str, int]:
@@ -40,6 +41,48 @@ def summarize_email_messages(messages: Iterable[dict]) -> dict[str, int]:
         "pending": pending,
         "new_manual": new_manual,
         "manual_sent": manual_sent,
+    }
+
+
+def summarize_whatsapp_messages(messages: Iterable[dict]) -> dict[str, int]:
+    by_conversation: dict[str, list[dict]] = defaultdict(list)
+    for message in messages:
+        if message.get("message_type") == "TYPE_WHATSAPP":
+            by_conversation[str(message.get("conversation_id") or "")].append(message)
+
+    manual_sent = automatic_sent = received = responded = pending = new_manual = 0
+    for thread in by_conversation.values():
+        thread.sort(key=lambda item: item["occurred_at"])
+        inbound = [m for m in thread if m.get("direction") == "inbound"]
+        manual = [
+            m for m in thread
+            if m.get("direction") == "outbound" and m.get("source") in MANUAL_WHATSAPP_SOURCES
+        ]
+        automatic = [
+            m for m in thread
+            if m.get("direction") == "outbound" and m.get("source") not in MANUAL_WHATSAPP_SOURCES
+        ]
+        manual_sent += len(manual)
+        automatic_sent += len(automatic)
+        received += len(inbound)
+        if inbound:
+            first_inbound = min(m["occurred_at"] for m in inbound)
+            if any(m["occurred_at"] > first_inbound for m in manual):
+                responded += 1
+            else:
+                pending += 1
+        new_manual += sum(
+            1 for message in manual
+            if not any(item["occurred_at"] < message["occurred_at"] for item in inbound)
+        )
+    return {
+        "manual_sent": manual_sent,
+        "automatic_sent": automatic_sent,
+        "received": received,
+        "responded": responded,
+        "pending": pending,
+        "new_manual": new_manual,
+        "work_seconds": new_manual * 60 + responded * 300,
     }
 
 

@@ -81,8 +81,18 @@ def call_metrics(calls: Iterable[dict], min_talk_seconds: int = 20) -> CallMetri
     )
 
 
-def worked_time(elapsed_seconds: int, phone_seconds: int, responded_emails: int) -> dict[str, int]:
-    worked = min(max(0, int(elapsed_seconds)), max(0, int(phone_seconds)) + max(0, int(responded_emails)) * 300)
+def worked_time(
+    elapsed_seconds: int,
+    phone_seconds: int,
+    responded_emails: int,
+    whatsapp_seconds: int = 0,
+) -> dict[str, int]:
+    worked = min(
+        max(0, int(elapsed_seconds)),
+        max(0, int(phone_seconds))
+        + max(0, int(responded_emails)) * 300
+        + max(0, int(whatsapp_seconds)),
+    )
     return {
         "worked_seconds": worked,
         "unregistered_seconds": max(0, int(elapsed_seconds) - worked),

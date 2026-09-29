@@ -19,8 +19,9 @@ MENU_KEYBOARD = {
     "keyboard": [
         [{"text": "Tiempo trabajado"}, {"text": "Llamadas"}],
         [{"text": "Tareas"}, {"text": "Correos"}],
-        [{"text": "Funnel"}, {"text": "Reuniones"}],
-        [{"text": "Adherencia"}, {"text": "Resumen"}],
+        [{"text": "WhatsApp BAMBU TECH"}, {"text": "Reuniones"}],
+        [{"text": "Funnel"}, {"text": "Adherencia"}],
+        [{"text": "Resumen"}],
     ],
     "resize_keyboard": True,
 }

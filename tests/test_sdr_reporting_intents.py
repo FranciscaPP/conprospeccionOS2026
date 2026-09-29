@@ -20,6 +20,7 @@ NOW = datetime(2026, 9, 28, 15, 0, tzinfo=ZoneInfo("America/Santiago"))
     ("¿Cuántas tareas de hoy y atrasadas hay?", ("tasks",)),
     ("Dame el funnel de GBS hoy", ("funnel",)),
     ("Mándame el gráfico", ("chart",)),
+    ("¿Cuántos WhatsApp mandó y cuántos le respondieron?", ("whatsapp",)),
 ])
 def test_parse_queries(text, intents):
     assert parse_query(text, now=NOW).intents == intents
@@ -29,4 +30,3 @@ def test_interval_and_client_are_extracted():
     request = parse_query("GBS de 12 a 13", now=NOW)
     assert request.client == "gbs"
     assert request.start.hour == 12 and request.end.hour == 13
-

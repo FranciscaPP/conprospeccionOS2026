@@ -17,6 +17,16 @@ def test_worked_time_is_phone_plus_five_minutes_per_answered_email():
     assert result == {"worked_seconds": 5100, "unregistered_seconds": 9300}
 
 
+def test_worked_time_adds_verified_whatsapp_effort():
+    result = worked_time(
+        elapsed_seconds=3600,
+        phone_seconds=600,
+        responded_emails=1,
+        whatsapp_seconds=360,
+    )
+    assert result == {"worked_seconds": 1260, "unregistered_seconds": 2340}
+
+
 def test_worked_time_never_exceeds_elapsed_period():
     result = worked_time(elapsed_seconds=600, phone_seconds=500, responded_emails=2)
     assert result == {"worked_seconds": 600, "unregistered_seconds": 0}

@@ -17,15 +17,19 @@ def sample_report():
         "answered_seconds": 420, "unanswered_phone_seconds": 240,
         "phone_seconds": 660, "meetings": [],
         "email": {"received": 2, "responded": 0, "pending": 2},
+        "whatsapp": None,
         "work_time": {"worked_seconds": 660, "unregistered_seconds": 2940},
     }
     balia = dict(base)
     balia["email"] = None
+    bambu = dict(base)
+    bambu["whatsapp"] = {"manual_sent": 8, "automatic_sent": 12, "received": 3,
+                          "responded": 2, "pending": 1, "work_seconds": 1080}
     return {
         "day": date(2026, 9, 24),
         "cut": datetime(2026, 9, 24, 15, 0, tzinfo=ZoneInfo("America/Santiago")),
         "sdr": "Nora",
-        "clients": {"bambutech": dict(base), "gbs": dict(base), "balia": balia},
+        "clients": {"bambutech": bambu, "gbs": dict(base), "balia": balia},
         "work_time": {"elapsed_seconds": 10800, "worked_seconds": 1320,
                       "unregistered_seconds": 9480, "email_seconds": 0},
         "alerts": [],
@@ -55,6 +59,9 @@ def test_calls_emails_and_work_time_use_explicit_labels():
     assert "Total teléfono: 11 min" in joined
     assert "Correos: 2 recibidos · 0 respondidos · 2 pendientes" in joined
     assert "Correo: N/D" in joined
+    assert "WhatsApp: 8 manuales · 12 automáticos" in joined
+    assert "3 recibidos · 2 respondidos · 1 pendiente" in joined
+    assert "WhatsApp: N/D" in joined
     assert "TOTAL TRABAJADO" in joined
     assert "SIN TRABAJAR" in joined
 

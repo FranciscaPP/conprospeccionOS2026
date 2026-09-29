@@ -63,6 +63,19 @@ def _email_line(data: dict) -> str:
     )
 
 
+def _whatsapp_line(data: dict) -> str:
+    whatsapp = data.get("whatsapp")
+    if whatsapp is None:
+        return "WhatsApp: N/D"
+    return (
+        f"WhatsApp: {int(whatsapp.get('manual_sent') or 0)} manuales · "
+        f"{int(whatsapp.get('automatic_sent') or 0)} automáticos\n"
+        f"Respuestas: {int(whatsapp.get('received') or 0)} recibidos · "
+        f"{int(whatsapp.get('responded') or 0)} respondidos · "
+        f"{int(whatsapp.get('pending') or 0)} pendiente"
+    )
+
+
 def _activity_card(slug: str, data: dict) -> str:
     work = data.get("work_time") or {}
     return (
@@ -75,6 +88,7 @@ def _activity_card(slug: str, data: dict) -> str:
         f"Sin contestar/sonando: {_minutes(data.get('unanswered_phone_seconds', 0))}\n"
         f"Total teléfono: {_minutes(data.get('phone_seconds', 0))}\n"
         f"{_email_line(data)}\n"
+        f"{_whatsapp_line(data)}\n"
         f"Trabajado: {_minutes(work.get('worked_seconds', 0))}\n"
         f"Sin trabajar: {_minutes(work.get('unregistered_seconds', 0))}"
     )
@@ -115,13 +129,14 @@ def _total_activity_card(report: dict) -> str:
         f"Correos verificados: {received} recibidos · {responded} respondidos · {pending} pendientes"
         if known else "Correo: N/D"
     )
+    whatsapp_line = _whatsapp_line(clients["bambutech"])
     work = report.get("work_time") or {}
     return (
         f"⬛ <b>TOTAL</b>\n"
         f"Llamadas: {calls} · Contactos: {contacts}\nRemarcaciones: {retries}\n"
         f"Contestadas (&gt;20 s): {answered}\nSin contestar (≤20 s): {unanswered}\n"
         f"Hablando: {_minutes(answered_seconds)}\nSin contestar/sonando: {_minutes(unanswered_seconds)}\n"
-        f"Total teléfono: {_minutes(phone_seconds)}\n{email_line}\n"
+        f"Total teléfono: {_minutes(phone_seconds)}\n{email_line}\n{whatsapp_line}\n"
         f"<b>TOTAL TRABAJADO: {_minutes(work.get('worked_seconds', 0))}</b>\n"
         f"<b>SIN TRABAJAR: {_minutes(work.get('unregistered_seconds', 0))}</b>"
     )
@@ -163,7 +178,8 @@ def render_hourly(report: dict) -> list[str]:
     msg2 = (
         "☎️ <b>03 · LLAMADAS, CORREOS Y TIEMPO</b>\n\n"
         + "\n\n".join([*(_activity_card(s, clients[s]) for s in ORDER), _total_activity_card(report)])
-        + "\n\n<i>Trabajado = tiempo de teléfono + 5 min por cada correo recibido y respondido. "
+        + "\n\n<i>Trabajado = teléfono + 5 min por correo respondido + WhatsApp manual verificado "
+          "(1 min por envío inicial y 5 min por respuesta atendida). "
           "Sin trabajar = tiempo laboral transcurrido − trabajado.</i>"
     )
     msg3 = "🕐 <b>04 · ADHERENCIA A BLOQUES</b>\n\n" + _adherence(report)
@@ -176,7 +192,7 @@ def render_query(report: dict, request) -> list[str]:
         return render_hourly(report)
     slugs = (request.client,) if request.client else ORDER
     messages: list[str] = []
-    if any(intent in request.intents for intent in ("call_counts", "call_minutes", "time_usage", "email_summary", "email_pending")):
+    if any(intent in request.intents for intent in ("call_counts", "call_minutes", "time_usage", "email_summary", "email_pending", "whatsapp")):
         body = "\n\n".join(_activity_card(slug, report["clients"][slug]) for slug in slugs)
         if request.client is None:
             body += "\n\n" + _total_activity_card(report)

@@ -17,7 +17,11 @@ from .metrics import (
     task_progress,
     worked_time,
 )
-from .sources import fetch_activity_messages, summarize_email_messages
+from .sources import (
+    fetch_activity_messages,
+    summarize_email_messages,
+    summarize_whatsapp_messages,
+)
 
 
 def _task_id(task: dict) -> str:
@@ -124,6 +128,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         calls = call_metrics(normalized_calls)
         try:
             email = None if slug == "balia" else summarize_email_messages(activity_messages)
+            whatsapp = summarize_whatsapp_messages(activity_messages) if slug == "bambutech" else None
             movements = stage_moves(
                 ghl, location_id, w0, min(w0 + timedelta(days=1), now + timedelta(seconds=1))
             )
@@ -136,8 +141,18 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
                     or message.get("source") in {"app", "bulk_actions"}
                 )
             )
+            all_activity_events.extend(
+                {"occurred_at": message["occurred_at"]}
+                for message in activity_messages
+                if message.get("message_type") == "TYPE_WHATSAPP"
+                and (
+                    message.get("direction") == "inbound"
+                    or message.get("source") in {"app", "bulk_actions"}
+                )
+            )
         except Exception as exc:
             email = None
+            whatsapp = None
             movements = {}
             alerts.append(f"{CLIENTS[slug].name} · movimientos no disponibles ({type(exc).__name__}).")
 
@@ -200,6 +215,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             elapsed_seconds,
             calls.phone_seconds,
             int((email or {}).get("responded") or 0),
+            int((whatsapp or {}).get("work_seconds") or 0),
         )
         clients[slug] = {
             "tasks_done": progress.completed,
@@ -220,6 +236,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             "gaps": gap_labels,
             "meetings": _meetings_today(ghl, location_id, day),
             "email": email,
+            "whatsapp": whatsapp,
             "work_time": client_work,
             "movements": movements,
             "overdue_contacts": overdue_contacts,
@@ -278,7 +295,16 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         int((clients[slug].get("email") or {}).get("responded") or 0)
         for slug in CLIENTS
     )
-    total_work = worked_time(elapsed_seconds, total_phone_seconds, responded_emails)
+    whatsapp_seconds = sum(
+        int((clients[slug].get("whatsapp") or {}).get("work_seconds") or 0)
+        for slug in CLIENTS
+    )
+    total_work = worked_time(
+        elapsed_seconds,
+        total_phone_seconds,
+        responded_emails,
+        whatsapp_seconds,
+    )
     return {
         "day": day,
         "cut": now,
@@ -287,6 +313,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         "work_time": {
             "elapsed_seconds": elapsed_seconds,
             "email_seconds": responded_emails * 300,
+            "whatsapp_seconds": whatsapp_seconds,
             **total_work,
         },
         "comparison": None,

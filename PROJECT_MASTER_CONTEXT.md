@@ -189,6 +189,10 @@ No desarrollar directamente en `master`.
   tareas de hoy de las atrasadas de ayer; una llamada contestada dura mas de 20
   segundos; el tiempo trabajado suma telefono + 5 minutos por correo recibido
   y respondido. BALIA muestra correo N/D mientras no exista fuente verificable.
+- BAMBU TECH incluye WhatsApp verificado desde GHL: envíos manuales, plantillas
+  automáticas, respuestas recibidas, atendidas y pendientes. El tiempo trabajado
+  acredita 1 minuto por envío manual inicial y 5 minutos por respuesta atendida;
+  los workflows automáticos no acreditan tiempo. GBS y BALIA muestran N/D.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.
