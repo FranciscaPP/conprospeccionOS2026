@@ -91,8 +91,8 @@ jobs:
           GHL_LOCATION_BAMBUTECH: ${{ secrets.GHL_LOCATION_BAMBUTECH }}
           GHL_TOKEN_GBS_LOGISTICS: ${{ secrets.GHL_TOKEN_GBS_LOGISTICS }}
           GHL_LOCATION_GBS: ${{ secrets.GHL_LOCATION_GBS }}
-          GHL_TOKEN_CLICKIE: ${{ secrets.GHL_TOKEN_CLICKIE }}
-          GHL_LOCATION_CLICKIE: ${{ secrets.GHL_LOCATION_CLICKIE }}
+          GHL_TOKEN_BALIA: ${{ secrets.GHL_TOKEN_BALIA }}
+          GHL_LOCATION_BALIA: ${{ secrets.GHL_LOCATION_BALIA }}
         shell: python
         run: |
           import os
@@ -106,8 +106,8 @@ jobs:
               "GHL_LOCATION_BAMBUTECH",
               "GHL_TOKEN_GBS_LOGISTICS",
               "GHL_LOCATION_GBS",
-              "GHL_TOKEN_CLICKIE",
-              "GHL_LOCATION_CLICKIE",
+              "GHL_TOKEN_BALIA",
+              "GHL_LOCATION_BALIA",
           ]
           missing = [name for name in required if not os.getenv(name)]
           if missing:
@@ -118,7 +118,7 @@ jobs:
               sys.exit(1)
           print("Todos los secrets presentes. Continuando con el sync.")
 
-      - name: Sync BambuTech, GBS and Clickie
+      - name: Sync BambuTech, GBS and Valia
         if: steps.schedule.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -128,8 +128,8 @@ jobs:
           GHL_LOCATION_BAMBUTECH: ${{ secrets.GHL_LOCATION_BAMBUTECH }}
           GHL_TOKEN_GBS_LOGISTICS: ${{ secrets.GHL_TOKEN_GBS_LOGISTICS }}
           GHL_LOCATION_GBS: ${{ secrets.GHL_LOCATION_GBS }}
-          GHL_TOKEN_CLICKIE: ${{ secrets.GHL_TOKEN_CLICKIE }}
-          GHL_LOCATION_CLICKIE: ${{ secrets.GHL_LOCATION_CLICKIE }}
+          GHL_TOKEN_BALIA: ${{ secrets.GHL_TOKEN_BALIA }}
+          GHL_LOCATION_BALIA: ${{ secrets.GHL_LOCATION_BALIA }}
         run: |
           python sync/scripts/sync_ghl.py --entity all --client-slug bambutech
           python sync/scripts/sync_meetings.py --client-slug bambutech
@@ -137,9 +137,9 @@ jobs:
           python sync/scripts/sync_ghl.py --entity all --client-slug gbs
           python sync/scripts/sync_meetings.py --client-slug gbs
           python sync/scripts/sync_pipelines.py --client-slug gbs
-          python sync/scripts/sync_ghl.py --entity all --client-slug clickie
-          python sync/scripts/sync_meetings.py --client-slug clickie
-          python sync/scripts/sync_pipelines.py --client-slug clickie
+          # Valia (balia) vive dentro de la subcuenta de Conprospeccion: solo se
+          # sincronizan reuniones (calendario BALIA B), no contactos ni pipelines.
+          python sync/scripts/sync_meetings.py --client-slug balia
           python sync/scripts/derive_meetings_from_opportunities.py
           # Respaldo por calendario (iCal): agrega reuniones que GHL no trajo
           # (p.ej. si GHL estuvo caido). Se enlaza por event_id = ghl_appointment_id,
