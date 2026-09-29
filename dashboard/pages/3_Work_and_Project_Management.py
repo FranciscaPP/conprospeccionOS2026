@@ -37,7 +37,7 @@ CP_MARK_PATH = DASHBOARD_DIR / "assets" / "cp_mark_dark.png"
 BOARD_COMPONENT_DIR = Path(tempfile.gettempdir()) / "cp_work_board_component"
 
 STATUSES = ["Pendiente", "En proceso", "Revisión", "Terminado"]
-OWNERS = ["Francisca"]
+OWNERS = ["Francisca", "Yanina"]
 PRIORITIES = ["Alta", "Media", "Baja"]
 CLIENTS = ["Interno", "GBS", "BambuTech"]
 
@@ -62,6 +62,7 @@ PRIORITY_META = {
 
 OWNER_META = {
     "Francisca": {"initial": "F", "color": "#A66A00", "bg": "#FFF3D8", "border": "#F0D28D"},
+    "Yanina": {"initial": "Y", "color": "#2563EB", "bg": "#EAF1FE", "border": "#BFD2FB"},
 }
 
 CLIENT_META = {
@@ -1324,9 +1325,9 @@ st.markdown(
       <div class="cp-brand">
         <div class="cp-hamb">☰</div>
         {logo_html}
-        <div class="cp-title"><h1>Work and Project Management</h1><p>Panel operativo</p></div>
+        <div class="cp-title"><h1>Project Management</h1><p>Panel operativo</p></div>
       </div>
-      <div class="cp-user"><b>Francisca</b>Panel interno</div>
+      <div class="cp-user"><b>Francisca / Yanina</b>Panel interno</div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -1409,11 +1410,11 @@ with f3:
     selected_priority = st.selectbox("Ver prioridad", ["Todas", *PRIORITIES])
 with f4:
     period_options = [
+        "Todas las fechas",
         "Pendientes semana actual",
         "Pendientes hoy",
         "Pendientes mes actual",
         "Rango manual",
-        "Todas las fechas",
     ]
     if st.session_state.get("board_period") not in [None, *period_options]:
         st.session_state["board_period"] = period_options[0]

@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 CLIENT_ACCOUNTS: dict[str, list[str]] = {
     "bambutech": ["BAMBUTECH01", "BAMBUTECH02"],  # michelle@ y michelle.hernandez@
     "gbs": ["GBS01", "GBS02", "GBS03"],  # sam@ (agendar), sammiller@, sam.miller@
+    "balia": [
+        "BALIA01",  # florencia@venta-balia.cl (agendar)
+        "BALIA02", "BALIA03", "BALIA04", "BALIA05", "BALIA06", "BALIA07", "BALIA08",
+    ],
 }
 
 

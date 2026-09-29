@@ -63,9 +63,9 @@ def test_reply_snippet_gbs_cae_a_snov_cuando_imap_no_encuentra_nada():
     assert desde is None
 
 
-def test_reply_snippet_balia_no_llama_a_imap():
+def test_reply_snippet_cliente_sin_casillas_no_llama_a_imap():
     with patch("sync_snov_replies_to_ghl.client_mailboxes.find_reply_thread") as mock_find:
-        snippet, desde = _reply_snippet_and_source("balia", "prospecto@x.cl", "<div>Hola</div>")
+        snippet, desde = _reply_snippet_and_source("otro_cliente", "prospecto@x.cl", "<div>Hola</div>")
     mock_find.assert_not_called()
     assert snippet == "Hola"
     assert desde is None

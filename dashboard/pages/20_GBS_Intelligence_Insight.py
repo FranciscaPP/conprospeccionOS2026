@@ -377,7 +377,7 @@ st.markdown(
     f'<div style="display:flex;align-items:center;gap:14px">'
     f'{_logo}'
     f'<div><div style="font-family:{FONT_HEAD};font-size:19px;font-weight:800;line-height:1.1">Intelligence Insight · GBS Logistics</div>'
-    f'<div style="font-size:12px;color:#C9C9C6;margin-top:2px">Prospección multicanal · Ciclo de junio 2026</div></div></div>'
+    f'<div style="font-size:12px;color:#C9C9C6;margin-top:2px">Prospección multicanal · Ciclos junio–julio 2026 (acumulado)</div></div></div>'
     f'</div>',
     unsafe_allow_html=True,
 )

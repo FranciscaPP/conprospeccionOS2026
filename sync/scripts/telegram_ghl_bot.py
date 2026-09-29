@@ -90,12 +90,10 @@ def _clear_pending(slug: str, chat_id: int) -> None:
 def _is_confirmacion_afirmativa(texto: str) -> bool:
     return texto.strip().lower() in _CONFIRMACIONES_AFIRMATIVAS
 
-# Unico calendario configurado hasta ahora (Task 24) — Agenda BambuTech
-# Services Michelle N, calendario de trabajo de Norma. gbs/balia todavia no
-# tienen calendario cableado.
 CLIENT_CALENDAR_CONFIG: dict[str, dict[str, str]] = {
     "bambutech": {"calendar_id": "uB5sjspYMHvb42qeYVrj", "timezone": "America/Mexico_City", "tz_label": "hora México"},
     "gbs": {"calendar_id": "qi4ODVbGG8DefNBM4OvH", "timezone": "America/Santiago", "tz_label": "hora Chile"},
+    "balia": {"calendar_id": "2chaXy63L9xltYeM71xP", "timezone": "America/Santiago", "tz_label": "hora Chile"},
 }
 
 _DIAS_CORTOS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
@@ -252,9 +250,7 @@ def _format_slot_long(slot_iso: str) -> str:
 
 
 def handle_agendar_callback(contact_id: str, chat_id: int, slug: str, ghl: GHLClient, telegram: TelegramClient) -> None:
-    # Solo los clientes en CLIENT_CALENDAR_CONFIG tienen calendario cableado
-    # (bambutech: Task 24, gbs: agregado despues) — balia todavia no tiene la
-    # Agenda de GHL configurada.
+    # Solo los clientes en CLIENT_CALENDAR_CONFIG tienen calendario cableado.
     calendar_config = CLIENT_CALENDAR_CONFIG.get(slug)
     if not calendar_config:
         telegram.send_message(chat_id, "⚠️ Todavía no está configurado el calendario de este cliente")

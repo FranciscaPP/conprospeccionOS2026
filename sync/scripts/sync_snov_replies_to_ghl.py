@@ -36,7 +36,7 @@ from telegram_ghl_cards import (
 )
 
 
-CLIENTES_CON_CASILLAS = ("bambutech", "gbs")
+CLIENTES_CON_CASILLAS = ("bambutech", "gbs", "balia")
 
 _BLOCK_TAGS_RE = re.compile(r"</?(?:div|p|br|tr|td|li|h[1-6])[^>]*>", re.IGNORECASE)
 _TAG_RE = re.compile(r"<[^>]+>")
@@ -62,14 +62,13 @@ def _strip_html(value: str) -> str:
 
 def _reply_snippet_and_source(slug: str, email: str, html_body: str | None) -> tuple[str | None, str | None]:
     """Decide que texto mostrar como "Respondió:" y, si se pudo determinar,
-    desde que casilla real llego. Para bambutech/gbs (los unicos clientes
-    con casillas IMAP configuradas hoy, mismo gate que el boton "Responder
+    desde que casilla real llego. Para los clientes con casillas IMAP
+    configuradas (CLIENTES_CON_CASILLAS, mismo gate que el boton "Responder
     correo") se intenta primero encontrar el correo real via IMAP -- ya
     viene en texto plano y trae la casilla que lo recibio. Si no se
     encuentra ahi (casilla no configurada, correo no llegado todavia, o
     algo fallo en la busqueda) se cae al cuerpo HTML de Snov, limpiado con
-    _strip_html. Para los demas clientes (ej. balia) no se busca por IMAP
-    en absoluto."""
+    _strip_html. Para los demas clientes no se busca por IMAP en absoluto."""
     if slug in CLIENTES_CON_CASILLAS:
         try:
             found = client_mailboxes.find_reply_thread(slug, email)
@@ -178,9 +177,9 @@ def notify(
         return
     client_bot, chat_ids = telegram
     # El botón "Responder correo" solo existe para los clientes con casillas
-    # IMAP/SMTP configuradas (bambutech, gbs) y solo cuando la tarjeta tiene
-    # un contacto real asociado — la tarjeta de mismatch (ghl_contact_id=None)
-    # no lleva botón porque no hay a quién contestarle.
+    # IMAP/SMTP configuradas (CLIENTES_CON_CASILLAS) y solo cuando la tarjeta
+    # tiene un contacto real asociado — la tarjeta de mismatch
+    # (ghl_contact_id=None) no lleva botón porque no hay a quién contestarle.
     reply_markup = build_reply_email_keyboard(ghl_contact_id) if cliente_slug in CLIENTES_CON_CASILLAS and ghl_contact_id else None
     for chat_id in chat_ids:
         sent = client_bot.send_message(chat_id, text, reply_markup=reply_markup)
@@ -194,10 +193,9 @@ def notify(
                 "prospect_name": prospect_name,
                 "prospect_email": prospect_email,
             })
-        # Solo bambutech y gbs tienen bot de Telegram interactivo con estas
-        # casillas configuradas hoy (mismo gate que el boton de email arriba)
-        # y solo cuando hay un contacto real de GHL asociado — sin eso no hay
-        # a quien mandarle status/agendar/tarea.
+        # Solo los clientes con casillas configuradas (mismo gate que el
+        # boton de email arriba) y con un contacto real de GHL asociado
+        # reciben los botones de status/agendar/tarea junto con la tarjeta.
         if cliente_slug in CLIENTES_CON_CASILLAS and ghl_contact_id:
             send_followup_buttons(
                 client_bot, chat_id, ghl, ghl_location_id, ghl_contact_id, prospect_name or prospect_email or "(sin nombre)",

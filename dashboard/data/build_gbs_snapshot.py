@@ -33,7 +33,7 @@ OUT = Path(__file__).resolve().parent / "gbs_intelligence.json"
 SLUG = "gbs"
 
 PERIODO_INICIO = date(2026, 6, 1)
-PERIODO_FIN = date(2026, 6, 30)
+PERIODO_FIN = date(2026, 7, 31)
 
 # --- IDs de custom fields de GHL para GBS (verificados en Supabase) ---
 CF_ESTADO = "73CZcGKJJr8hsSun2sV6"     # Estado de prospeccion
@@ -43,7 +43,8 @@ CF_CARGO = "c60cJqsxNT5Srdiv7wV3"      # Cargo
 # Volumen de gestion por canal para el ciclo (cifra real de WhatsApp entregada
 # por el equipo; llamadas se estima al 30% de WhatsApp por falta de registro
 # separado; correo sale del agregado real de campanas de correo mas abajo).
-CANAL_WHATSAPP_REAL = 284
+# Acumulado junio+julio 2026: 284 (junio) + 176 (julio) = 460.
+CANAL_WHATSAPP_REAL = 460
 CANAL_LLAMADAS_PCT_DE_WHATSAPP = 0.30
 
 # Listado de empresas objetivo entregado por GBS (ICP consolidado). Se usa
@@ -359,7 +360,7 @@ def main() -> None:
     snap = {
         "periodo": {
             "inicio": PERIODO_INICIO.isoformat(), "fin": PERIODO_FIN.isoformat(),
-            "nota": "Prospeccion GBS Logistics, ciclo de junio 2026.",
+            "nota": "Prospeccion GBS Logistics, ciclos de junio y julio 2026 (acumulado).",
         },
         "universo_unico": len(universo),
         "correo": correo,

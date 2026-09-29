@@ -181,6 +181,12 @@ def require_master_auth() -> bool:
     """
     if st.session_state.get(SESSION_KEY):
         st.session_state["admin_mode"] = True
+        # Ocultar el menú automático de páginas en TODAS las páginas internas.
+        # La navegación se hace por las tarjetas del inicio y el botón "Volver".
+        st.markdown(
+            '<style>[data-testid="stSidebarNav"]{display:none !important;}</style>',
+            unsafe_allow_html=True,
+        )
         allowed = get_allowed_pages()
         if allowed is not None:
             # Usuario restringido: ocultar el resto del menú y bloquear el
@@ -196,16 +202,50 @@ def require_master_auth() -> bool:
 
 
 def render_master_user_sidebar() -> None:
-    """Muestra el usuario logueado y botón de logout en el sidebar."""
+    """Muestra el logo Conprospección, el usuario logueado y el logout."""
     nombre = get_current_user()
     if not nombre:
         return
     with st.sidebar:
+        logo = _img_b64("cp_mark_dark.png", 40)
+        if logo:
+            st.markdown(
+                f'<div style="text-align:center;padding:8px 0 4px">{logo}</div>',
+                unsafe_allow_html=True,
+            )
         st.markdown("---")
         st.markdown(
-            f'<div style="padding:8px 0;font-size:12px;color:#94a3b8">'
-            f'<b style="color:#e2e8f0">{nombre}</b></div>',
+            f'<div style="padding:4px 0 10px;font-size:12px;color:#9a9a96">'
+            f'Sesión de <b style="color:#f4f4f2">{nombre}</b></div>',
             unsafe_allow_html=True,
         )
+        # Botones "Volver" y "Cerrar sesión" siempre visibles (dorado sobre carbón).
+        st.markdown(
+            """
+            <style>
+              [class*="st-key-master_logout"] button,
+              [class*="st-key-master_home"] button {
+                background: transparent !important;
+                border: 1px solid #FFD700 !important;
+                color: #FFD700 !important;
+                font-weight: 700 !important;
+              }
+              [class*="st-key-master_logout"] button:hover,
+              [class*="st-key-master_home"] button:hover {
+                background: #FFD700 !important;
+                color: #1A1A1A !important;
+                border-color: #FFD700 !important;
+              }
+              [class*="st-key-master_logout"] button p,
+              [class*="st-key-master_home"] button p { color: inherit !important; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        # "Volver al inicio" solo para acceso completo (los restringidos ya
+        # quedan anclados a su única página permitida).
+        if get_allowed_pages() is None:
+            if st.button("← Volver al inicio", use_container_width=True, key="master_home"):
+                st.switch_page("app.py")
         if st.button("Cerrar sesión", use_container_width=True, key="master_logout"):
             logout()

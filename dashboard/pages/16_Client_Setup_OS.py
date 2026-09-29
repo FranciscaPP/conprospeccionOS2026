@@ -220,12 +220,12 @@ def css() -> None:
 #MainMenu, footer {{display:none}}
 .block-container {{padding-top:1.2rem; max-width:1500px}}
 .hero {{
-  background:linear-gradient(135deg,#111827 0%,#1e1e2e 48%,#312e81 100%);
+  background:linear-gradient(135deg,#1A1A1A 0%,#333333 100%);
   border-radius:16px; padding:28px 34px; margin-bottom:20px; color:white;
   box-shadow:0 12px 32px rgba(15,23,42,.18);
 }}
 .hero-top {{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}}
-.eyebrow {{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#c4b5fd;font-weight:800}}
+.eyebrow {{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#FFD700;font-weight:800}}
 .hero h1 {{margin:4px 0 6px;font-size:30px;line-height:1.1;color:white;font-weight:900;letter-spacing:0}}
 .hero p {{margin:0;color:#cbd5e1;font-size:13px;max-width:850px;line-height:1.55}}
 .hero-badges {{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}}
@@ -233,11 +233,11 @@ def css() -> None:
   display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;
   font-size:11px;font-weight:800;border:1px solid #e2e8f0;background:#fff;color:#334155;
 }}
-.badge.dark {{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#e9d5ff}}
+.badge.dark {{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#FFE9A6}}
 .badge.green {{background:#dcfce7;border-color:#86efac;color:#166534}}
 .badge.amber {{background:#fef3c7;border-color:#fcd34d;color:#92400e}}
 .badge.red {{background:#fee2e2;border-color:#fca5a5;color:#991b1b}}
-.badge.purple {{background:#f5f3ff;border-color:#ddd6fe;color:#5b21b6}}
+.badge.purple {{background:#FFF7BF;border-color:#F0D875;color:#8A6D00}}
 .kpi-grid {{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:16px 0 20px}}
 .kpi {{
   background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:15px 16px;
@@ -298,8 +298,8 @@ def header(sources: dict[str, Any], inventory: dict[str, Any]) -> None:
     onboarding = sources["onboarding"]
     mode = "Normalizado en Supabase" if setup else "Fallback GBS existente"
     received = onboarding.get("updated_at") or onboarding.get("created_at") or "sin intake reciente"
-    logo = img_b64("gbs_logo.png", 48)
-    logo_html = logo or '<div style="background:#7c3aed;color:white;padding:10px 18px;border-radius:9px;font-weight:900">GBS</div>'
+    logo = img_b64("cp_mark_dark.png", 44)
+    logo_html = logo or '<div style="background:#FFD700;color:#1A1A1A;padding:10px 16px;border-radius:9px;font-weight:900">CP</div>'
     st.markdown(
         f"""
 <div class="hero">

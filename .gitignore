@@ -54,3 +54,13 @@ tsconfig.tsbuildinfo
 preview-premium.html
 *.pdf
 .superpowers/
+
+# Salidas generadas de reportes SDR / capturas (contienen datos de prospectos)
+sync/scripts/sdr_cache/
+sync/scripts/reporte_*.txt
+sync/scripts/reporte_*.png
+sync/scripts/horario_sdr.txt
+sync/scripts/avance_por_hora.png
+sync/scripts/resumen_reuniones.png
+.playwright-cli/
+output/

@@ -31,14 +31,15 @@ def _set_tier(slug: str, tier: str) -> None:
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div style="background:linear-gradient(135deg,#1e1e2e 0%,#2d1f5e 100%);
-            padding:32px 40px;border-radius:16px;margin-bottom:32px;">
+<div style="background:linear-gradient(135deg,#1A1A1A 0%,#333333 100%);
+            padding:32px 40px;border-radius:16px;margin-bottom:28px;">
   <div style="display:flex;align-items:center;gap:14px">
-    <div style="background:#6d28d9;border-radius:10px;padding:10px 14px;font-size:24px;line-height:1"></div>
+    <div style="background:#FFD700;border-radius:10px;padding:8px 14px;
+                color:#1A1A1A;font-weight:800;font-size:18px;line-height:1">CP</div>
     <div>
-      <div style="color:white;font-size:26px;font-weight:800">Clientes</div>
-      <div style="color:#a78bfa;font-size:13px;margin-top:3px">
-        Acceso al portal y datos de cada cliente activo
+      <div style="color:white;font-size:26px;font-weight:800">Portal Cliente</div>
+      <div style="color:#FFD700;font-size:13px;margin-top:3px">
+        Todos los paneles de cada cliente activo
       </div>
     </div>
   </div>
@@ -46,60 +47,37 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Configuración de clientes ─────────────────────────────────────────────────
+# Solo clientes con dashboards reales. Colores Conprospección (acento dorado,
+# superficies neutras); se conserva el logo de cada cliente para identificarlo.
 CLIENTES = [
-    {
-        "slug": "tiresias",
-        "nombre": "Tiresias",
-        "logo": "tiresias_logo.png",
-        "color": "#1e40af",
-        "bg": "#eff6ff",
-        "border": "#bfdbfe",
-        "pages": [
-            ("Indicadores", "pages/3_Tiresias.py"),
-            ("Validación Reuniones", "pages/4_Tiresias_Validacion_Reuniones.py"),
-            ("Playbook SDR", "pages/5_Tiresias_Playbook_SDR.py"),
-        ],
-    },
-    {
-        "slug": "clickie",
-        "nombre": "Clickie",
-        "logo": "clickie_logo.png",
-        "color": "#6d28d9",
-        "bg": "#f5f3ff",
-        "border": "#ddd6fe",
-        "pages": [
-            ("Indicadores", "pages/6_Clickie.py"),
-            ("Validación Reuniones", "pages/7_Clickie_Validacion_Reuniones.py"),
-            ("Playbook SDR", "pages/8_Clickie_Playbook_SDR.py"),
-        ],
-    },
     {
         "slug": "gbs",
         "nombre": "GBS Logistics",
         "logo": "gbs_logo.png",
-        "color": "#1a56db",
-        "bg": "#eff6ff",
-        "border": "#bfdbfe",
+        "color": "#FFD700",
+        "bg": "#FFFFFF",
+        "border": "#EDECEA",
         "pages": [
+            ("Portal / Reuniones", "pages/12_GBS.py"),
             ("Indicadores", "pages/11_GBS_Indicadores.py"),
-            ("Validación Reuniones", "pages/12_GBS.py"),
+            ("Intelligence Insight", "pages/20_GBS_Intelligence_Insight.py"),
             ("Playbook SDR", "pages/13_GBS_Playbook_SDR.py"),
-            ("Onboarding", "pages/14_GBS_Onboarding.py"),
+            ("Incorporación", "pages/14_GBS_Onboarding.py"),
         ],
     },
     {
         "slug": "bambutech",
         "nombre": "BambuTech Services",
         "logo": "bambutech_logo.png",
-        "color": "#208d25",
-        "bg": "#f4f6f4",
-        "border": "#cfe4d0",
+        "color": "#FFD700",
+        "bg": "#FFFFFF",
+        "border": "#EDECEA",
         "pages": [
-            ("Portal BambuTech", "pages/15_BambuTech.py"),
-            ("Onboarding", "pages/17_BambuTech_Onboarding.py"),
+            ("Portal", "pages/15_BambuTech.py"),
             ("Validación Reuniones", "pages/18_BambuTech_Validacion_Reuniones.py"),
             ("Intelligence Insight", "pages/19_BambuTech_Intelligence_Insight.py"),
             ("Playbook SDR", "pages/20_BambuTech_Playbook_SDR.py"),
+            ("Incorporación", "pages/17_BambuTech_Onboarding.py"),
         ],
     },
 ]

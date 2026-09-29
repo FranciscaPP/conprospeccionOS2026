@@ -1,10 +1,10 @@
 {
   "periodo": {
     "inicio": "2026-06-01",
-    "fin": "2026-06-30",
-    "nota": "Prospeccion GBS Logistics, ciclo de junio 2026."
+    "fin": "2026-07-31",
+    "nota": "Prospeccion GBS Logistics, ciclos de junio y julio 2026 (acumulado)."
   },
-  "universo_unico": 708,
+  "universo_unico": 830,
   "correo": {
     "enviados": 724,
     "entregados": 722,
@@ -18,11 +18,11 @@
   "canal_actividad": [
     {
       "canal": "WhatsApp",
-      "gestiones": 284
+      "gestiones": 460
     },
     {
       "canal": "Llamadas",
-      "gestiones": 85
+      "gestiones": 138
     },
     {
       "canal": "Correo",
@@ -30,190 +30,176 @@
     }
   ],
   "gestion": {
-    "gestionados": 348,
-    "conversaciones": 34
+    "gestionados": 533,
+    "conversaciones": 71
   },
   "positiva_desglose": {
-    "informacion_adicional": 0,
-    "coordinando_reunion": 2,
-    "reunion_agendada": 13
+    "informacion_adicional": 3,
+    "coordinando_reunion": 4,
+    "reunion_agendada": 18
   },
   "resultados_totales": {
-    "no_contesta": 271,
-    "no_califica": 30,
-    "positiva": 15,
-    "numero_malo": 13,
-    "negativa": 10,
-    "deriva": 9
+    "no_contesta": 371,
+    "no_califica": 62,
+    "numero_malo": 29,
+    "negativa": 28,
+    "positiva": 25,
+    "deriva": 18
   },
   "por_industria": {
     "Alimentos, Bebidas y Agro": {
-      "no_contesta": 47,
-      "deriva": 4,
-      "numero_malo": 2,
+      "no_contesta": 66,
+      "deriva": 5,
+      "numero_malo": 5,
       "no_califica": 2,
+      "negativa": 2,
       "positiva": 1
     },
     "Automotriz": {
-      "no_contesta": 11,
-      "negativa": 1,
-      "no_califica": 1
+      "no_contesta": 20,
+      "numero_malo": 4,
+      "no_califica": 3,
+      "negativa": 2
     },
     "Construccion y Materiales": {
-      "no_contesta": 8,
-      "positiva": 2
+      "no_contesta": 16,
+      "positiva": 4,
+      "negativa": 4,
+      "deriva": 2,
+      "numero_malo": 2,
+      "no_califica": 2
     },
     "Importacion / Exportacion": {
-      "no_contesta": 9,
-      "no_califica": 5,
-      "positiva": 3
+      "no_califica": 13,
+      "no_contesta": 10,
+      "positiva": 1,
+      "numero_malo": 1,
+      "negativa": 1
     },
     "Maquinaria e Industria": {
-      "no_contesta": 47,
-      "positiva": 2,
+      "no_contesta": 64,
+      "positiva": 4,
+      "no_califica": 3,
       "negativa": 2,
-      "no_califica": 2,
-      "numero_malo": 2,
-      "deriva": 1
+      "deriva": 2,
+      "numero_malo": 2
     },
     "Mineria y Metales": {
-      "no_contesta": 107,
-      "no_califica": 16,
+      "no_contesta": 136,
+      "no_califica": 29,
+      "negativa": 12,
+      "positiva": 11,
       "numero_malo": 8,
-      "negativa": 7,
-      "positiva": 5,
-      "deriva": 2
+      "deriva": 5
     },
     "Retail y Consumo": {
-      "no_contesta": 28,
+      "no_contesta": 38,
+      "no_califica": 6,
+      "numero_malo": 3,
+      "deriva": 3,
+      "positiva": 1,
+      "negativa": 1
+    },
+    "Salud y Farma": {
+      "no_contesta": 11,
+      "negativa": 2,
+      "numero_malo": 2,
       "positiva": 1,
       "no_califica": 1,
       "deriva": 1
     },
-    "Salud y Farma": {
-      "no_contesta": 9,
-      "deriva": 1
-    },
     "Sin clasificar": {
-      "no_contesta": 5,
+      "no_contesta": 10,
       "no_califica": 3,
-      "numero_malo": 1,
-      "positiva": 1
+      "negativa": 2,
+      "positiva": 2,
+      "numero_malo": 2
     }
   },
   "por_area": {
     "Abastecimiento / Compras": {
-      "no_contesta": 8,
-      "no_califica": 2,
-      "positiva": 1
+      "no_contesta": 14,
+      "no_califica": 6,
+      "positiva": 4,
+      "negativa": 3
     },
     "Comercial / Ventas": {
-      "no_contesta": 3,
-      "no_califica": 2,
-      "positiva": 1
+      "no_contesta": 5,
+      "no_califica": 3,
+      "positiva": 1,
+      "numero_malo": 1
     },
     "Comercio Exterior / COMEX": {
-      "no_contesta": 9,
-      "positiva": 3,
-      "no_califica": 1
+      "no_contesta": 16,
+      "positiva": 5,
+      "no_califica": 1,
+      "negativa": 1
     },
     "Direccion / Gerencia": {
-      "no_contesta": 193,
-      "no_califica": 17,
-      "deriva": 8,
-      "negativa": 8,
-      "numero_malo": 5,
-      "positiva": 4
+      "no_contesta": 209,
+      "no_califica": 31,
+      "negativa": 16,
+      "deriva": 13,
+      "numero_malo": 10,
+      "positiva": 6
     },
     "Finanzas / Administracion": {
       "positiva": 1
     },
     "Logistica / Supply Chain": {
-      "no_contesta": 18,
-      "numero_malo": 4,
+      "no_contesta": 37,
+      "numero_malo": 9,
+      "positiva": 5,
+      "no_califica": 4,
+      "deriva": 2,
+      "negativa": 2
+    },
+    "Operaciones": {
+      "no_contesta": 80,
+      "numero_malo": 9,
+      "no_califica": 7,
+      "negativa": 5,
+      "deriva": 2,
+      "positiva": 1
+    },
+    "Otros": {
+      "no_contesta": 9,
+      "no_califica": 9,
       "positiva": 2,
-      "no_califica": 2,
       "negativa": 1,
       "deriva": 1
     },
-    "Operaciones": {
-      "no_contesta": 31,
-      "numero_malo": 4,
-      "no_califica": 3,
-      "negativa": 1
-    },
-    "Otros": {
-      "no_contesta": 8,
-      "positiva": 3,
-      "no_califica": 2
-    },
     "Sin clasificar": {
-      "no_contesta": 1,
-      "no_califica": 1
+      "no_califica": 1,
+      "no_contesta": 1
     }
   },
   "registros": [
     {
-      "industria": "Maquinaria e Industria",
-      "area": "Comercio Exterior / COMEX",
-      "resultado": "positiva",
-      "estado_raw": "Reunión Agendada",
-      "fecha": "2026-06-15",
-      "empresa": "RUBI Group",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Direccion / Gerencia",
-      "resultado": "deriva",
-      "estado_raw": "Deriva Refiere Directo",
-      "fecha": "2026-06-07",
-      "empresa": "Gesex",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Comercio Exterior / COMEX",
-      "resultado": "positiva",
-      "estado_raw": "Reunión Agendada",
-      "fecha": "2026-06-15",
-      "empresa": "Kraft Heinz",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Patagoniafresh",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Max Service",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Maquinaria e Industria",
+      "industria": "Mineria y Metales",
       "area": "Operaciones",
       "resultado": "negativa",
       "estado_raw": "No Interesado",
-      "fecha": "2026-06-07",
-      "empresa": "PLACACENTRO MASISA",
+      "fecha": "2026-07-22",
+      "empresa": "GEOATACAMA Servicios GeolÃ³gicos",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-07-22",
+      "empresa": "Grupo Vector.cl",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
       "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "LUVAL S.A.",
+      "area": "Comercial / Ventas",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-06-18",
+      "empresa": "MEDIZINTECHNIK S A",
       "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
@@ -222,26 +208,71 @@
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "Gesex",
+      "empresa": "Empresas Maxagro",
       "tema": "Carga temperada (vino y alimentos)"
     },
     {
-      "industria": "Construccion y Materiales",
+      "industria": "Mineria y Metales",
       "area": "Operaciones",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "Inmobiliaria FG",
-      "tema": "Reduccion de costos y visibilidad de carga"
+      "empresa": "Triconos Mineros S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
     },
     {
       "industria": "Mineria y Metales",
       "area": "Otros",
+      "resultado": "positiva",
+      "estado_raw": "Información Adicional",
+      "fecha": "2026-06-07",
+      "empresa": "Empresas PlanVe",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Comercio Exterior / COMEX",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "Mafem Limitada",
+      "empresa": "DPS CHILE",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "EKLIPSE SPA",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "Terra Nova Technologies",
       "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "TECNOLOGIA EN TRANSPORTE DE MINERALES",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-25",
+      "empresa": "FERPI TRANSPORTES Y OBRAS S.A",
+      "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
       "industria": "Mineria y Metales",
@@ -259,15 +290,6 @@
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Overprime Manufacturing",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Abastecimiento / Compras",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Pesamatic S.A.",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -379,42 +401,6 @@
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Operaciones",
-      "resultado": "numero_malo",
-      "estado_raw": "Teléfono / Whatsapp no existen",
-      "fecha": "2026-06-07",
-      "empresa": "Sociedad Agricola La Rosa Sofruco S.A.",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "F4F: food for future",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Operaciones",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Grupo Premier Chile",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "AMA Time",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
       "industria": "Mineria y Metales",
       "area": "Abastecimiento / Compras",
       "resultado": "no_contesta",
@@ -424,12 +410,30 @@
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Mineria y Metales",
+      "industria": "Alimentos, Bebidas y Agro",
       "area": "Operaciones",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "MineARC Systems",
+      "empresa": "Patagoniafresh",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Vitel Energía",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Electro Enchufe",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -438,8 +442,53 @@
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "BIOS MI",
+      "empresa": "AKRON INGENIERIA",
       "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "The Wild Foods",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Automotora Berríos",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Mintral",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Promusic",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "C&S",
+      "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
       "industria": "Mineria y Metales",
@@ -451,66 +500,57 @@
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "numero_malo",
-      "estado_raw": "Teléfono / Whatsapp no existen",
-      "fecha": "2026-06-07",
-      "empresa": "Visauco",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Guanaco Compañía Minera Ltda.",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
-      "resultado": "numero_malo",
-      "estado_raw": "Teléfono / Whatsapp no existen",
-      "fecha": "2026-06-07",
-      "empresa": "DIAS",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Automotriz",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Dercocenter Aspillaga Hornauer",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Exploraciones Mineras Andinas S.A. - Filial Codelco",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Paramount Gruas S.A. Chile",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
+      "industria": "Maquinaria e Industria",
       "area": "Direccion / Gerencia",
       "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
-      "empresa": "OPTIMIZA INGENIERIA Y DESARROLLO S.A.",
+      "empresa": "THK GmbH",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Midea Carrier Chile",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Fermaq Minería SpA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-06-07",
+      "empresa": "TECNOLOGIA EN TRANSPORTE DE MINERALES",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "CPS Conveyors - América Latina",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Haldeman Mining Company",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -525,37 +565,10 @@
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "resultado": "deriva",
-      "estado_raw": "Deriva Refiere Directo",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
-      "empresa": "Rock Point",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Tadano PM Series",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Automotriz",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Toyota Chile S.A.",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Comercio Exterior / COMEX",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Métrica SpA",
+      "empresa": "Centro Nacional de Pilotaje | CNP",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -569,146 +582,29 @@
     },
     {
       "industria": "Automotriz",
-      "area": "Logistica / Supply Chain",
-      "resultado": "negativa",
-      "estado_raw": "No Interesado",
-      "fecha": "2026-06-07",
-      "empresa": "Toyota Chile S.A.",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
+      "area": "Direccion / Gerencia",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "eleccon s.a.",
-      "tema": "Importacion de maquinaria y repuestos"
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
       "industria": "Maquinaria e Industria",
-      "area": "Abastecimiento / Compras",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Electro Enchufe",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Automotriz",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Toyota Chile S.A.",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "GRUPO MSI",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "CKF Soluciones",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Automotriz",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Automotora Berríos",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Logistica / Supply Chain",
-      "resultado": "numero_malo",
-      "estado_raw": "Teléfono / Whatsapp no existen",
-      "fecha": "2026-06-07",
-      "empresa": "Mintral",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Sin clasificar",
       "area": "Comercio Exterior / COMEX",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Inversierra S.A",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Otros",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Agencia de Aduana Pedro Serrano Solar y Cía Ltda.",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "SEAPORT S.A.",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Operaciones",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Hot Express S.A.",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Agencia de Aduanas Mauricio Navarro",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Comercio Exterior / COMEX",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "DPS CHILE",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Construccion y Materiales",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Constructora Ingevec S.A.",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Construccion y Materiales",
-      "area": "Abastecimiento / Compras",
       "resultado": "positiva",
-      "estado_raw": "Coordinando Reunión",
+      "estado_raw": "Información Adicional",
       "fecha": "2026-06-07",
-      "empresa": "Torres Ocaranza",
+      "empresa": "Dipromed S.A",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Agencia de Aduanas Ricardo Mewes Schnaidt RMS",
       "tema": "Servicio integral puerta a puerta"
     },
     {
@@ -946,24 +842,6 @@
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Comercio Exterior / COMEX",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Grupo Civitano",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "EKLIPSE SPA",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
       "industria": "Salud y Farma",
       "area": "Operaciones",
       "resultado": "no_contesta",
@@ -973,93 +851,30 @@
       "tema": "Un solo interlocutor logistico"
     },
     {
-      "industria": "Retail y Consumo",
-      "area": "Comercial / Ventas",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Lo Saldes",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "GRUPO AUTOMOTRIZ CARTONI",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
       "fecha": "2026-06-07",
-      "empresa": "Andean Silver",
+      "empresa": "Armametal SAS",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "industria": "Automotriz",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
       "fecha": "2026-06-07",
-      "empresa": "AKRON INGENIERIA",
-      "tema": "Importacion de maquinaria y repuestos"
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Servicio integral puerta a puerta"
     },
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-07",
-      "empresa": "Industrias Metalurgicas Sorena S.A",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Eral Chile, S.A.",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "ICL CATODOS LTDA.",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Cerro Alto",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "ASIB Group",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "negativa",
-      "estado_raw": "No Interesado",
-      "fecha": "2026-06-07",
-      "empresa": "JR Componentes",
+      "empresa": "Woodgrove Technologies Inc.",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -1076,8 +891,1025 @@
       "area": "Direccion / Gerencia",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
+      "fecha": "2026-07-15",
+      "empresa": "Voces Mineras",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Maco S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Power Train Technologies Chile S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "Centro Nacional de Pilotaje | CNP",
+      "empresa": "ICL CATODOS LTDA.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-07-28",
+      "empresa": "",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-07-22",
+      "empresa": "Condensa Aluminum Packaging",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-07-22",
+      "empresa": "Prunesco SpA",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Otros",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-07-15",
+      "empresa": "CREST, Grupo Lamosa",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Comercial / Ventas",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-07-15",
+      "empresa": "Empírica",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Forcenter - Concesionario Automotriz",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "ALFA Group",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Power Train Technologies Chile S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Compania mantos de la luna s a",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Trek Rental",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Trek Rental",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "ECM Ingeniería S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "positiva",
+      "estado_raw": "Coordinando Reunión",
+      "fecha": "2026-06-25",
+      "empresa": "Grupo Sinec",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Mosaico S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Inamar Izaje",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "GeologicAI",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Impomarket Chile SpA",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Fourthane",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Sociedad de Inversiones Orocup Limitada",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "distribuidora de alimentos globe italia limitada",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "RockBlast Design Spa",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Comercial / Ventas",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Groupe SERAP",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Dercocenter Aspillaga Hornauer",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Vitel Energía",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "SeaGarden",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Baika Fruit",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "GRUPO MSI",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Saville Row",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Otros",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "AREACOMEX",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Laboratorios Garden House",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "GNL Mejillones",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "GNL Mejillones",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Plaenge Chile",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Constructora Ingevec S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Club de Perros y Gatos",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Proactive SpA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Forus S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Casia by Ceibo",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Denda Latam",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "hoteleria y servicios turisticos limitada",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Cerro Alto",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Ansaldo S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Sociedad Nacional de Oleoductos S.A. - Sonacol",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "TECSIS INGENIERIA S.A",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Head Chile",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Grupo MBO",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "positiva",
+      "estado_raw": "Coordinando Reunión",
+      "fecha": "2026-06-07",
+      "empresa": "Torres Ocaranza",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "RPM PARTS",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Clínica Oftalmológica Pasteur",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Logistica / Supply Chain",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "SURAC",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "BMW Chile",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "GA Consultores - Una empresa de Anddes",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Tadano PM Series",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Exploraciones Mineras Andinas S.A. - Filial Codelco",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Head Chile",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "ISTRIACORP",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "LUVAL S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "CDT",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Alex Stewart Intercop Chile",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "ASPharma Chile SpA",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Agencia de Aduanas Mauricio Navarro",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Ferrara",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "OPTIMIZA INGENIERIA Y DESARROLLO S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Empresas Torque",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Lanco & Harris Manufacturing Corporation",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Logistica / Supply Chain",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Reutter S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Clínica Cruz Nacional",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Fabrics Chile",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Logistica / Supply Chain",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Comercial / Ventas",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Nissan Chile",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Prodrilling",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Provider Latam SpA",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "compania mantos de la luna s a",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-06-25",
+      "empresa": "Compania Mantos De La Luna S A",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "ECM Ingeniería S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "TECNOLOGIA EN TRANSPORTE DE MINERALES",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Alifrut S.A.",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Gasvalpo",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Vitel Energía",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "SOBITEC",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Chicken Love You",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Tost",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "VILLELA S.A",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Conveyor Dynamics, Inc.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Otros",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Hot Express S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Agencia de Aduana Stephens",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-07-15",
+      "empresa": "Revesderecho",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Comercial / Ventas",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-07-15",
+      "empresa": "Corporación Alta Ley",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Power Train Technologies Chile S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Prodrilling",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Ford Chile, Colombia, Perú y Venezuela",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Compañía Pisquera de Chile - CCU",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Ceibo",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "AyA Ingeniería Integral Ltda.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Euclid Chemical Cave",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-25",
+      "empresa": "Rucaray Planta Los Lirios",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "GESTA Servicios a la Minería",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Unifood Holding",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Logistica / Supply Chain",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-25",
+      "empresa": "Forus S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-06-18",
+      "empresa": "Fundición Ferrosa",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Gesex",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Yokogawa América Do Sul",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "Empresas Maxagro",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Otros",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Agencia de Aduana Pedro Serrano Solar y Cía Ltda.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "SEM INGENIERÍA SAS",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Guanaco Compañía Minera Ltda.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Grupo PHN",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Mecamin Ltda.",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -1090,21 +1922,120 @@
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Cement Design",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Marley Coffee Chile",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "Aminpro",
+      "empresa": "Amira Global",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Forus S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Operaciones",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Auto Summit Chile S.A",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "GGM CONTRATISTAS GENERALES",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "resultado": "numero_malo",
-      "estado_raw": "Teléfono / Whatsapp no existen",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
-      "empresa": "SDI Ingeniería",
+      "empresa": "CKF Soluciones",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Pardecosas.cl",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Shippter.com",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Agencia de Aduanas Ricardo Mewes Schnaidt RMS",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Eral Chile, S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Geosinergia",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -1117,12 +2048,444 @@
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Automotriz",
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "ProCleanMG",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "AMI - Asesorías Mineras Integrales",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Petricio Industrial S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Difem Laboratorios",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "compania mantos de la luna s a",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "SnackCenter",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-06-15",
+      "empresa": "RUBI Group",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "Gesex",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Zulogística",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Pesamatic S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "BUFFET EXPRESS",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Clínica Cruz Nacional",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Retail y Consumo",
       "area": "Comercial / Ventas",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "Nissan Chile",
+      "empresa": "Lo Saldes",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "Lo Saldes",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Minería & Servicios S.P.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Mantelech Ingenieria ltda.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Exploraciones Mineras Andinas S.A. - Filial Codelco",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Trex LA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "DRILLCO",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "Mercado Mayorista Lo Valledor",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Alerce Ingeniería y Construcción SpA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Gesex",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Constructora Asfalcura SpA",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "Aislapol",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-07-22",
+      "empresa": "Tricot S.A",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Inversierra S.A",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "chiletrans logistics s a",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Comercial / Ventas",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "OPB Logistics SpA",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "BIOS MI",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "PLACACENTRO MASISA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "ASIB Group",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Empack Ltda.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "DRILLCO",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Prodrilling",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Compañía Pisquera de Chile - CCU",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "ACMA S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-06-22",
+      "empresa": "Rock Point",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "FINDRAW | Innovación y Calidad.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Astara Retail",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "SEAPORT S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Inversierra S.A",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Ingeocc SAS",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Grupo Civitano",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "AMA Time",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "Street Machine",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Rilan Ltda",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
       "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
@@ -1131,17 +2494,17 @@
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "TECSIS INGENIERIA S.A",
+      "empresa": "Aminpro",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Retail y Consumo",
-      "area": "Comercial / Ventas",
-      "resultado": "positiva",
-      "estado_raw": "Reunión Agendada",
-      "fecha": "2026-06-18",
-      "empresa": "MEDIZINA TECHNIK",
-      "tema": "Reduccion de costos y visibilidad de carga"
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Trex LA",
+      "tema": "Importacion de maquinaria y repuestos"
     },
     {
       "industria": "Retail y Consumo",
@@ -1162,30 +2525,12 @@
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Salud y Farma",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Eniax",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
       "fecha": "2026-06-07",
-      "empresa": "GA Consultores - Una empresa de Anddes",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "AMI - Asesorías Mineras Integrales",
+      "empresa": "Siderúrgica del Occidente S.A.S",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -1199,12 +2544,435 @@
     },
     {
       "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "DRILLCO",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Reborn Electric Motors",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "PESSA S.A",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-25",
+      "empresa": "TALO",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Kenoz",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
       "area": "Otros",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Ingeniería de Proyectos CHK-ING",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "OPTIMIZA INGENIERIA Y DESARROLLO S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Sin clasificar",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Onboard Logistics Group",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "BRANDO.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Dukraft Rental",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Fanaloza Chile",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-07-22",
+      "empresa": "CGESTA SPA.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "CIDEF S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "Forcenter - Concesionario Automotriz",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Power Train Technologies Chile S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-25",
+      "empresa": "AMA Time",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "Revesderecho",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-25",
+      "empresa": "Cytoperu",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Inmobiliaria FG",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Operaciones",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Hot Express S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Otros",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Menares",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Agencia de Aduanas Mewes",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Eniax",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Logistica / Supply Chain",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "EUROFASHION",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "MineARC Systems",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Andean Silver",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Protab",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Grupo ICL",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Logistica / Supply Chain",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Gesex",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Transmat Chile",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Maquintel Robotic Services",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "positiva",
+      "estado_raw": "Información Adicional",
+      "fecha": "2026-06-07",
+      "empresa": "Soletanche Bachy Chile",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Exploraciones Mineras Andinas S.A. - Filial Codelco",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "PROSEAL",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "SOLTEX CHILE S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Métrica SpA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Toyota Chile S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Terra Nova Technologies",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "Transnacional",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Coca Cola Embonor",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-25",
+      "empresa": "TENSACON S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "GESTA Servicios a la Minería",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Tavelli",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "positiva",
+      "estado_raw": "Coordinando Reunión",
+      "fecha": "2026-06-25",
+      "empresa": "SIITEC Ingenieros S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercio Exterior / COMEX",
       "resultado": "positiva",
       "estado_raw": "Reunión Agendada",
-      "fecha": "2026-06-22",
-      "empresa": "Rock Point",
-      "tema": "Importacion de maquinaria y repuestos"
+      "fecha": "2026-07-28",
+      "empresa": "ENERGUIAS",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Logistica / Supply Chain",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-07-09",
+      "empresa": "LBF Insumos Médicos",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-06-18",
+      "empresa": "CRISPIERI IMPORTADORA LIMITADA",
+      "tema": "Servicio integral puerta a puerta"
     },
     {
       "industria": "Mineria y Metales",
@@ -1217,29 +2985,20 @@
     },
     {
       "industria": "Alimentos, Bebidas y Agro",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Baika Fruit",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-06-15",
+      "empresa": "Kraft Heinz",
       "tema": "Carga temperada (vino y alimentos)"
     },
     {
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Ansaldo S.A.",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
       "industria": "Construccion y Materiales",
-      "area": "Comercial / Ventas",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "area": "Direccion / Gerencia",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
       "fecha": "2026-06-07",
-      "empresa": "ACMA S.A.",
+      "empresa": "Tecnovial S.A.",
       "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
@@ -1252,130 +3011,22 @@
       "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
-      "industria": "Construccion y Materiales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Aislapol",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Empresas Maxagro",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Empresas Maxagro",
-      "tema": "Carga temperada (vino y alimentos)"
-    },
-    {
-      "industria": "Sin clasificar",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Sociedad Nacional de Oleoductos S.A. - Sonacol",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
-      "industria": "Construccion y Materiales",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "CDT",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Otros",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Puerto Las Losas S.A.",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Otros",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "FINDRAW | Innovación y Calidad.",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Otros",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "HEREDIA ^ SANTANA",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Otros",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "OPTIMIZA INGENIERIA Y DESARROLLO S.A.",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Otros",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Alex Stewart Intercop Chile",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
       "industria": "Sin clasificar",
       "area": "Direccion / Gerencia",
-      "resultado": "numero_malo",
-      "estado_raw": "Teléfono / Whatsapp no existen",
-      "fecha": "2026-06-07",
-      "empresa": "NewSteel Latam",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Otros",
-      "resultado": "positiva",
-      "estado_raw": "Coordinando Reunión",
-      "fecha": "2026-06-07",
-      "empresa": "AREACOMEX",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Otros",
       "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
-      "empresa": "Hot Express S.A.",
-      "tema": "Servicio integral puerta a puerta"
+      "empresa": "ELOG Chile",
+      "tema": "Un solo interlocutor logistico"
     },
     {
-      "industria": "Sin clasificar",
-      "area": "Sin clasificar",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "industria": "Importacion / Exportacion",
+      "area": "Operaciones",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
       "fecha": "2026-06-07",
-      "empresa": "Buses JM",
-      "tema": "Un solo interlocutor logistico"
+      "empresa": "Shippter.com",
+      "tema": "Servicio integral puerta a puerta"
     },
     {
       "industria": "Importacion / Exportacion",
@@ -1388,29 +3039,497 @@
     },
     {
       "industria": "Importacion / Exportacion",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
       "fecha": "2026-06-07",
-      "empresa": "Shippter.com",
+      "empresa": "Lamaignere Cargo",
       "tema": "Servicio integral puerta a puerta"
     },
     {
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
       "empresa": "Grupo Global",
       "tema": "Servicio integral puerta a puerta"
     },
     {
+      "industria": "Sin clasificar",
+      "area": "Logistica / Supply Chain",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Comercializadora Los Robles Ltda.",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "FTF",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Arme SAS",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Operaciones",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "REST911",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "Rock Point",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Vitel Energía",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-25",
+      "empresa": "Macrobots",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Fijaciones Mamut",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "FISCREA S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "Benchmark Animal Health",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Instacrops Inc (YC S21)",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "Rhenü SpA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
       "industria": "Importacion / Exportacion",
+      "area": "Operaciones",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "DPS CHILE",
+      "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Mafem Limitada",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Ingeniería y Construcción MST SpA",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Sociedad Agricola La Rosa Sofruco S.A.",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Grupo Premier Chile",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "Agencia de Aduana Stephens",
+      "empresa": "GRUPO AUTOMOTRIZ CARTONI",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Paramount Gruas S.A. Chile",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Tellus",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "eleccon s.a.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Mintral",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Comercio Exterior / COMEX",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Fanaloza Chile",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-07-22",
+      "empresa": "TSE SpA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Max Service",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "INDUSTRIAS METALICAS CILGAS S.A.S.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "DIAS",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "JR Componentes",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "VIALCORP",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Climbers",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "positiva",
+      "estado_raw": "Reunión Agendada",
+      "fecha": "2026-07-08",
+      "empresa": "Terra Nova Technologies",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Otros",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "Grupo Premier Chile",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Otros",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "M&J Recycling",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-25",
+      "empresa": "MRI TRADING AG",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "Seven7",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Operaciones",
+      "resultado": "positiva",
+      "estado_raw": "Coordinando Reunión",
+      "fecha": "2026-06-25",
+      "empresa": "Ingmec Proyectos de Ingeniería y Montajes Ltda",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Otros",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Epiroc",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Abastecimiento / Compras",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "ACMA S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Pramec S.A.S.",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Operaciones",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "MEPSA SA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "F4F: food for future",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Direccion / Gerencia",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
+      "fecha": "2026-06-07",
+      "empresa": "Galenica",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Salud y Farma",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "International Clinics",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Club de Perros y Gatos",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "Visauco",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Industrias Metalurgicas Sorena S.A",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Dercocenter Aspillaga Hornauer",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Constructora El Toqui Ltda",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Comercial / Ventas",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "ACMA S.A.",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "HEREDIA ^ SANTANA",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "NewSteel Latam",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Sin clasificar",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Buses JM",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Operaciones",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Boarder Logistics",
       "tema": "Servicio integral puerta a puerta"
     },
     {
@@ -1418,18 +3537,9 @@
       "area": "Logistica / Supply Chain",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Inversierra S.A",
+      "fecha": "2026-07-22",
+      "empresa": "Vanni Chile",
       "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Construccion y Materiales",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Ferrara",
-      "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
       "industria": "Alimentos, Bebidas y Agro",
@@ -1513,6 +3623,15 @@
       "tema": "Carga temperada (vino y alimentos)"
     },
     {
+      "industria": "Salud y Farma",
+      "area": "Operaciones",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-25",
+      "empresa": "The Singular Hotels",
+      "tema": "Un solo interlocutor logistico"
+    },
+    {
       "industria": "Alimentos, Bebidas y Agro",
       "area": "Direccion / Gerencia",
       "resultado": "no_contesta",
@@ -1529,6 +3648,42 @@
       "fecha": "2026-06-07",
       "empresa": "Q'uma Soluciones Gastronómicas",
       "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-25",
+      "empresa": "ITALMOD (iO - ASH - Ma Griffe - Italstore)",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Automotriz",
+      "area": "Direccion / Gerencia",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-25",
+      "empresa": "eBik",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Operaciones",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Baika Fruit",
+      "tema": "Carga temperada (vino y alimentos)"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Otros",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
+      "fecha": "2026-06-07",
+      "empresa": "Puerto Las Losas S.A.",
+      "tema": "Importacion de maquinaria y repuestos"
     },
     {
       "industria": "Sin clasificar",
@@ -1609,6 +3764,15 @@
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
       "empresa": "ELISE",
+      "tema": "Importacion de maquinaria y repuestos"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "resultado": "numero_malo",
+      "estado_raw": "Teléfono / Whatsapp no existen",
+      "fecha": "2026-06-07",
+      "empresa": "SDI Ingeniería",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -1738,112 +3902,13 @@
       "tema": "Carga temperada (vino y alimentos)"
     },
     {
-      "industria": "Salud y Farma",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Clínica Oftalmológica Pasteur",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
-      "industria": "Salud y Farma",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Clínica Cruz Nacional",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
-      "industria": "Salud y Farma",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Clínica Cruz Nacional",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
       "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Fabrics Chile",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Promusic",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Streetmachine",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Club de Perros y Gatos",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "deriva",
-      "estado_raw": "Deriva Refiere Directo",
-      "fecha": "2026-06-07",
-      "empresa": "Lo Saldes",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Street Machine",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "negativa",
-      "estado_raw": "No Interesado",
-      "fecha": "2026-06-07",
-      "empresa": "Rilan Ltda",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Automotriz",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Toyota Chile S.A.",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
       "resultado": "no_califica",
       "estado_raw": "No Califica",
       "fecha": "2026-06-07",
-      "empresa": "Minería & Servicios S.P.A.",
-      "tema": "Importacion de maquinaria y repuestos"
+      "empresa": "Streetmachine",
+      "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
       "industria": "Mineria y Metales",
@@ -1865,155 +3930,11 @@
     },
     {
       "industria": "Maquinaria e Industria",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "THK GmbH",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
       "area": "Abastecimiento / Compras",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
       "empresa": "Tecfluid Chile",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Automotriz",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "BMW Chile",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "numero_malo",
-      "estado_raw": "Teléfono / Whatsapp no existen",
-      "fecha": "2026-06-07",
-      "empresa": "Grupo PHN",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Midea Carrier Chile",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Mecamin Ltda.",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Automotriz",
-      "area": "Comercio Exterior / COMEX",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Toyota Chile S.A.",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "PROSEAL",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Fermaq Minería SpA",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Human Matter",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "negativa",
-      "estado_raw": "No Interesado",
-      "fecha": "2026-06-07",
-      "empresa": "Dukraft Rental",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Logistica / Supply Chain",
-      "resultado": "numero_malo",
-      "estado_raw": "Teléfono / Whatsapp no existen",
-      "fecha": "2026-06-07",
-      "empresa": "Protab",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "TECNOLOGIA EN TRANSPORTE DE MINERALES",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "negativa",
-      "estado_raw": "No Interesado",
-      "fecha": "2026-06-07",
-      "empresa": "Constructora El Toqui Ltda",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "negativa",
-      "estado_raw": "No Interesado",
-      "fecha": "2026-06-07",
-      "empresa": "Grupo ICL",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Haldeman Mining Company",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Geosinergia",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -2028,47 +3949,11 @@
     {
       "industria": "Automotriz",
       "area": "Abastecimiento / Compras",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
       "empresa": "LEÓN Servicio Automotriz",
       "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "ProCleanMG",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Exploraciones Mineras Andinas S.A. - Filial Codelco",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Abastecimiento / Compras",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Exploraciones Mineras Andinas S.A. - Filial Codelco",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "VIALCORP",
-      "tema": "Importacion de maquinaria y repuestos"
     },
     {
       "industria": "Automotriz",
@@ -2098,75 +3983,12 @@
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
-      "industria": "Maquinaria e Industria",
-      "area": "Comercio Exterior / COMEX",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Dipromed S.A",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
       "empresa": "Arce Geofisicos",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Head Chile",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Trex LA",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Comercio Exterior / COMEX",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Fanaloza Chile",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Climbers",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "RPM PARTS",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Logistica / Supply Chain",
-      "resultado": "positiva",
-      "estado_raw": "Reunión Agendada",
-      "fecha": "2026-06-18",
-      "empresa": "Fundición Ferrosa",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -2285,42 +4107,6 @@
       "fecha": "2026-06-07",
       "empresa": "LUVAL S.A.",
       "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Zulogística",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Sin clasificar",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "ELOG Chile",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "ASPharma Chile SpA",
-      "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Lamaignere Cargo",
-      "tema": "Servicio integral puerta a puerta"
     },
     {
       "industria": "Alimentos, Bebidas y Agro",
@@ -2573,15 +4359,6 @@
       "fecha": "2026-06-07",
       "empresa": "MADEGOM",
       "tema": "Servicio integral puerta a puerta"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Mintral",
-      "tema": "Importacion de maquinaria y repuestos"
     },
     {
       "industria": "Mineria y Metales",
@@ -3070,15 +4847,6 @@
       "tema": "Un solo interlocutor logistico"
     },
     {
-      "industria": "Salud y Farma",
-      "area": "Direccion / Gerencia",
-      "resultado": "deriva",
-      "estado_raw": "Deriva Refiere Directo",
-      "fecha": "2026-06-07",
-      "empresa": "Galenica",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
       "industria": "Maquinaria e Industria",
       "area": "Operaciones",
       "resultado": "numero_malo",
@@ -3098,38 +4866,11 @@
     },
     {
       "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Tellus",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "CPS Conveyors - América Latina",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
+      "area": "Operaciones",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
       "empresa": "MV MONTAJES",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "negativa",
-      "estado_raw": "No Interesado",
-      "fecha": "2026-06-07",
-      "empresa": "Mantelech Ingenieria ltda.",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -3143,47 +4884,11 @@
     },
     {
       "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Amira Global",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
       "resultado": "no_contesta",
       "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
       "empresa": "GYMSA",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Logistica / Supply Chain",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Trex LA",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Maquinaria e Industria",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Head Chile",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Terra Nova Technologies",
       "tema": "Importacion de maquinaria y repuestos"
     },
     {
@@ -3194,24 +4899,6 @@
       "fecha": "2026-06-07",
       "empresa": "Adium Chile",
       "tema": "Un solo interlocutor logistico"
-    },
-    {
-      "industria": "Mineria y Metales",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "Terra Nova Technologies",
-      "tema": "Importacion de maquinaria y repuestos"
-    },
-    {
-      "industria": "Importacion / Exportacion",
-      "area": "Operaciones",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
-      "fecha": "2026-06-07",
-      "empresa": "DPS CHILE",
-      "tema": "Servicio integral puerta a puerta"
     },
     {
       "industria": "Sin clasificar",
@@ -3225,35 +4912,26 @@
     {
       "industria": "Retail y Consumo",
       "area": "Direccion / Gerencia",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "resultado": "deriva",
+      "estado_raw": "Deriva Refiere Directo",
       "fecha": "2026-06-07",
       "empresa": "LBF Insumos Médicos",
       "tema": "Reduccion de costos y visibilidad de carga"
     },
     {
-      "industria": "Construccion y Materiales",
-      "area": "Direccion / Gerencia",
-      "resultado": "positiva",
-      "estado_raw": "Reunión Agendada",
-      "fecha": "2026-06-07",
-      "empresa": "Tecnovial S.A.",
-      "tema": "Reduccion de costos y visibilidad de carga"
-    },
-    {
-      "industria": "Sin clasificar",
+      "industria": "Mineria y Metales",
       "area": "Otros",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
       "fecha": "2026-06-07",
-      "empresa": "Epiroc",
-      "tema": "Un solo interlocutor logistico"
+      "empresa": "SDI Ingeniería",
+      "tema": "Importacion de maquinaria y repuestos"
     },
     {
       "industria": "Construccion y Materiales",
       "area": "Abastecimiento / Compras",
-      "resultado": "no_contesta",
-      "estado_raw": "No Contesta",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
       "fecha": "2026-06-07",
       "empresa": "Constructora Ignacio Hurtado",
       "tema": "Reduccion de costos y visibilidad de carga"
@@ -3261,35 +4939,48 @@
     {
       "industria": "Importacion / Exportacion",
       "area": "Otros",
-      "resultado": "positiva",
-      "estado_raw": "Reunión Agendada",
+      "resultado": "no_califica",
+      "estado_raw": "No Califica",
       "fecha": "2026-06-07",
       "empresa": "Santibañez Customs Broker",
       "tema": "Servicio integral puerta a puerta"
     },
     {
-      "industria": "Sin clasificar",
-      "area": "Sin clasificar",
-      "resultado": "no_califica",
-      "estado_raw": "No Califica",
-      "fecha": "2026-06-07",
-      "empresa": "Onboard Logistics Group",
-      "tema": "Un solo interlocutor logistico"
-    },
-    {
       "industria": "Importacion / Exportacion",
       "area": "Comercio Exterior / COMEX",
-      "resultado": "positiva",
-      "estado_raw": "Reunión Agendada",
-      "fecha": "2026-06-18",
-      "empresa": "CRISPIERI IMPORTADORA LIMITADA",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Agencia de Aduanas Manuel Fernández Miranda MFM",
       "tema": "Servicio integral puerta a puerta"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "resultado": "negativa",
+      "estado_raw": "No Interesado",
+      "fecha": "2026-06-07",
+      "empresa": "Macal",
+      "tema": "Reduccion de costos y visibilidad de carga"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Logistica / Supply Chain",
+      "resultado": "no_contesta",
+      "estado_raw": "No Contesta",
+      "fecha": "2026-06-07",
+      "empresa": "Head Chile",
+      "tema": "Importacion de maquinaria y repuestos"
     }
   ],
   "reuniones_por_segmento": [
     {
       "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia"
+      "area": "Abastecimiento / Compras"
+    },
+    {
+      "industria": "Retail y Consumo",
+      "area": "Comercial / Ventas"
     },
     {
       "industria": "Mineria y Metales",
@@ -3308,12 +4999,16 @@
       "area": "Operaciones"
     },
     {
-      "industria": "Importacion / Exportacion",
-      "area": "Otros"
+      "industria": "Salud y Farma",
+      "area": "Logistica / Supply Chain"
     },
     {
       "industria": "Importacion / Exportacion",
       "area": "Comercio Exterior / COMEX"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Otros"
     },
     {
       "industria": "Retail y Consumo",
@@ -3321,6 +5016,10 @@
     },
     {
       "industria": "Sin clasificar",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia"
     },
     {
@@ -3333,7 +5032,15 @@
     },
     {
       "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia"
+      "area": "Abastecimiento / Compras"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Comercio Exterior / COMEX"
     },
     {
       "industria": "Mineria y Metales",
@@ -3344,8 +5051,60 @@
       "area": "Direccion / Gerencia"
     },
     {
+      "industria": "Mineria y Metales",
+      "area": "Otros"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Sin clasificar",
+      "area": "Comercio Exterior / COMEX"
+    },
+    {
       "industria": "Maquinaria e Industria",
       "area": "Comercio Exterior / COMEX"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Logistica / Supply Chain"
+    },
+    {
+      "industria": "Maquinaria e Industria",
+      "area": "Comercio Exterior / COMEX"
+    },
+    {
+      "industria": "Importacion / Exportacion",
+      "area": "Otros"
+    },
+    {
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Comercio Exterior / COMEX"
+    },
+    {
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia"
+    },
+    {
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia"
     },
     {
       "industria": "Construccion y Materiales",
@@ -3361,6 +5120,111 @@
   },
   "empresas_positivas": [
     {
+      "empresa": "MEDIZINTECHNIK S A",
+      "estado": "Reunion agendada",
+      "industria": "Retail y Consumo",
+      "area": "Comercial / Ventas",
+      "fecha": "2026-06-18"
+    },
+    {
+      "empresa": "Empresas PlanVe",
+      "estado": "Reunion agendada",
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Terra Nova Technologies",
+      "estado": "Reunion agendada",
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras",
+      "fecha": "2026-07-08"
+    },
+    {
+      "empresa": "FERPI TRANSPORTES Y OBRAS S.A",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Construccion y Materiales",
+      "area": "Operaciones",
+      "fecha": "2026-06-25"
+    },
+    {
+      "empresa": "TECNOLOGIA EN TRANSPORTE DE MINERALES",
+      "estado": "Reunion agendada",
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Dipromed S.A",
+      "estado": "Informacion adicional",
+      "industria": "Maquinaria e Industria",
+      "area": "Comercio Exterior / COMEX",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Vermi SAC",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Logistica / Supply Chain",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Woodgrove Technologies Inc.",
+      "estado": "Reunion agendada",
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Grupo Sinec",
+      "estado": "Coordinando reunion",
+      "industria": "Construccion y Materiales",
+      "area": "Logistica / Supply Chain",
+      "fecha": "2026-06-25"
+    },
+    {
+      "empresa": "Torres Ocaranza",
+      "estado": "Coordinando reunion",
+      "industria": "Construccion y Materiales",
+      "area": "Abastecimiento / Compras",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "SURAC",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Maquinaria e Industria",
+      "area": "Logistica / Supply Chain",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Compania Mantos De La Luna S A",
+      "estado": "Reunion agendada",
+      "industria": "Mineria y Metales",
+      "area": "Abastecimiento / Compras",
+      "fecha": "2026-06-25"
+    },
+    {
+      "empresa": "Fundición Ferrosa",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Empresas Maxagro",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Alimentos, Bebidas y Agro",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "CKF Soluciones",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Mineria y Metales",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
+    },
+    {
       "empresa": "RUBI Group",
       "estado": "Reunion agendada",
       "industria": "Maquinaria e Industria",
@@ -3375,45 +5239,66 @@
       "fecha": "2026-06-07"
     },
     {
-      "empresa": "Kraft Heinz",
-      "estado": "Reunion agendada",
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Comercio Exterior / COMEX",
-      "fecha": "2026-06-15"
+      "empresa": "Lo Saldes",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Aislapol",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Construccion y Materiales",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
     },
     {
       "empresa": "Rock Point",
-      "estado": "Reunion agendada",
-      "industria": "Mineria y Metales",
-      "area": "Otros",
-      "fecha": "2026-06-22"
-    },
-    {
-      "empresa": "Empresas PlanVe",
-      "estado": "Reunion agendada",
+      "estado": "Deriva / refiere a decisor",
       "industria": "Mineria y Metales",
       "area": "Direccion / Gerencia",
       "fecha": "2026-06-07"
     },
     {
-      "empresa": "Torres Ocaranza",
-      "estado": "Coordinando reunion",
+      "empresa": "Street Machine",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
+      "fecha": "2026-06-07"
+    },
+    {
+      "empresa": "Soletanche Bachy Chile",
+      "estado": "Informacion adicional",
       "industria": "Construccion y Materiales",
       "area": "Abastecimiento / Compras",
       "fecha": "2026-06-07"
     },
     {
-      "empresa": "Vermi SAC",
-      "estado": "Deriva / refiere a decisor",
-      "industria": "Alimentos, Bebidas y Agro",
+      "empresa": "SIITEC Ingenieros S.A.",
+      "estado": "Coordinando reunion",
+      "industria": "Mineria y Metales",
       "area": "Logistica / Supply Chain",
+      "fecha": "2026-06-25"
+    },
+    {
+      "empresa": "ENERGUIAS",
+      "estado": "Reunion agendada",
+      "industria": "Sin clasificar",
+      "area": "Comercio Exterior / COMEX",
+      "fecha": "2026-07-28"
+    },
+    {
+      "empresa": "LBF Insumos Médicos",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Retail y Consumo",
+      "area": "Direccion / Gerencia",
       "fecha": "2026-06-07"
     },
     {
-      "empresa": "MEDIZINA TECHNIK",
+      "empresa": "CRISPIERI IMPORTADORA LIMITADA",
       "estado": "Reunion agendada",
-      "industria": "Retail y Consumo",
-      "area": "Comercial / Ventas",
+      "industria": "Importacion / Exportacion",
+      "area": "Comercio Exterior / COMEX",
       "fecha": "2026-06-18"
     },
     {
@@ -3424,66 +5309,10 @@
       "fecha": "2026-06-18"
     },
     {
-      "empresa": "AREACOMEX",
-      "estado": "Coordinando reunion",
-      "industria": "Importacion / Exportacion",
-      "area": "Otros",
-      "fecha": "2026-06-07"
-    },
-    {
-      "empresa": "Autorel",
+      "empresa": "Kraft Heinz",
       "estado": "Reunion agendada",
-      "industria": "Maquinaria e Industria",
-      "area": "Finanzas / Administracion",
-      "fecha": "2026-06-17"
-    },
-    {
-      "empresa": "Lo Saldes",
-      "estado": "Deriva / refiere a decisor",
-      "industria": "Retail y Consumo",
-      "area": "Direccion / Gerencia",
-      "fecha": "2026-06-07"
-    },
-    {
-      "empresa": "Fundición Ferrosa",
-      "estado": "Deriva / refiere a decisor",
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "fecha": "2026-06-07"
-    },
-    {
-      "empresa": "AGROLAC - Alimentos Agrícolas y Lácteos SAC",
-      "estado": "Deriva / refiere a decisor",
       "industria": "Alimentos, Bebidas y Agro",
-      "area": "Direccion / Gerencia",
-      "fecha": "2026-06-07"
-    },
-    {
-      "empresa": "Nutri Co",
-      "estado": "Deriva / refiere a decisor",
-      "industria": "Alimentos, Bebidas y Agro",
-      "area": "Direccion / Gerencia",
-      "fecha": "2026-06-07"
-    },
-    {
-      "empresa": "Minera Colquisiri S.A.",
-      "estado": "Reunion agendada",
-      "industria": "Mineria y Metales",
-      "area": "Direccion / Gerencia",
-      "fecha": "2026-06-07"
-    },
-    {
-      "empresa": "Galenica",
-      "estado": "Deriva / refiere a decisor",
-      "industria": "Salud y Farma",
-      "area": "Direccion / Gerencia",
-      "fecha": "2026-06-07"
-    },
-    {
-      "empresa": "Dysmar Soluciones industriales",
-      "estado": "Reunion agendada",
-      "industria": "Sin clasificar",
-      "area": "Direccion / Gerencia",
+      "area": "Comercio Exterior / COMEX",
       "fecha": "2026-06-15"
     },
     {
@@ -3494,18 +5323,11 @@
       "fecha": "2026-06-07"
     },
     {
-      "empresa": "Santibañez Customs Broker",
-      "estado": "Reunion agendada",
-      "industria": "Importacion / Exportacion",
+      "empresa": "MRI TRADING AG",
+      "estado": "Deriva / refiere a decisor",
+      "industria": "Mineria y Metales",
       "area": "Otros",
-      "fecha": "2026-06-07"
-    },
-    {
-      "empresa": "CRISPIERI IMPORTADORA LIMITADA",
-      "estado": "Reunion agendada",
-      "industria": "Importacion / Exportacion",
-      "area": "Comercio Exterior / COMEX",
-      "fecha": "2026-06-18"
+      "fecha": "2026-06-25"
     }
   ]
 }

@@ -328,11 +328,11 @@ def test_handle_message_texto_suelto_con_agendar_pendiente_no_consume_tarea_viej
     assert PENDING_AGENDAR_TITLE[("bambutech", 111)]["stage"] == "confirm"
 
 
-def test_client_calendar_config_tiene_bambutech_y_gbs_pero_no_balia():
-    # bambutech y gbs tienen calendario cableado; balia todavia no.
+def test_client_calendar_config_tiene_bambutech_gbs_y_balia():
+    # bambutech, gbs y balia (calendario "BALIA B") tienen calendario cableado.
     assert "bambutech" in CLIENT_CALENDAR_CONFIG
     assert "gbs" in CLIENT_CALENDAR_CONFIG
-    assert "balia" not in CLIENT_CALENDAR_CONFIG
+    assert CLIENT_CALENDAR_CONFIG["balia"]["calendar_id"] == "2chaXy63L9xltYeM71xP"
 
 
 def test_handle_agendar_callback_gbs_ahora_funciona():
@@ -354,12 +354,12 @@ def test_handle_agendar_callback_gbs_ahora_funciona():
     assert "no está configurado" not in telegram.send_message.call_args[0][1]
 
 
-def test_handle_agendar_callback_balia_sigue_sin_configurar():
+def test_handle_agendar_callback_cliente_sin_calendario_no_configurado():
     _clear_all_pending()
     ghl = MagicMock()
     telegram = MagicMock()
 
-    handle_agendar_callback("contact-1", 111, "balia", ghl, telegram)
+    handle_agendar_callback("contact-1", 111, "cliente_sin_calendario", ghl, telegram)
 
     ghl.free_slots.assert_not_called()
     telegram.send_message.assert_called_once_with(111, "⚠️ Todavía no está configurado el calendario de este cliente")

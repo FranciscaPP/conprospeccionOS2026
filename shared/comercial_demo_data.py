@@ -8,7 +8,91 @@ from __future__ import annotations
 from datetime import date
 
 
+DEMO_DATA_VERSION = "2026-08-12-nadilop-v9"
+
+
 DEMO_OPPORTUNITIES = [
+    {
+        "id": "opp-nadilop-2026-08-12",
+        "company": "Nadilop",
+        "contact": "Nicole Diaz",
+        "role": "Contacto comercial",
+        "email": "nicole.diaz@nadilop.cl",
+        "phone": "+56 2 3375 1100",
+        "website": "https://nadilop.cl/",
+        "linkedin_person": "",
+        "linkedin_company": "https://www.linkedin.com/company/nadilop/",
+        "industry": "Servicios TI / tecnologia B2B",
+        "country": "Chile",
+        "source": "Reunion comercial",
+        "campaign": "Presentacion comercial CP",
+        "owner": "Francisca",
+        "scheduled_at": "2026-08-12",
+        "meeting_at": "2026-08-12",
+        "proposal_sent_at": "",
+        "status": "Preparacion lista",
+        "score": 84,
+        "score_level": "Alto",
+        "last_contact": "2026-08-12",
+        "next_followup": "Validar foco comercial en reunion",
+        "updated_at": "2026-08-12",
+        "notes": (
+            "Empresa chilena de servicios tecnologicos para empresas. Desde su sitio y LinkedIn aparece "
+            "un foco fuerte en infraestructura critica, plataforma usuario, respaldo, continuidad "
+            "operativa, licenciamiento, soporte y soluciones a medida."
+        ),
+        "meeting_link": "",
+        "calendar_link": "",
+        "recording_ref": "",
+        "transcript": "",
+        "meeting_summary": "",
+        "preparation": {
+            "state": "Aprobado para presentar",
+            "generated_at": "2026-08-12 09:00",
+            "content": (
+                "Vemos una empresa ya validada comercialmente: mas de 14 anos, +200 proyectos y una "
+                "facturacion anual declarada superior a US$2,5 millones. Su fortaleza parece estar en "
+                "resolver necesidades donde la continuidad tecnologica es critica, con experiencia "
+                "comprobable en grandes empresas. Nuestra hipotesis es que el desafio no esta en validar "
+                "su capacidad tecnica, sino en transformar esa experiencia en un crecimiento comercial "
+                "mas sistematico y predecible."
+            ),
+            "source_context": "Sitio web Nadilop + LinkedIn empresa + datos entregados para la reunion.",
+        },
+        "intro_sections": [
+            ("Escala y tracción", "+14 años, +200 proyectos y +US$2,5M de facturación anual declarada. LinkedIn muestra actualmente 17 colaboradores asociados a la empresa."),
+            ("Validación comercial", "Experiencia declarada en energía, minería, agroindustria, retail, medios y televisión, salud y servicios financieros."),
+            ("Clientes visibles", "Entre los clientes visibles aparecen CGE, SQM, Legrand, Mega, Canal 13, TVN, Estée Lauder y Bolsa de Santiago."),
+            ("Concentración observada", "Medios y TV aparece como uno de los clusters más repetidos, con Mega, Canal 13, TVN y RDF Media."),
+            ("Qué activa una compra", "Sus casos apuntan a renovación de infraestructura, continuidad operacional, protección de datos, respaldo y modernización tecnológica."),
+            ("Hipótesis comercial", "El mejor prospecto sería una organización donde una caída, infraestructura obsoleta o problemas de respaldo tienen impacto operacional."),
+            ("A validar en la reunión", "Línea a acelerar, ticket promedio, cliente más rentable, ciclo de venta, industrias prioritarias y expansión a nuevas cuentas vs. crecimiento en cuentas actuales."),
+        ],
+        "diagnostic": {"state": "Sin generar", "generated_at": "", "answers": []},
+        "market_research": {
+            "state": "Preparacion inicial",
+            "generated_at": "2026-08-12 09:10",
+            "recommendation": (
+                "Validar si el primer alcance sera infraestructura critica, plataforma usuario, "
+                "licenciamiento/soporte o una combinacion por industrias prioritarias."
+            ),
+            "difficulty": "Media",
+            "summary": (
+                "Mercado B2B amplio y consultivo. Posibles industrias prioritarias: energia, mineria, "
+                "agroindustria, retail, salud, servicios financieros, medios y television."
+            ),
+        },
+        "proposals": [],
+        "followups": [
+            ("Preparar reunion", "2026-08-12", "Pendiente", "Mostrar evaluacion previa y validar preguntas clave."),
+            ("Enviar propuesta", "Pendiente", "Pendiente", "Generar despues de la reunion con alcance y precio sugerido."),
+        ],
+        "emails": [],
+        "history": [
+            ("2026-08-12 09:00", "manual", "Oportunidad creada para reunion de presentacion"),
+            ("2026-08-12 09:10", "manual", "Evaluacion previa preparada desde web, LinkedIn y datos entregados"),
+        ],
+    },
     {
         "id": "opp-demo-001",
         "company": "Andes SaaS",
@@ -235,13 +319,8 @@ DEMO_OPPORTUNITIES = [
 
 DEMO_SETTINGS = {
     "links": {
-        "Onboarding e ICP": "",
-        "Playbook SDR": "",
-        "Portal demo": "",
-        "Intelligence Insight": "",
+        "Plataforma cliente": "https://conprospeccionos2026-demo.streamlit.app/",
         "Base de datos de ejemplo": "",
-        "Briefing Comercial": "",
-        "PDF institucional": "",
     },
     "score_weights": {
         "Tamano del mercado": 12,
@@ -275,7 +354,7 @@ DEMO_SETTINGS = {
 }
 
 
-STANDARD_PRESENTATION = [
+LEGACY_STANDARD_PRESENTATION = [
     {
         "title": "Que hacemos",
         "headline": "Operamos la prospeccion comercial de tu empresa",
@@ -332,17 +411,93 @@ STANDARD_PRESENTATION = [
 ]
 
 
+STANDARD_PRESENTATION = [
+    {
+        "layout": "cover",
+        "title": "Prospección B2B que abre mercado y genera oportunidades",
+        "headline": "Estrategia, inteligencia comercial y activacion multicanal",
+        "body": (
+            "Operamos la prospección para que tu equipo comercial se concentre en cerrar ventas."
+        ),
+        "sections": [
+            ("Presentación comercial 2026", "Confidencial - Conprospección"),
+        ],
+    },
+    {
+        "layout": "challenge",
+        "title": "El desafío: crecer exige un sistema",
+        "headline": "Abrir mercado requiere coordinar cuatro preguntas clave",
+        "body": (
+            "Abrir un nuevo mercado o industria requiere un sistema coordinado que responda "
+            "preguntas fundamentales de forma integrada, no como esfuerzos aislados."
+        ),
+        "sections": [
+            ("¿Dónde existe una oportunidad real?", "Identificación de mercados, países e industrias con alta demanda y potencial de apertura."),
+            ("¿Qué empresas tienen potencial?", "Definición del cliente ideal para filtrar solo las cuentas con valor estratégico."),
+            ("¿Quién es el decisor correcto?", "Localización de las personas con autoridad o influencia para avanzar comercialmente."),
+            ("¿Cómo generar una reunión?", "Activación de canales, mensajes y seguimiento para convertir interés en una oportunidad agendada."),
+        ],
+        "flow": ["Mercado", "Prospectos", "Conversaciones", "Oportunidades"],
+    },
+    {
+        "layout": "services",
+        "title": "Dos servicios. Un mismo objetivo.",
+        "headline": "Conprospección 2026 | Estrategia de crecimiento",
+        "body": (
+            "Ofrecemos la gestión completa del proceso de prospección o construimos la inteligencia comercial "
+            "para que el equipo del cliente la ejecute internamente."
+        ),
+        "sections": [
+            ("Gestión de prospección", "Diseñamos, implementamos y gestionamos campañas para abrir mercado, generar conversaciones y agendar reuniones calificadas directamente en tu calendario."),
+            ("Inteligencia y bases", "Construimos universos de empresas y decisores segmentados, enriquecidos y validados según tu ICP, listos para ser activados por tu fuerza de ventas."),
+        ],
+    },
+    {
+        "layout": "operation",
+        "title": "Cómo operamos",
+        "headline": "De la estrategia de datos a campañas multicanal",
+        "body": (
+            "No solo implementamos campañas. Primero definimos desde dónde extraer oportunidades "
+            "y luego activamos correo, WhatsApp, llamadas y seguimiento para convertirlas en reuniones."
+        ),
+        "sections": [
+            ("Señales de intención de compra", "Detectamos publicaciones, frases, problemas o requerimientos que muestran una posible necesidad concreta. Luego identificamos empresa, decisores y datos de contacto."),
+            ("ICP + Buyer Persona", "Definimos país, industria, tamaño, facturación si aplica, tecnologías y cargos que participan en la decisión. Con eso construimos la base."),
+            ("Cuentas objetivo del cliente", "El cliente puede entregar solo nombres de empresas. Conprospección identifica los buyer personas adecuados, obtiene sus datos y ejecuta la prospección."),
+            ("Empresas similares o lookalike", "Partimos de clientes actuales, históricos o casos de éxito y buscamos empresas con características similares de industria, tamaño, modelo, ubicación o necesidad."),
+        ],
+        "flow": ["Estrategia", "Datos", "Campañas multicanal", "Seguimiento", "Reunión"],
+    },
+    {
+        "layout": "next",
+        "title": "Cómo seguimos después de esta reunión",
+        "headline": "De la conversacion a una propuesta personalizada",
+        "body": (
+            "Con la información conversada, evaluamos mercado, definimos alcance y enviamos una propuesta "
+            "personalizada junto al brochure comercial."
+        ),
+        "sections": [
+            ("Propuesta personalizada", "Resumen del caso, oportunidad de mercado, alcance recomendado, inversión y próximos pasos."),
+            ("Lectura de mercado", "Insights clave, oportunidades, riesgos e industrias o segmentos sugeridos."),
+            ("Alcance recomendado", "Enfoque, fuentes, cobertura, canales y condiciones para alcanzar el objetivo."),
+            ("Seguimiento comercial", "Despues del envio, dejamos programado el seguimiento de propuesta para no perder continuidad."),
+        ],
+        "flow": ["Validamos foco", "Investigamos mercado", "Definimos alcance", "Enviamos propuesta", "Activamos seguimiento"],
+    },
+]
+
+
 BRIEFING_DEMO = {
-    "company": "Andes SaaS",
-    "contact": "Valentina Rojas",
-    "role": "Gerenta Comercial",
-    "industry": "Software B2B",
-    "origin": "Referido",
-    "context": "Busca evaluar prospeccion externa para abrir mercado regional.",
-    "topics": "ICP, ticket promedio, paises prioritarios, cargos compradores.",
-    "interest": "Alto interes en reuniones calificadas con medicion de conversion.",
-    "need": "Aumentar conversaciones comerciales sin cargar al equipo interno.",
-    "objections": "Quiere validar calidad de bases y control de reputacion.",
-    "recommendations": "Abrir con resumen del modelo, validar presupuesto y mostrar ejemplo de briefing.",
+    "company": "Nadilop",
+    "contact": "Nicole Diaz",
+    "role": "Contacto comercial",
+    "industry": "Servicios TI / tecnologia B2B",
+    "origin": "Reunion comercial",
+    "context": "Empresa de servicios tecnologicos B2B con foco en infraestructura, soporte, licenciamiento y continuidad operativa.",
+    "topics": "Linea comercial a priorizar, industrias objetivo, cargos compradores, cuentas definidas y objetivo de prospeccion.",
+    "interest": "Validar si Conprospeccion puede abrir conversaciones con empresas y cargos tecnicos/comerciales relevantes.",
+    "need": "Ordenar prospeccion y agendamiento sin depender solo de referidos o ventas internas.",
+    "objections": "Validar calidad de contactos, proteccion de marca, foco de mercado y capacidad de seguimiento.",
+    "recommendations": "Comenzar mostrando lo investigado, validar el servicio a prospectar y preguntar si trabajaremos por cliente ideal, cuentas definidas o ambas rutas.",
     "owner": "Francisca",
 }

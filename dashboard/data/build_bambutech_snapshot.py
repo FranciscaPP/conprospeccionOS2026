@@ -1,20 +1,56 @@
 """
-Consolida la prospección real de BambuTech en un snapshot (sin PII) que lee
-la página Intelligence Insight. Cruza: llamadas/WhatsApp + correo + empresas
-objetivo. Se corre 1×/mes con los exports nuevos.
+Consolida la prospeccion real de BambuTech en un snapshot (sin PII) que lee
+la pagina Intelligence Insight. Cruza: llamadas/WhatsApp + correo + empresas
+objetivo.
+
+Fuente de RESULTADOS (llamadas/WhatsApp): Supabase `contactos` (cliente_slug=
+bambutech), alimentado desde GoHighLevel por el sync nocturno. Ya no depende de
+un export manual GHL.csv.
+
+Fuente de CORREO (agregados): Supabase `snov_campaign_metrics`. Si esa tabla no
+tiene metricas frescas de bambutech (p. ej. la cuenta Snov choca con rate limit),
+se usa CORREO_FALLBACK y se avisa por consola para que se actualice a mano con las
+cifras del panel.
+
+Universo de correo + empresas objetivo: listas exportadas (xlsx/csv) en la
+carpeta origen (por defecto ~/Downloads); los conteos son sobre SETS de emails/
+empresas, asi que archivos repetidos son idempotentes.
 
 Uso:
     python dashboard/data/build_bambutech_snapshot.py [carpeta_origen]
 
 Salida: dashboard/data/bambutech_intelligence.json  (solo dimensiones/agregados)
-NUNCA escribe nombres/emails/teléfonos de contactos en la salida.
+NUNCA escribe nombres/emails/telefonos de contactos en la salida.
 """
 import sys, re, json, glob, unicodedata
+from datetime import date
 from pathlib import Path
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "sync" / "scripts"))
+from config import get_settings  # noqa: E402
+from supabase_rest import SupabaseRestClient  # noqa: E402
+
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.home() / "Downloads"
 OUT = Path(__file__).resolve().parent / "bambutech_intelligence.json"
+
+# --- IDs de custom field de la location BambuTech (FJ1YCwi4UVvwcBb8qlOb) ---
+CF_STATUS = "m3cYnSBB5t6WPArnU67e"   # STATUS PROSPECTO
+CF_CANAL = "pxaRGkfmT0ATBc2TvxCt"    # CANAL DE CONTACTO
+CF_MACRO_IND = "xoBxn9yxTX7irSmlG7an"  # MACRO INDUSTRIA
+CF_CARGO_MACRO = "mWjVPW2PODOJWzAF3DBb"  # CARGO MACRO
+
+# Periodo del reporte. Inicio = arranque real de prospeccion; fin = hoy.
+PERIODO_INICIO = "2026-05-18"
+PERIODO_FIN = date.today().isoformat()
+
+# Agregados de correo del panel (Snov). Se usan solo si Supabase no trae metricas
+# frescas de bambutech. ACTUALIZAR A MANO con las cifras del panel cuando cambien.
+# Cifras dadas por la clienta (jul->hoy): 811 contactos en julio + 157 a la fecha
+# = 968 contactos por correo; 7 respuestas, todas negativas. Rebotes/bajas sin dato -> 0.
+CORREO_FALLBACK = {"enviados": 968, "contactados": 968, "entregados": 968,
+                   "rebotes": 0, "respuestas": 7, "respuestas_negativas": 7,
+                   "auto_respuestas": 0, "bajas": 0}
 
 
 def norm(x):
@@ -162,60 +198,115 @@ def bucket(status):
     return ""
 
 
-def main():
-    # ===== 1) GHL: llamadas + WhatsApp (resultados reales) =====
-    g = pd.read_csv(SRC / "GHL.csv", dtype=str, encoding="utf-8", on_bad_lines="skip")
-    c_status = find(g, "STATUS", "PROSP")
-    c_canal = find(g, "CANAL")
-    c_ind = find(g, "MACRO", "INDUS")
-    c_ind_raw = next((c for c in g.columns if str(c).strip().lower() == "industria"), None)
-    c_cargo_m = find(g, "CARGO", "MACRO")
-    c_cargo = find(g, "CARGO") if find(g, "CARGO") != c_cargo_m else None
-    c_email = find(g, "EMAIL")
-    c_emp = find(g, "BUSINESS")
-    c_created = find(g, "CREATED")
-    c_activity = find(g, "LAST", "ACTIVITY")
-    c_meeting_info = find(g, "INFORMACI", "REUNI")
+def cf_value(custom_fields, field_id):
+    """Valor de un custom field de GHL por id, desde el array crudo de Supabase."""
+    for cf in custom_fields or []:
+        if isinstance(cf, dict) and cf.get("id") == field_id:
+            return cf.get("value")
+    return None
 
-    # ===== campaña por membresía en listas de correo (Snov) =====
-    camp_por_email = {}
-    snov_emails = set()
-    snov_files = sorted(glob.glob(str(SRC / "bambutech*.xlsx")))
+
+def correo_desde_supabase(supabase):
+    """Agregados de correo desde snov_campaign_metrics (suma de campañas bambutech)."""
+    rows = supabase.select(
+        "snov_campaign_metrics",
+        "recipients_contacted,emails_sent,email_replies,auto_replied,bounced,unsubscribed",
+        cliente_slug="eq.bambutech",
+    )
+    if not rows:
+        return None
+    def s(k):
+        return int(sum((r.get(k) or 0) for r in rows))
+    enviados = s("emails_sent")
+    rebotes = s("bounced")
+    return {
+        "enviados": enviados,
+        "contactados": s("recipients_contacted"),
+        "entregados": max(enviados - rebotes, 0),
+        "rebotes": rebotes,
+        "respuestas": s("email_replies"),
+        "auto_respuestas": s("auto_replied"),
+        "bajas": s("unsubscribed"),
+    }
+
+
+def leer_listas_correo(src):
+    """Universo de correo (emails) + campaña por email + set de empresas prospectadas,
+    desde listas Snov exportadas (xlsx o csv). Idempotente ante archivos repetidos."""
     CAMP_NICE = {
         "logistica": "Logística", "retail": "Retail",
         "op-critica": "Op. Crítica y Continuidad", "tecnologia": "Tecnología",
         "servicios": "Servicios", "final-15-junio": "Campaña 15 Junio",
-        "campana_mx_final": "Campaña MX",
+        "campana_mx_final": "Campaña MX", "mineria-ti": "Minería / TI",
+        "21-de-julio": "Campaña 21 Julio", "rrhh": "RRHH",
     }
-    for f in snov_files:
-        d = pd.read_excel(f, dtype=str)
-        ce = find(d, "EMAIL") or find(d, "CORREO")
-        if not ce:
+    # Exports de campaña Snov: convención con guion (bambutech-<segmento>) en xlsx/csv,
+    # más la lista RRHH. Excluye adrede staging de import, FAQ y señales sueltas.
+    patrones = ["bambutech*.xlsx", "bambutech-*.csv", "rrhh-bambutech*.csv"]
+    archivos = sorted({f for p in patrones for f in glob.glob(str(src / p))})
+    camp_por_email, snov_emails, prospec = {}, set(), set()
+    for f in archivos:
+        try:
+            if f.lower().endswith(("xlsx", "xls")):
+                d = pd.read_excel(f, dtype=str)
+            else:
+                try:
+                    d = pd.read_csv(f, dtype=str, on_bad_lines="skip")
+                except UnicodeDecodeError:
+                    d = pd.read_csv(f, dtype=str, on_bad_lines="skip", encoding="latin-1")
+        except Exception as exc:  # noqa: BLE001
+            print("  (aviso) no se pudo leer", Path(f).name, "->", exc)
             continue
         name = Path(f).stem.lower()
         camp = next((v for k, v in CAMP_NICE.items() if k in name), "Correo")
-        for e in d[ce].dropna().map(lambda x: str(x).lower().strip()):
-            if e:
-                snov_emails.add(e)
-                camp_por_email.setdefault(e, camp)
+        ce = find(d, "EMAIL") or find(d, "CORREO")
+        if ce:
+            for e in d[ce].dropna().map(lambda x: str(x).lower().strip()):
+                if e:
+                    snov_emails.add(e)
+                    camp_por_email.setdefault(e, camp)
+        cc = find(d, "Company name") or find(d, "NOMBRE", "EMPRESA") or find(d, "EMPRESA")
+        if cc:
+            prospec |= set(d[cc].dropna().map(norm)) - {""}
+    return camp_por_email, snov_emails, prospec, archivos
+
+
+def main():
+    settings = get_settings()
+    supabase = SupabaseRestClient(settings.supabase_url, settings.supabase_secret_key)
+
+    # ===== 1) Resultados reales (llamadas/WhatsApp) desde Supabase =====
+    contactos = supabase.select_all(
+        "contactos",
+        "nombre_empresa,email,industria,cargo,informacion_reunion,"
+        "ghl_updated_at,ghl_created_at,custom_fields",
+        cliente_slug="eq.bambutech",
+    )
+    print("contactos bambutech en Supabase:", len(contactos))
+
+    camp_por_email, snov_emails, prospec_listas, archivos = leer_listas_correo(SRC)
 
     records = []  # solo dimensiones (sin PII)
     empresas_pos = []
-    for _, r in g.iterrows():
-        status_raw = str(r.get(c_status) or "").strip()
+    ghl_emails = set()
+    for c in contactos:
+        email = str(c.get("email") or "").lower().strip()
+        if email:
+            ghl_emails.add(email)
+        cfs = c.get("custom_fields") or []
+        status_raw = str(cf_value(cfs, CF_STATUS) or "").strip()
         b = bucket(status_raw)
         if not b:
             continue  # solo contactos gestionados con resultado
-        email = str(r.get(c_email) or "").lower().strip()
-        canal_raw = str(r.get(c_canal) or "").strip().upper()
+        canal_raw = str(cf_value(cfs, CF_CANAL) or "").strip().upper()
         canal = {"WHATSAPP": "WhatsApp", "LLAMADA": "Llamadas", "CORREO": "Correo"}.get(
             canal_raw, "Llamadas")
-        industria = clean_ind(r.get(c_ind), r.get(c_ind_raw) if c_ind_raw else None)
-        area = area_de(r.get(c_cargo_m), r.get(c_cargo))
+        industria = clean_ind(cf_value(cfs, CF_MACRO_IND), c.get("industria"))
+        area = area_de(cf_value(cfs, CF_CARGO_MACRO), c.get("cargo"))
         campaign = camp_por_email.get(email, "Seguimiento multicanal")
-        empresa = company_display(r.get(c_emp))
-        fecha = activity_date(r.get(c_activity), r.get(c_created))
-        tema = message_theme(campaign, r.get(c_meeting_info))
+        empresa = company_display(c.get("nombre_empresa"))
+        fecha = activity_date(c.get("ghl_updated_at"), c.get("ghl_created_at"))
+        tema = message_theme(campaign, c.get("informacion_reunion"))
         records.append({
             "industria": industria,
             "area": area,
@@ -247,19 +338,16 @@ def main():
     df = pd.DataFrame(records)
 
     # ===== 2) Universo deduplicado (correo + llamadas/WhatsApp) =====
-    ghl_emails = set(g[c_email].dropna().map(lambda x: str(x).lower().strip())) - {""}
     universo = ghl_emails | snov_emails
 
     # ===== 3) Empresas objetivo (One Off) y cruce =====
     one_off = list(SRC.glob("One Off*Pre Sales*.xlsx"))
-    targets, prospec = set(), set(g[c_emp].dropna().map(norm)) - {""}
-    for f in snov_files:
-        d = pd.read_excel(f, dtype=str)
-        cc = find(d, "Company name") or find(d, "NOMBRE", "EMPRESA")
-        if cc:
-            prospec |= set(d[cc].dropna().map(norm)) - {""}
+    targets = set()
+    prospec = set(str(c.get("nombre_empresa") or "") for c in contactos)
+    prospec = {norm(x) for x in prospec} - {""}
+    prospec |= prospec_listas
     if one_off:
-        xl = pd.ExcelFile(one_off[0])
+        xl = pd.ExcelFile(sorted(one_off)[-1])
         for s in xl.sheet_names:
             raw = xl.parse(s, header=None)
             cols = raw.shape[1]
@@ -279,12 +367,15 @@ def main():
         return False
     t_pros = sum(1 for k in targets if matched(k))
 
-    # ===== 4) Agregados de correo (panel mensual; aperturas desactivadas) =====
-    correo = {"enviados": 3374, "contactados": 1940, "entregados": 3289,
-              "rebotes": 85, "respuestas": 7, "auto_respuestas": 16, "bajas": 3}
+    # ===== 4) Agregados de correo (Supabase; fallback al panel manual) =====
+    correo = correo_desde_supabase(supabase)
+    if not correo or not correo.get("enviados"):
+        correo = dict(CORREO_FALLBACK)
+        print("  (aviso) sin metricas Snov frescas en Supabase -> usando CORREO_FALLBACK; "
+              "actualizar a mano con el panel si cambio.")
 
     snap = {
-        "periodo": {"inicio": "2026-05-18", "fin": "2026-06-18",
+        "periodo": {"inicio": PERIODO_INICIO, "fin": PERIODO_FIN,
                     "nota": "Prospección activa desde el 18 de mayo. El mes previo fue configuración."},
         "universo_unico": len(universo),
         "correo": correo,
@@ -307,10 +398,13 @@ def main():
     }
     OUT.write_text(json.dumps(snap, ensure_ascii=False, indent=2), encoding="utf-8")
     print("OK ->", OUT)
+    print("periodo:", snap["periodo"]["inicio"], "->", snap["periodo"]["fin"])
+    print("listas correo leidas:", [Path(a).name for a in archivos])
     print("universo único:", snap["universo_unico"])
     print("gestionados (llam/wpp):", snap["gestion"]["gestionados"],
           "| conversaciones:", snap["gestion"]["conversaciones"])
     print("resultados:", snap["resultados_totales"])
+    print("correo:", snap["correo"])
     print("áreas:", {k: sum(v.values()) for k, v in snap["por_area"].items()})
     print("objetivo:", snap["objetivo"])
 

@@ -61,10 +61,9 @@ def test_notify_gbs_con_contact_id_manda_los_4_bloques():
     ghl.custom_field_id_map.assert_called_once()
 
 
-def test_notify_balia_con_contact_id_no_manda_botones_extra_ni_rompe():
-    # balia no tiene casillas de correo ni calendario configurados todavia --
-    # no debe crashear ni mandar los 3 bloques extra (siguen siendo solo
-    # para bambutech/gbs).
+def test_notify_balia_con_contact_id_manda_botones_extra():
+    # balia ya tiene casillas y calendario ("BALIA B") configurados: recibe la
+    # tarjeta mas los 3 bloques extra, igual que bambutech/gbs.
     client_bot, chat_ids = _make_telegram()
     ghl = _make_ghl()
     supabase = MagicMock()
@@ -75,8 +74,8 @@ def test_notify_balia_con_contact_id_no_manda_botones_extra_ni_rompe():
         prospect_name="Ana", prospect_email="ana@balia.cl", dry_run=False, ghl=ghl,
     )
 
-    assert client_bot.send_message.call_count == 1
-    ghl.custom_field_id_map.assert_not_called()
+    assert client_bot.send_message.call_count == 4
+    ghl.custom_field_id_map.assert_called_once()
 
 
 def test_notify_mismatch_sin_contact_id_no_manda_botones_extra_ni_rompe():
