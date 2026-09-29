@@ -12,7 +12,11 @@ from ghl_client import GHLClient
 from supabase_rest import SupabaseRestClient
 
 
-ACTIVE_MEETING_CLIENT_SLUGS = {"clickie", "gbs", "bambutech"}
+ACTIVE_MEETING_CLIENT_SLUGS = {"gbs", "bambutech", "balia"}
+
+# Valia (slug interno "balia") vive dentro de la subcuenta de Conprospeccion, que
+# tiene otros calendarios propios: solo se sincroniza el calendario de Valia.
+CALENDAR_ALLOWLIST = {"balia": {"2chaXy63L9xltYeM71xP"}}  # calendario "BALIA B"
 
 
 def setup_logging() -> None:
@@ -272,6 +276,9 @@ def main() -> None:
             ghl = GHLClient(token_for_client(client))
             calendars_payload = ghl.list_calendars(client["ghl_location_id"])
             calendars = [normalize_calendar(cal, client) for cal in calendars_payload.get("calendars", []) if cal.get("id")]
+            allowed_calendars = CALENDAR_ALLOWLIST.get(client["slug"])
+            if allowed_calendars:
+                calendars = [c for c in calendars if c["ghl_calendar_id"] in allowed_calendars]
             stats["clients"][client["slug"]] = {"calendarios": len(calendars), "reuniones": 0}
             logging.info("%s calendarios: %s", client["nombre"], len(calendars))
             if calendars and not args.dry_run:

@@ -72,7 +72,7 @@ def _country_label(value):
 
 
 def _client_label(slug, raw):
-    labels = {"clickie": "Clickie", "gbs": "GBS", "bambutech": "BambuTech"}
+    labels = {"gbs": "GBS", "bambutech": "BambuTech", "balia": "Valia"}
     return labels.get(_txt(slug).lower(), _txt(raw, "Cliente"))
 
 

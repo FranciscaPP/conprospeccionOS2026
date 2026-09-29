@@ -5,11 +5,11 @@ sincronización inmediata/operativa de reuniones mientras el resto de clientes
 no esté activado para este módulo.
 """
 
-ACTIVE_MEETING_CLIENT_SLUGS = ("clickie", "gbs", "bambutech")
+ACTIVE_MEETING_CLIENT_SLUGS = ("gbs", "bambutech", "balia")
 ACTIVE_MEETING_CLIENT_NAMES = {
-    "clickie": "Clickie",
     "gbs": "GBS Logistics",
     "bambutech": "BambuTech",
+    "balia": "Valia",
 }
 
 

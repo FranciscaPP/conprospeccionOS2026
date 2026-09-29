@@ -11,6 +11,7 @@ METAS = {
     "gbs":       {"validas": 45,  "tipo": "contrato"},
     "bambutech": {"validas": 100, "tipo": "contrato"},
     "clickie":   {"validas": 6,   "tipo": "mensual"},
+    "balia":     {"validas": 8,   "tipo": "mensual"},
     "demo":      {"validas": 12,  "tipo": "mensual"},  # portal demo para prospectos
 }
 
@@ -21,6 +22,8 @@ NOMBRE_A_SLUG = {
     "GBS LOGISTICS": "gbs",
     "BAMBUTECH": "bambutech",
     "CLICKIE": "clickie",
+    "BALIA": "balia",
+    "VALIA": "balia",
     "TIRESIAS": "tiresias",
 }
 
