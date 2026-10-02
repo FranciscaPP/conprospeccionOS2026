@@ -9,12 +9,25 @@ from config import get_optional_env, get_settings
 from supabase_rest import SupabaseRestClient
 
 from .config import CHILE
-from .render import render_hourly
-from .extended import (aggregate_week, render_chart, render_daily_close,
-                       render_weekly, render_weekly_charts)
+from .extended import aggregate_week, render_weekly, render_weekly_charts
 from .service import build_live_report
 from .storage import SnapshotStore
+from .tabular import render_tabular_report
 from .telegram import EquipoAliciaTelegram
+
+
+def deliver_hourly_report(
+    report: dict,
+    sender: EquipoAliciaTelegram,
+    directory: str | Path,
+    *,
+    send: bool,
+) -> list[Path]:
+    paths = render_tabular_report(report, directory)
+    if send:
+        for index, path in enumerate(paths, 1):
+            sender.send_photo(path, f"Reporte Nora · {index} de {len(paths)}")
+    return paths
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -27,8 +40,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--send", action="store_true", help="Enviar al único chat principal configurado")
     parser.add_argument("--scheduled", action="store_true", help="Aplicar guardia laboral 11:00–20:59")
     parser.add_argument("--verify-bot", action="store_true", help="Verificar identidad sin enviar")
-    parser.add_argument("--close", action="store_true", help="Generar cierre diario y gráfico")
-    parser.add_argument("--close-only", action="store_true", help="Enviar solo cierre y gráfico")
+    parser.add_argument("--close", action="store_true", help="Marcar el corte como cierre diario")
+    parser.add_argument("--close-only", action="store_true", help="Compatibilidad: generar el corte final")
     parser.add_argument("--weekly", action="store_true", help="Generar resumen semanal y tres gráficos")
     args = parser.parse_args(argv)
     if args.close_only:
@@ -73,21 +86,11 @@ def main(argv: list[str] | None = None) -> int:
         store.save_report(report)
     except Exception as exc:
         report["alerts"] = [f"Histórico no persistido: {type(exc).__name__}.", *report.get("alerts", [])][:3]
-    messages = [] if args.close_only else render_hourly(report)
-    if args.close:
-        messages.append(render_daily_close(report))
-    for index, message in enumerate(messages, 1):
-        if args.send:
-            sender.send_message(message)
-            print(f"mensaje {index}/{len(messages)} enviado")
-        else:
-            print(f"\n--- MENSAJE {index}/{len(messages)} ---\n{message}")
-    if args.close:
-        chart = render_chart(report, Path(__file__).resolve().parents[1] / "sdr_cache" / f"cierre_{report['day']}.png")
-        if args.send:
-            sender.send_photo(chart, f"Cierre Nora · {report['day'].strftime('%d/%m/%Y')}")
-        else:
-            print(f"gráfico: {chart}")
+    cache_dir = Path(__file__).resolve().parents[1] / "sdr_cache" / "tabular"
+    report_images = deliver_hourly_report(report, sender, cache_dir, send=args.send)
+    for index, path in enumerate(report_images, 1):
+        action = "enviada" if args.send else "generada"
+        print(f"imagen {index}/{len(report_images)} {action}: {path}")
     if args.weekly:
         week_start = report["day"] - timedelta(days=report["day"].weekday())
         reports = store.load_closes(week_start, report["day"])

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 from typing import Iterable
 
 from .models import CallMetrics, OperationalGap, TaskBaseline, TaskProgress
@@ -30,12 +30,46 @@ def build_task_baseline(client: str, tasks: Iterable[dict], day: date) -> TaskBa
 def task_progress(baseline: TaskBaseline, completed_ids: Iterable[str]) -> TaskProgress:
     completed = set(completed_ids)
     done_today = baseline.due_today_ids & completed
+    done_overdue = baseline.overdue_ids & completed
     return TaskProgress(
         today_done=len(done_today),
         today_total=len(baseline.due_today_ids),
+        overdue_done=len(done_overdue),
+        overdue_total=len(baseline.overdue_ids),
         pending_today=len(baseline.due_today_ids - done_today),
         pending_overdue=len(baseline.overdue_ids - completed),
     )
+
+
+def split_calls_by_period(calls: Iterable[dict], day: date) -> dict[str, list[dict]]:
+    periods: dict[str, list[dict]] = {
+        "scheduled": [],
+        "before": [],
+        "lunch": [],
+        "after": [],
+        "outside": [],
+    }
+    weekend = day.weekday() >= 5
+    for call in calls:
+        occurred_at = call.get("occurred_at")
+        if occurred_at is None:
+            periods["outside"].append(call)
+            continue
+        local_time = occurred_at.timetz().replace(tzinfo=None)
+        if weekend:
+            periods["outside"].append(call)
+        elif local_time < time(11):
+            periods["before"].append(call)
+            periods["outside"].append(call)
+        elif time(16) <= local_time < time(17):
+            periods["lunch"].append(call)
+            periods["outside"].append(call)
+        elif local_time >= time(20):
+            periods["after"].append(call)
+            periods["outside"].append(call)
+        else:
+            periods["scheduled"].append(call)
+    return periods
 
 
 def largest_task_backlogs(rows: Iterable[dict]) -> tuple[dict | None, dict | None]:
@@ -85,13 +119,13 @@ def worked_time(
     elapsed_seconds: int,
     phone_seconds: int,
     responded_emails: int,
-    whatsapp_seconds: int = 0,
+    responded_whatsapp: int = 0,
 ) -> dict[str, int]:
     worked = min(
         max(0, int(elapsed_seconds)),
         max(0, int(phone_seconds))
         + max(0, int(responded_emails)) * 300
-        + max(0, int(whatsapp_seconds)),
+        + max(0, int(responded_whatsapp)) * 300,
     )
     return {
         "worked_seconds": worked,

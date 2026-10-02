@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
 from sdr_reporting.config import work_blocks_for
-from sdr_reporting.metrics import call_metrics, operational_gaps
+from sdr_reporting.metrics import call_metrics, operational_gaps, split_calls_by_period
 
 CHILE = ZoneInfo("America/Santiago")
 
@@ -56,3 +56,30 @@ def test_no_gap_is_created_for_lunch_or_short_silence():
     block = work_blocks_for(date(2026, 9, 24))[0]
     events = [{"occurred_at": at(11, 0)}, {"occurred_at": at(11, 19)}, {"occurred_at": at(11, 38)}]
     assert operational_gaps(block, events, at(11, 50)) == []
+
+
+def test_calls_are_split_between_schedule_and_outside_periods():
+    calls = [
+        {"occurred_at": at(10, 30), "phone_seconds": 10},
+        {"occurred_at": at(11, 15), "phone_seconds": 20},
+        {"occurred_at": at(16, 15), "phone_seconds": 30},
+        {"occurred_at": at(17, 30), "phone_seconds": 40},
+        {"occurred_at": at(20, 15), "phone_seconds": 50},
+    ]
+
+    periods = split_calls_by_period(calls, date(2026, 9, 24))
+
+    assert periods["scheduled"] == [calls[1], calls[3]]
+    assert periods["before"] == [calls[0]]
+    assert periods["lunch"] == [calls[2]]
+    assert periods["after"] == [calls[4]]
+
+
+def test_weekend_calls_are_never_scheduled_work():
+    saturday = date(2026, 9, 26)
+    call = {"occurred_at": datetime(2026, 9, 26, 12, 0, tzinfo=CHILE)}
+
+    periods = split_calls_by_period([call], saturday)
+
+    assert periods["scheduled"] == []
+    assert periods["outside"] == [call]

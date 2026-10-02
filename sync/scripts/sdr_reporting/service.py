@@ -14,11 +14,13 @@ from .metrics import (
     call_metrics,
     elapsed_work_seconds,
     operational_gaps,
+    split_calls_by_period,
     task_progress,
     worked_time,
 )
 from .sources import (
     fetch_activity_messages,
+    summarize_conversation_work,
     summarize_email_messages,
     summarize_whatsapp_messages,
 )
@@ -98,9 +100,10 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         progress = task_progress(baseline, completed_ids)
 
         w0 = datetime.combine(day, time.min, tzinfo=CHILE)
+        history_start = w0 - timedelta(days=1)
         try:
             activity_messages = fetch_activity_messages(
-                ghl, location_id, w0, min(w0 + timedelta(days=1), now + timedelta(seconds=1))
+                ghl, location_id, history_start, min(w0 + timedelta(days=1), now + timedelta(seconds=1))
             )
         except Exception as exc:
             activity_messages = []
@@ -109,6 +112,8 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             message for message in activity_messages
             if message.get("message_type") == "TYPE_CALL"
             and (message.get("direction") or "outbound") == "outbound"
+            and message.get("occurred_at")
+            and message["occurred_at"].date() == day
         ]
         normalized_calls = [
             {
@@ -120,15 +125,39 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             }
             for call in raw_calls
         ]
+        call_periods = split_calls_by_period(normalized_calls, day)
+        scheduled_calls = call_periods["scheduled"]
         calls_by_client[slug] = normalized_calls
         all_activity_events.extend(
             {"occurred_at": call["occurred_at"]}
             for call in normalized_calls if call.get("occurred_at")
         )
-        calls = call_metrics(normalized_calls)
+        calls = call_metrics(scheduled_calls)
+        outside_hours = {}
+        for period in ("before", "lunch", "after", "outside"):
+            period_metrics = call_metrics(call_periods[period])
+            outside_hours["total" if period == "outside" else period] = {
+                "count": period_metrics.calls,
+                "phone_seconds": period_metrics.phone_seconds,
+            }
         try:
-            email = None if slug == "balia" else summarize_email_messages(activity_messages)
-            whatsapp = summarize_whatsapp_messages(activity_messages) if slug == "bambutech" else None
+            current_messages = [
+                message for message in activity_messages
+                if message.get("occurred_at") and message["occurred_at"].date() == day
+            ]
+            email = {
+                **summarize_email_messages(current_messages),
+                **summarize_conversation_work(activity_messages, day, "TYPE_EMAIL"),
+            }
+            email["pending"] = email["unanswered"]
+            whatsapp = None
+            if slug == "bambutech":
+                whatsapp = {
+                    **summarize_whatsapp_messages(current_messages),
+                    **summarize_conversation_work(activity_messages, day, "TYPE_WHATSAPP"),
+                }
+                whatsapp["pending"] = whatsapp["unanswered"]
+                whatsapp["work_seconds"] = whatsapp["responded"] * 300
             movements = stage_moves(
                 ghl, location_id, w0, min(w0 + timedelta(days=1), now + timedelta(seconds=1))
             )
@@ -215,11 +244,16 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             elapsed_seconds,
             calls.phone_seconds,
             int((email or {}).get("responded") or 0),
-            int((whatsapp or {}).get("work_seconds") or 0),
+            int((whatsapp or {}).get("responded") or 0),
         )
         clients[slug] = {
             "tasks_done": progress.completed,
             "tasks_total": progress.total,
+            "tasks_overdue": progress.overdue_total,
+            "tasks_today": progress.today_total,
+            "tasks_completed": progress.completed,
+            "tasks_pending": progress.pending,
+            "task_percent": progress.percent,
             "pending_today": progress.pending_today,
             "overdue_pending": progress.pending_overdue,
             "tasks_done_last_hour": tasks_done_last_hour,
@@ -233,6 +267,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             "unanswered_phone_seconds": calls.unanswered_phone_seconds,
             "conversation_seconds": calls.conversation_seconds,
             "phone_seconds": calls.phone_seconds,
+            "outside_hours": outside_hours,
             "gaps": gap_labels,
             "meetings": _meetings_today(ghl, location_id, day),
             "email": email,
@@ -295,15 +330,15 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         int((clients[slug].get("email") or {}).get("responded") or 0)
         for slug in CLIENTS
     )
-    whatsapp_seconds = sum(
-        int((clients[slug].get("whatsapp") or {}).get("work_seconds") or 0)
+    responded_whatsapp = sum(
+        int((clients[slug].get("whatsapp") or {}).get("responded") or 0)
         for slug in CLIENTS
     )
     total_work = worked_time(
         elapsed_seconds,
         total_phone_seconds,
         responded_emails,
-        whatsapp_seconds,
+        responded_whatsapp,
     )
     return {
         "day": day,
@@ -313,7 +348,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         "work_time": {
             "elapsed_seconds": elapsed_seconds,
             "email_seconds": responded_emails * 300,
-            "whatsapp_seconds": whatsapp_seconds,
+            "whatsapp_seconds": responded_whatsapp * 300,
             **total_work,
         },
         "comparison": None,

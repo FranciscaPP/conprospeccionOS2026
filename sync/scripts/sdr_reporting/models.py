@@ -21,20 +21,26 @@ class TaskBaseline:
 class TaskProgress:
     today_done: int
     today_total: int
+    overdue_done: int
+    overdue_total: int
     pending_today: int
     pending_overdue: int
 
     @property
     def percent(self) -> int:
-        return round(100 * self.today_done / self.today_total) if self.today_total else 0
+        return round(100 * self.completed / self.total) if self.total else 0
 
     @property
     def completed(self) -> int:
-        return self.today_done
+        return self.today_done + self.overdue_done
 
     @property
     def total(self) -> int:
-        return self.today_total
+        return self.today_total + self.overdue_total
+
+    @property
+    def pending(self) -> int:
+        return self.pending_today + self.pending_overdue
 
 
 @dataclass(frozen=True)

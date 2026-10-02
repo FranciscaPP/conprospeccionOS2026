@@ -50,6 +50,23 @@ def test_progress_keeps_original_denominator_and_separates_pending():
     assert progress.pending_overdue == 0
 
 
+def test_progress_combines_previous_day_and_today_for_tabular_report():
+    baseline = build_task_baseline("gbs", [
+        task("today-open", "2026-09-24T12:00:00"),
+        task("today-done", "2026-09-24T13:00:00", kind="nuevos"),
+        task("yesterday", "2026-09-23T12:00:00", kind="coordinando"),
+    ], DAY)
+
+    progress = task_progress(baseline, {"yesterday", "today-done"})
+
+    assert progress.overdue_total == 1
+    assert progress.today_total == 2
+    assert progress.completed == 2
+    assert progress.total == 3
+    assert progress.pending == 1
+    assert progress.percent == 67
+
+
 def test_only_previous_day_open_tasks_are_reported_as_late():
     baseline = build_task_baseline("gbs", [
         task("yesterday", "2026-09-23T12:00:00"),

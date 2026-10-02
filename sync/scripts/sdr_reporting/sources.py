@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import Iterable
 
 from report_calls_live import call_duration, call_status, fetch_messages, to_chile
@@ -10,6 +10,72 @@ from report_calls_live import call_duration, call_status, fetch_messages, to_chi
 
 MANUAL_EMAIL_SOURCES = {"app", "bulk_actions"}
 MANUAL_WHATSAPP_SOURCES = {"app", "bulk_actions"}
+
+
+def summarize_conversation_work(
+    messages: Iterable[dict],
+    day: date,
+    message_type: str,
+) -> dict[str, int]:
+    manual_sources = (
+        MANUAL_WHATSAPP_SOURCES if message_type == "TYPE_WHATSAPP" else MANUAL_EMAIL_SOURCES
+    )
+    by_conversation: dict[str, list[dict]] = defaultdict(list)
+    for index, message in enumerate(messages):
+        if message.get("message_type") != message_type or not message.get("occurred_at"):
+            continue
+        conversation_id = str(message.get("conversation_id") or message.get("id") or f"row:{index}")
+        by_conversation[conversation_id].append(message)
+
+    pending_previous = today_count = responded = 0
+    previous_day = day - timedelta(days=1)
+    for thread in by_conversation.values():
+        thread.sort(key=lambda item: item["occurred_at"])
+        previous_inbound = [
+            item for item in thread
+            if item.get("direction") == "inbound" and item["occurred_at"].date() == previous_day
+        ]
+        today_inbound = [
+            item for item in thread
+            if item.get("direction") == "inbound" and item["occurred_at"].date() == day
+        ]
+        manual_outbound = [
+            item for item in thread
+            if item.get("direction") == "outbound"
+            and item.get("source") in manual_sources
+        ]
+
+        was_open = False
+        if previous_inbound:
+            latest_previous_inbound = max(item["occurred_at"] for item in previous_inbound)
+            was_open = not any(
+                latest_previous_inbound < item["occurred_at"]
+                and item["occurred_at"].date() == previous_day
+                for item in manual_outbound
+            )
+        if was_open:
+            pending_previous += 1
+        elif today_inbound:
+            today_count += 1
+        else:
+            continue
+
+        relevant_inbound = [*previous_inbound, *today_inbound]
+        latest_inbound = max(item["occurred_at"] for item in relevant_inbound)
+        if any(
+            item["occurred_at"].date() == day and item["occurred_at"] > latest_inbound
+            for item in manual_outbound
+        ):
+            responded += 1
+
+    total = pending_previous + today_count
+    return {
+        "pending_previous": pending_previous,
+        "today": today_count,
+        "total": total,
+        "responded": responded,
+        "unanswered": max(0, total - responded),
+    }
 
 
 def summarize_email_messages(messages: Iterable[dict]) -> dict[str, int]:

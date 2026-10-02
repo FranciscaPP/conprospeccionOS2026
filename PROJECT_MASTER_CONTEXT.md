@@ -185,14 +185,20 @@ No desarrollar directamente en `master`.
 - `sync/scripts/report_sdr_telegram.py --operational` genera el reporte horario;
   a las 20:00 agrega cierre y grafico, y el viernes agrega resumen semanal.
 - El monitor de reuniones cada 5 minutos fue eliminado. No recrearlo.
-- El reporte usa tarjetas verticales para BAMBU TECH, GBS, BALIA y TOTAL. Separa
-  tareas de hoy de las atrasadas de ayer; una llamada contestada dura mas de 20
-  segundos; el tiempo trabajado suma telefono + 5 minutos por correo recibido
-  y respondido. BALIA muestra correo N/D mientras no exista fuente verificable.
-- BAMBU TECH incluye WhatsApp verificado desde GHL: envíos manuales, plantillas
-  automáticas, respuestas recibidas, atendidas y pendientes. El tiempo trabajado
-  acredita 1 minuto por envío manual inicial y 5 minutos por respuesta atendida;
-  los workflows automáticos no acreditan tiempo. GBS y BALIA muestran N/D.
+- El reporte horario se envía como exactamente dos imágenes PNG tabulares de
+  1200 px para BAMBU TECH, GBS, BALIA y TOTAL. Separa tareas del día anterior y
+  de hoy; Avance usa el universo combinado y muestra cantidad más porcentaje.
+- La jornada oficial es 11:00–20:00 Chile, con almuerzo 16:00–17:00. Las tablas
+  principales de llamadas incluyen solo esa jornada; antes de las 11:00,
+  almuerzo y después de las 20:00 se informan aparte y no reducen el tiempo sin
+  trabajar. Una llamada contestada dura mas de 20 segundos; 20 segundos exactos
+  cuenta como sin contestar.
+- Correos y WhatsApp se miden por conversación: pendiente del día anterior, hoy,
+  total, respondidos manualmente y sin responder. El tiempo trabajado suma los
+  minutos telefónicos dentro de jornada más 5 minutos por conversación de correo
+  respondida y 5 minutos por conversación WhatsApp respondida; los workflows no
+  acreditan trabajo. BAMBU TECH obtiene WhatsApp desde GHL. GBS y BALIA muestran
+  N/D mientras no existan cifras manuales verificadas.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.

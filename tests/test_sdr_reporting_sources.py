@@ -1,11 +1,15 @@
 import sys
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
-from sdr_reporting.sources import summarize_email_messages, summarize_whatsapp_messages
+from sdr_reporting.sources import (
+    summarize_conversation_work,
+    summarize_email_messages,
+    summarize_whatsapp_messages,
+)
 
 CHILE = ZoneInfo("America/Santiago")
 
@@ -59,4 +63,42 @@ def test_whatsapp_separates_manual_templates_automatic_and_replies():
         "new_manual": 1,
         "work_seconds": 360,
     }
+
+
+def test_two_day_email_universe_tracks_previous_today_and_current_open_state():
+    messages = [
+        {**msg(18, "inbound", conversation="prior-open"), "occurred_at": datetime(2026, 9, 23, 18, tzinfo=CHILE)},
+        {**msg(18, "inbound", conversation="prior-closed"), "occurred_at": datetime(2026, 9, 23, 18, tzinfo=CHILE)},
+        {**msg(19, "outbound", "app", "prior-closed"), "occurred_at": datetime(2026, 9, 23, 19, tzinfo=CHILE)},
+        msg(10, "inbound", conversation="today-answered"),
+        msg(11, "outbound", "app", "today-answered"),
+        msg(12, "inbound", conversation="today-open"),
+        msg(13, "outbound", "workflow", "today-open"),
+    ]
+
+    result = summarize_conversation_work(messages, date(2026, 9, 24), "TYPE_EMAIL")
+
+    assert result == {
+        "pending_previous": 1,
+        "today": 2,
+        "total": 3,
+        "responded": 1,
+        "unanswered": 2,
+    }
+
+
+def test_prior_open_conversation_with_new_inbound_today_is_counted_once():
+    messages = [
+        {**msg(18, "inbound", conversation="same"), "occurred_at": datetime(2026, 9, 23, 18, tzinfo=CHILE)},
+        msg(10, "inbound", conversation="same"),
+        msg(11, "outbound", "bulk_actions", "same"),
+    ]
+
+    result = summarize_conversation_work(messages, date(2026, 9, 24), "TYPE_EMAIL")
+
+    assert result["pending_previous"] == 1
+    assert result["today"] == 0
+    assert result["total"] == 1
+    assert result["responded"] == 1
+    assert result["unanswered"] == 0
 
