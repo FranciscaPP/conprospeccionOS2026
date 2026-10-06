@@ -52,6 +52,13 @@ def _check_login(slug: str, user: str, pwd: str) -> bool:
 # guardamos un token derivado (hash) de la contraseña + ventana de tiempo. Nunca
 # se expone la contraseña; el token caduca solo y permite reentrar sin re-login.
 _TOKEN_WINDOW = 1800 # 30 min por "bucket"; se aceptan el actual y el anterior
+# El demo es para prospectos con credenciales publicas y datos ficticios: su
+# sesion no debe caducar mientras lo estan mirando (30 dias por "bucket").
+_TOKEN_WINDOW_BY_SLUG = {"demo": 30 * 24 * 3600}
+
+
+def _window(slug: str) -> int:
+    return _TOKEN_WINDOW_BY_SLUG.get(slug, _TOKEN_WINDOW)
 
 
 def _token(slug: str, bucket: int) -> str:
@@ -62,7 +69,7 @@ def _token(slug: str, bucket: int) -> str:
 def _persist_token(slug: str) -> None:
     try:
         st.query_params["cp_s"] = slug
-        st.query_params["cp_k"] = _token(slug, int(time.time() // _TOKEN_WINDOW))
+        st.query_params["cp_k"] = _token(slug, int(time.time() // _window(slug)))
     except Exception:
         pass
 
@@ -72,7 +79,7 @@ def _restore_from_token(slug: str, session_key: str) -> bool:
         if st.query_params.get("cp_s") != slug:
             return False
         k = st.query_params.get("cp_k", "")
-        b = int(time.time() // _TOKEN_WINDOW)
+        b = int(time.time() // _window(slug))
         if k and k in (_token(slug, b), _token(slug, b - 1)):
             st.session_state[session_key] = True
             return True
