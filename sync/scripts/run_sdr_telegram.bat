@@ -1,5 +1,5 @@
 @echo off
-REM Reporte operativo de Nora para los tres clientes. Guardia L-V 11-20h Chile.
+REM Reporte operativo de Nora para los tres clientes. Guardia L-V 10-22h Chile.
 REM A las 20h agrega cierre diario y los viernes agrega resumen semanal.
 set PYTHONIOENCODING=utf-8
 cd /d "%~dp0"

@@ -201,6 +201,23 @@ No desarrollar directamente en `master`.
   N/D mientras no existan cifras manuales verificadas.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
+- La ejecucion permanente vive en GitHub Actions
+  (`.github/workflows/equipo-alicia-cloud.yml`): despierta cada 15 minutos y un
+  gate con `America/Santiago` entrega un solo reporte por hora, de 10:00 a
+  22:00 Chile, lunes a viernes. El cron no contiene horas UTC fijas para que el
+  cambio de horario chileno no desplace los cortes.
+- Las consultas 24/7 ingresan por la Edge Function de Supabase
+  `equipo-alicia-webhook`; solo acepta el secreto de webhook y
+  `TELEGRAM_SDR_CHAT_ID`, encola el `update_id` y dispara una ejecucion individual
+  de GitHub. La respuesta sigue usando las mismas metricas Python del reporte.
+- `sdr_report_deliveries` evita reportes duplicados y registra por separado las
+  dos imagenes para reanudar un envio parcial. `sdr_bot_queries` evita responder
+  dos veces una consulta. Ambas tablas tienen RLS y acceso exclusivo de
+  `service_role`.
+- Durante el cambio a cloud, `SDR_Telegram_Hourly` queda como respaldo local con
+  disparadores 10:00–22:00. Solo despues de comprobar un reporte y una consulta
+  reales desde cloud se deshabilitan `SDR_Telegram_Hourly` y
+  `SDR_Telegram_Bot`; sus definiciones se conservan para recuperacion manual.
 - No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.
 
 Estado 2026-07-03: la app antigua `conprospeccion-os.streamlit.app` fue

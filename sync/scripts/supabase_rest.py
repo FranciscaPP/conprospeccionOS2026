@@ -51,3 +51,42 @@ class SupabaseRestClient:
     def insert(self, table: str, row: dict[str, Any]) -> None:
         response = self.client.post(f"/{table}", headers={"Prefer": "return=minimal"}, json=row)
         response.raise_for_status()
+
+    def insert_returning(
+        self,
+        table: str,
+        row: dict[str, Any],
+        *,
+        conflict: str | None = None,
+        ignore_duplicates: bool = False,
+    ) -> list[dict[str, Any]]:
+        params = {"on_conflict": conflict} if conflict else None
+        resolution = "ignore-duplicates" if ignore_duplicates else "merge-duplicates"
+        response = self.client.post(
+            f"/{table}",
+            params=params,
+            headers={"Prefer": f"resolution={resolution},return=representation"},
+            json=row,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def update(self, table: str, values: dict[str, Any], **params: str) -> list[dict[str, Any]]:
+        response = self.client.patch(
+            f"/{table}",
+            params=params,
+            headers={"Prefer": "return=representation"},
+            json=values,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def rpc(self, function: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        response = self.client.post(
+            f"/rpc/{function}",
+            headers={"Prefer": "return=representation"},
+            json=payload,
+        )
+        response.raise_for_status()
+        result = response.json()
+        return result if isinstance(result, list) else [result]

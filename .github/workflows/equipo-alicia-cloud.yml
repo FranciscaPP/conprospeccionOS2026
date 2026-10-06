@@ -1,0 +1,78 @@
+name: Equipo Alicia cloud
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      update_id:
+        description: "Telegram update_id; vacío ejecuta el reporte programado"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: equipo-alicia-cloud-${{ github.event_name == 'schedule' && 'report' || github.event.inputs.update_id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      GHL_AGENCY_TOKEN: ${{ secrets.GHL_AGENCY_TOKEN }}
+      GHL_TOKEN_BAMBUTECH: ${{ secrets.GHL_TOKEN_BAMBUTECH }}
+      GHL_TOKEN_GBS_LOGISTICS: ${{ secrets.GHL_TOKEN_GBS_LOGISTICS }}
+      GHL_TOKEN_BALIA: ${{ secrets.GHL_TOKEN_BALIA }}
+      GHL_LOCATION_BALIA: ${{ secrets.GHL_LOCATION_BALIA }}
+      TELEGRAM_SDR_TOKEN: ${{ secrets.TELEGRAM_SDR_TOKEN }}
+      TELEGRAM_SDR_CHAT_ID: ${{ secrets.TELEGRAM_SDR_CHAT_ID }}
+      UPDATE_ID: ${{ github.event.inputs.update_id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r sync/requirements.txt
+
+      - name: Validate mode and secrets
+        shell: python
+        run: |
+          import os
+          import sys
+
+          required = [
+              "SUPABASE_URL",
+              "SUPABASE_SECRET_KEY",
+              "GHL_AGENCY_TOKEN",
+              "GHL_TOKEN_BAMBUTECH",
+              "GHL_TOKEN_GBS_LOGISTICS",
+              "GHL_TOKEN_BALIA",
+              "GHL_LOCATION_BALIA",
+              "TELEGRAM_SDR_TOKEN",
+              "TELEGRAM_SDR_CHAT_ID",
+          ]
+          missing = [name for name in required if not os.getenv(name)]
+          if missing:
+              print("::error::Faltan secrets: " + ", ".join(missing))
+              sys.exit(1)
+          update_id = os.getenv("UPDATE_ID", "").strip()
+          if update_id and not update_id.isdigit():
+              print("::error::update_id debe ser numérico")
+              sys.exit(1)
+          print("Modo consulta" if update_id else "Modo reporte programado")
+
+      - name: Send scheduled report
+        if: env.UPDATE_ID == ''
+        run: python sync/scripts/report_sdr_telegram.py --operational --cloud-scheduled --send
+
+      - name: Answer queued query
+        if: env.UPDATE_ID != ''
+        run: python sync/scripts/report_sdr_bot.py --cloud-update-id "$UPDATE_ID"

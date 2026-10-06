@@ -1,0 +1,2 @@
+[functions.equipo-alicia-webhook]
+verify_jwt = false
