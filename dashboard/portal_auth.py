@@ -41,8 +41,14 @@ def render_bambutech_page_header(title: str, subtitle: str, meta_html: str = "")
 
 def _check_login(slug: str, user: str, pwd: str) -> bool:
     expected = portal_passwords().get(slug, "")
-    expected_user = {"bambutech": "Bambutech", "demo": "DEMO", "balia": "Balia"}.get(slug)
-    user_ok = True if expected_user is None else user.strip() == expected_user
+    expected_user = {"bambutech": "Bambutech", "demo": "DEMO", "balia": "BALIA"}.get(slug)
+    if expected_user is None:
+        user_ok = True
+    elif slug == "balia":
+        # Usuario BALIA sin distinguir mayusculas/minusculas.
+        user_ok = user.strip().upper() == expected_user
+    else:
+        user_ok = user.strip() == expected_user
     return bool(expected) and user_ok and pwd == expected
 
 
@@ -124,6 +130,7 @@ _CLIENTS: dict[str, dict] = {
         # Sin logo de cliente: usar la marca Conprospección en la entrada.
         "logo_file": "conprospeccion_logo.png",
         "nav": [
+            ("Validación de reuniones", "pages/23_Balia_Validacion_Reuniones.py", "base"),
             ("Onboarding", "pages/22_Balia_Onboarding.py", "base"),
         ],
     },

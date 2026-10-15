@@ -9,7 +9,7 @@ ACTIVE_MEETING_CLIENT_SLUGS = ("gbs", "bambutech", "balia")
 ACTIVE_MEETING_CLIENT_NAMES = {
     "gbs": "GBS Logistics",
     "bambutech": "BambuTech",
-    "balia": "Valia",
+    "balia": "Balia",
 }
 
 

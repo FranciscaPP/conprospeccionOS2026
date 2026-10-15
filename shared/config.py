@@ -120,7 +120,7 @@ def portal_passwords() -> dict[str, str]:
         "clickie":  _get("PORTAL_PASSWORD_CLICKIE"),
         "gbs":      _get("PORTAL_PASSWORD_GBS"),
         "bambutech": _get("PORTAL_PASSWORD_BAMBUTECH"),
-        "balia":    _get("PORTAL_PASSWORD_BALIA"),
+        "balia":    _get("PORTAL_PASSWORD_BALIA") or "BALIA2026",
         "demo":     _get("PORTAL_PASSWORD_DEMO") or "DEMO2026",
     }
 

@@ -80,6 +80,18 @@ CLIENTES = [
             ("Incorporación", "pages/17_BambuTech_Onboarding.py"),
         ],
     },
+    {
+        "slug": "balia",
+        "nombre": "Balia",
+        "logo": "conprospeccion_logo.png",
+        "color": "#FFD700",
+        "bg": "#FFFFFF",
+        "border": "#EDECEA",
+        "pages": [
+            ("Validación Reuniones", "pages/23_Balia_Validacion_Reuniones.py"),
+            ("Incorporación", "pages/22_Balia_Onboarding.py"),
+        ],
+    },
 ]
 
 # ── Tarjetas de cliente ───────────────────────────────────────────────────────

@@ -45,6 +45,12 @@ motivo: ICP / BANT / ICP+BANT, comentario obligatorio y evidencia opcional).
 Login por `portal_auth.require_auth_client("gbs")`. Etapa/CP/Estado Final son
 solo lectura; sin columnas Cliente/SDR. Los demas portales se haran igual.
 
+Portal cliente Balia (2026-10-15): `dashboard/pages/23_Balia_Validacion_Reuniones.py`
+(URL publica `conprospeccion-os2026.streamlit.app/Balia_Validacion_Reuniones`),
+mismo componente y formato que BambuTech. Login `require_auth_client("balia")`,
+usuario `BALIA` (sin distinguir mayusculas), clave en `PORTAL_PASSWORD_BALIA`
+(fallback en codigo). El nombre del cliente es **Balia** (con B), no "Valia".
+
 ## Mapa del proyecto
 
 Estructura para orientarse rapido (cualquier IA o persona nueva la lee y
