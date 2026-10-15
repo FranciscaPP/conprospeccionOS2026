@@ -495,7 +495,8 @@ def cargar_reuniones_reales_poc():
         f"{SUPABASE_URL}/rest/v1/reuniones"
         "?select=id,ghl_contact_id,fecha_agendada,direccion_reunion,recording_url,transcript_url,"
         "ai_summary,ai_evidence,ai_bant_detected,sdr_slug,informacion_reunion,bant_sdr,"
-        "observacion,notas,raw_data,pais,industria,cargo,email,telefono,empresa,contacto",
+        "observacion,notas,raw_data,pais,industria,cargo,email,telefono,empresa,contacto,"
+        "comercial_estado,comercial_proximo_paso",
         headers=SUPABASE_HEADERS,
         timeout=15,
     )
@@ -665,6 +666,8 @@ def cargar_reuniones_reales_poc():
                 "bant": _bant(",".join(bant_desde_fuentes({**merged_row, "bant_sdr": base_row.get("bant_sdr") or row.get("bant_sdr") or extra.get("bantSdr")}, seg))),
                 "just": _txt(seg.get("comentario_cp")),
                 "next": _txt(seg.get("proximo_paso")),
+                "commercialStatus": _txt(base_row.get("comercial_estado")),
+                "commercialNext": _txt(base_row.get("comercial_proximo_paso")),
                 "notes": _txt(seg.get("notas_internas")),
                 "finalReason": _txt(seg.get("comentario_final")),
                 "finalClientText": _txt(seg.get("comentario_final_cliente")),

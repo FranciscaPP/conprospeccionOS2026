@@ -12,7 +12,7 @@ const SB_HEADERS = {
   Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
   "Content-Type": "application/json",
 };
-const ACTIVE_CLIENTS = new Set(["gbs", "bambutech"]);
+const ACTIVE_CLIENTS = new Set(["gbs", "bambutech", "balia"]);
 
 function text(...values: unknown[]): string {
   for (const value of values) {
@@ -26,6 +26,7 @@ function clientSlug(value: unknown): string {
   const slug = String(value ?? "").trim().toLowerCase();
   if (slug === "bambootech") return "bambutech";
   if (slug === "gbs_logistics") return "gbs";
+  if (slug === "valia") return "balia";
   return slug;
 }
 

@@ -143,7 +143,56 @@ def _guardar_respuesta_cliente(
     return bool(recalculated["persisted"] and client_history_ok and final_history_ok)
 
 
+ESTADOS_COMERCIALES = (
+    "Envío cotización",
+    "Envío propuesta",
+    "Avance",
+    "Seguimiento propuesta",
+    "Seguimiento cliente",
+    "Cierre comercial",
+)
+
+
+def _guardar_estatus_comercial(client_slug: str, reunion_id: int, estado: str, proximo: str) -> bool:
+    """Estatus comercial que registra el cliente (reuniones.comercial_*)."""
+    estado = (estado or "").strip()
+    if estado and estado not in ESTADOS_COMERCIALES:
+        return False
+    try:
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/reuniones",
+            params={"id": f"eq.{int(reunion_id)}", "cliente_slug": f"eq.{client_slug}"},
+            json={"comercial_estado": estado or None, "comercial_proximo_paso": (proximo or "").strip() or None},
+            headers={**_WRITE_HEADERS, "Prefer": "return=representation"},
+            timeout=15,
+        )
+    except requests.RequestException:
+        return False
+    if not response.ok or not response.json():
+        return False
+    registrar_historial(
+        int(reunion_id),
+        "comercial_estado",
+        None,
+        estado or "Sin estatus",
+        "cliente",
+        "cliente",
+        f"comercial_{client_slug}",
+    )
+    return True
+
+
 def _handle_payload(client_slug: str, payload: dict) -> bool:
+    if payload.get("action") == "commercial_status":
+        reunion_id = (payload.get("meeting") or {}).get("id")
+        if not reunion_id:
+            return False
+        return _guardar_estatus_comercial(
+            client_slug,
+            int(reunion_id),
+            str(payload.get("commercialStatus") or ""),
+            str(payload.get("commercialNext") or ""),
+        )
     if payload.get("action") != "client_response":
         return False
     meeting = payload.get("meeting") or {}
@@ -191,7 +240,7 @@ def _render_portal_frame(
         component_dir,
         key=f"client_portal_{client_slug}_{reload_token}",
     )
-    if isinstance(component_payload, dict) and component_payload.get("action") == "client_response":
+    if isinstance(component_payload, dict) and component_payload.get("action") in ("client_response", "commercial_status"):
         nonce = json.dumps(component_payload, sort_keys=True, ensure_ascii=True)
         if st.session_state.get(f"_portal_last_{client_slug}") != nonce:
             st.session_state[f"_portal_last_{client_slug}"] = nonce
