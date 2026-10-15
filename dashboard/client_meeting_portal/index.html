@@ -70,8 +70,8 @@ button,input,select,textarea{font:inherit}
 .section-head b{font-family:Saira,"IBM Plex Sans",sans-serif;font-size:15px}
 .save-bar{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 .draft-hint{font-size:11px;color:var(--orange);font-weight:700;margin-top:6px}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);overflow:hidden}
-.kpi{min-height:74px;padding:10px 12px;border-right:1px solid var(--line);display:flex;gap:10px;align-items:center;cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));overflow:hidden}
+.kpi{min-height:58px;padding:8px 12px;border-right:1px solid var(--line);display:flex;gap:10px;align-items:center;cursor:pointer}
 .kpi:last-child{border-right:0}
 .kpi.active{box-shadow:inset 0 -3px 0 var(--gold);background:#fffdf0}
 .ico{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:11px}
@@ -81,7 +81,7 @@ button,input,select,textarea{font:inherit}
 .ico.purple{background:var(--purple-bg);color:var(--purple)}
 .ico.red{background:var(--red-bg);color:var(--red)}
 .kpi span{display:block;font-size:11px;font-weight:700}
-.kpi b{display:block;font-family:"IBM Plex Mono",monospace;font-size:24px;line-height:1.1;margin-top:2px}
+.kpi b{display:block;font-family:"IBM Plex Mono",monospace;font-size:20px;line-height:1.1;margin-top:2px}
 .kpi small{display:block;font-size:10.5px;color:var(--muted);margin-top:4px}
 .kpi-flow{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);background:#FAFAF8;padding:8px 12px}
 .flow-pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:700;color:var(--carbon)}
@@ -211,9 +211,9 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .hist b{display:block;font-size:13px;font-weight:600;margin:2px 0 1px}
 .hist div{font-size:12px;line-height:1.4;color:var(--ink)}
 .save-note{position:fixed;right:24px;bottom:18px;background:var(--carbon);color:#fff;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;z-index:20;box-shadow:0 8px 24px rgba(26,26,26,.22)}
-.layout.open .kpis{grid-template-columns:repeat(3,1fr)}
-.layout.open .kpi{min-height:66px;padding:8px 10px}
-.layout.open .kpi b{font-size:21px}
+.layout.open .kpis{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.layout.open .kpi{min-height:54px;padding:7px 10px}
+.layout.open .kpi b{font-size:18px}
 .layout.open .op-body{grid-template-columns:1fr}
 .layout.open .op-summary{grid-template-columns:repeat(5,minmax(0,1fr))}
 .layout.open table{font-size:10.6px}
@@ -230,8 +230,8 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .layout.open .field2 input,.layout.open .field2 textarea,.layout.open .field2 select{font-size:12px}
 .layout.open .co-head b{font-size:16px}
 .layout.open .co-title b{font-size:13px}
-@media(max-width:1100px){.layout.open{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}.op-body{grid-template-columns:1fr}.op-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}
-@media(max-width:760px){.top{height:auto;grid-template-columns:1fr;padding:12px 14px}.top-meta{justify-self:stretch;padding:0}.user{text-align:left}.filters,.extra{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}.kpi{border-right:0;border-bottom:1px solid var(--line)}.op-card summary{align-items:flex-start}.op-badge{white-space:normal}.op-track{grid-template-columns:1fr;gap:8px;padding-left:14px}.op-track:before{left:8px;right:auto;top:8px;bottom:8px;width:2px;height:auto}.op-dot{position:absolute;left:-14px;top:0}.op-milestone{padding-left:12px}.op-segments{grid-template-columns:1fr}.op-summary,.layout.open .op-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.op-rhythm dl{grid-template-columns:1fr}.op-rhythm dd{text-align:left}}
+@media(max-width:1100px){.layout.open{grid-template-columns:1fr}.op-body{grid-template-columns:1fr}.op-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:760px){.top{height:auto;grid-template-columns:1fr;padding:12px 14px}.top-meta{justify-self:stretch;padding:0}.user{text-align:left}.filters,.extra{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.kpi{border-bottom:1px solid var(--line)}.op-card summary{align-items:flex-start}.op-badge{white-space:normal}.op-track{grid-template-columns:1fr;gap:8px;padding-left:14px}.op-track:before{left:8px;right:auto;top:8px;bottom:8px;width:2px;height:auto}.op-dot{position:absolute;left:-14px;top:0}.op-milestone{padding-left:12px}.op-segments{grid-template-columns:1fr}.op-summary,.layout.open .op-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.op-rhythm dl{grid-template-columns:1fr}.op-rhythm dd{text-align:left}}
 </style>
 </head>
 <body>
@@ -661,7 +661,7 @@ function renderRows(rows) {
     <tr class="${m.id===selected?"selected":""}" onclick="openDetail(${m.id})">
       <td><b>${esc(m.date)}</b><span class="sub">${esc(m.time)}</span></td>
       <td class="company">${esc(m.company)}</td>
-      <td>${esc(m.contact)}<span class="sub">${esc(m.role)}</span></td>
+      <td>${esc(m.contact)}${m.role && m.role !== "-" ? `<span class="sub">${esc(m.role)}</span>` : ""}</td>
       <td>${pillReadonly(m.status)}</td>
       <td>${pillReadonly(m.cp)}</td>
       <td>${pillReadonly(m.clientVal)}</td>

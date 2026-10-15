@@ -524,11 +524,17 @@ def cargar_reuniones_reales_poc():
         base_meetings = {int(x["id"]): x for x in base_response.json() if x.get("id")}
     contact_sdr = {}
     contact_extra = {}
+    contact_cargo = {}
     if contacts_response.ok:
         contact_sdr = {
             x["ghl_contact_id"]: x.get("sdr_slug")
             for x in contacts_response.json()
             if x.get("ghl_contact_id") and x.get("sdr_slug")
+        }
+        contact_cargo = {
+            x["ghl_contact_id"]: x.get("cargo")
+            for x in contacts_response.json()
+            if x.get("ghl_contact_id") and _txt(x.get("cargo")) not in ("", "-")
         }
         contact_extra = {
             x["ghl_contact_id"]: _contact_enrichment(x)
@@ -617,7 +623,19 @@ def cargar_reuniones_reales_poc():
                 "client": _client_label(slug, row.get("cliente")),
                 "company": _txt(row.get("empresa") or base_row.get("empresa"), "-").title(),
                 "contact": _txt(row.get("contacto") or base_row.get("contacto"), "-").title(),
-                "role": _txt(row.get("cargo") or base_row.get("cargo"), "-").title(),
+                # Cargo: reunion -> base -> contacto GHL (ignora "-" como vacio).
+                "role": next(
+                    (
+                        _txt(v).title()
+                        for v in (
+                            row.get("cargo"),
+                            base_row.get("cargo"),
+                            contact_cargo.get(row.get("ghl_contact_id")),
+                        )
+                        if _txt(v) not in ("", "-")
+                    ),
+                    "-",
+                ),
                 "sdr": assigned_sdr,
                 "status": status,
                 "cp": cp,
