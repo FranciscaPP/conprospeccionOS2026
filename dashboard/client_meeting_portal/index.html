@@ -136,6 +136,8 @@ tbody tr:hover{background:#FFF9D6}
 tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .sub{display:block;color:var(--muted);font-size:10.5px;margin-top:2px}
 .company{font-weight:600}
+tbody td.company,tbody td.contact{white-space:normal;min-width:110px;max-width:220px}
+tbody .pill{min-width:0;white-space:nowrap}
 .chip,.pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:6px;padding:5px 9px;min-width:96px;font-size:.72rem;font-weight:600;border:1px solid transparent}
 .chip:before,.pill:before{content:"";width:6px;height:6px;border-radius:99px;background:currentColor}
 .pill{appearance:none;outline:0;cursor:pointer}
@@ -230,7 +232,8 @@ tbody tr.selected{box-shadow:inset 4px 0 0 var(--gold);background:#FFF7D0}
 .layout.open .field2 input,.layout.open .field2 textarea,.layout.open .field2 select{font-size:12px}
 .layout.open .co-head b{font-size:16px}
 .layout.open .co-title b{font-size:13px}
-@media(max-width:1100px){.layout.open{grid-template-columns:1fr}.op-body{grid-template-columns:1fr}.op-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:1100px){.layout.open{grid-template-columns:minmax(0,1fr) minmax(340px,44%)}.layout.open thead th:nth-child(4),.layout.open tbody td:nth-child(4),.layout.open thead th:nth-child(5),.layout.open tbody td:nth-child(5),.layout.open thead th:nth-child(6),.layout.open tbody td:nth-child(6){display:none}}
+@media(max-width:820px){.layout.open{grid-template-columns:1fr}.op-body{grid-template-columns:1fr}.op-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:760px){.top{height:auto;grid-template-columns:1fr;padding:12px 14px}.top-meta{justify-self:stretch;padding:0}.user{text-align:left}.filters,.extra{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.kpi{border-bottom:1px solid var(--line)}.op-card summary{align-items:flex-start}.op-badge{white-space:normal}.op-track{grid-template-columns:1fr;gap:8px;padding-left:14px}.op-track:before{left:8px;right:auto;top:8px;bottom:8px;width:2px;height:auto}.op-dot{position:absolute;left:-14px;top:0}.op-milestone{padding-left:12px}.op-segments{grid-template-columns:1fr}.op-summary,.layout.open .op-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.op-rhythm dl{grid-template-columns:1fr}.op-rhythm dd{text-align:left}}
 </style>
 </head>
@@ -661,7 +664,7 @@ function renderRows(rows) {
     <tr class="${m.id===selected?"selected":""}" onclick="openDetail(${m.id})">
       <td><b>${esc(m.date)}</b><span class="sub">${esc(m.time)}</span></td>
       <td class="company">${esc(m.company)}</td>
-      <td>${esc(m.contact)}${m.role && m.role !== "-" ? `<span class="sub">${esc(m.role)}</span>` : ""}</td>
+      <td class="contact">${esc(m.contact)}${m.role && m.role !== "-" ? `<span class="sub">${esc(m.role)}</span>` : ""}</td>
       <td>${pillReadonly(m.status)}</td>
       <td>${pillReadonly(m.cp)}</td>
       <td>${pillReadonly(m.clientVal)}</td>
@@ -683,6 +686,12 @@ function openDetail(id) {
     };
   }
   render();
+  revealDrawer();
+}
+// En pantallas angostas el panel queda bajo la tabla: llevar la vista hasta el.
+function revealDrawer() {
+  if (window.innerWidth > 820) return;
+  setTimeout(() => { const d = document.getElementById("drawer"); if (d) d.scrollIntoView({behavior:"smooth", block:"start"}); }, 120);
 }
 function closeDetail() { panelOpen = false; reviewOpen = false; render(); }
 function current() { return meetings.find(m => m.id === selected) || meetings[0]; }

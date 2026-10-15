@@ -135,7 +135,6 @@ _CLIENTS: dict[str, dict] = {
         "logo_file": "conprospeccion_logo.png",
         "nav": [
             ("Validación de reuniones", "pages/23_Balia_Validacion_Reuniones.py", "base"),
-            ("Onboarding", "pages/22_Balia_Onboarding.py", "base"),
         ],
     },
     # Portal demo para prospectos. Vive en la app aparte `demo/app.py`, no en
@@ -156,7 +155,15 @@ def render_client_nav(current: str, cliente: str) -> None:
     """Sidebar personalizado para el portal cliente. Oculta la navegación interna."""
     cfg = _CLIENTS[cliente]
     st.markdown(
-        '<style>[data-testid="stSidebarNav"]{display:none!important}</style>',
+        '<style>[data-testid="stSidebarNav"]{display:none!important}'
+        # Menu lateral angosto para dejar mas ancho al portal.
+        'section[data-testid="stSidebar"]{width:200px!important;min-width:200px!important;max-width:200px!important}'
+        'section[data-testid="stSidebar"]>div{width:200px!important}'
+        'section[data-testid="stSidebar"] [data-testid="stSidebarContent"]{padding-top:0}'
+        'section[data-testid="stSidebar"] button{min-height:32px!important;padding:4px 8px!important}'
+        'section[data-testid="stSidebar"] button p{font-size:12.5px!important}'
+        'section[data-testid="stSidebar"] hr{margin:8px 0!important}'
+        '</style>',
         unsafe_allow_html=True,
     )
 
@@ -185,10 +192,10 @@ def render_client_nav(current: str, cliente: str) -> None:
             nav_accent = "#7c3aed" if cliente == "gbs" else "#1e40af"
             nav_accent2 = "#5b21b6" if cliente == "gbs" else "#1e3a8a"
 
-        logo = img_b64(cfg["logo_file"], 44)
+        logo = img_b64(cfg["logo_file"], 32)
         if cliente != "bambutech":
             st.markdown(
-                f'<div style="text-align:center;padding:18px 0 10px">{logo}</div>'
+                f'<div style="text-align:center;padding:10px 0 4px">{logo}</div>'
                 if logo else
                 f'<div style="text-align:center;padding:18px 0 10px;font-weight:800;'
                 f'font-size:18px;color:{nav_accent}">{cliente.upper()}</div>',
