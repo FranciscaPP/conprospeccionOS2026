@@ -41,6 +41,10 @@ def render_bambutech_page_header(title: str, subtitle: str, meta_html: str = "")
 
 def _check_login(slug: str, user: str, pwd: str) -> bool:
     expected = portal_passwords().get(slug, "")
+    # Balia: la clave entregada al cliente (BALIA2026) funciona siempre, aunque
+    # exista otro valor en PORTAL_PASSWORD_BALIA (ese tambien se acepta).
+    if slug == "balia" and user.strip().upper() == "BALIA" and pwd.strip() in {"BALIA2026", expected}:
+        return bool(pwd.strip())
     expected_user = {"bambutech": "Bambutech", "demo": "DEMO", "balia": "BALIA"}.get(slug)
     if expected_user is None:
         user_ok = True
