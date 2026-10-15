@@ -810,7 +810,7 @@ function clientTab(m) {
 function finalTab(m) {
   return `<div class="grid">${readField("Estado Final", finalDisplay(m))}<div class="field2 wide"><label>Mensaje al cliente</label><textarea readonly>${esc(m.finalClientText||"Sin mensaje publicado.")}</textarea></div></div><div class="read"><p>El cliente no define el cierre administrativo.</p></div>`;
 }
-const COMMERCIAL_STATES = ["Envío cotización","Envío propuesta","Avance","Seguimiento propuesta","Seguimiento cliente","Cierre comercial"];
+const COMMERCIAL_STATES = ["Coordinando segunda reunión","Envío propuesta","Contactar a futuro","Cliente perdido","Cierre comercial"];
 const commercialDrafts = {};
 function commercialDraft(m) {
   if (!commercialDrafts[m.id]) commercialDrafts[m.id] = { status: m.commercialStatus || "", next: m.commercialNext || "" };

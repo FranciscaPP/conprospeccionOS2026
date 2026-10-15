@@ -144,11 +144,10 @@ def _guardar_respuesta_cliente(
 
 
 ESTADOS_COMERCIALES = (
-    "Envío cotización",
+    "Coordinando segunda reunión",
     "Envío propuesta",
-    "Avance",
-    "Seguimiento propuesta",
-    "Seguimiento cliente",
+    "Contactar a futuro",
+    "Cliente perdido",
     "Cierre comercial",
 )
 
