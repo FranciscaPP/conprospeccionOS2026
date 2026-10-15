@@ -121,7 +121,7 @@ Regla unica en `shared/metas.py` (`avance_meta`, `avance_acumulado_por_mes`),
 que deben usar TODAS las pantallas (panel interno de Seguimiento, portal cliente
 de validacion e Intelligence Insight) para mostrar lo mismo:
 
-- **Contrato** (GBS 45, BambuTech 100, Just4U 40, Ecosmart 30): el avance
+- **Contrato** (GBS 45, BambuTech 100, Balia 30, Just4U 40, Ecosmart 30): el avance
   ACUMULA todas las validas de todos los meses hacia la meta total. Las validas
   de junio siguen contando en julio, agosto, etc.
 - **Mensual** (Clickie 6): solo cuenta las validas del mes en curso; reinicia

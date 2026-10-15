@@ -11,7 +11,7 @@ METAS = {
     "gbs":       {"validas": 45,  "tipo": "contrato"},
     "bambutech": {"validas": 100, "tipo": "contrato"},
     "clickie":   {"validas": 6,   "tipo": "mensual"},
-    "balia":     {"validas": 8,   "tipo": "mensual"},
+    "balia":     {"validas": 30,  "tipo": "contrato"},
     "demo":      {"validas": 12,  "tipo": "mensual"},  # portal demo para prospectos
 }
 
@@ -42,7 +42,7 @@ def _mes_actual() -> str:
 def avance_meta(slug: str, validas_por_mes: dict[str, int], mes_actual: str | None = None) -> dict | None:
     """Avance de reuniones válidas contra la meta. FUENTE ÚNICA de la regla.
 
-    - tipo "contrato" (GBS, BambuTech, Just4U, Ecosmart): se ACUMULAN todas las
+    - tipo "contrato" (GBS, BambuTech, Balia, Just4U, Ecosmart): se ACUMULAN todas las
       válidas de todos los meses hacia la meta total del contrato. Las válidas de
       junio siguen contando en julio, agosto, etc.
     - tipo "mensual" (Clickie): solo cuentan las válidas del mes en curso; la meta
