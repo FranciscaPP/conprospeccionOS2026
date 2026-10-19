@@ -163,7 +163,16 @@ def render_client_nav(current: str, cliente: str) -> None:
         'section[data-testid="stSidebar"] button{min-height:32px!important;padding:4px 8px!important}'
         'section[data-testid="stSidebar"] button p{font-size:12.5px!important}'
         'section[data-testid="stSidebar"] hr{margin:8px 0!important}'
-        '</style>',
+        # Las paginas ocultan el header, que es donde Streamlit pone el boton para
+        # reabrir el menu: si el usuario lo cerraba, no habia como volver. En
+        # pantallas anchas el menu queda siempre abierto y sin boton de cerrar.
+        '@media (min-width:800px){'
+        'section[data-testid="stSidebar"][aria-expanded="false"]{'
+        'transform:none!important;margin-left:0!important;visibility:visible!important;'
+        'min-width:200px!important;width:200px!important}'
+        '[data-testid="stSidebarCollapseButton"],[data-testid="stSidebarCollapsedControl"],'
+        '[data-testid="stExpandSidebarButton"]{display:none!important}'
+        '}</style>',
         unsafe_allow_html=True,
     )
 
