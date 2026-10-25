@@ -9,7 +9,7 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
-URL = "https://conprospeccionos2026-demo.streamlit.app/demo"
+URL = sys.argv[1] if len(sys.argv) > 1 else "https://conprospeccionos2026-demo.streamlit.app/demo"
 WAKE_BUTTON = "Yes, get this app back up!"
 
 

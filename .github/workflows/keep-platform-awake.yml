@@ -1,0 +1,25 @@
+name: Keep platform awake
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7 */4 * * *"
+
+jobs:
+  visit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Playwright
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Visitar la plataforma interna
+        run: python .github/scripts/keep_demo_awake.py "https://conprospeccion-os2026.streamlit.app/Seguimiento_Reuniones"
