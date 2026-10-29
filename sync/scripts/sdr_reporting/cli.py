@@ -5,6 +5,8 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+import httpx
+
 from config import get_optional_env, get_settings
 from supabase_rest import SupabaseRestClient
 
@@ -113,8 +115,16 @@ def main(argv: list[str] | None = None) -> int:
 
     cloud_state = CloudStateStore(supabase) if args.cloud_scheduled else None
     cloud_key = delivery_key_for(local_now) if args.cloud_scheduled else None
-    cloud_claim = cloud_state.claim_delivery(cloud_key) if cloud_state and cloud_key else None
-    if args.cloud_scheduled and not cloud_claim:
+    cloud_claim = None
+    if cloud_state and cloud_key:
+        try:
+            cloud_claim = cloud_state.claim_delivery(cloud_key)
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code != 404:
+                raise
+            print("Control Supabase no instalado; se usa el único corte horario de GitHub sin duplicar.")
+            cloud_state = None
+    if args.cloud_scheduled and cloud_state and not cloud_claim:
         print("Corte horario ya entregado o actualmente en proceso; no se repite.")
         return 0
     try:
@@ -138,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as exc:
         report["alerts"] = [f"Histórico no persistido: {type(exc).__name__}.", *report.get("alerts", [])][:3]
     cache_dir = Path(__file__).resolve().parents[1] / "sdr_cache" / "tabular"
-    if args.cloud_scheduled:
+    if args.cloud_scheduled and cloud_state:
         if not args.send:
             raise RuntimeError("--cloud-scheduled requiere --send")
         report_images = deliver_cloud_report(
@@ -149,6 +159,10 @@ def main(argv: list[str] | None = None) -> int:
             cloud_key,
             claimed=cloud_claim,
         )
+    elif args.cloud_scheduled:
+        if not args.send:
+            raise RuntimeError("--cloud-scheduled requiere --send")
+        report_images = deliver_hourly_report(report, sender, cache_dir, send=True)
     else:
         report_images = deliver_hourly_report(report, sender, cache_dir, send=args.send)
     for index, path in enumerate(report_images, 1):

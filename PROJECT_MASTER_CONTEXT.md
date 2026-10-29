@@ -210,7 +210,7 @@ No desarrollar directamente en `master`.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - La ejecucion permanente vive en GitHub Actions
-  (`.github/workflows/equipo-alicia-cloud.yml`): despierta cada 15 minutos y un
+  (`.github/workflows/equipo-alicia-cloud.yml`): despierta una vez por hora y un
   gate con `America/Santiago` entrega un reporte a las 09:00, 11:00, 13:00,
   15:00, 17:00, 19:00 y 21:00 Chile, lunes a viernes. El cron no contiene horas UTC fijas para que el
   cambio de horario chileno no desplace los cortes.
@@ -218,10 +218,10 @@ No desarrollar directamente en `master`.
   `equipo-alicia-webhook`; solo acepta el secreto de webhook y
   `TELEGRAM_SDR_CHAT_ID`, encola el `update_id` y dispara una ejecucion individual
   de GitHub. La respuesta sigue usando las mismas metricas Python del reporte.
-- `sdr_report_deliveries` evita reportes duplicados y registra por separado las
-  dos imagenes para reanudar un envio parcial. `sdr_bot_queries` evita responder
-  dos veces una consulta. Ambas tablas tienen RLS y acceso exclusivo de
-  `service_role`.
+- Cuando existen, `sdr_report_deliveries` y sus RPC evitan duplicados y permiten
+  reanudar un envio parcial. Si esa migracion aun no esta instalada, el reporte
+  usa el unico despertar horario de GitHub como respaldo y no depende de
+  Supabase para enviar. `sdr_bot_queries` sigue reservado para consultas.
 - Durante el cambio a cloud, `SDR_Telegram_Hourly` queda como respaldo local con
   disparadores 09:00–21:00 cada dos horas, de lunes a viernes. Solo despues de comprobar un reporte y una consulta
   reales desde cloud se deshabilitan `SDR_Telegram_Hourly` y
