@@ -222,10 +222,11 @@ No desarrollar directamente en `master`.
   reanudar un envio parcial. Si esa migracion aun no esta instalada, el reporte
   usa el unico despertar horario de GitHub como respaldo y no depende de
   Supabase para enviar. `sdr_bot_queries` sigue reservado para consultas.
-- Durante el cambio a cloud, `SDR_Telegram_Hourly` queda como respaldo local con
-  disparadores 09:00–21:00 cada dos horas, de lunes a viernes. Solo despues de comprobar un reporte y una consulta
-  reales desde cloud se deshabilitan `SDR_Telegram_Hourly` y
-  `SDR_Telegram_Bot`; sus definiciones se conservan para recuperacion manual.
+- Estado verificado 2026-10-29: GitHub Actions ejecuto el reporte desde `main`
+  con el PC local fuera del flujo, genero y envio las dos imagenes a
+  `@equipo_alicia_bot`. `SDR_Telegram_Hourly` queda deshabilitada para evitar
+  duplicados; conserva sus siete disparadores como respaldo manual. El envio
+  cloud funciona aunque la RPC opcional de Supabase no este instalada.
 - No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.
 
 Estado 2026-07-03: la app antigua `conprospeccion-os.streamlit.app` fue
