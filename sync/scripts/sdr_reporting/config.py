@@ -30,6 +30,16 @@ CLIENTS = {
     "balia": ClientConfig("balia", "BALIA", "BAL", "🩷", "#EC4899"),
 }
 
+# Con Prospección llama desde la misma subcuenta de Balia: se distingue por el usuario con que Nora entra
+# (nora@conprospeccion.com = Con Prospección; el usuario de Florencia = Balia).
+CON_PROSPECCION = ClientConfig("conprospeccion", "CON PROSPECCIÓN", "CP", "🟦", "#38BDF8")
+CON_PROSPECCION_USER_ID = "hzPn99MPQYZTj0u4G4Qj"
+
+
+def is_conprospeccion(user_id: str | None) -> bool:
+    return user_id == CON_PROSPECCION_USER_ID
+
+
 TOTAL_COLOR = "#334155"
 BACKGROUND_COLOR = "#F8FAFC"
 CARD_COLOR = "#FFFFFF"

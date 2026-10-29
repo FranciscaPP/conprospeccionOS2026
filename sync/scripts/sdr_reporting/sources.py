@@ -193,6 +193,7 @@ def fetch_activity_messages(ghl, location_id: str, start: datetime, end: datetim
             output.append({
                 "id": raw.get("id"),
                 "conversation_id": conversation_id,
+                "user_id": raw.get("userId"),
                 "contact_id": raw.get("contactId") or contact_id,
                 "message_type": raw.get("messageType"),
                 "direction": raw.get("direction"),

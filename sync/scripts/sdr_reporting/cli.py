@@ -69,11 +69,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Reporte operativo de @equipo_alicia_bot")
     parser.add_argument("--date", help="Fecha YYYY-MM-DD; por defecto hoy en Chile")
     parser.add_argument("--send", action="store_true", help="Enviar al único chat principal configurado")
-    parser.add_argument("--scheduled", action="store_true", help="Aplicar guardia laboral 10:00–22:59")
+    parser.add_argument("--scheduled", action="store_true", help="Aplicar cortes 09:00–21:00 cada dos horas, lunes a viernes")
     parser.add_argument(
         "--cloud-scheduled",
         action="store_true",
-        help="Aplicar ventana cloud 10:00–22:59 Chile e idempotencia horaria",
+        help="Aplicar cortes cloud 09:00–21:00 cada dos horas Chile e idempotencia",
     )
     parser.add_argument("--verify-bot", action="store_true", help="Verificar identidad sin enviar")
     parser.add_argument("--close", action="store_true", help="Marcar el corte como cierre diario")
@@ -85,7 +85,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.scheduled:
         local_now = datetime.now(CHILE)
-        if local_now.weekday() >= 5 or not 10 <= local_now.hour <= 22:
+        if not is_report_window(local_now):
             print("Fuera de ventana programada; no se envía.")
             return 0
 
@@ -106,7 +106,7 @@ def main(argv: list[str] | None = None) -> int:
     settings = get_settings()
     supabase = SupabaseRestClient(settings.supabase_url, settings.supabase_secret_key)
     store = SnapshotStore(supabase)
-    if args.scheduled and local_now.hour >= 20:
+    if args.scheduled and local_now.hour >= 21:
         args.close = True
         if local_now.weekday() == 4:
             args.weekly = True

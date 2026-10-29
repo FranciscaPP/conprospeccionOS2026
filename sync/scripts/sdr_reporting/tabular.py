@@ -5,10 +5,11 @@ from typing import Any, Iterable
 
 from PIL import Image, ImageDraw, ImageFont
 
-from .config import BACKGROUND_COLOR, CLIENTS, TEXT_COLOR
+from .config import BACKGROUND_COLOR, CLIENTS, CON_PROSPECCION, TEXT_COLOR
 
 
-ORDER = ("bambutech", "gbs", "balia")
+CP_KEY = "conprospeccion"
+ORDER = ("bambutech", "gbs", "balia", CP_KEY)
 TOTAL_KEY = "total"
 TOTAL_COLOR = "#D1D5DB"
 HEADER_COLOR = "#CBD5E1"
@@ -69,7 +70,10 @@ def _communication_rows(clients: dict, channel: str) -> dict[str, dict | None]:
 
 
 def build_table_document(report: dict) -> dict:
-    clients = report["clients"]
+    clients = {
+        **report["clients"],
+        CP_KEY: report.get("conprospeccion") or {},
+    }
     tasks = {slug: _task_row(clients[slug]) for slug in ORDER}
     task_total = _sum_rows(
         tasks.values(), ("overdue", "today", "total", "completed", "pending")
@@ -135,6 +139,21 @@ def build_table_document(report: dict) -> dict:
         else:
             meetings.append({"client": slug, "title": "Sin reuniones", "chile": "—", "peru": "—"})
 
+    scheduled = {}
+    for slug in ORDER:
+        items = clients[slug].get("meetings_scheduled") or []
+        by_hour: dict[int, int] = {}
+        for item in items:
+            created = item.get("created_at")
+            if created is not None:
+                by_hour[created.hour] = by_hour.get(created.hour, 0) + 1
+        scheduled[slug] = {"count": len(items), "by_hour": by_hour}
+    all_hours: dict[int, int] = {}
+    for slug in ORDER:
+        for hour, count in scheduled[slug]["by_hour"].items():
+            all_hours[hour] = all_hours.get(hour, 0) + count
+    scheduled[TOTAL_KEY] = {"count": sum(scheduled[s]["count"] for s in ORDER), "by_hour": all_hours}
+
     adherence = []
     for block in report.get("block_adherence") or []:
         correct = _number(block.get("correct_calls"))
@@ -158,6 +177,8 @@ def build_table_document(report: dict) -> dict:
         "sdr": str(report.get("sdr") or "Nora"),
         "meetings": meetings,
         "meeting_count": meeting_count,
+        "scheduled": scheduled,
+        "hourly": list(report.get("hourly") or []),
         "tasks": tasks,
         "calls_count": calls_count,
         "calls_minutes": calls_minutes,
@@ -188,9 +209,11 @@ def _font(size: int, bold: bool = False):
 
 
 def _duration(seconds: int) -> str:
-    minutes = round(_number(seconds) / 60)
-    hours, minutes = divmod(minutes, 60)
-    return f"{hours} h {minutes:02d} min" if hours else f"{minutes} min"
+    hours, remainder = divmod(_number(seconds), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours}h {minutes:02d}m {seconds:02d}s"
+    return f"{minutes}m {seconds:02d}s"
 
 
 def _fit_text(draw: ImageDraw.ImageDraw, text: str, width: int, bold: bool = False, maximum: int = 24):
@@ -251,7 +274,9 @@ def _table(
             align = "center"
             if column == 0:
                 align = "left"
-                if key in CLIENTS:
+                if key == CP_KEY:
+                    fill = CON_PROSPECCION.color
+                elif key in CLIENTS:
                     fill = CLIENTS[key].color
                 elif key == TOTAL_KEY:
                     fill = TOTAL_COLOR
@@ -274,11 +299,13 @@ def _header(draw: ImageDraw.ImageDraw, document: dict, page: int) -> int:
 
 
 def _client_name(slug: str) -> str:
+    if slug == CP_KEY:
+        return CON_PROSPECCION.name
     return CLIENTS[slug].name if slug in CLIENTS else "TOTAL"
 
 
 def _render_image_one(document: dict) -> Image.Image:
-    image = Image.new("RGB", (1200, 2600), BACKGROUND_COLOR)
+    image = Image.new("RGB", (1200, 3600), BACKGROUND_COLOR)
     draw = ImageDraw.Draw(image)
     y = _header(draw, document, 1)
 
@@ -287,6 +314,14 @@ def _render_image_one(document: dict) -> Image.Image:
     meeting_rows.append(["TOTAL", f"{document['meeting_count']} reunión(es)", "", ""])
     meeting_keys.append(TOTAL_KEY)
     y = _table(draw, y, "REUNIONES DE HOY", ["Cliente", "Contacto / empresa", "Hora Chile", "Hora Perú"], meeting_rows, [220, 510, 200, 200], meeting_keys)
+
+    sched_rows, sched_keys = [], []
+    for slug in (*ORDER, TOTAL_KEY):
+        info = document["scheduled"][slug]
+        by_hour = " · ".join(f"{hour}h: {count}" for hour, count in sorted(info["by_hour"].items())) or "—"
+        sched_rows.append([_client_name(slug), str(info["count"]), by_hour])
+        sched_keys.append(slug)
+    y = _table(draw, y, "REUNIONES AGENDADAS HOY", ["Cliente", "Agendadas", "Por hora en que se agendaron"], sched_rows, [230, 200, 700], sched_keys)
 
     task_rows, task_keys = [], []
     for slug in (*ORDER, TOTAL_KEY):
@@ -305,9 +340,31 @@ def _render_image_one(document: dict) -> Image.Image:
     y = _table(draw, y, "LLAMADAS N°", ["Cliente", "Hoy", "Contestadas >20 s", "Sin contestar ≤20 s"], count_rows, [230, 250, 325, 325], keys)
     y = _table(draw, y, "LLAMADAS MINUTOS", ["Cliente", "Hoy", "Contestadas >20 s", "Sin contestar ≤20 s"], minute_rows, [230, 250, 325, 325], keys)
 
+    hourly_rows, hourly_keys = [], []
+    for row in document["hourly"]:
+        activity = " · ".join(
+            f"{CLIENTS[slug].short if slug in CLIENTS else CON_PROSPECCION.short} {count}"
+            for slug, count in row.get("calls_by_client", {}).items()
+            if slug in CLIENTS or slug == CP_KEY
+        ) or "Sin llamadas"
+        hourly_rows.append([
+            f"{row['hour']:02d}–{row['hour'] + 1:02d}",
+            activity,
+            str(row["calls"]), str(row["contacts"]), str(row["answered"]),
+            _duration(row["phone_seconds"]), str(row["messages"]),
+            _duration(row["idle_seconds"]), str(row["meetings"]),
+        ])
+        hourly_keys.append(row["client"] or "")
+    if hourly_rows:
+        totals = {k: sum(r[k] for r in document["hourly"]) for k in ("calls", "answered", "phone_seconds", "messages", "idle_seconds", "meetings")}
+        hourly_rows.append(["TOTAL", "", str(totals["calls"]), "", str(totals["answered"]), _duration(totals["phone_seconds"]),
+                            str(totals["messages"]), _duration(totals["idle_seconds"]), str(totals["meetings"])])
+        hourly_keys.append(TOTAL_KEY)
+        y = _table(draw, y, "HORA POR HORA", ["Hora", "Actividad real", "Llamadas", "Contactos", "Contest. >20 s", "Min teléfono", "Correos/WA", "Sin trabajar", "Agend."], hourly_rows, [110, 190, 110, 120, 140, 140, 110, 130, 80], hourly_keys)
+
     phone = document["phone_time"]
     y = _table(draw, y, "TOTAL HORA / MINUTOS DE LLAMADAS", ["Trabajados", "Sin trabajar"], [[_duration(phone["worked_seconds"]), _duration(phone["unregistered_seconds"])]], [565, 565])
-    return image.crop((0, 0, 1200, min(2600, y + 10)))
+    return image.crop((0, 0, 1200, min(3600, y + 10)))
 
 
 def _communication_table(draw, y, title, rows_document):

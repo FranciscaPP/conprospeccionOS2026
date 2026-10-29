@@ -133,6 +133,65 @@ def worked_time(
     }
 
 
+def hourly_breakdown(
+    day: date,
+    now,
+    blocks: Iterable[WorkBlock],
+    calls: Iterable[dict],
+    manual_message_times: Iterable,
+    meeting_times: Iterable,
+    min_talk_seconds: int = 20,
+) -> list[dict]:
+    """Una fila por hora de horario laboral transcurrida: llamadas, minutos y tiempo sin trabajar."""
+    blocks = list(blocks)
+    calls = [c for c in calls if c.get("occurred_at")]
+    message_times = list(manual_message_times)
+    meeting_times = list(meeting_times)
+    rows = []
+    for hour in range(24):
+        slot_start = now.replace(year=day.year, month=day.month, day=day.day,
+                                 hour=hour, minute=0, second=0, microsecond=0)
+        slot_end = slot_start + timedelta(hours=1)
+        elapsed = 0
+        expected_client = None
+        for block in blocks:
+            end = min(block.end, slot_end, now)
+            start = max(block.start, slot_start)
+            if end > start:
+                elapsed += round((end - start).total_seconds())
+                expected_client = expected_client or block.client
+        if elapsed <= 0:
+            continue
+        in_hour = [c for c in calls if slot_start <= c["occurred_at"] < slot_end]
+        phone = sum(int(c.get("phone_seconds") or c.get("duration_seconds") or 0) for c in in_hour)
+        calls_by_client = Counter(str(c.get("client") or "unknown") for c in in_hour)
+        phone_seconds_by_client: Counter[str] = Counter()
+        for call in in_hour:
+            phone_seconds_by_client[str(call.get("client") or "unknown")] += int(
+                call.get("phone_seconds") or call.get("duration_seconds") or 0
+            )
+        messages = sum(1 for t in message_times if slot_start <= t < slot_end)
+        worked = min(elapsed, phone + messages * 300)
+        actual_clients = [client for client in calls_by_client if client != "unknown"]
+        rows.append({
+            "hour": hour,
+            "expected_client": expected_client,
+            "client": actual_clients[0] if len(actual_clients) == 1 else None,
+            "calls_by_client": dict(calls_by_client),
+            "phone_seconds_by_client": dict(phone_seconds_by_client),
+            "calls": len(in_hour),
+            "contacts": len({c.get("contact_id") for c in in_hour if c.get("contact_id")}),
+            "answered": sum(1 for c in in_hour if int(c.get("duration_seconds") or 0) > min_talk_seconds),
+            "phone_seconds": phone,
+            "messages": messages,
+            "elapsed_seconds": elapsed,
+            "worked_seconds": worked,
+            "idle_seconds": elapsed - worked,
+            "meetings": sum(1 for t in meeting_times if slot_start <= t < slot_end),
+        })
+    return rows
+
+
 def elapsed_work_seconds(blocks: Iterable[WorkBlock], now, client: str | None = None) -> int:
     total = 0
     for block in blocks:

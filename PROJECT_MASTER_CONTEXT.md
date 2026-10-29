@@ -187,12 +187,14 @@ No desarrollar directamente en `master`.
 
 - Unico bot autorizado para seguimiento SDR: `@equipo_alicia_bot`, validado por
   `getMe`; salida exclusiva a `TELEGRAM_SDR_CHAT_ID`.
-- SDR operativa: Nora. Clientes: BAMBU TECH, GBS y BALIA.
+- SDR operativa: Nora. Unidades reportadas: BAMBU TECH, GBS, BALIA y CON
+  PROSPECCIÓN. CON PROSPECCIÓN comparte la subcuenta GHL de BALIA, pero se
+  atribuye por el usuario de Nora en `assignedTo`, `userId` y `assignedUserId`.
 - `sync/scripts/report_sdr_telegram.py --operational` genera el reporte horario;
   a las 20:00 agrega cierre y grafico, y el viernes agrega resumen semanal.
 - El monitor de reuniones cada 5 minutos fue eliminado. No recrearlo.
-- El reporte horario se envía como exactamente dos imágenes PNG tabulares de
-  1200 px para BAMBU TECH, GBS, BALIA y TOTAL. Separa tareas del día anterior y
+- El reporte se envía como exactamente dos imágenes PNG tabulares de 1200 px
+  para BAMBU TECH, GBS, BALIA, CON PROSPECCIÓN y TOTAL. Separa tareas del día anterior y
   de hoy; Avance usa el universo combinado y muestra cantidad más porcentaje.
 - La jornada oficial es 11:00–20:00 Chile, con almuerzo 16:00–17:00. Las tablas
   principales de llamadas incluyen solo esa jornada; antes de las 11:00,
@@ -209,8 +211,8 @@ No desarrollar directamente en `master`.
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - La ejecucion permanente vive en GitHub Actions
   (`.github/workflows/equipo-alicia-cloud.yml`): despierta cada 15 minutos y un
-  gate con `America/Santiago` entrega un solo reporte por hora, de 10:00 a
-  22:00 Chile, lunes a viernes. El cron no contiene horas UTC fijas para que el
+  gate con `America/Santiago` entrega un reporte a las 09:00, 11:00, 13:00,
+  15:00, 17:00, 19:00 y 21:00 Chile, lunes a viernes. El cron no contiene horas UTC fijas para que el
   cambio de horario chileno no desplace los cortes.
 - Las consultas 24/7 ingresan por la Edge Function de Supabase
   `equipo-alicia-webhook`; solo acepta el secreto de webhook y
@@ -221,7 +223,7 @@ No desarrollar directamente en `master`.
   dos veces una consulta. Ambas tablas tienen RLS y acceso exclusivo de
   `service_role`.
 - Durante el cambio a cloud, `SDR_Telegram_Hourly` queda como respaldo local con
-  disparadores 10:00–22:00. Solo despues de comprobar un reporte y una consulta
+  disparadores 09:00–21:00 cada dos horas, de lunes a viernes. Solo despues de comprobar un reporte y una consulta
   reales desde cloud se deshabilitan `SDR_Telegram_Hourly` y
   `SDR_Telegram_Bot`; sus definiciones se conservan para recuperacion manual.
 - No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.

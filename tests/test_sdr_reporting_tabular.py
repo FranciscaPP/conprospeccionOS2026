@@ -7,7 +7,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
-from sdr_reporting.tabular import build_table_document, render_tabular_report
+from sdr_reporting.tabular import _duration, build_table_document, render_tabular_report
 
 
 CHILE = ZoneInfo("America/Santiago")
@@ -59,6 +59,11 @@ def sample_report():
             "gbs": client(1, 4, 3, 12, 8, dict(communication)),
             "balia": client(1, 4, 3, 12, 8, dict(communication)),
         },
+        "conprospeccion": {
+            **client(2, 3, 1, 7, 2, dict(communication)),
+            "meetings": [],
+            "meetings_scheduled": [],
+        },
         "work_time": {
             "elapsed_seconds": 4 * 3600,
             "worked_seconds": 2 * 3600,
@@ -80,20 +85,50 @@ def test_table_document_recalculates_totals_and_marks_partial_channels():
     document = build_table_document(sample_report())
 
     assert document["tasks"]["total"] == {
-        "overdue": 3,
-        "today": 12,
-        "total": 15,
-        "completed": 9,
-        "pending": 6,
-        "percent": 60,
+        "overdue": 5,
+        "today": 15,
+        "total": 20,
+        "completed": 10,
+        "pending": 10,
+        "percent": 50,
     }
-    assert document["calls_count"]["total"]["today"] == 36
-    assert document["email"]["total"]["total"] == 30
+    assert document["calls_count"]["total"]["today"] == 43
+    assert document["email"]["total"]["total"] == 40
     assert document["email"]["total"]["partial"] is False
     assert document["whatsapp"]["gbs"] is None
     assert document["whatsapp"]["balia"] is None
+    assert document["whatsapp"]["conprospeccion"] is None
     assert document["whatsapp"]["total"]["partial"] is True
     assert document["outside"]["total"]["lunch"]["count"] == 2
+
+
+def test_prospecting_is_present_in_all_primary_tables_even_when_empty():
+    report = sample_report()
+    report["conprospeccion"] = {
+        "tasks_overdue": 0,
+        "tasks_today": 0,
+        "tasks_completed": 0,
+        "calls": 0,
+        "answered": 0,
+        "unanswered": 0,
+        "phone_seconds": 0,
+        "answered_seconds": 0,
+        "unanswered_phone_seconds": 0,
+        "meetings": [],
+        "meetings_scheduled": [],
+        "email": None,
+        "whatsapp": None,
+        "outside_hours": {},
+    }
+
+    document = build_table_document(report)
+
+    assert document["tasks"]["conprospeccion"]["total"] == 0
+    assert any(row["client"] == "conprospeccion" for row in document["meetings"])
+    assert document["scheduled"]["conprospeccion"]["count"] == 0
+    assert document["calls_count"]["conprospeccion"]["today"] == 0
+    assert "conprospeccion" in document["email"]
+    assert "conprospeccion" in document["outside"]
 
 
 def test_render_tabular_report_creates_two_fixed_width_pngs(tmp_path):
@@ -107,3 +142,8 @@ def test_render_tabular_report_creates_two_fixed_width_pngs(tmp_path):
         with Image.open(path) as image:
             assert image.format == "PNG"
             assert image.width == 1200
+
+
+def test_duration_keeps_seconds_so_rows_and_totals_can_be_reconciled():
+    assert _duration(839) == "13m 59s"
+    assert _duration(5664) == "1h 34m 24s"
