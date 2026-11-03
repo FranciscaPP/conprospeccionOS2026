@@ -210,23 +210,26 @@ No desarrollar directamente en `master`.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - La ejecucion permanente vive en GitHub Actions
-  (`.github/workflows/equipo-alicia-cloud.yml`): despierta una vez por hora y un
+  (`.github/workflows/equipo-alicia-cloud.yml`): despierta cuatro veces por hora y un
   gate con `America/Santiago` entrega un reporte a las 09:00, 11:00, 13:00,
   15:00, 17:00, 19:00 y 21:00 Chile, lunes a viernes. El cron no contiene horas UTC fijas para que el
-  cambio de horario chileno no desplace los cortes.
+  cambio de horario chileno no desplace los cortes. Los reintentos dentro de la
+  misma hora son idempotentes mediante `sdr_report_deliveries`.
 - Las consultas 24/7 ingresan por la Edge Function de Supabase
   `equipo-alicia-webhook`; solo acepta el secreto de webhook y
   `TELEGRAM_SDR_CHAT_ID`, encola el `update_id` y dispara una ejecucion individual
   de GitHub. La respuesta sigue usando las mismas metricas Python del reporte.
-- Cuando existen, `sdr_report_deliveries` y sus RPC evitan duplicados y permiten
-  reanudar un envio parcial. Si esa migracion aun no esta instalada, el reporte
-  usa el unico despertar horario de GitHub como respaldo y no depende de
-  Supabase para enviar. `sdr_bot_queries` sigue reservado para consultas.
+- `sdr_report_deliveries` y sus RPC evitan duplicados y permiten reanudar un
+  envio parcial. La migracion de control fue instalada en produccion el
+  2026-11-03. `sdr_bot_queries` sigue reservado para consultas.
 - Estado verificado 2026-10-29: GitHub Actions ejecuto el reporte desde `main`
   con el PC local fuera del flujo, genero y envio las dos imagenes a
   `@equipo_alicia_bot`. `SDR_Telegram_Hourly` queda deshabilitada para evitar
-  duplicados; conserva sus siete disparadores como respaldo manual. El envio
-  cloud funciona aunque la RPC opcional de Supabase no este instalada.
+  duplicados; conserva sus siete disparadores como respaldo manual. En ese
+  momento el envio cloud usaba el fallback porque la RPC aun no estaba instalada.
+- Incidente 2026-11-03: GitHub omitio despertares horarios completos y no hubo
+  reportes el lunes 2. Se instalo la RPC de idempotencia y se aumento el cron a
+  cuatro oportunidades por hora para tolerar retrasos u omisiones del scheduler.
 - No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.
 
 Estado 2026-07-03: la app antigua `conprospeccion-os.streamlit.app` fue

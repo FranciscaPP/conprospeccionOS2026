@@ -2,8 +2,9 @@ name: Equipo Alicia cloud
 
 on:
   schedule:
-    # Un despertar por hora; Python decide las siete horas Chile y evita UTC fijo.
-    - cron: "0 * * * *"
+    # Cuatro oportunidades por hora: GitHub puede retrasar u omitir un cron.
+    # Python limita los siete cortes Chile y Supabase evita duplicados.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
     inputs:
       update_id:
