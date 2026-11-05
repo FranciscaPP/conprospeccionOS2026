@@ -210,11 +210,12 @@ No desarrollar directamente en `master`.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - La ejecucion permanente vive en GitHub Actions
-  (`.github/workflows/equipo-alicia-cloud.yml`): despierta cuatro veces por hora y un
+  (`.github/workflows/equipo-alicia-cloud.yml`): usa disparadores UTC explicitos
+  para horario de verano e invierno, y un
   gate con `America/Santiago` entrega un reporte a las 09:00, 11:00, 13:00,
-  15:00, 17:00, 19:00 y 21:00 Chile, lunes a viernes. El cron no contiene horas UTC fijas para que el
-  cambio de horario chileno no desplace los cortes. Los reintentos dentro de la
-  misma hora son idempotentes mediante `sdr_report_deliveries`.
+  15:00, 17:00, 19:00 y 21:00 Chile, lunes a viernes. El cron cubre ambas
+  diferencias UTC y Python conserva la hora local correcta. La idempotencia se
+  controla mediante `sdr_report_deliveries`.
 - Las consultas 24/7 ingresan por la Edge Function de Supabase
   `equipo-alicia-webhook`; solo acepta el secreto de webhook y
   `TELEGRAM_SDR_CHAT_ID`, encola el `update_id` y dispara una ejecucion individual
@@ -230,6 +231,10 @@ No desarrollar directamente en `master`.
 - Incidente 2026-11-03: GitHub omitio despertares horarios completos y no hubo
   reportes el lunes 2. Se instalo la RPC de idempotencia y se aumento el cron a
   cuatro oportunidades por hora para tolerar retrasos u omisiones del scheduler.
+- Incidente 2026-11-05: el cron frecuente siguio siendo omitido por GitHub. Se
+  reemplazo por eventos cron explicitos solo para las horas UTC que pueden
+  corresponder a los siete cortes Chile en UTC-3 o UTC-4; Python conserva el
+  gate local y descarta el evento de la zona horaria inactiva.
 - No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.
 
 Estado 2026-07-03: la app antigua `conprospeccion-os.streamlit.app` fue

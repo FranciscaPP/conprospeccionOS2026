@@ -2,9 +2,23 @@ name: Equipo Alicia cloud
 
 on:
   schedule:
-    # Cuatro oportunidades por hora: GitHub puede retrasar u omitir un cron.
-    # Python limita los siete cortes Chile y Supabase evita duplicados.
-    - cron: "7,22,37,52 * * * *"
+    # Disparadores explícitos para los siete cortes Chile. La unión cubre UTC-3
+    # y UTC-4; Python descarta automáticamente la hora que no corresponda.
+    # Se evita el cron genérico frecuente, que GitHub estaba omitiendo.
+    - cron: "17 0 * * 1-5"
+    - cron: "17 1 * * 1-5"
+    - cron: "17 12 * * 1-5"
+    - cron: "17 13 * * 1-5"
+    - cron: "17 14 * * 1-5"
+    - cron: "17 15 * * 1-5"
+    - cron: "17 16 * * 1-5"
+    - cron: "17 17 * * 1-5"
+    - cron: "17 18 * * 1-5"
+    - cron: "17 19 * * 1-5"
+    - cron: "17 20 * * 1-5"
+    - cron: "17 21 * * 1-5"
+    - cron: "17 22 * * 1-5"
+    - cron: "17 23 * * 1-5"
   workflow_dispatch:
     inputs:
       update_id:
