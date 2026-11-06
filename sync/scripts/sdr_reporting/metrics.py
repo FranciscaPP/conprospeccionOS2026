@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import date, time
+from datetime import date, time, timedelta
 from typing import Iterable
 
 from .models import CallMetrics, OperationalGap, TaskBaseline, TaskProgress

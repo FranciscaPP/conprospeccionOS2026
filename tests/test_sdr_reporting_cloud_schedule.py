@@ -12,18 +12,18 @@ from sdr_reporting.cloud_schedule import delivery_key_for, is_report_window
 CHILE = ZoneInfo("America/Santiago")
 
 
-def test_cloud_window_is_weekdays_at_bihourly_slots_from_09_through_21_chile():
+def test_cloud_window_is_daily_at_bihourly_slots_plus_22_chile_close():
     monday = datetime(2026, 10, 5, tzinfo=CHILE)
 
-    allowed = {9, 11, 13, 15, 17, 19, 21}
+    allowed = {9, 11, 13, 15, 17, 19, 21, 22}
     assert {
         hour
         for hour in range(24)
         if is_report_window(monday.replace(hour=hour, minute=0))
     } == allowed
     assert is_report_window(monday.replace(hour=10, minute=0)) is False
-    assert is_report_window(monday.replace(hour=22, minute=0)) is False
-    assert is_report_window(datetime(2026, 10, 10, 12, tzinfo=CHILE)) is False
+    assert is_report_window(monday.replace(hour=22, minute=0)) is True
+    assert is_report_window(datetime(2026, 10, 10, 11, tzinfo=CHILE)) is True
 
 
 def test_delivery_key_uses_chile_calendar_across_utc_offsets():

@@ -71,11 +71,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Reporte operativo de @equipo_alicia_bot")
     parser.add_argument("--date", help="Fecha YYYY-MM-DD; por defecto hoy en Chile")
     parser.add_argument("--send", action="store_true", help="Enviar al único chat principal configurado")
-    parser.add_argument("--scheduled", action="store_true", help="Aplicar cortes 09:00–21:00 cada dos horas, lunes a viernes")
+    parser.add_argument("--scheduled", action="store_true", help="Aplicar cortes diarios 09:00–21:00 cada dos horas y cierre 22:00 Chile")
     parser.add_argument(
         "--cloud-scheduled",
         action="store_true",
-        help="Aplicar cortes cloud 09:00–21:00 cada dos horas Chile e idempotencia",
+        help="Aplicar cortes cloud diarios 09:00–21:00 cada dos horas, cierre 22:00 Chile e idempotencia",
     )
     parser.add_argument("--verify-bot", action="store_true", help="Verificar identidad sin enviar")
     parser.add_argument("--close", action="store_true", help="Marcar el corte como cierre diario")
@@ -108,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
     settings = get_settings()
     supabase = SupabaseRestClient(settings.supabase_url, settings.supabase_secret_key)
     store = SnapshotStore(supabase)
-    if args.scheduled and local_now.hour >= 21:
+    if (args.scheduled or args.cloud_scheduled) and local_now.hour >= 22:
         args.close = True
         if local_now.weekday() == 4:
             args.weekly = True

@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 
 CHILE = ZoneInfo("America/Santiago")
-REPORT_HOURS = frozenset({9, 11, 13, 15, 17, 19, 21})
+REPORT_HOURS = frozenset({9, 11, 13, 15, 17, 19, 21, 22})
 
 
 def chile_now(now: datetime | None = None) -> datetime:
@@ -18,7 +18,7 @@ def chile_now(now: datetime | None = None) -> datetime:
 
 def is_report_window(now: datetime | None = None) -> bool:
     local = chile_now(now)
-    return local.weekday() < 5 and local.hour in REPORT_HOURS
+    return local.hour in REPORT_HOURS
 
 
 def delivery_key_for(now: datetime | None = None) -> str:
