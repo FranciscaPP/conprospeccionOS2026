@@ -85,6 +85,16 @@ def build_table_document(report: dict) -> dict:
     )
     tasks[TOTAL_KEY] = task_total
 
+    task_calls = {}
+    task_call_keys = (
+        "completed", "completed_with_call", "completed_without_call",
+        "called_task_contacts", "called_without_task_contacts", "unique_called_contacts",
+    )
+    for slug in ORDER:
+        source = clients[slug].get("task_call_reconciliation") or {}
+        task_calls[slug] = {key: _number(source.get(key)) for key in task_call_keys}
+    task_calls[TOTAL_KEY] = _sum_rows(task_calls.values(), task_call_keys)
+
     calls_count = {}
     calls_minutes = {}
     outside = {}
@@ -181,6 +191,7 @@ def build_table_document(report: dict) -> dict:
         "scheduled": scheduled,
         "hourly": list(report.get("hourly") or []),
         "tasks": tasks,
+        "task_calls": task_calls,
         "calls_count": calls_count,
         "calls_minutes": calls_minutes,
         "phone_time": {
@@ -329,7 +340,22 @@ def _render_image_one(document: dict) -> Image.Image:
         row = document["tasks"][slug]
         task_rows.append([_client_name(slug), str(row["overdue"]), str(row["today"]), str(row["total"]), f"{row['completed']} · {row['percent']}%", str(row["pending"])])
         task_keys.append(slug)
-    y = _table(draw, y, "TAREAS", ["Cliente", "Atrasadas", "Hoy", "Total", "Avance", "Pendiente"], task_rows, [230, 150, 150, 150, 250, 200], task_keys)
+    y = _table(draw, y, "TAREAS", ["Cliente", "Atras. pend.", "Hoy pend.", "Universo", "Completadas / avance", "Pendientes"], task_rows, [230, 150, 150, 150, 250, 200], task_keys)
+
+    reconcile_rows, reconcile_keys = [], []
+    for slug in (*ORDER, TOTAL_KEY):
+        row = document["task_calls"][slug]
+        reconcile_rows.append([
+            _client_name(slug), str(row["completed"]),
+            str(row["completed_with_call"]), str(row["completed_without_call"]),
+            str(row["called_task_contacts"]), str(row["called_without_task_contacts"]),
+        ])
+        reconcile_keys.append(slug)
+    y = _table(
+        draw, y, "CONCILIACIÓN TAREAS Y LLAMADAS",
+        ["Cliente", "Complet.", "Con llamada", "Sin llamada", "Contactos con tarea", "Contactos sin tarea"],
+        reconcile_rows, [230, 150, 170, 170, 220, 190], reconcile_keys,
+    )
 
     count_rows, minute_rows, keys = [], [], []
     for slug in (*ORDER, TOTAL_KEY):

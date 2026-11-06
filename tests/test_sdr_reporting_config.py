@@ -18,7 +18,7 @@ def test_three_clients_and_official_colors():
 def test_official_chile_schedule_excludes_lunch():
     blocks = work_blocks_for(date(2026, 9, 24))
     assert [(b.start.hour, b.end.hour, b.client) for b in blocks] == [
-        (11, 12, "balia"),
+        (9, 12, "balia"),
         (12, 13, "gbs"),
         (13, 16, "bambutech"),
         (17, 18, "gbs"),

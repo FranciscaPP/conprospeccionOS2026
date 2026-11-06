@@ -59,6 +59,31 @@ def _completed_workload_today(tasks: list[dict], day: date) -> list[dict]:
     ]
 
 
+def _reconcile_tasks_and_calls(
+    tasks: list[dict], completed_today: list[dict], calls: list[dict], day: date
+) -> dict[str, int]:
+    workload = [
+        task for task in tasks
+        if task.get("due_at")
+        and task["due_at"].date() <= day
+        and (not task.get("completed") or task in completed_today)
+    ]
+    workload_contacts = {task.get("contact_id") for task in workload if task.get("contact_id")}
+    call_contacts = {call.get("contact_id") for call in calls if call.get("contact_id")}
+    completed_with_call = sum(
+        1 for task in completed_today
+        if task.get("contact_id") and task["contact_id"] in call_contacts
+    )
+    return {
+        "completed": len(completed_today),
+        "completed_with_call": completed_with_call,
+        "completed_without_call": len(completed_today) - completed_with_call,
+        "called_task_contacts": len(call_contacts & workload_contacts),
+        "called_without_task_contacts": len(call_contacts - workload_contacts),
+        "unique_called_contacts": len(call_contacts),
+    }
+
+
 def _meeting_user_id(event: dict) -> str | None:
     return (
         event.get("assignedUserId")
@@ -268,6 +293,9 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             cp_completed_today = _completed_workload_today(cp_tasks, day)
             cp_task_total = cp_progress.total + len(cp_completed_today)
             cp_task_percent = round(100 * len(cp_completed_today) / cp_task_total) if cp_task_total else 0
+            cp_task_call = _reconcile_tasks_and_calls(
+                cp_tasks, cp_completed_today, cp_periods["scheduled"], day
+            )
             cp_email = {
                 **summarize_email_messages([
                     message for message in cp_activity_messages
@@ -284,6 +312,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
                 "tasks_completed": len(cp_completed_today),
                 "tasks_pending": cp_progress.pending,
                 "task_percent": cp_task_percent,
+                "task_call_reconciliation": cp_task_call,
                 "calls": cp_metrics.calls,
                 "contacts": cp_metrics.unique_contacts,
                 "answered": cp_metrics.answered,
@@ -456,6 +485,9 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             "tasks_completed": len(completed_today),
             "tasks_pending": progress.pending,
             "task_percent": task_percent,
+            "task_call_reconciliation": _reconcile_tasks_and_calls(
+                tasks, completed_today, call_periods["scheduled"], day
+            ),
             "pending_today": progress.pending_today,
             "overdue_pending": progress.pending_overdue,
             "tasks_done_last_hour": tasks_done_last_hour,

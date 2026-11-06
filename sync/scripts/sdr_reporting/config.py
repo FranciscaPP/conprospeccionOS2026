@@ -48,7 +48,7 @@ SECONDARY_TEXT_COLOR = "#64748B"
 GAP_COLOR = "#DC2626"
 
 _SCHEDULE = (
-    (time(11), time(12), "balia"),
+    (time(9), time(12), "balia"),
     (time(12), time(13), "gbs"),
     (time(13), time(16), "bambutech"),
     (time(17), time(18), "gbs"),

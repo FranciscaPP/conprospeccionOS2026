@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
-from sdr_reporting.config import work_blocks_for
+from sdr_reporting.config import WorkBlock, work_blocks_for
 from sdr_reporting.metrics import call_metrics, operational_gaps, split_calls_by_period
 
 CHILE = ZoneInfo("America/Santiago")
@@ -43,7 +43,7 @@ def test_twenty_seconds_is_not_answered_and_groups_are_exhaustive():
 
 
 def test_gap_detection_only_inside_block_and_at_least_twenty_minutes():
-    block = work_blocks_for(date(2026, 9, 24))[0]
+    block = WorkBlock(at(11, 0), at(12, 0), "balia")
     events = [{"occurred_at": at(11, 5)}, {"occurred_at": at(11, 14)}, {"occurred_at": at(11, 40)}]
     gaps = operational_gaps(block, events, at(11, 50))
     assert [(g.start.strftime("%H:%M"), g.end.strftime("%H:%M")) for g in gaps] == [
@@ -53,13 +53,14 @@ def test_gap_detection_only_inside_block_and_at_least_twenty_minutes():
 
 def test_no_gap_is_created_for_lunch_or_short_silence():
     assert operational_gaps(None, [], at(16, 45)) == []
-    block = work_blocks_for(date(2026, 9, 24))[0]
+    block = WorkBlock(at(11, 0), at(12, 0), "balia")
     events = [{"occurred_at": at(11, 0)}, {"occurred_at": at(11, 19)}, {"occurred_at": at(11, 38)}]
     assert operational_gaps(block, events, at(11, 50)) == []
 
 
 def test_calls_are_split_between_schedule_and_outside_periods():
     calls = [
+        {"occurred_at": at(8, 30), "phone_seconds": 10},
         {"occurred_at": at(10, 30), "phone_seconds": 10},
         {"occurred_at": at(11, 15), "phone_seconds": 20},
         {"occurred_at": at(16, 15), "phone_seconds": 30},
@@ -69,10 +70,10 @@ def test_calls_are_split_between_schedule_and_outside_periods():
 
     periods = split_calls_by_period(calls, date(2026, 9, 24))
 
-    assert periods["scheduled"] == [calls[1], calls[3]]
+    assert periods["scheduled"] == [calls[1], calls[2], calls[4]]
     assert periods["before"] == [calls[0]]
-    assert periods["lunch"] == [calls[2]]
-    assert periods["after"] == [calls[4]]
+    assert periods["lunch"] == [calls[3]]
+    assert periods["after"] == [calls[5]]
 
 
 def test_weekend_calls_are_never_scheduled_work():

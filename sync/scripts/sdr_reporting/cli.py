@@ -71,11 +71,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Reporte operativo de @equipo_alicia_bot")
     parser.add_argument("--date", help="Fecha YYYY-MM-DD; por defecto hoy en Chile")
     parser.add_argument("--send", action="store_true", help="Enviar al único chat principal configurado")
-    parser.add_argument("--scheduled", action="store_true", help="Aplicar cortes diarios 09:00–21:00 cada dos horas y cierre 22:00 Chile")
+    parser.add_argument("--scheduled", action="store_true", help="Aplicar cortes diarios cada hora, 09:00–22:00 Chile")
     parser.add_argument(
         "--cloud-scheduled",
         action="store_true",
-        help="Aplicar cortes cloud diarios 09:00–21:00 cada dos horas, cierre 22:00 Chile e idempotencia",
+        help="Aplicar cortes cloud diarios cada hora, 09:00–22:00 Chile, con idempotencia",
     )
     parser.add_argument("--verify-bot", action="store_true", help="Verificar identidad sin enviar")
     parser.add_argument("--close", action="store_true", help="Marcar el corte como cierre diario")

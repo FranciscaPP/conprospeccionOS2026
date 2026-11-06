@@ -37,8 +37,9 @@ def test_hourly_breakdown_counts_calls_unique_contacts_and_idle_minutes():
         manual_message_times=[at(11, 50)],
         meeting_times=[at(11, 55), at(12, 10)],
     )
-    assert [row["hour"] for row in rows] == [11, 12]
-    first, second = rows
+    assert [row["hour"] for row in rows] == [9, 10, 11, 12]
+    first = next(row for row in rows if row["hour"] == 11)
+    second = next(row for row in rows if row["hour"] == 12)
     assert first["client"] == "balia"
     assert first["calls_by_client"] == {"balia": 3}
     assert first["phone_seconds_by_client"] == {"balia": 1800}
@@ -59,7 +60,7 @@ def test_hourly_breakdown_counts_calls_unique_contacts_and_idle_minutes():
 
 def test_hourly_breakdown_skips_lunch_hour_and_future_hours():
     rows = hourly_breakdown(DAY, at(17, 30), work_blocks_for(DAY), [], [], [])
-    assert [row["hour"] for row in rows] == [11, 12, 13, 14, 15, 17]
+    assert [row["hour"] for row in rows] == [9, 10, 11, 12, 13, 14, 15, 17]
     assert rows[-1]["elapsed_seconds"] == 1800
 
 
@@ -67,8 +68,9 @@ def test_idle_never_negative_when_calls_overflow_the_hour():
     rows = hourly_breakdown(
         DAY, at(11, 30), work_blocks_for(DAY), [call(11, 1, "a", 5000, 60)], [], [],
     )
-    assert rows[0]["idle_seconds"] == 0
-    assert rows[0]["worked_seconds"] == rows[0]["elapsed_seconds"]
+    row = next(item for item in rows if item["hour"] == 11)
+    assert row["idle_seconds"] == 0
+    assert row["worked_seconds"] == row["elapsed_seconds"]
 
 
 def test_conprospeccion_is_detected_by_the_user_who_made_the_call():

@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 
 CHILE = ZoneInfo("America/Santiago")
-REPORT_HOURS = frozenset({9, 11, 13, 15, 17, 19, 21, 22})
+REPORT_HOURS = frozenset(range(9, 23))
 
 
 def chile_now(now: datetime | None = None) -> datetime:

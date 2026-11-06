@@ -196,8 +196,8 @@ No desarrollar directamente en `master`.
 - El reporte se envía como exactamente dos imágenes PNG tabulares de 1200 px
   para BAMBU TECH, GBS, BALIA, CON PROSPECCIÓN y TOTAL. Separa tareas del día anterior y
   de hoy; Avance usa el universo combinado y muestra cantidad más porcentaje.
-- La jornada oficial es 11:00–20:00 Chile, con almuerzo 16:00–17:00. Las tablas
-  principales de llamadas incluyen solo esa jornada; antes de las 11:00,
+- La jornada oficial es 09:00–20:00 Chile, con almuerzo 16:00–17:00. Las tablas
+  principales de llamadas incluyen solo esa jornada; antes de las 09:00,
   almuerzo y después de las 20:00 se informan aparte y no reducen el tiempo sin
   trabajar. Una llamada contestada dura mas de 20 segundos; 20 segundos exactos
   cuenta como sin contestar.
@@ -212,9 +212,8 @@ No desarrollar directamente en `master`.
 - La ejecucion permanente vive en GitHub Actions
   (`.github/workflows/equipo-alicia-cloud.yml`): usa disparadores UTC explicitos
   para horario de verano e invierno, y un
-  gate con `America/Santiago` entrega un reporte todos los días a las 09:00,
-  11:00, 13:00, 15:00, 17:00, 19:00 y 21:00, con cierre adicional a las 22:00
-  Chile. El cron cubre ambas
+  gate con `America/Santiago` entrega un reporte todos los días, cada hora
+  desde las 09:00 hasta las 22:00 Chile. El cron cubre ambas
   diferencias UTC y Python conserva la hora local correcta. La idempotencia se
   controla mediante `sdr_report_deliveries`.
 - Las consultas 24/7 ingresan por la Edge Function de Supabase

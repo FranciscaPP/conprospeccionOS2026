@@ -59,7 +59,7 @@ def split_calls_by_period(calls: Iterable[dict], day: date) -> dict[str, list[di
         local_time = occurred_at.timetz().replace(tzinfo=None)
         if weekend:
             periods["outside"].append(call)
-        elif local_time < time(11):
+        elif local_time < time(9):
             periods["before"].append(call)
             periods["outside"].append(call)
         elif time(16) <= local_time < time(17):

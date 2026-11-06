@@ -35,6 +35,6 @@ def test_worked_time_never_exceeds_elapsed_period():
 def test_elapsed_time_only_counts_scheduled_blocks_and_can_filter_client():
     blocks = work_blocks_for(date(2026, 9, 24))
     now = datetime(2026, 9, 24, 15, 30, tzinfo=CHILE)
-    assert elapsed_work_seconds(blocks, now) == 4 * 3600 + 30 * 60
+    assert elapsed_work_seconds(blocks, now) == 6 * 3600 + 30 * 60
     assert elapsed_work_seconds(blocks, now, "bambutech") == 2 * 3600 + 30 * 60
     assert elapsed_work_seconds(blocks, now, "gbs") == 3600
