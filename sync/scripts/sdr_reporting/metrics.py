@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import date, time, timedelta
+from datetime import date, time
 from typing import Iterable
 
 from .models import CallMetrics, OperationalGap, TaskBaseline, TaskProgress
@@ -18,12 +18,13 @@ def build_task_baseline(client: str, tasks: Iterable[dict], day: date) -> TaskBa
         if due_at is None:
             continue
         task_types[task_id] = task.get("task_type") or "otro"
-        if due_at.date() == day:
+        # The operational table is a live pending-work view, matching GHL's
+        # "Vencen hoy" and "Atrasadas" counters. Completed tasks therefore
+        # leave both buckets instead of inflating today's workload.
+        if due_at.date() == day and not task.get("completed"):
             due_today.add(task_id)
-        elif due_at.date() == day - timedelta(days=1):
-            completed_at = task.get("completed_at")
-            if not task.get("completed") or (completed_at and completed_at.date() >= day):
-                overdue.add(task_id)
+        elif due_at.date() < day and not task.get("completed"):
+            overdue.add(task_id)
     return TaskBaseline(day, client, frozenset(due_today), frozenset(overdue), task_types)
 
 

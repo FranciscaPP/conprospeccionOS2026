@@ -25,9 +25,9 @@ def test_baseline_separates_overdue_from_due_today():
         task("future", "2026-09-25T12:00:00"),
     ]
     baseline = build_task_baseline("gbs", tasks, DAY)
-    assert baseline.due_today_ids == frozenset({"today-open", "today-done"})
+    assert baseline.due_today_ids == frozenset({"today-open"})
     assert baseline.overdue_ids == frozenset({"old-open"})
-    assert baseline.total == 3
+    assert baseline.total == 2
 
 
 def test_older_task_is_not_part_of_previous_day_late_count():
@@ -67,12 +67,20 @@ def test_progress_combines_previous_day_and_today_for_tabular_report():
     assert progress.percent == 67
 
 
-def test_only_previous_day_open_tasks_are_reported_as_late():
+def test_all_older_open_tasks_are_reported_as_late():
     baseline = build_task_baseline("gbs", [
         task("yesterday", "2026-09-23T12:00:00"),
         task("older", "2026-09-22T12:00:00"),
     ], DAY)
-    assert baseline.overdue_ids == frozenset({"yesterday"})
+    assert baseline.overdue_ids == frozenset({"yesterday", "older"})
+
+
+def test_completed_task_due_today_is_not_in_live_pending_workload():
+    baseline = build_task_baseline("gbs", [
+        task("today-open", "2026-09-24T12:00:00"),
+        task("today-done", "2026-09-24T13:00:00", True),
+    ], DAY)
+    assert baseline.due_today_ids == frozenset({"today-open"})
 
 
 def test_largest_percentage_backlog_requires_three_tasks():
