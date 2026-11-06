@@ -30,14 +30,15 @@ def _sum_rows(rows: Iterable[dict[str, int]], keys: Iterable[str]) -> dict[str, 
 def _task_row(data: dict) -> dict[str, int]:
     overdue = _number(data.get("tasks_overdue", data.get("overdue_pending")))
     today = _number(data.get("tasks_today", data.get("tasks_total")))
-    total = overdue + today
-    completed = min(total, _number(data.get("tasks_completed", data.get("tasks_done"))))
+    pending = overdue + today
+    completed = _number(data.get("tasks_completed", data.get("tasks_done")))
+    total = pending + completed
     return {
         "overdue": overdue,
         "today": today,
         "total": total,
         "completed": completed,
-        "pending": max(0, total - completed),
+        "pending": pending,
         "percent": round(100 * completed / total) if total else 0,
     }
 

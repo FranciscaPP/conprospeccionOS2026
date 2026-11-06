@@ -47,6 +47,18 @@ def _task_adapter(task: dict) -> dict:
     }
 
 
+def _completed_workload_today(tasks: list[dict], day: date) -> list[dict]:
+    """Tasks due on/before the cut and completed during the cut day."""
+    return [
+        task for task in tasks
+        if task.get("completed")
+        and task.get("completed_at")
+        and task["completed_at"].date() == day
+        and task.get("due_at")
+        and task["due_at"].date() <= day
+    ]
+
+
 def _meeting_user_id(event: dict) -> str | None:
     return (
         event.get("assignedUserId")
@@ -187,6 +199,9 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         baseline = build_task_baseline(slug, tasks, day)
         completed_ids = {task["id"] for task in tasks if task["completed"]}
         progress = task_progress(baseline, completed_ids)
+        completed_today = _completed_workload_today(tasks, day)
+        task_total = progress.total + len(completed_today)
+        task_percent = round(100 * len(completed_today) / task_total) if task_total else 0
 
         w0 = datetime.combine(day, time.min, tzinfo=CHILE)
         history_start = w0 - timedelta(days=1)
@@ -250,6 +265,9 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             cp_baseline = build_task_baseline("conprospeccion", cp_tasks, day)
             cp_completed_ids = {task["id"] for task in cp_tasks if task["completed"]}
             cp_progress = task_progress(cp_baseline, cp_completed_ids)
+            cp_completed_today = _completed_workload_today(cp_tasks, day)
+            cp_task_total = cp_progress.total + len(cp_completed_today)
+            cp_task_percent = round(100 * len(cp_completed_today) / cp_task_total) if cp_task_total else 0
             cp_email = {
                 **summarize_email_messages([
                     message for message in cp_activity_messages
@@ -259,13 +277,13 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             }
             cp_email["pending"] = cp_email["unanswered"]
             conprospeccion.update({
-                "tasks_done": cp_progress.completed,
-                "tasks_total": cp_progress.total,
+                "tasks_done": len(cp_completed_today),
+                "tasks_total": cp_task_total,
                 "tasks_overdue": cp_progress.overdue_total,
                 "tasks_today": cp_progress.today_total,
-                "tasks_completed": cp_progress.completed,
+                "tasks_completed": len(cp_completed_today),
                 "tasks_pending": cp_progress.pending,
-                "task_percent": cp_progress.percent,
+                "task_percent": cp_task_percent,
                 "calls": cp_metrics.calls,
                 "contacts": cp_metrics.unique_contacts,
                 "answered": cp_metrics.answered,
@@ -414,12 +432,12 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
                     f"{gap.start.strftime('%H:%M')}–{gap.end.strftime('%H:%M')} · {round(gap.seconds / 60)} min sin actividad registrada"
                 )
 
-        if progress.total and progress.percent < 60:
-            alerts.append(f"{CLIENTS[slug].name} · tareas en {progress.percent}%.")
+        if task_total and task_percent < 60:
+            alerts.append(f"{CLIENTS[slug].name} · tareas en {task_percent}%.")
         hour_start = now.replace(minute=0, second=0, microsecond=0)
         tasks_done_last_hour = sum(
             1 for task in tasks
-            if task["id"] in baseline.due_today_ids
+            if task in completed_today
             and task.get("completed_at")
             and hour_start <= task["completed_at"] <= now
         )
@@ -431,13 +449,13 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             int((whatsapp or {}).get("responded") or 0),
         )
         clients[slug] = {
-            "tasks_done": progress.completed,
-            "tasks_total": progress.total,
+            "tasks_done": len(completed_today),
+            "tasks_total": task_total,
             "tasks_overdue": progress.overdue_total,
             "tasks_today": progress.today_total,
-            "tasks_completed": progress.completed,
+            "tasks_completed": len(completed_today),
             "tasks_pending": progress.pending,
-            "task_percent": progress.percent,
+            "task_percent": task_percent,
             "pending_today": progress.pending_today,
             "overdue_pending": progress.pending_overdue,
             "tasks_done_last_hour": tasks_done_last_hour,

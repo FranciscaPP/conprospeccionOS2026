@@ -19,7 +19,7 @@ def sample_report():
             "tasks_overdue": overdue,
             "tasks_today": today,
             "tasks_completed": completed,
-            "tasks_pending": overdue + today - completed,
+            "tasks_pending": overdue + today,
             "calls": calls,
             "answered": answered,
             "unanswered": calls - answered,
@@ -87,10 +87,10 @@ def test_table_document_recalculates_totals_and_marks_partial_channels():
     assert document["tasks"]["total"] == {
         "overdue": 5,
         "today": 15,
-        "total": 20,
+        "total": 30,
         "completed": 10,
-        "pending": 10,
-        "percent": 50,
+        "pending": 20,
+        "percent": 33,
     }
     assert document["calls_count"]["total"]["today"] == 43
     assert document["email"]["total"]["total"] == 40
