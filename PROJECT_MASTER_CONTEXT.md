@@ -212,8 +212,8 @@ No desarrollar directamente en `master`.
 - La ejecucion permanente vive en GitHub Actions
   (`.github/workflows/equipo-alicia-cloud.yml`): usa disparadores UTC explicitos
   para horario de verano e invierno, y un
-  gate con `America/Santiago` entrega un reporte todos los días, cada hora
-  desde las 09:00 hasta las 22:00 Chile. El cron cubre ambas
+  gate con `America/Santiago` entrega un reporte de lunes a viernes, cada hora
+  desde las 09:00 hasta las 22:00 Chile. Sábados y domingos no se envía. El cron cubre ambas
   diferencias UTC y Python conserva la hora local correcta. La idempotencia se
   controla mediante `sdr_report_deliveries`.
 - Las consultas 24/7 ingresan por la Edge Function de Supabase

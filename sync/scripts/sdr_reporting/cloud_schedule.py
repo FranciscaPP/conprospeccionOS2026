@@ -18,7 +18,7 @@ def chile_now(now: datetime | None = None) -> datetime:
 
 def is_report_window(now: datetime | None = None) -> bool:
     local = chile_now(now)
-    return local.hour in REPORT_HOURS
+    return local.weekday() < 5 and local.hour in REPORT_HOURS
 
 
 def delivery_key_for(now: datetime | None = None) -> str:
