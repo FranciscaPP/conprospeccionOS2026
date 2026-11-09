@@ -48,6 +48,7 @@ def sample_report():
         "total": 10,
         "responded": 6,
         "unanswered": 4,
+        "manual_sent": 3,
     }
     bambu_outside = {
         "before": {"count": 1, "phone_seconds": 30},
@@ -73,6 +74,10 @@ def sample_report():
         },
         "work_time": {
             "elapsed_seconds": 4 * 3600,
+            "call_seconds": 3600,
+            "email_count": 5,
+            "email_seconds": 300,
+            "total_seconds": 3900,
             "worked_seconds": 2 * 3600,
             "unregistered_seconds": 2 * 3600,
         },
@@ -101,6 +106,7 @@ def test_table_document_recalculates_totals_and_marks_partial_channels():
     }
     assert document["calls_count"]["total"]["today"] == 55
     assert document["email"]["total"]["total"] == 50
+    assert document["email"]["total"]["sent"] == 15
     assert document["email"]["total"]["partial"] is False
     assert document["whatsapp"]["gbs"] is None
     assert document["whatsapp"]["balia"] is None

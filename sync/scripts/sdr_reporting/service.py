@@ -636,20 +636,12 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         for calls in calls_by_client.values() for call in calls
         if call.get("occurred_at") and call["occurred_at"] < end_of_window
     )
-    responded_emails = sum(
-        int((clients[slug].get("email") or {}).get("responded") or 0)
+    sent_emails = sum(
+        int((clients[slug].get("email") or {}).get("manual_sent") or 0)
         for slug in CLIENTS
-    ) + int((conprospeccion.get("email") or {}).get("responded") or 0)
-    responded_whatsapp = sum(
-        int((clients[slug].get("whatsapp") or {}).get("responded") or 0)
-        for slug in CLIENTS
-    )
-    total_work = worked_time(
-        elapsed_seconds,
-        total_phone_seconds,
-        responded_emails,
-        responded_whatsapp,
-    )
+    ) + int((conprospeccion.get("email") or {}).get("manual_sent") or 0)
+    email_management_seconds = sent_emails * 60
+    total_management_seconds = total_phone_seconds + email_management_seconds
     hourly = hourly_breakdown(
         day, now, work_blocks_for(day),
         [call for calls in calls_by_client.values() for call in calls],
@@ -666,9 +658,13 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         "hourly": hourly,
         "work_time": {
             "elapsed_seconds": elapsed_seconds,
-            "email_seconds": responded_emails * 300,
-            "whatsapp_seconds": responded_whatsapp * 300,
-            **total_work,
+            "call_seconds": total_phone_seconds,
+            "email_count": sent_emails,
+            "email_seconds": email_management_seconds,
+            "total_seconds": total_management_seconds,
+            # Compatibilidad con snapshots previos; ya no se muestra "sin trabajar".
+            "worked_seconds": total_management_seconds,
+            "unregistered_seconds": 0,
         },
         "comparison": None,
         "email_available": all(clients[slug].get("email") is not None for slug in CLIENTS),

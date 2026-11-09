@@ -56,6 +56,7 @@ def _communication_rows(clients: dict, channel: str) -> dict[str, dict | None]:
             "pending": _number(source.get("pending_previous")),
             "today": _number(source.get("today", source.get("received"))),
             "total": _number(source.get("total")),
+            "sent": _number(source.get("manual_sent")),
             "responded": _number(source.get("responded")),
             "unanswered": _number(source.get("unanswered", source.get("pending"))),
         }
@@ -65,7 +66,7 @@ def _communication_rows(clients: dict, channel: str) -> dict[str, dict | None]:
         row["unanswered"] = max(0, row["total"] - row["responded"])
         output[slug] = row
         known.append(row)
-    total = _sum_rows(known, ("pending", "today", "total", "responded", "unanswered"))
+    total = _sum_rows(known, ("pending", "today", "total", "sent", "responded", "unanswered"))
     total["partial"] = len(known) != len(ORDER)
     output[TOTAL_KEY] = total
     return output
@@ -233,8 +234,10 @@ def build_table_document(report: dict) -> dict:
         "future_task_dates": future_task_dates,
         "future_tasks": future_tasks,
         "work_time": {
-            "worked_seconds": _number(work.get("worked_seconds")),
-            "unregistered_seconds": _number(work.get("unregistered_seconds")),
+            "call_seconds": _number(work.get("call_seconds", work.get("worked_seconds"))),
+            "email_count": _number(work.get("email_count")),
+            "email_seconds": _number(work.get("email_seconds")),
+            "total_seconds": _number(work.get("total_seconds", work.get("worked_seconds"))),
         },
         "adherence": adherence,
         "outside": outside,
@@ -431,14 +434,18 @@ def _communication_table(draw, y, title, rows_document):
     for slug in (*ORDER, TOTAL_KEY):
         row = rows_document[slug]
         if row is None:
-            values = ["N/D"] * 5
+            values = ["N/D"] * 6
         else:
-            values = [str(row[key]) for key in ("pending", "today", "total", "responded", "unanswered")]
+            values = [str(row[key]) for key in ("pending", "today", "total", "sent", "responded", "unanswered")]
             if slug == TOTAL_KEY and row.get("partial"):
                 values[2] += " (parcial)"
         rows.append([_client_name(slug), *values])
         keys.append(slug)
-    return _table(draw, y, title, ["Cliente", "Pendiente", "Hoy", "Total", "Respondidos", "Sin responder"], rows, [230, 170, 150, 190, 190, 200], keys)
+    return _table(
+        draw, y, title,
+        ["Cliente", "Pendiente", "Hoy", "Total", "Enviados", "Respondidos", "Sin responder"],
+        rows, [200, 135, 115, 140, 150, 175, 215], keys,
+    )
 
 
 def _render_image_two(document: dict) -> Image.Image:
@@ -490,11 +497,14 @@ def _render_image_two(document: dict) -> Image.Image:
     work = document["work_time"]
     draw.text((35, y), "RESUMEN FINAL", fill=TEXT_COLOR, font=_font(28, True))
     y += 42
-    _cell(draw, (35, y, 600, y + 58), "TOTAL TRABAJO", fill=WORK_COLOR, bold=True, align="left")
-    _cell(draw, (600, y, 1165, y + 58), _duration(work["worked_seconds"]), fill="#FFFFFF", bold=True)
+    _cell(draw, (35, y, 600, y + 58), "GESTIÓN DE LLAMADAS", fill=WORK_COLOR, bold=True, align="left")
+    _cell(draw, (600, y, 1165, y + 58), _duration(work["call_seconds"]), fill="#FFFFFF", bold=True)
     y += 58
-    _cell(draw, (35, y, 600, y + 58), "TOTAL SIN TRABAJAR", fill=IDLE_COLOR, bold=True, align="left")
-    _cell(draw, (600, y, 1165, y + 58), _duration(work["unregistered_seconds"]), fill="#FFFFFF", bold=True)
+    _cell(draw, (35, y, 600, y + 58), "GESTIÓN DE CORREOS", fill="#BFDBFE", bold=True, align="left")
+    _cell(draw, (600, y, 1165, y + 58), f"{work['email_count']} envíos · {_duration(work['email_seconds'])}", fill="#FFFFFF", bold=True)
+    y += 58
+    _cell(draw, (35, y, 600, y + 58), "TIEMPO TOTAL DE GESTIÓN", fill="#FDE68A", bold=True, align="left")
+    _cell(draw, (600, y, 1165, y + 58), _duration(work["total_seconds"]), fill="#FFFFFF", bold=True)
     y += 90
 
     adherence_rows, adherence_keys = [], []

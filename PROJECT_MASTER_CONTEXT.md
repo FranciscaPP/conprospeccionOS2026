@@ -203,16 +203,14 @@ No desarrollar directamente en `master`.
   almuerzo y después de las 20:00 se informan aparte y no reducen el tiempo sin
   trabajar. Una llamada contestada dura mas de 20 segundos; 20 segundos exactos
   cuenta como sin contestar.
-- El Resumen final no usa los bloques por cliente: calcula el tiempo exigible sobre
-  una ventana continua 09:00–22:00. Toda actividad real de la SDR acredita trabajo
-  sin importar el cliente o bloque; si comenzó antes de las 09:00 también se suma como
-  trabajo, aunque el denominador comienza a las 09:00. Los bloques quedan solo para
-  adherencia y las tablas de fuera de horario.
+- El Resumen final no muestra horas teóricas ni "sin trabajar". Presenta gestión de
+  llamadas (tiempo telefónico registrado), gestión de correos (cantidad de envíos
+  manuales desde GHL, a 1 minuto por correo) y tiempo total de gestión como suma de
+  ambos. Los bloques quedan solo para adherencia y las tablas de fuera de horario.
 - Correos y WhatsApp se miden por conversación: pendiente del día anterior, hoy,
-  total, respondidos manualmente y sin responder. El tiempo trabajado suma los
-  minutos telefónicos dentro de jornada más 5 minutos por conversación de correo
-  respondida y 5 minutos por conversación WhatsApp respondida; los workflows no
-  acreditan trabajo. BAMBU TECH obtiene WhatsApp desde GHL. GBS y BALIA muestran
+  total, enviados desde plataforma, respondidos manualmente y sin responder. La
+  gestión de correos acredita 1 minuto por cada envío manual (`app` o `bulk_actions`);
+  los workflows no acreditan gestión. BAMBU TECH obtiene WhatsApp desde GHL. GBS y BALIA muestran
   N/D mientras no existan cifras manuales verificadas.
 - Seguimientos: para cada cliente, el reporte cuenta contactos cuyo `STATUS PROSPECTO`
   es Información adicional o Coordinando reunión y usa `lastActivity` de GHL como

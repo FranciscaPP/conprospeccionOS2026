@@ -22,11 +22,14 @@ Uso:
 """
 
 import argparse
+import time as time_module
 import re
 import sys
 import unicodedata
 from collections import Counter, defaultdict
 from datetime import date, datetime, time, timedelta
+
+import httpx
 
 from report_calls_live import GHLClient, token_for, fetch_calls, LOCATION, CHILE, to_chile
 
@@ -62,8 +65,20 @@ def fetch_tasks(ghl: GHLClient, location_id: str) -> list[dict]:
     out: list[dict] = []
     skip = 0
     while skip <= 20000:
-        r = ghl.client.post(f"/locations/{location_id}/tasks/search", json={"limit": 100, "skip": skip})
-        r.raise_for_status()
+        for attempt in range(3):
+            try:
+                r = ghl.client.post(
+                    f"/locations/{location_id}/tasks/search",
+                    json={"limit": 100, "skip": skip},
+                    timeout=60,
+                )
+                r.raise_for_status()
+                break
+            except (httpx.TransportError, httpx.HTTPStatusError) as exc:
+                retryable = not isinstance(exc, httpx.HTTPStatusError) or exc.response.status_code >= 500
+                if not retryable or attempt == 2:
+                    raise
+                time_module.sleep(attempt + 1)
         page = r.json().get("tasks") or []
         out += [t for t in page if not t.get("deleted")]
         if len(page) < 100:

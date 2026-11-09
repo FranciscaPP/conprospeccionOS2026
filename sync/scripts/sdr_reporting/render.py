@@ -58,6 +58,7 @@ def _email_line(data: dict) -> str:
         return "Correo: N/D"
     return (
         f"Correos: {int(email.get('received') or 0)} recibidos · "
+        f"{int(email.get('manual_sent') or 0)} enviados · "
         f"{int(email.get('responded') or 0)} respondidos · "
         f"{int(email.get('pending') or 0)} pendientes"
     )
@@ -88,9 +89,7 @@ def _activity_card(slug: str, data: dict) -> str:
         f"Sin contestar/sonando: {_minutes(data.get('unanswered_phone_seconds', 0))}\n"
         f"Total teléfono: {_minutes(data.get('phone_seconds', 0))}\n"
         f"{_email_line(data)}\n"
-        f"{_whatsapp_line(data)}\n"
-        f"Trabajado: {_minutes(work.get('worked_seconds', 0))}\n"
-        f"Sin trabajar: {_minutes(work.get('unregistered_seconds', 0))}"
+        f"{_whatsapp_line(data)}"
     )
 
 
@@ -116,17 +115,18 @@ def _total_activity_card(report: dict) -> str:
     answered_seconds = sum(int(clients[s].get("answered_seconds", clients[s].get("conversation_seconds", 0)) or 0) for s in ORDER)
     unanswered_seconds = sum(int(clients[s].get("unanswered_phone_seconds") or 0) for s in ORDER)
     phone_seconds = sum(int(clients[s].get("phone_seconds") or 0) for s in ORDER)
-    received = responded = pending = 0
+    received = sent = responded = pending = 0
     known = 0
     for slug in ORDER:
         email = clients[slug].get("email")
         if email is not None:
             known += 1
             received += int(email.get("received") or 0)
+            sent += int(email.get("manual_sent") or 0)
             responded += int(email.get("responded") or 0)
             pending += int(email.get("pending") or 0)
     email_line = (
-        f"Correos verificados: {received} recibidos · {responded} respondidos · {pending} pendientes"
+        f"Correos verificados: {received} recibidos · {sent} enviados · {responded} respondidos · {pending} pendientes"
         if known else "Correo: N/D"
     )
     whatsapp_line = _whatsapp_line(clients["bambutech"])
@@ -137,8 +137,9 @@ def _total_activity_card(report: dict) -> str:
         f"Contestadas (&gt;20 s): {answered}\nSin contestar (≤20 s): {unanswered}\n"
         f"Hablando: {_minutes(answered_seconds)}\nSin contestar/sonando: {_minutes(unanswered_seconds)}\n"
         f"Total teléfono: {_minutes(phone_seconds)}\n{email_line}\n{whatsapp_line}\n"
-        f"<b>TOTAL TRABAJADO: {_minutes(work.get('worked_seconds', 0))}</b>\n"
-        f"<b>SIN TRABAJAR: {_minutes(work.get('unregistered_seconds', 0))}</b>"
+        f"<b>GESTIÓN DE LLAMADAS: {_minutes(work.get('call_seconds', phone_seconds))}</b>\n"
+        f"<b>GESTIÓN DE CORREOS: {int(work.get('email_count') or sent)} envíos · {_minutes(work.get('email_seconds', sent * 60))}</b>\n"
+        f"<b>TIEMPO TOTAL DE GESTIÓN: {_minutes(work.get('total_seconds', phone_seconds + sent * 60))}</b>"
     )
 
 
@@ -178,9 +179,7 @@ def render_hourly(report: dict) -> list[str]:
     msg2 = (
         "☎️ <b>03 · LLAMADAS, CORREOS Y TIEMPO</b>\n\n"
         + "\n\n".join([*(_activity_card(s, clients[s]) for s in ORDER), _total_activity_card(report)])
-        + "\n\n<i>Trabajado = teléfono + 5 min por correo respondido + WhatsApp manual verificado "
-          "(1 min por envío inicial y 5 min por respuesta atendida). "
-          "Sin trabajar = tiempo laboral transcurrido − trabajado.</i>"
+        + "\n\n<i>Gestión total = tiempo telefónico + 1 minuto por cada correo manual enviado desde GHL.</i>"
     )
     msg3 = "🕐 <b>04 · ADHERENCIA A BLOQUES</b>\n\n" + _adherence(report)
     return [msg1, msg2, msg3]
