@@ -25,7 +25,10 @@ class EquipoAliciaTelegram:
             raise RuntimeError("Falta TELEGRAM_SDR_CHAT_ID")
         self.token = token
         self.chat_id = str(chat_id)
-        self.transport = transport or httpx.Client(timeout=30)
+        # Telegram photo uploads can take longer than 30 seconds even when the
+        # API ultimately accepts them. A longer timeout avoids false failures
+        # and unsafe retries of an image that may already have been delivered.
+        self.transport = transport or httpx.Client(timeout=120)
         self.base_url = f"https://api.telegram.org/bot{token}"
         self._verified = False
 
