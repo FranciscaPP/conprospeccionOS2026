@@ -204,6 +204,15 @@ def elapsed_work_seconds(blocks: Iterable[WorkBlock], now, client: str | None = 
     return total
 
 
+def elapsed_reporting_window(day: date, now, start_hour: int = 9, end_hour: int = 22) -> int:
+    """Segundos transcurridos de la ventana global continua 09:00–22:00."""
+    start = now.replace(year=day.year, month=day.month, day=day.day,
+                        hour=start_hour, minute=0, second=0, microsecond=0)
+    end = now.replace(year=day.year, month=day.month, day=day.day,
+                      hour=end_hour, minute=0, second=0, microsecond=0)
+    return max(0, round((min(now, end) - start).total_seconds()))
+
+
 def operational_gaps(
     block: WorkBlock | None,
     events: Iterable[dict],

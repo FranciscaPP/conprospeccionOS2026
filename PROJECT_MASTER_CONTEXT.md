@@ -203,6 +203,11 @@ No desarrollar directamente en `master`.
   almuerzo y después de las 20:00 se informan aparte y no reducen el tiempo sin
   trabajar. Una llamada contestada dura mas de 20 segundos; 20 segundos exactos
   cuenta como sin contestar.
+- El Resumen final no usa los bloques por cliente: calcula el tiempo exigible sobre
+  una ventana continua 09:00–22:00. Toda actividad real de la SDR acredita trabajo
+  sin importar el cliente o bloque; si comenzó antes de las 09:00 también se suma como
+  trabajo, aunque el denominador comienza a las 09:00. Los bloques quedan solo para
+  adherencia y las tablas de fuera de horario.
 - Correos y WhatsApp se miden por conversación: pendiente del día anterior, hoy,
   total, respondidos manualmente y sin responder. El tiempo trabajado suma los
   minutos telefónicos dentro de jornada más 5 minutos por conversación de correo

@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
 from sdr_reporting.config import work_blocks_for
-from sdr_reporting.metrics import elapsed_work_seconds, worked_time
+from sdr_reporting.metrics import elapsed_reporting_window, elapsed_work_seconds, worked_time
 
 
 CHILE = ZoneInfo("America/Santiago")
@@ -38,3 +38,10 @@ def test_elapsed_time_only_counts_scheduled_blocks_and_can_filter_client():
     assert elapsed_work_seconds(blocks, now) == 6 * 3600 + 30 * 60
     assert elapsed_work_seconds(blocks, now, "bambutech") == 2 * 3600 + 30 * 60
     assert elapsed_work_seconds(blocks, now, "gbs") == 3600
+
+
+def test_global_reporting_window_is_continuous_from_9_to_22():
+    day = date(2026, 11, 9)
+    assert elapsed_reporting_window(day, datetime(2026, 11, 9, 8, 30, tzinfo=CHILE)) == 0
+    assert elapsed_reporting_window(day, datetime(2026, 11, 9, 16, 30, tzinfo=CHILE)) == 7 * 3600 + 1800
+    assert elapsed_reporting_window(day, datetime(2026, 11, 9, 23, 0, tzinfo=CHILE)) == 13 * 3600

@@ -19,6 +19,7 @@ from .config import (
 from .metrics import (
     build_task_baseline,
     call_metrics,
+    elapsed_reporting_window,
     elapsed_work_seconds,
     hourly_breakdown,
     operational_gaps,
@@ -622,9 +623,18 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             operational_alerts.append(
                 f"{cfg.name} {block['start']}–{block['end']} · hueco de {longest_gap} min sin actividad registrada."
             )
-    elapsed_seconds = elapsed_work_seconds(work_blocks_for(day), now)
-    total_phone_seconds = sum(int(clients[slug].get("phone_seconds") or 0) for slug in CLIENTS) + int(
-        conprospeccion.get("phone_seconds") or 0
+    # El resumen global usa una ventana continua 09:00–22:00, no los bloques por
+    # cliente. La actividad anterior a las 09:00 también acredita trabajo, pero
+    # el universo de tiempo exigible comienza a las 09:00.
+    elapsed_seconds = elapsed_reporting_window(day, now)
+    end_of_window = now.replace(
+        year=day.year, month=day.month, day=day.day,
+        hour=22, minute=0, second=0, microsecond=0,
+    )
+    total_phone_seconds = sum(
+        int(call.get("phone_seconds") or call.get("duration_seconds") or 0)
+        for calls in calls_by_client.values() for call in calls
+        if call.get("occurred_at") and call["occurred_at"] < end_of_window
     )
     responded_emails = sum(
         int((clients[slug].get("email") or {}).get("responded") or 0)
