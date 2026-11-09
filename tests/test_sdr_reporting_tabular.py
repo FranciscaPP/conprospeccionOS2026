@@ -35,6 +35,10 @@ def sample_report():
                 "after": {"count": 0, "phone_seconds": 0},
                 "total": {"count": 0, "phone_seconds": 0},
             },
+            "followups": {
+                "informacion adicional": {"total": 5, "up_to_3": 2, "over_3": 3, "over_6": 2, "over_14": 1},
+                "coordinando reunion": {"total": 2, "up_to_3": 1, "over_3": 1, "over_6": 1, "over_14": 0},
+            },
         }
 
     communication = {
@@ -101,6 +105,9 @@ def test_table_document_recalculates_totals_and_marks_partial_channels():
     assert document["whatsapp"]["conprospeccion"] is None
     assert document["whatsapp"]["total"]["partial"] is True
     assert document["outside"]["total"]["lunch"]["count"] == 2
+    assert document["followups"]["total"]["informacion adicional"] == {
+        "total": 25, "up_to_3": 10, "over_3": 15, "over_6": 10, "over_14": 5, "no_date": 0,
+    }
 
 
 def test_prospecting_is_present_in_all_primary_tables_even_when_empty():

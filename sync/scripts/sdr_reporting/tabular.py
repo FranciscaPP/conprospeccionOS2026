@@ -180,6 +180,18 @@ def build_table_document(report: dict) -> dict:
         })
 
     work = report.get("work_time") or {}
+    followups = {}
+    followup_keys = ("total", "up_to_3", "over_3", "over_6", "over_14", "no_date")
+    for slug in ORDER:
+        stages = clients[slug].get("followups") or {}
+        followups[slug] = {
+            stage: {key: _number((stages.get(stage) or {}).get(key)) for key in followup_keys}
+            for stage in ("informacion adicional", "coordinando reunion")
+        }
+    followups[TOTAL_KEY] = {
+        stage: _sum_rows((followups[slug][stage] for slug in ORDER), followup_keys)
+        for stage in ("informacion adicional", "coordinando reunion")
+    }
     elapsed_seconds = _number(work.get("elapsed_seconds"))
     phone_seconds = calls_minutes[TOTAL_KEY]["today"]
     return {
@@ -200,6 +212,7 @@ def build_table_document(report: dict) -> dict:
         },
         "email": _communication_rows(clients, "email"),
         "whatsapp": _communication_rows(clients, "whatsapp"),
+        "followups": followups,
         "work_time": {
             "worked_seconds": _number(work.get("worked_seconds")),
             "unregistered_seconds": _number(work.get("unregistered_seconds")),
@@ -415,6 +428,26 @@ def _render_image_two(document: dict) -> Image.Image:
     y = _header(draw, document, 2)
     y = _communication_table(draw, y, "CORREOS", document["email"])
     y = _communication_table(draw, y, "WHATSAPP", document["whatsapp"])
+
+    followup_rows, followup_keys = [], []
+    labels = {
+        "informacion adicional": "Información adicional",
+        "coordinando reunion": "Coordinando reunión",
+    }
+    for slug in (*ORDER, TOTAL_KEY):
+        for stage, label in labels.items():
+            row = document["followups"][slug][stage]
+            followup_rows.append([
+                _client_name(slug), label, str(row["total"]), str(row["up_to_3"]),
+                str(row["over_3"]), str(row["over_6"]), str(row["over_14"]),
+                str(row["no_date"]),
+            ])
+            followup_keys.append(slug)
+    y = _table(
+        draw, y, "ANTIGÜEDAD DEL SEGUIMIENTO · UMBRALES ACUMULADOS",
+        ["Cliente", "Estado", "Total", "≤3 d", ">3 d", ">6 d", ">14 d", "Sin fecha"],
+        followup_rows, [180, 260, 100, 110, 110, 110, 110, 150], followup_keys,
+    )
 
     work = document["work_time"]
     draw.text((35, y), "RESUMEN FINAL", fill=TEXT_COLOR, font=_font(28, True))

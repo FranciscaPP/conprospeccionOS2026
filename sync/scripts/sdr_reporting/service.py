@@ -26,6 +26,7 @@ from .metrics import (
     task_progress,
     worked_time,
 )
+from .followups import followup_age_summary
 from .sources import (
     fetch_activity_messages,
     summarize_conversation_work,
@@ -218,6 +219,21 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         location_id = LOCATION[slug]
         if not location_id:
             raise RuntimeError(f"Falta location de {slug}")
+        def followup_unit(contact: dict) -> str | None:
+            assigned_to = contact.get("assignedTo")
+            if slug == "balia":
+                return "conprospeccion" if is_conprospeccion(assigned_to) else "balia"
+            if slug == "omnipayments" and assigned_to != OMNIPAYMENTS_USER_ID:
+                return None
+            return slug
+
+        try:
+            followups_by_unit = followup_age_summary(
+                ghl, location_id, now, unit_for_contact=followup_unit
+            )
+        except Exception as exc:
+            followups_by_unit = {}
+            alerts.append(f"{CLIENTS[slug].name} · seguimientos no disponibles ({type(exc).__name__}).")
         raw_tasks = fetch_tasks(ghl, location_id)
         all_tasks = [_task_adapter(task) for task in raw_tasks if _task_id(task)]
         all_tasks = [
@@ -341,6 +357,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
                 "outside_hours": _outside_metrics(cp_periods),
                 "email": cp_email,
                 "all_calls": cp_calls,
+                "followups": followups_by_unit.get("conprospeccion", {}),
                 "work_time": {
                     "worked_seconds": cp_metrics.phone_seconds + int(cp_email.get("responded") or 0) * 300,
                     "unregistered_seconds": 0,
@@ -537,6 +554,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             "work_time": client_work,
             "movements": movements,
             "overdue_contacts": overdue_contacts,
+            "followups": followups_by_unit.get(slug, {}),
         }
     block_adherence = []
     for block in work_blocks_for(day):

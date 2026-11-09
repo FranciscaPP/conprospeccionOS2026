@@ -209,6 +209,11 @@ No desarrollar directamente en `master`.
   respondida y 5 minutos por conversación WhatsApp respondida; los workflows no
   acreditan trabajo. BAMBU TECH obtiene WhatsApp desde GHL. GBS y BALIA muestran
   N/D mientras no existan cifras manuales verificadas.
+- Seguimientos: para cada cliente, el reporte cuenta contactos cuyo `STATUS PROSPECTO`
+  es Información adicional o Coordinando reunión y usa `lastActivity` de GHL como
+  última gestión registrada. Muestra total, hasta 3 días y alertas acumuladas de más
+  de 3, más de 6 y más de 14 días; también explicita registros sin fecha. Respeta la
+  atribución por usuario de Con Prospección y OmniPayments.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - La ejecucion permanente vive en GitHub Actions
