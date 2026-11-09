@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -192,6 +193,21 @@ def build_table_document(report: dict) -> dict:
         stage: _sum_rows((followups[slug][stage] for slug in ORDER), followup_keys)
         for stage in ("informacion adicional", "coordinando reunion")
     }
+    future_task_dates = (
+        [report["day"] + timedelta(days=offset) for offset in range(1, 5 - report["day"].weekday())]
+        if report.get("is_close") and report["day"].weekday() < 4 else []
+    )
+    future_tasks = {}
+    for slug in ORDER:
+        source = clients[slug].get("future_tasks") or {}
+        future_tasks[slug] = {
+            future.isoformat(): _number(source.get(future.isoformat()))
+            for future in future_task_dates
+        }
+    future_tasks[TOTAL_KEY] = {
+        future.isoformat(): sum(future_tasks[slug][future.isoformat()] for slug in ORDER)
+        for future in future_task_dates
+    }
     elapsed_seconds = _number(work.get("elapsed_seconds"))
     phone_seconds = calls_minutes[TOTAL_KEY]["today"]
     return {
@@ -213,6 +229,9 @@ def build_table_document(report: dict) -> dict:
         "email": _communication_rows(clients, "email"),
         "whatsapp": _communication_rows(clients, "whatsapp"),
         "followups": followups,
+        "is_close": bool(report.get("is_close")),
+        "future_task_dates": future_task_dates,
+        "future_tasks": future_tasks,
         "work_time": {
             "worked_seconds": _number(work.get("worked_seconds")),
             "unregistered_seconds": _number(work.get("unregistered_seconds")),
@@ -448,6 +467,25 @@ def _render_image_two(document: dict) -> Image.Image:
         ["Cliente", "Estado", "Total", "≤3 d", ">3 d", ">6 d", ">14 d", "Sin fecha"],
         followup_rows, [180, 260, 100, 110, 110, 110, 110, 150], followup_keys,
     )
+
+    if document["is_close"]:
+        dates = document["future_task_dates"]
+        future_rows, future_keys = [], []
+        for slug in (*ORDER, TOTAL_KEY):
+            future_rows.append([
+                _client_name(slug), str(document["tasks"][slug]["pending"]),
+                *[str(document["future_tasks"][slug][future.isoformat()]) for future in dates],
+            ])
+            future_keys.append(slug)
+        weekday_names = ("Lunes", "Martes", "Miércoles", "Jueves", "Viernes")
+        headers = ["Cliente", "Pendientes actuales", *[
+            f"{weekday_names[future.weekday()]} {future.strftime('%d/%m')}" for future in dates
+        ]]
+        widths = [230, 210] + [round(690 / max(1, len(dates)))] * len(dates)
+        y = _table(
+            draw, y, "TAREAS FUTURAS DE LA SEMANA · SOLO CIERRE",
+            headers, future_rows, widths, future_keys,
+        )
 
     work = document["work_time"]
     draw.text((35, y), "RESUMEN FINAL", fill=TEXT_COLOR, font=_font(28, True))

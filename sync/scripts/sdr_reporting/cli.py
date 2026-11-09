@@ -133,6 +133,7 @@ def main(argv: list[str] | None = None) -> int:
         if cloud_state and cloud_key:
             cloud_state.mark_delivery_failed(cloud_key, exc)
         raise
+    report["is_close"] = bool(args.close)
     try:
         previous = store.load_yesterday_same_hour(report["day"], report["cut"])
         if previous:

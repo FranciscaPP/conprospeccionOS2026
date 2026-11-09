@@ -39,6 +39,7 @@ def sample_report():
                 "informacion adicional": {"total": 5, "up_to_3": 2, "over_3": 3, "over_6": 2, "over_14": 1},
                 "coordinando reunion": {"total": 2, "up_to_3": 1, "over_3": 1, "over_6": 1, "over_14": 0},
             },
+            "future_tasks": {"2026-10-06": 2},
         }
 
     communication = {
@@ -58,6 +59,7 @@ def sample_report():
         "day": date(2026, 10, 2),
         "cut": datetime(2026, 10, 2, 15, 0, tzinfo=CHILE),
         "sdr": "Nora",
+        "is_close": True,
         "clients": {
             "bambutech": client(1, 4, 3, 12, 8, dict(communication), dict(communication), bambu_outside),
             "gbs": client(1, 4, 3, 12, 8, dict(communication)),
@@ -150,6 +152,23 @@ def test_render_tabular_report_creates_two_fixed_width_pngs(tmp_path):
         with Image.open(path) as image:
             assert image.format == "PNG"
             assert image.width == 1200
+
+
+def test_future_tasks_are_hidden_outside_close():
+    report = sample_report()
+    report["is_close"] = False
+    document = build_table_document(report)
+    assert document["future_task_dates"] == []
+
+
+def test_close_includes_remaining_weekdays_and_reconciled_totals():
+    report = sample_report()
+    report["day"] = date(2026, 10, 5)  # lunes
+    document = build_table_document(report)
+    assert document["future_task_dates"] == [
+        date(2026, 10, 6), date(2026, 10, 7), date(2026, 10, 8), date(2026, 10, 9),
+    ]
+    assert document["future_tasks"]["total"]["2026-10-06"] == 10
 
 
 def test_duration_keeps_seconds_so_rows_and_totals_can_be_reconciled():

@@ -214,6 +214,9 @@ No desarrollar directamente en `master`.
   última gestión registrada. Muestra total, hasta 3 días y alertas acumuladas de más
   de 3, más de 6 y más de 14 días; también explicita registros sin fecha. Respeta la
   atribución por usuario de Conprospección y OmniPayments.
+- Tareas futuras: solo el último reporte del día agrega una tabla por cliente con
+  pendientes actuales y tareas abiertas de cada día restante hasta el viernes de la
+  misma semana. No incluye tareas completadas ni fechas de la semana siguiente.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - La ejecucion permanente vive en GitHub Actions

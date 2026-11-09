@@ -67,6 +67,21 @@ def _completed_workload_today(tasks: list[dict], day: date) -> list[dict]:
     ]
 
 
+def _future_tasks_this_week(tasks: list[dict], day: date) -> dict[str, int]:
+    """Tareas abiertas posteriores a hoy y hasta el viernes de esta semana."""
+    if day.weekday() >= 4:
+        return {}
+    friday = day + timedelta(days=4 - day.weekday())
+    counts: dict[str, int] = {}
+    for task in tasks:
+        due_at = task.get("due_at")
+        if task.get("completed") or due_at is None or not (day < due_at.date() <= friday):
+            continue
+        key = due_at.date().isoformat()
+        counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
 def _reconcile_tasks_and_calls(
     tasks: list[dict], completed_today: list[dict], calls: list[dict], day: date
 ) -> dict[str, int]:
@@ -358,6 +373,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
                 "email": cp_email,
                 "all_calls": cp_calls,
                 "followups": followups_by_unit.get("conprospeccion", {}),
+                "future_tasks": _future_tasks_this_week(cp_tasks, day),
                 "work_time": {
                     "worked_seconds": cp_metrics.phone_seconds + int(cp_email.get("responded") or 0) * 300,
                     "unregistered_seconds": 0,
@@ -555,6 +571,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             "movements": movements,
             "overdue_contacts": overdue_contacts,
             "followups": followups_by_unit.get(slug, {}),
+            "future_tasks": _future_tasks_this_week(tasks, day),
         }
     block_adherence = []
     for block in work_blocks_for(day):
