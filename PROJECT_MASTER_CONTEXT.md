@@ -187,16 +187,16 @@ No desarrollar directamente en `master`.
 
 - Unico bot autorizado para seguimiento SDR: `@equipo_alicia_bot`, validado por
   `getMe`; salida exclusiva a `TELEGRAM_SDR_CHAT_ID`.
-- SDR operativa: Nora. Unidades reportadas: BAMBU TECH, GBS, BALIA, OmniPayments y CON
-  PROSPECCIÓN. OmniPayments usa una subcuenta GHL independiente y se muestra en
+- SDR operativa: Nora. Unidades reportadas: BAMBU TECH, GBS, BALIA, OmniPayments y
+  Conprospección. OmniPayments usa una subcuenta GHL independiente y se muestra en
   color naranjo; no tiene bloque horario asignado y su actividad se atribuye por el
-  usuario GHL de Nora. CON PROSPECCIÓN comparte la subcuenta GHL de BALIA, pero se
+  usuario GHL de Nora. Conprospección comparte la subcuenta GHL de BALIA, pero se
   atribuye por el usuario de Nora en `assignedTo`, `userId` y `assignedUserId`.
 - `sync/scripts/report_sdr_telegram.py --operational` genera el reporte horario;
   a las 20:00 agrega cierre y grafico, y el viernes agrega resumen semanal.
 - El monitor de reuniones cada 5 minutos fue eliminado. No recrearlo.
 - El reporte se envía como exactamente dos imágenes PNG tabulares de 1200 px
-  para BAMBU TECH, GBS, BALIA, OmniPayments, CON PROSPECCIÓN y TOTAL. Separa tareas del día anterior y
+  para BAMBU TECH, GBS, BALIA, OmniPayments, Conprospección y TOTAL. Separa tareas del día anterior y
   de hoy; Avance usa el universo combinado y muestra cantidad más porcentaje.
 - La jornada oficial es 09:00–20:00 Chile, con almuerzo 16:00–17:00. Las tablas
   principales de llamadas incluyen solo esa jornada; antes de las 09:00,
@@ -213,7 +213,7 @@ No desarrollar directamente en `master`.
   es Información adicional o Coordinando reunión y usa `lastActivity` de GHL como
   última gestión registrada. Muestra total, hasta 3 días y alertas acumuladas de más
   de 3, más de 6 y más de 14 días; también explicita registros sin fecha. Respeta la
-  atribución por usuario de Con Prospección y OmniPayments.
+  atribución por usuario de Conprospección y OmniPayments.
 - `sync/scripts/report_sdr_bot.py` responde consultas solo en
   `TELEGRAM_SDR_CHAT_ID`, reutilizando las mismas metricas del reporte.
 - La ejecucion permanente vive en GitHub Actions

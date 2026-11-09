@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
-from sdr_reporting.config import CLIENTS, OMNIPAYMENTS_USER_ID, client_at, work_blocks_for
+from sdr_reporting.config import CLIENTS, CON_PROSPECCION, OMNIPAYMENTS_USER_ID, client_at, work_blocks_for
 
 
 def test_four_clients_and_official_colors():
@@ -16,6 +16,7 @@ def test_four_clients_and_official_colors():
     assert CLIENTS["omnipayments"].name == "OmniPayments"
     assert [c.short for c in CLIENTS.values()] == ["BAM", "GBS", "BAL", "OMNI"]
     assert OMNIPAYMENTS_USER_ID == "8kRfifBXEWFfG9SbdIe4"
+    assert CON_PROSPECCION.name == "Conprospección"
 
 
 def test_official_chile_schedule_excludes_lunch():

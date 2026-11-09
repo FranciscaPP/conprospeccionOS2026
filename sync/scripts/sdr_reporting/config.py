@@ -35,9 +35,9 @@ CLIENTS = {
 # su actividad se mide y suma a los totales, pero no crea una franja esperada.
 OMNIPAYMENTS_USER_ID = "8kRfifBXEWFfG9SbdIe4"
 
-# Con Prospección llama desde la misma subcuenta de Balia: se distingue por el usuario con que Nora entra
-# (nora@conprospeccion.com = Con Prospección; el usuario de Florencia = Balia).
-CON_PROSPECCION = ClientConfig("conprospeccion", "CON PROSPECCIÓN", "CP", "🟦", "#38BDF8")
+# Conprospección llama desde la misma subcuenta de Balia: se distingue por el usuario con que Nora entra
+# (nora@conprospeccion.com = Conprospección; el usuario de Florencia = Balia).
+CON_PROSPECCION = ClientConfig("conprospeccion", "Conprospección", "CP", "🟦", "#38BDF8")
 CON_PROSPECCION_USER_ID = "hzPn99MPQYZTj0u4G4Qj"
 
 
