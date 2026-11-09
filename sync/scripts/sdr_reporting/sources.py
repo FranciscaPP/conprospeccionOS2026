@@ -154,7 +154,7 @@ def summarize_whatsapp_messages(messages: Iterable[dict]) -> dict[str, int]:
 
 def fetch_activity_messages(ghl, location_id: str, start: datetime, end: datetime) -> list[dict]:
     start_ms = int(start.timestamp() * 1000)
-    conversations: list[tuple[str, str | None]] = []
+    conversations: list[tuple[str, str | None, str | None]] = []
     start_after_date = start_after_id = None
     for _ in range(60):
         payload = ghl.search_conversations(
@@ -170,15 +170,19 @@ def fetch_activity_messages(ghl, location_id: str, start: datetime, end: datetim
             if isinstance(last_ms, (int, float)) and last_ms < start_ms:
                 stop = True
                 break
-            conversations.append((conversation["id"], conversation.get("contactId")))
+            conversations.append((
+                conversation["id"],
+                conversation.get("contactId"),
+                conversation.get("assignedTo") or conversation.get("userId"),
+            ))
         last = page[-1]
         start_after_date = last.get("lastMessageDate")
         start_after_id = last.get("id")
         if stop or len(page) < 100 or not start_after_date:
             break
 
-    def load(item: tuple[str, str | None]) -> list[dict]:
-        conversation_id, contact_id = item
+    def load(item: tuple[str, str | None, str | None]) -> list[dict]:
+        conversation_id, contact_id, conversation_user_id = item
         output = []
         for raw in fetch_messages(ghl, conversation_id):
             occurred_at = to_chile(raw.get("dateAdded"))
@@ -194,6 +198,7 @@ def fetch_activity_messages(ghl, location_id: str, start: datetime, end: datetim
                 "id": raw.get("id"),
                 "conversation_id": conversation_id,
                 "user_id": raw.get("userId"),
+                "conversation_user_id": conversation_user_id,
                 "contact_id": raw.get("contactId") or contact_id,
                 "message_type": raw.get("messageType"),
                 "direction": raw.get("direction"),

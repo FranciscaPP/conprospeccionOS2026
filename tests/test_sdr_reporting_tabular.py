@@ -58,6 +58,7 @@ def sample_report():
             "bambutech": client(1, 4, 3, 12, 8, dict(communication), dict(communication), bambu_outside),
             "gbs": client(1, 4, 3, 12, 8, dict(communication)),
             "balia": client(1, 4, 3, 12, 8, dict(communication)),
+            "omnipayments": client(1, 4, 3, 12, 8, dict(communication), dict(communication)),
         },
         "conprospeccion": {
             **client(2, 3, 1, 7, 2, dict(communication)),
@@ -85,15 +86,15 @@ def test_table_document_recalculates_totals_and_marks_partial_channels():
     document = build_table_document(sample_report())
 
     assert document["tasks"]["total"] == {
-        "overdue": 5,
-        "today": 15,
-        "total": 30,
-        "completed": 10,
-        "pending": 20,
-        "percent": 33,
+        "overdue": 6,
+        "today": 19,
+        "total": 38,
+        "completed": 13,
+        "pending": 25,
+        "percent": 34,
     }
-    assert document["calls_count"]["total"]["today"] == 43
-    assert document["email"]["total"]["total"] == 40
+    assert document["calls_count"]["total"]["today"] == 55
+    assert document["email"]["total"]["total"] == 50
     assert document["email"]["total"]["partial"] is False
     assert document["whatsapp"]["gbs"] is None
     assert document["whatsapp"]["balia"] is None

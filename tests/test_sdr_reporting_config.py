@@ -5,14 +5,16 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "scripts"))
 
-from sdr_reporting.config import CLIENTS, client_at, work_blocks_for
+from sdr_reporting.config import CLIENTS, OMNIPAYMENTS_USER_ID, client_at, work_blocks_for
 
 
-def test_three_clients_and_official_colors():
+def test_four_clients_and_official_colors():
     assert CLIENTS["bambutech"].color == "#22C55E"
     assert CLIENTS["gbs"].color == "#8B5CF6"
     assert CLIENTS["balia"].color == "#EC4899"
-    assert [c.short for c in CLIENTS.values()] == ["BAM", "GBS", "BAL"]
+    assert CLIENTS["omnipayments"].color == "#F97316"
+    assert [c.short for c in CLIENTS.values()] == ["BAM", "GBS", "BAL", "OMNI"]
+    assert OMNIPAYMENTS_USER_ID == "8kRfifBXEWFfG9SbdIe4"
 
 
 def test_official_chile_schedule_excludes_lunch():

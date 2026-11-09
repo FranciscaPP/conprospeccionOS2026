@@ -46,6 +46,8 @@ jobs:
       GHL_TOKEN_GBS_LOGISTICS: ${{ secrets.GHL_TOKEN_GBS_LOGISTICS }}
       GHL_TOKEN_BALIA: ${{ secrets.GHL_TOKEN_BALIA }}
       GHL_LOCATION_BALIA: ${{ secrets.GHL_LOCATION_BALIA }}
+      GHL_TOKEN_OMNIPAYMENTS: ${{ secrets.GHL_TOKEN_OMNIPAYMENTS }}
+      GHL_LOCATION_OMNIPAYMENTS: ${{ secrets.GHL_LOCATION_OMNIPAYMENTS }}
       TELEGRAM_SDR_TOKEN: ${{ secrets.TELEGRAM_SDR_TOKEN }}
       TELEGRAM_SDR_CHAT_ID: ${{ secrets.TELEGRAM_SDR_CHAT_ID }}
       UPDATE_ID: ${{ github.event.inputs.update_id }}
@@ -73,6 +75,8 @@ jobs:
               "GHL_TOKEN_GBS_LOGISTICS",
               "GHL_TOKEN_BALIA",
               "GHL_LOCATION_BALIA",
+              "GHL_TOKEN_OMNIPAYMENTS",
+              "GHL_LOCATION_OMNIPAYMENTS",
               "TELEGRAM_SDR_TOKEN",
               "TELEGRAM_SDR_CHAT_ID",
           ]

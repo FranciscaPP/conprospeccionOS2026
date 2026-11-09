@@ -8,7 +8,14 @@ from report_calls_live import GHLClient, LOCATION, token_for, to_chile
 from report_tareas import ETIQUETA, fetch_tasks, tipo_de
 from report_actividad import stage_moves
 
-from .config import CHILE, CLIENTS, CON_PROSPECCION, is_conprospeccion, work_blocks_for
+from .config import (
+    CHILE,
+    CLIENTS,
+    CON_PROSPECCION,
+    OMNIPAYMENTS_USER_ID,
+    is_conprospeccion,
+    work_blocks_for,
+)
 from .metrics import (
     build_task_baseline,
     call_metrics,
@@ -217,6 +224,11 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             task for task in all_tasks
             if "test" not in (task.get("contact_name") or "").lower().split()
         ]
+        if slug == "omnipayments":
+            all_tasks = [
+                task for task in all_tasks
+                if task.get("assigned_to") == OMNIPAYMENTS_USER_ID
+            ]
         cp_tasks: list[dict] = []
         tasks = all_tasks
         if slug == "balia":
@@ -239,6 +251,12 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             alerts.append(f"{CLIENTS[slug].name} · actividad multicanal no disponible ({type(exc).__name__}).")
         cp_activity_messages: list[dict] = []
         activity_messages = all_activity_messages_for_client
+        if slug == "omnipayments":
+            activity_messages = [
+                message for message in all_activity_messages_for_client
+                if message.get("user_id") == OMNIPAYMENTS_USER_ID
+                or message.get("conversation_user_id") == OMNIPAYMENTS_USER_ID
+            ]
         if slug == "balia":
             cp_contact_ids = {task.get("contact_id") for task in cp_tasks if task.get("contact_id")}
             cp_activity_messages = [
@@ -358,7 +376,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
             }
             email["pending"] = email["unanswered"]
             whatsapp = None
-            if slug == "bambutech":
+            if slug in {"bambutech", "omnipayments"}:
                 whatsapp = {
                     **summarize_whatsapp_messages(current_messages),
                     **summarize_conversation_work(activity_messages, day, "TYPE_WHATSAPP"),
@@ -402,6 +420,15 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         try:
             meetings_scheduled = _meetings_scheduled_today(ghl, location_id, day)
             meetings_today = _meetings_today(ghl, location_id, day)
+            if slug == "omnipayments":
+                meetings_scheduled = [
+                    meeting for meeting in meetings_scheduled
+                    if meeting.get("assigned_user_id") == OMNIPAYMENTS_USER_ID
+                ]
+                meetings_today = [
+                    meeting for meeting in meetings_today
+                    if meeting.get("assigned_user_id") == OMNIPAYMENTS_USER_ID
+                ]
             if slug == "balia":
                 meetings_scheduled, cp_meetings_scheduled = _partition_balia_records(
                     meetings_scheduled, "assigned_user_id"

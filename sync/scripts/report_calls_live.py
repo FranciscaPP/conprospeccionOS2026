@@ -31,13 +31,20 @@ TOKEN_ENV = {
     "gbs": "GHL_TOKEN_GBS_LOGISTICS",
     "bambutech": "GHL_TOKEN_BAMBUTECH",
     "balia": "GHL_TOKEN_BALIA",
+    "omnipayments": "GHL_TOKEN_OMNIPAYMENTS",
 }
 LOCATION = {
     "bambutech": "FJ1YCwi4UVvwcBb8qlOb",
     "gbs": "u9b8KkJXhM8lqJfzxa7G",
     "balia": get_optional_env("GHL_LOCATION_BALIA") or "",
+    "omnipayments": get_optional_env("GHL_LOCATION_OMNIPAYMENTS") or "",
 }
-NOMBRE = {"bambutech": "BAMBU TECH", "gbs": "GBS", "balia": "BALIA"}
+NOMBRE = {
+    "bambutech": "BAMBU TECH",
+    "gbs": "GBS",
+    "balia": "BALIA",
+    "omnipayments": "OMNI PAYMENTS",
+}
 
 
 def token_for(slug: str) -> str:

@@ -9,7 +9,7 @@ from .config import BACKGROUND_COLOR, CLIENTS, CON_PROSPECCION, TEXT_COLOR
 
 
 CP_KEY = "conprospeccion"
-ORDER = ("bambutech", "gbs", "balia", CP_KEY)
+ORDER = (*CLIENTS, CP_KEY)
 TOTAL_KEY = "total"
 TOTAL_COLOR = "#D1D5DB"
 HEADER_COLOR = "#CBD5E1"

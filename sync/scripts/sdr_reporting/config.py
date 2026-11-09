@@ -28,7 +28,12 @@ CLIENTS = {
     "bambutech": ClientConfig("bambutech", "BAMBU TECH", "BAM", "🟩", "#22C55E"),
     "gbs": ClientConfig("gbs", "GBS", "GBS", "🟪", "#8B5CF6"),
     "balia": ClientConfig("balia", "BALIA", "BAL", "🩷", "#EC4899"),
+    "omnipayments": ClientConfig("omnipayments", "OMNI PAYMENTS", "OMNI", "🟧", "#F97316"),
 }
+
+# Nora en la subcuenta Omni Payments. Omni no tiene bloque horario asignado;
+# su actividad se mide y suma a los totales, pero no crea una franja esperada.
+OMNIPAYMENTS_USER_ID = "8kRfifBXEWFfG9SbdIe4"
 
 # Con Prospección llama desde la misma subcuenta de Balia: se distingue por el usuario con que Nora entra
 # (nora@conprospeccion.com = Con Prospección; el usuario de Florencia = Balia).
