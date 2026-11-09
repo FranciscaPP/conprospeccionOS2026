@@ -36,6 +36,9 @@ from .sources import (
 )
 
 
+EMAIL_MANAGEMENT_SECONDS = 40
+
+
 def _task_id(task: dict) -> str:
     return str(task.get("_id") or task.get("id") or "")
 
@@ -640,7 +643,7 @@ def build_live_report(day: date | None = None, now: datetime | None = None) -> d
         int((clients[slug].get("email") or {}).get("manual_sent") or 0)
         for slug in CLIENTS
     ) + int((conprospeccion.get("email") or {}).get("manual_sent") or 0)
-    email_management_seconds = sent_emails * 60
+    email_management_seconds = sent_emails * EMAIL_MANAGEMENT_SECONDS
     total_management_seconds = total_phone_seconds + email_management_seconds
     hourly = hourly_breakdown(
         day, now, work_blocks_for(day),

@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "sync" / "script
 
 from sdr_reporting.config import CON_PROSPECCION_USER_ID
 from sdr_reporting.service import (
+    EMAIL_MANAGEMENT_SECONDS,
     _future_tasks_this_week,
     _meeting_user_id,
     _partition_balia_records,
@@ -16,6 +17,10 @@ from sdr_reporting.service import (
 
 
 CHILE = ZoneInfo("America/Santiago")
+
+
+def test_email_management_credits_forty_seconds_per_send():
+    assert EMAIL_MANAGEMENT_SECONDS == 40
 
 
 def test_future_tasks_only_count_open_tasks_through_friday():

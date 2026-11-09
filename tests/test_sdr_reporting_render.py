@@ -31,7 +31,7 @@ def sample_report():
         "sdr": "Nora",
         "clients": {"bambutech": bambu, "gbs": dict(base), "balia": balia},
         "work_time": {"call_seconds": 1320, "email_count": 9,
-                      "email_seconds": 540, "total_seconds": 1860},
+                      "email_seconds": 360, "total_seconds": 1680},
         "alerts": [],
         "block_adherence": [],
     }

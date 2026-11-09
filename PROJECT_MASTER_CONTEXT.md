@@ -205,11 +205,11 @@ No desarrollar directamente en `master`.
   cuenta como sin contestar.
 - El Resumen final no muestra horas teóricas ni "sin trabajar". Presenta gestión de
   llamadas (tiempo telefónico registrado), gestión de correos (cantidad de envíos
-  manuales desde GHL, a 1 minuto por correo) y tiempo total de gestión como suma de
+  manuales desde GHL, a 40 segundos por correo) y tiempo total de gestión como suma de
   ambos. Los bloques quedan solo para adherencia y las tablas de fuera de horario.
 - Correos y WhatsApp se miden por conversación: pendiente del día anterior, hoy,
   total, enviados desde plataforma, respondidos manualmente y sin responder. La
-  gestión de correos acredita 1 minuto por cada envío manual (`app` o `bulk_actions`);
+  gestión de correos acredita 40 segundos por cada envío manual (`app` o `bulk_actions`);
   los workflows no acreditan gestión. BAMBU TECH obtiene WhatsApp desde GHL. GBS y BALIA muestran
   N/D mientras no existan cifras manuales verificadas.
 - Seguimientos: para cada cliente, el reporte cuenta contactos cuyo `STATUS PROSPECTO`

@@ -138,8 +138,8 @@ def _total_activity_card(report: dict) -> str:
         f"Hablando: {_minutes(answered_seconds)}\nSin contestar/sonando: {_minutes(unanswered_seconds)}\n"
         f"Total teléfono: {_minutes(phone_seconds)}\n{email_line}\n{whatsapp_line}\n"
         f"<b>GESTIÓN DE LLAMADAS: {_minutes(work.get('call_seconds', phone_seconds))}</b>\n"
-        f"<b>GESTIÓN DE CORREOS: {int(work.get('email_count') or sent)} envíos · {_minutes(work.get('email_seconds', sent * 60))}</b>\n"
-        f"<b>TIEMPO TOTAL DE GESTIÓN: {_minutes(work.get('total_seconds', phone_seconds + sent * 60))}</b>"
+        f"<b>GESTIÓN DE CORREOS: {int(work.get('email_count') or sent)} envíos · {_minutes(work.get('email_seconds', sent * 40))}</b>\n"
+        f"<b>TIEMPO TOTAL DE GESTIÓN: {_minutes(work.get('total_seconds', phone_seconds + sent * 40))}</b>"
     )
 
 
@@ -179,7 +179,7 @@ def render_hourly(report: dict) -> list[str]:
     msg2 = (
         "☎️ <b>03 · LLAMADAS, CORREOS Y TIEMPO</b>\n\n"
         + "\n\n".join([*(_activity_card(s, clients[s]) for s in ORDER), _total_activity_card(report)])
-        + "\n\n<i>Gestión total = tiempo telefónico + 1 minuto por cada correo manual enviado desde GHL.</i>"
+        + "\n\n<i>Gestión total = tiempo telefónico + 40 segundos por cada correo manual enviado desde GHL.</i>"
     )
     msg3 = "🕐 <b>04 · ADHERENCIA A BLOQUES</b>\n\n" + _adherence(report)
     return [msg1, msg2, msg3]
