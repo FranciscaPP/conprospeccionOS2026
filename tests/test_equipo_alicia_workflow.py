@@ -8,6 +8,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "equipo-alicia-cloud.yml"
 def test_cloud_workflow_contract():
     text = WORKFLOW.read_text(encoding="utf-8")
 
+    assert 'cron: "0 0-2,12-23 * * *"' in text
     for utc_hour in [0, 1, 2, *range(12, 24)]:
         assert f'cron: "17 {utc_hour} * * *"' in text
     assert "workflow_dispatch:" in text

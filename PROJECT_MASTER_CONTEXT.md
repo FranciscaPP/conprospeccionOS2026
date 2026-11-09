@@ -246,8 +246,13 @@ No desarrollar directamente en `master`.
   cuatro oportunidades por hora para tolerar retrasos u omisiones del scheduler.
 - Incidente 2026-11-05: el cron frecuente siguio siendo omitido por GitHub. Se
   reemplazo por eventos cron explicitos solo para las horas UTC que pueden
-  corresponder a los siete cortes Chile en UTC-3 o UTC-4; Python conserva el
+  corresponder a los cortes Chile en UTC-3 o UTC-4; Python conserva el
   gate local y descarta el evento de la zona horaria inactiva.
+- Incidente 2026-11-09: el corte de las 18:00 no habia salido a las 18:08 porque
+  el unico despertar estaba programado a los :17. Se agrego un intento principal
+  a la hora exacta y se conservaron los disparadores explicitos de los :17 como
+  respaldo. La claim atomica de `sdr_report_deliveries` impide duplicados si
+  ambos intentos se ejecutan.
 - No modificar ni reutilizar los bots de clientes ni el bot separado de reuniones.
 
 Estado 2026-07-03: la app antigua `conprospeccion-os.streamlit.app` fue

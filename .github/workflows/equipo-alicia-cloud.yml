@@ -2,9 +2,11 @@ name: Equipo Alicia cloud
 
 on:
   schedule:
-    # Disparadores explícitos para los cortes diarios Chile. La unión cubre UTC-3
-    # y UTC-4; Python descarta automáticamente la hora que no corresponda.
-    # Se evita el cron genérico frecuente, que GitHub estaba omitiendo.
+    # Intento principal a la hora exacta. La unión cubre UTC-3 y UTC-4;
+    # Python descarta automáticamente la hora que no corresponda.
+    - cron: "0 0-2,12-23 * * *"
+    # Respaldo a los :17 por si GitHub omite o retrasa el intento principal.
+    # La claim atómica de Supabase evita que ambos envíen el mismo corte.
     - cron: "17 0 * * *"
     - cron: "17 1 * * *"
     - cron: "17 2 * * *"
