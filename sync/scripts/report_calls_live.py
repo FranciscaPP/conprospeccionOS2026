@@ -43,7 +43,7 @@ NOMBRE = {
     "bambutech": "BAMBU TECH",
     "gbs": "GBS",
     "balia": "BALIA",
-    "omnipayments": "OMNI PAYMENTS",
+    "omnipayments": "OmniPayments",
 }
 
 

@@ -13,6 +13,7 @@ def test_four_clients_and_official_colors():
     assert CLIENTS["gbs"].color == "#8B5CF6"
     assert CLIENTS["balia"].color == "#EC4899"
     assert CLIENTS["omnipayments"].color == "#F97316"
+    assert CLIENTS["omnipayments"].name == "OmniPayments"
     assert [c.short for c in CLIENTS.values()] == ["BAM", "GBS", "BAL", "OMNI"]
     assert OMNIPAYMENTS_USER_ID == "8kRfifBXEWFfG9SbdIe4"
 
